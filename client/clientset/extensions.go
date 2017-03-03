@@ -14,7 +14,7 @@ const (
 
 type ExtensionInterface interface {
 	RESTClient() rest.Interface
-	CertificateNamespacer
+	PostgresNamespacer
 }
 
 // AppsCodeExtensionsClient is used to interact with experimental Kubernetes features.
@@ -24,8 +24,8 @@ type AppsCodeExtensionsClient struct {
 	restClient rest.Interface
 }
 
-func (a *AppsCodeExtensionsClient) Certificate(namespace string) CertificateInterface {
-	return newCertificate(a, namespace)
+func (a *AppsCodeExtensionsClient) Postgres(namespace string) PostgresInterface {
+	return newPostgres(a, namespace)
 }
 
 // NewAppsCodeExtensions creates a new AppsCodeExtensionsClient for the given config. This client

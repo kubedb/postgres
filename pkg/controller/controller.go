@@ -32,35 +32,35 @@ func New(c *rest.Config) *Controller {
 func (w *Controller) RunAndHold() {
 	lw := &cache.ListWatch{
 		ListFunc: func(opts api.ListOptions) (runtime.Object, error) {
-			return w.Client.Certificate(api.NamespaceAll).List(api.ListOptions{})
+			return w.Client.Postgres(api.NamespaceAll).List(api.ListOptions{})
 		},
 		WatchFunc: func(options api.ListOptions) (watch.Interface, error) {
-			return w.Client.Certificate(api.NamespaceAll).Watch(api.ListOptions{})
+			return w.Client.Postgres(api.NamespaceAll).Watch(api.ListOptions{})
 		},
 	}
 	_, controller := cache.NewInformer(lw,
-		&tapi.Certificate{},
+		&tapi.Postgres{},
 		w.SyncPeriod,
 		cache.ResourceEventHandlerFuncs{
 			AddFunc: func(obj interface{}) {
-				glog.Infoln("Got one added tpr", obj.(*tapi.Certificate))
-				w.doStuff(obj.(*tapi.Certificate))
+				glog.Infoln("Got one added TPR", obj.(*tapi.Postgres))
+				w.doStuff(obj.(*tapi.Postgres))
 			},
 			DeleteFunc: func(obj interface{}) {
-				glog.Infoln("Got one deleted tpr", obj.(*tapi.Certificate))
-				w.doStuff(obj.(*tapi.Certificate))
+				glog.Infoln("Got one deleted TPR", obj.(*tapi.Postgres))
+				w.doStuff(obj.(*tapi.Postgres))
 			},
 			UpdateFunc: func(old, new interface{}) {
-				oldObj, ok := old.(*tapi.Certificate)
+				oldObj, ok := old.(*tapi.Postgres)
 				if !ok {
 					return
 				}
-				newObj, ok := new.(*tapi.Certificate)
+				newObj, ok := new.(*tapi.Postgres)
 				if !ok {
 					return
 				}
 				if !reflect.DeepEqual(oldObj.Spec, newObj.Spec) {
-					glog.Infoln("Got one updated tpr", newObj)
+					glog.Infoln("Got one updated TPR", newObj)
 					w.doStuff(newObj)
 				}
 			},
@@ -69,6 +69,6 @@ func (w *Controller) RunAndHold() {
 	controller.Run(wait.NeverStop)
 }
 
-func (pl *Controller) doStuff(release *tapi.Certificate) {
+func (pl *Controller) doStuff(release *tapi.Postgres) {
 
 }
