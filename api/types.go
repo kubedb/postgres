@@ -41,8 +41,8 @@ type StorageSpec struct {
 }
 
 type InitialScriptSpec struct {
-	ScriptPath        string `json:"scriptPath,omitempty"`
-	*api.VolumeSource `json:",inline,omitempty"`
+	ScriptPath       string `json:"scriptPath,omitempty"`
+	api.VolumeSource `json:",inline,omitempty"`
 }
 
 type PostgresStatus struct {
