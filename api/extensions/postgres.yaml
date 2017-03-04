@@ -1,5 +1,5 @@
 metadata:
-  name: postgres.appscode.com
+  name: postgres.k8sdb.com
 apiVersion: extensions/v1beta1
 kind: ThirdPartyResource
 description: "Postgres Database in Kubernetes by appscode.com"
