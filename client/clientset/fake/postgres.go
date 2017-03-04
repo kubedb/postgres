@@ -14,7 +14,7 @@ type FakePostgres struct {
 	ns   string
 }
 
-var postgresResource = schema.GroupVersionResource{Group: "appscode.com", Version: "v1beta1", Resource: "postgreses"}
+var postgresResource = schema.GroupVersionResource{Group: "k8sdb.com", Version: "v1beta1", Resource: "postgreses"}
 
 // Get returns the Postgres by name.
 func (mock *FakePostgres) Get(name string) (*aci.Postgres, error) {
