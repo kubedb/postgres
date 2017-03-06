@@ -1,5 +1,5 @@
-hash: ae8ee56e53667437081691fedc126e08eed02aab934e6faeb02f61d55d14e0d8
-updated: 2017-03-03T00:16:33.882216581-08:00
+hash: a8a4edc105c1ee4c9c0ff5a0c21588cf46c19508dd0b9b5ef3b8e590168940e7
+updated: 2017-03-06T17:02:43.101672449+06:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -9,6 +9,7 @@ imports:
 - name: github.com/appscode/go
   version: 7ba1c0a441c6c319a501e54db6e93deaff5fe0dd
   subpackages:
+  - crypto/rand
   - version
 - name: github.com/appscode/log
   version: 68e0e42e42c01371f3950571fc87c2298a51dd8f
@@ -192,7 +193,7 @@ imports:
 - name: gopkg.in/yaml.v2
   version: 53feefa2559fb8dfa8d81baad31be332c97d6c77
 - name: k8s.io/kubernetes
-  version: 029c3a408176b55c30846f0faedf56aae5992e9b
+  version: e9eeec655e7fdee50d4e19200f9707d1cd4a3371
   subpackages:
   - pkg/api
   - pkg/api/errors
@@ -225,6 +226,9 @@ imports:
   - pkg/apis/certificates
   - pkg/apis/certificates/install
   - pkg/apis/certificates/v1alpha1
+  - pkg/apis/componentconfig
+  - pkg/apis/componentconfig/install
+  - pkg/apis/componentconfig/v1alpha1
   - pkg/apis/extensions
   - pkg/apis/extensions/install
   - pkg/apis/extensions/v1beta1
@@ -239,6 +243,18 @@ imports:
   - pkg/apis/storage/v1beta1
   - pkg/auth/user
   - pkg/client/cache
+  - pkg/client/clientset_generated/internalclientset
+  - pkg/client/clientset_generated/internalclientset/typed/apps/internalversion
+  - pkg/client/clientset_generated/internalclientset/typed/authentication/internalversion
+  - pkg/client/clientset_generated/internalclientset/typed/authorization/internalversion
+  - pkg/client/clientset_generated/internalclientset/typed/autoscaling/internalversion
+  - pkg/client/clientset_generated/internalclientset/typed/batch/internalversion
+  - pkg/client/clientset_generated/internalclientset/typed/certificates/internalversion
+  - pkg/client/clientset_generated/internalclientset/typed/core/internalversion
+  - pkg/client/clientset_generated/internalclientset/typed/extensions/internalversion
+  - pkg/client/clientset_generated/internalclientset/typed/policy/internalversion
+  - pkg/client/clientset_generated/internalclientset/typed/rbac/internalversion
+  - pkg/client/clientset_generated/internalclientset/typed/storage/internalversion
   - pkg/client/clientset_generated/release_1_5
   - pkg/client/clientset_generated/release_1_5/fake
   - pkg/client/clientset_generated/release_1_5/typed/apps/v1beta1
@@ -280,7 +296,10 @@ imports:
   - pkg/conversion/queryparams
   - pkg/fields
   - pkg/genericapiserver/openapi/common
+  - pkg/kubelet/qos
+  - pkg/kubelet/types
   - pkg/labels
+  - pkg/master/ports
   - pkg/runtime
   - pkg/runtime/serializer
   - pkg/runtime/serializer/json
@@ -293,6 +312,7 @@ imports:
   - pkg/util
   - pkg/util/cert
   - pkg/util/clock
+  - pkg/util/config
   - pkg/util/diff
   - pkg/util/errors
   - pkg/util/flowcontrol
