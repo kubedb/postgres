@@ -5,9 +5,9 @@ import (
 	"time"
 
 	_ "github.com/k8sdb/postgres/api/install"
-	"github.com/k8sdb/postgres/client/config"
 	"github.com/k8sdb/postgres/pkg/controller"
 	"github.com/spf13/cobra"
+	"k8s.io/kubernetes/pkg/client/unversioned/clientcmd"
 	"k8s.io/kubernetes/pkg/util/runtime"
 )
 
@@ -21,7 +21,7 @@ func NewCmdRun() *cobra.Command {
 		Use:   "run",
 		Short: "Run Postgres in Kubernetes",
 		Run: func(cmd *cobra.Command, args []string) {
-			config, err := config.GetKubeConfig(masterURL, kubeconfigPath)
+			config, err := clientcmd.BuildConfigFromFlags(masterURL, kubeconfigPath)
 			if err != nil {
 				fmt.Printf("Could not get kubernetes config: %s", err)
 				time.Sleep(30 * time.Minute)
