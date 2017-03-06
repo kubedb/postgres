@@ -62,21 +62,21 @@ func NewNewACExtensions(c rest.Interface) *AppsCodeExtensionsClient {
 }
 
 func setExtensionsDefaults(config *rest.Config) error {
-	gv, err := schema.ParseGroupVersion("appscode.com/v1beta1")
+	gv, err := schema.ParseGroupVersion("k8sdb.com/v1beta1")
 	if err != nil {
 		return err
 	}
-	// if appscode.com/v1beta1 is not enabled, return an error
+	// if k8sdb.com/v1beta1 is not enabled, return an error
 	if !registered.IsEnabledVersion(gv) {
-		return fmt.Errorf("appscode.com/v1beta1 is not enabled")
+		return fmt.Errorf("k8sdb.com/v1beta1 is not enabled")
 	}
 	config.APIPath = defaultAPIPath
 	if config.UserAgent == "" {
 		config.UserAgent = rest.DefaultKubernetesUserAgent()
 	}
 
-	if config.GroupVersion == nil || config.GroupVersion.Group != "appscode.com" {
-		g, err := registered.Group("appscode.com")
+	if config.GroupVersion == nil || config.GroupVersion.Group != "k8sdb.com" {
+		g, err := registered.Group("k8sdb.com")
 		if err != nil {
 			return err
 		}

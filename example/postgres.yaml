@@ -1,0 +1,10 @@
+apiVersion: k8sdb.com/v1beta1
+kind: Postgres
+metadata:
+  name: test
+  labels:
+    operator: postgres
+spec:
+  Version: 9.5-v3-db
+  Replicas: 1
+  ServiceAccountName: postgres
