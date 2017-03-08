@@ -188,7 +188,6 @@ func (w *Controller) addPersistentVolumeClaim(statefulSet *kapps.StatefulSet, st
 				ObjectMeta: kapi.ObjectMeta{
 					Name: "volume",
 					Annotations: map[string]string{
-						"volume.alpha.kubernetes.io/storage-class": storageClassName,
 						"volume.beta.kubernetes.io/storage-class":  storageClassName,
 					},
 				},
