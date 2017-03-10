@@ -4,25 +4,35 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-LIB_ROOT=$(dirname "${BASH_SOURCE}")/../../../..
-source "$LIB_ROOT/hack/libbuild/common/lib.sh"
-source "$LIB_ROOT/hack/libbuild/common/public_image.sh"
+GOPATH=$(go env GOPATH)
+REPO_ROOT=$GOPATH/src/github.com/k8sdb/postgres
+
+source "$REPO_ROOT/hack/libbuild/common/lib.sh"
+source "$REPO_ROOT/hack/libbuild/common/public_image.sh"
+
+IMG=postgres
+TAG=9.5-v3
 
 docker_names=( \
 	"db" \
 	"util" \
 )
 
-IMG=postgres
-TAG=9.5-v3
+DIST=$REPO_ROOT/dist
+mkdir -p $DIST
+if [ -f "$DIST/.tag" ]; then
+	export $(cat $DIST/.tag | xargs)
+fi
 
 build() {
+        pushd $REPO_ROOT/hack/docker/postgres/9.5
 	for name in "${docker_names[@]}"
 	do
 		cd $name
 		docker build -t appscode/$IMG:$TAG-$name .
 		cd ..
 	done
+	popd
 }
 
 docker_push() {
@@ -35,7 +45,7 @@ docker_push() {
 docker_release() {
 	for name in "${docker_names[@]}"
 	do
-        docker push appscode/$IMG:$TAG-$name
+                docker push appscode/$IMG:$TAG-$name
 	done
 }
 

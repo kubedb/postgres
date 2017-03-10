@@ -23,13 +23,13 @@ if [ -f "$DIST/.tag" ]; then
 fi
 
 clean() {
-    pushd $GOPATH/src/github.com/k8sdb/postgres/hack/docker
-    rm k8spg Dockerfile
+    pushd $REPO_ROOT/hack/docker/controller
+    rm -f k8spg Dockerfile
     popd
 }
 
 build_binary() {
-    pushd $GOPATH/src/github.com/k8sdb/postgres
+    pushd $REPO_ROOT
     ./hack/builddeps.sh
     ./hack/make.py build k8spg
     detect_tag $DIST/.tag
@@ -37,7 +37,7 @@ build_binary() {
 }
 
 build_docker() {
-    pushd $GOPATH/src/github.com/k8sdb/postgres/hack/docker
+    pushd $REPO_ROOT/hack/docker/controller
     cp $DIST/k8spg/k8spg-linux-amd64 k8spg
     chmod 755 k8spg
 
