@@ -1,4 +1,4 @@
-package kube
+package api
 
 import (
 	"k8s.io/kubernetes/pkg/api"
@@ -34,7 +34,6 @@ func addKnownTypes(scheme *runtime.Scheme) error {
 		&PostgresList{},
 
 		&api.ListOptions{},
-		&api.DeleteOptions{},
 	)
 	return nil
 }

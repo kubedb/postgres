@@ -1,4 +1,4 @@
-package kube
+package api
 
 import (
 	schema "k8s.io/kubernetes/pkg/api/unversioned"
@@ -22,7 +22,6 @@ func v1addKnownTypes(scheme *runtime.Scheme) error {
 		&PostgresList{},
 
 		&v1.ListOptions{},
-		&v1.DeleteOptions{},
 	)
 	versionedwatch.AddToGroupVersion(scheme, V1beta1SchemeGroupVersion)
 	return nil

@@ -16,7 +16,7 @@ type PostgresInterface interface {
 	Get(name string) (*aci.Postgres, error)
 	Create(postgres *aci.Postgres) (*aci.Postgres, error)
 	Update(postgres *aci.Postgres) (*aci.Postgres, error)
-	Delete(name string, options *api.DeleteOptions) error
+	Delete(name string) error
 	Watch(opts api.ListOptions) (watch.Interface, error)
 	UpdateStatus(postgres *aci.Postgres) (*aci.Postgres, error)
 }
@@ -75,12 +75,11 @@ func (c *PostgresImpl) Update(postgres *aci.Postgres) (result *aci.Postgres, err
 	return
 }
 
-func (c *PostgresImpl) Delete(name string, options *api.DeleteOptions) (err error) {
+func (c *PostgresImpl) Delete(name string) (err error) {
 	return c.r.Delete().
 		Namespace(c.ns).
 		Resource("postgreses").
 		Name(name).
-		Body(options).
 		Do().
 		Error()
 }
