@@ -72,7 +72,7 @@ func (mock *FakePostgres) Update(svc *aci.Postgres) (*aci.Postgres, error) {
 }
 
 // Delete deletes a Postgres by name.
-func (mock *FakePostgres) Delete(name string, _ *api.DeleteOptions) error {
+func (mock *FakePostgres) Delete(name string) error {
 	_, err := mock.Fake.
 		Invokes(testing.NewDeleteAction(postgresResource, mock.ns, name), &aci.Postgres{})
 
