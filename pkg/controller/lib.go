@@ -12,6 +12,119 @@ import (
 	"k8s.io/kubernetes/pkg/labels"
 )
 
+func (w *Controller) checkGoverningServiceAccount(namespace, name string) (bool, error) {
+	serviceAccount, err := w.Client.Core().ServiceAccounts(namespace).Get(name)
+	if err != nil {
+		if k8serr.IsNotFound(err) {
+			return false, nil
+		} else {
+			return false, err
+		}
+	}
+	if serviceAccount == nil {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+func (w *Controller) createGoverningServiceAccount(namespace, name string) error {
+	found, err := w.checkGoverningServiceAccount(namespace, name)
+	if err != nil {
+		return err
+	}
+	if found {
+		return nil
+	}
+
+	serviceAccount := &kapi.ServiceAccount{
+		ObjectMeta: kapi.ObjectMeta{
+			Name: name,
+		},
+	}
+
+	if _, err = w.Client.Core().ServiceAccounts(namespace).Create(serviceAccount); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (w *Controller) checkService(namespace, serviceName string) (bool, error) {
+	service, err := w.Client.Core().Services(namespace).Get(serviceName)
+	if err != nil {
+		if k8serr.IsNotFound(err) {
+			return false, nil
+		} else {
+			return false, err
+		}
+	}
+	if service == nil {
+		return false, nil
+	}
+
+	if service.Spec.Selector[LabelDatabaseName] != serviceName {
+		return false, errors.New(fmt.Sprintf(`Intended service "%v" already exists`, serviceName))
+	}
+
+	return true, nil
+}
+
+func (w *Controller) createService(namespace, serviceName string) error {
+	// Check if service name exists
+	found, err := w.checkService(namespace, serviceName)
+	if err != nil {
+		return err
+	}
+	if found {
+		return nil
+	}
+
+	label := map[string]string{
+		LabelDatabaseName: serviceName,
+	}
+	service := &kapi.Service{
+		ObjectMeta: kapi.ObjectMeta{
+			Name:   serviceName,
+			Labels: label,
+		},
+		Spec: kapi.ServiceSpec{
+			Ports: []kapi.ServicePort{
+				{
+					Name: "http",
+					Port: 5432,
+				},
+			},
+			Selector: label,
+		},
+	}
+
+	if _, err := w.Client.Core().Services(namespace).Create(service); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (w *Controller) deleteService(namespace, serviceName string) error {
+	service, err := w.Client.Core().Services(namespace).Get(serviceName)
+	if err != nil {
+		if k8serr.IsNotFound(err) {
+			return nil
+		} else {
+			return err
+		}
+	}
+	if service == nil {
+		return nil
+	}
+
+	if service.Spec.Selector[LabelDatabaseName] != serviceName {
+		return nil
+	}
+
+	return w.Client.Core().Services(namespace).Delete(serviceName, nil)
+}
+
 func (w *Controller) checkSecret(namespace, secretName string) (bool, error) {
 	secret, err := w.Client.Core().Secrets(namespace).Get(secretName)
 	if err != nil {
@@ -28,21 +141,6 @@ func (w *Controller) checkSecret(namespace, secretName string) (bool, error) {
 	return true, nil
 }
 
-func (w *Controller) createSecret(namespace, secretName string) error {
-	secret := &kapi.Secret{
-		ObjectMeta: kapi.ObjectMeta{
-			Name: secretName,
-			Labels: map[string]string{
-				"k8sdb.com/type": databaseType,
-			},
-		},
-		Type: kapi.SecretTypeOpaque,
-		Data: create_auth(),
-	}
-	_, err := w.Client.Core().Secrets(namespace).Create(secret)
-	return err
-}
-
 // To create password secret
 func create_auth() map[string][]byte {
 	POSTGRES_PASSWORD := fmt.Sprintf("POSTGRES_PASSWORD=%s\n", rand.GeneratePassword())
@@ -50,6 +148,21 @@ func create_auth() map[string][]byte {
 		".admin": []byte(POSTGRES_PASSWORD),
 	}
 	return data
+}
+
+func (w *Controller) createSecret(namespace, secretName string) error {
+	secret := &kapi.Secret{
+		ObjectMeta: kapi.ObjectMeta{
+			Name: secretName,
+			Labels: map[string]string{
+				LabelDatabaseType: DatabasePostgres,
+			},
+		},
+		Type: kapi.SecretTypeOpaque,
+		Data: create_auth(),
+	}
+	_, err := w.Client.Core().Secrets(namespace).Create(secret)
+	return err
 }
 
 func (c *Controller) deleteStatefulSet(statefulSet *kapps.StatefulSet) error {

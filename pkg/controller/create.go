@@ -10,10 +10,14 @@ import (
 )
 
 const (
-	dockerImage    = "appscode/postgres"
-	databaseType   = "postgres"
-	modeBasic      = "basic"
-	databasePrefix = "k8sdb"
+	annotationDatabaseVersion = "postgres.k8sdb.com/version"
+	DatabaseNamePrefix        = "k8sdb"
+	DatabasePostgres          = "postgres"
+	GoverningPostgres         = "governing-postgres"
+	imagePostgres             = "appscode/postgres"
+	LabelDatabaseName         = "postgres.k8sdb.com/name"
+	LabelDatabaseType         = "k8sdb.com/type"
+	modeBasic                 = "basic"
 )
 
 func (w *Controller) create(postgres *tapi.Postgres) {
@@ -21,37 +25,60 @@ func (w *Controller) create(postgres *tapi.Postgres) {
 		return
 	}
 
+	governingService := GoverningPostgres
+	if postgres.Spec.ServiceAccountName != "" {
+		governingService = postgres.Spec.ServiceAccountName
+	}
+	if err := w.createGoverningServiceAccount(postgres.Namespace, governingService); err != nil {
+		log.Errorln(err)
+		return
+	}
+
+	if err := w.createService(postgres.Namespace, postgres.Name); err != nil {
+		log.Errorln(err)
+		return
+	}
+
 	if postgres.Labels == nil {
 		postgres.Labels = make(map[string]string)
 	}
+	postgres.Labels[LabelDatabaseType] = DatabasePostgres
+
 	if postgres.Annotations == nil {
 		postgres.Annotations = make(map[string]string)
 	}
+	postgres.Annotations[annotationDatabaseVersion] = postgres.Spec.Version
 
-	postgres.Labels["postgres.k8sdb.com/name"] = postgres.Name
-	postgres.Annotations["k8sdb.com/type"] = databaseType
+	podLabels := make(map[string]string)
+	for key, val := range postgres.Labels {
+		podLabels[key] = val
+	}
+	podLabels[LabelDatabaseName] = postgres.Name
 
-	dockerImage := fmt.Sprintf("%v:%v", dockerImage, postgres.Spec.Version)
+	dockerImage := fmt.Sprintf("%v:%v", imagePostgres, postgres.Spec.Version)
 
+	statefulSetName := fmt.Sprintf("%v-%v", DatabaseNamePrefix, postgres.Name)
+	// One single node cluster is supported for now.
+	replicas := int32(1)
 	statefulSet := &kapps.StatefulSet{
 		ObjectMeta: kapi.ObjectMeta{
-			Name:        fmt.Sprintf("%v-%v", databasePrefix, postgres.Name),
+			Name:        statefulSetName,
 			Namespace:   postgres.Namespace,
 			Labels:      postgres.Labels,
 			Annotations: postgres.Annotations,
 		},
 		Spec: kapps.StatefulSetSpec{
-			Replicas:    postgres.Spec.Replicas,
-			ServiceName: postgres.Spec.ServiceAccountName,
+			Replicas:    replicas,
+			ServiceName: governingService,
 			Template: kapi.PodTemplateSpec{
 				ObjectMeta: kapi.ObjectMeta{
-					Labels:      postgres.Labels,
+					Labels:      podLabels,
 					Annotations: postgres.Annotations,
 				},
 				Spec: kapi.PodSpec{
 					Containers: []kapi.Container{
 						{
-							Name:            databaseType,
+							Name:            DatabasePostgres,
 							Image:           dockerImage,
 							ImagePullPolicy: kapi.PullIfNotPresent,
 							Ports: []kapi.ContainerPort{
@@ -68,8 +95,6 @@ func (w *Controller) create(postgres *tapi.Postgres) {
 			},
 		},
 	}
-
-	statefulSet.Spec.Template.Annotations["pod.alpha.kubernetes.io/initialized"] = "true"
 
 	// Add secretVolume for authentication
 	if err := w.addSecretVolume(statefulSet, postgres.Spec.AuthSecret); err != nil {
@@ -164,7 +189,7 @@ func (w *Controller) addSecretVolume(statefulSet *kapps.StatefulSet, secretVolum
 	statefulSet.Spec.Template.Spec.Containers[0].VolumeMounts = append(statefulSet.Spec.Template.Spec.Containers[0].VolumeMounts,
 		kapi.VolumeMount{
 			Name:      "secret",
-			MountPath: "/srv/" + databaseType + "/secrets",
+			MountPath: "/srv/" + DatabasePostgres + "/secrets",
 		},
 	)
 
@@ -188,7 +213,7 @@ func (w *Controller) addPersistentVolumeClaim(statefulSet *kapps.StatefulSet, st
 				ObjectMeta: kapi.ObjectMeta{
 					Name: "volume",
 					Annotations: map[string]string{
-						"volume.beta.kubernetes.io/storage-class":  storageClassName,
+						"volume.beta.kubernetes.io/storage-class": storageClassName,
 					},
 				},
 				Spec: storage.PersistentVolumeClaimSpec,
