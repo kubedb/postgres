@@ -89,10 +89,10 @@ process=$1
 shift
 case "$process" in
     backup)
-	    backup "$@"
+        backup "$@"
         ;;
     restore)
-	    restore "$@"
+        restore "$@"
         ;;
     push)
         push "$@"
