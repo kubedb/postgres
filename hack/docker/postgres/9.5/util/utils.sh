@@ -16,15 +16,15 @@ backup() {
     rm -rf "$path"/*
 
     # Wait for postgres to start
-	# ref: http://unix.stackexchange.com/a/5279
-	while ! nc -q 1 $1 5432 </dev/null; do echo "Waiting... Master pod is not ready yet"; sleep 5; done
+    # ref: http://unix.stackexchange.com/a/5279
+    while ! nc -q 1 $1 5432 </dev/null; do echo "Waiting... Master pod is not ready yet"; sleep 5; done
 
-	PGPASSWORD="$3" pg_dumpall -U "$2" -h "$1" > dumpfile.sql
-	retval=$?
-	if [ "$retval" -ne 0 ]; then
-	    echo "Fail to take backup"
-	    exit 1
-	fi
+    PGPASSWORD="$3" pg_dumpall -U "$2" -h "$1" > dumpfile.sql
+    retval=$?
+    if [ "$retval" -ne 0 ]; then
+        echo "Fail to take backup"
+        exit 1
+    fi
     exit 0
 }
 
@@ -88,20 +88,20 @@ pull() {
 process=$1
 shift
 case "$process" in
-	backup)
+    backup)
 	    backup "$@"
-		;;
-	restore)
-		restore "$@"
-		;;
-	push)
-	    push "$@"
-	    ;;
-	pull)
-		pull "$@"
-		;;
-	*)	(10)
-		echo $"Unknown process!"
-		RETVAL=1
+        ;;
+    restore)
+	    restore "$@"
+        ;;
+    push)
+        push "$@"
+        ;;
+    pull)
+        pull "$@"
+        ;;
+    *)	(10)
+        echo $"Unknown process!"
+        RETVAL=1
 esac
 exit "$RETVAL"
