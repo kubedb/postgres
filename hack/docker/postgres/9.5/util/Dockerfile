@@ -20,10 +20,11 @@ RUN set -x \
   && apt-get install -y curl ca-certificates netcat \
   && apt-get install -y --no-install-recommends postgresql-client-$PG_MAJOR --force-yes \
   && pip install --upgrade pip \
-  && pip install pyyaml
+  && pip install pyyaml \
+  && rm -rf /var/lib/apt/lists/* /usr/share/doc /usr/share/man /tmp/*
 
 RUN set -x \
-  && curl -k "https://cdn.appscode.com/binaries/osm/$OSM_VERSION/osm-linux-amd64" -o /usr/local/bin/osm \
+  && curl -L "https://cdn.appscode.com/binaries/osm/$OSM_VERSION/osm-linux-amd64" -o /usr/local/bin/osm \
   && chmod +x /usr/local/bin/osm
 
 COPY execute.py /execute.py
