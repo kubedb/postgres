@@ -1,0 +1,35 @@
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: db-postgres-demo
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      k8sdb.com/type: postgres
+      postgres.k8sdb.com/name: postgres-demo
+  serviceName: governing-postgres
+  template:
+    metadata:
+      labels:
+        k8sdb.com/type: postgres
+        postgres.k8sdb.com/name: postgres-demo
+    spec:
+      containers:
+      - args:
+        - basic
+        image: appscode/postgres:9.5-v3-db
+        imagePullPolicy: IfNotPresent
+        name: postgres
+        ports:
+        - containerPort: 5432
+          name: http
+          protocol: TCP
+        volumeMounts:
+        - mountPath: /srv/postgres/secrets
+          name: secret
+      volumes:
+      - name: secret
+        secret:
+          secretName: postgres-demo-admin-auth
