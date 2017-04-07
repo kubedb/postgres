@@ -1,64 +1,49 @@
-import sys, os, subprocess, json, time
+import sys, os, subprocess, yaml, time
 from datetime import datetime
 
 Flag = {}
-aws_cred_dir = "/root/.aws"
 
-#############################################
-# this will be written in /root/.boto for gce
-gce_cred_data = '''[Credentials]
-gs_service_key_file = /var/credentials/gce
-
-[Boto]
-https_validate_certificates = True
-
-[GSUtil]
-content_language = en
-default_api_version = 2
-default_project_id = %s
-'''
-#############################################
-
-#############################################
-# this will be written in /root/.aws/credentials for aws
-aws_cred_data = '''[default]
-aws_access_key_id = %s
-aws_secret_access_key = %s
-'''
-#############################################
+secret_data_dir = "/var/credentials"
 
 
-#######################################
-# this func write .boto file for gsutil
-def gce_cred_file():
-    with open('/var/credentials/gce') as data_file:
-        json_data = json.load(data_file)
+def set_osm_config():
+    with open(secret_data_dir+"/provider") as f:
+        lines = f.readlines()
+        if len(lines) == 0:
+            print "Provider missing"
+            exit(1)
+        provider = lines[0].rstrip('\n')
 
-    f = open('/root/.boto', 'w+')
-    f.write(gce_cred_data%json_data['project_id'])
-    f.close()
-    return True
-#######################################
+    with open(secret_data_dir + "/config") as f:
+        config = yaml.safe_load(f)
 
-#######################################
-# this func write .aws/credentials file for aws
-def aws_cred_file():
-    with open('/var/credentials/aws/keyid') as data_file:
-        key = data_file.read().rstrip()
-    with open('/var/credentials/aws/secret') as data_file:
-        secret = data_file.read().rstrip()
+    data = {
+        "contexts": [
+            dict(
+                config=config,
+                name="cloud",
+                provider=provider,
+            )
+        ],
+        "current-context": "cloud",
+    }
 
-    if not os.path.exists(aws_cred_dir):
-        os.makedirs(aws_cred_dir)
-    f = open(aws_cred_dir+'/credentials', 'w+')
-    f.write(aws_cred_data%(key,secret))
-    f.close()
-#######################################
+    home = os.environ['HOME']
+    osm_config_path = home + '/.osm'
+    if not os.path.exists(osm_config_path):
+        os.makedirs(osm_config_path)
+
+    with open(osm_config_path+"/config", 'w') as outfile:
+        yaml.dump(data, outfile, default_flow_style=False)
+
+
+secret_Path = "/srv/postgres/secrets/.admin"
+
 
 def get_auth():
     Flag["username"] = "postgres"
     try:
-        with open('/srv/postgres/secrets/.admin') as data_file:
+        with open(secret_Path) as data_file:
             for line in data_file:
                 s = line.rstrip().split("=",1)
                 if s[0] == "POSTGRES_USERNAME":
@@ -68,6 +53,7 @@ def get_auth():
     except:
         print "fail"
         exit(1)
+
 
 def continuous_exec(process):
     code = 1
@@ -83,8 +69,9 @@ def continuous_exec(process):
         time.sleep(30)
 
     if code != 0:
-        print "fail"
+        print "Fail " + process + " process"
         exit(1)
+
 
 def main(argv):
     for flag in argv:
@@ -93,34 +80,27 @@ def main(argv):
         v = flag.split("=", 1)
         Flag[v[0][2:]]=v[1]
 
-    for flag in ["process", "cloud", "bucket", "snapshot", "host", "database"]:
+    for flag in ["process", "host", "bucket", "folder", "snapshot"]:
         if flag not in Flag:
             print '--%s is required'%flag
+            exit(1)
             return
 
-    if Flag["cloud"] == "gce":
-        gce_cred_file()
-    elif Flag["cloud"] == "aws":
-        aws_cred_file()
-    else:
-        return
+    set_osm_config()
+    get_auth()
 
     if Flag["process"] == "backup":
-        get_auth()
-
-        continuous_exec("dump")
-
-        code = subprocess.call(['./utils.sh', "push", Flag["cloud"], Flag["bucket"], Flag["database"], Flag["snapshot"]])
+        continuous_exec("backup")
+        code = subprocess.call(['./utils.sh', "push", Flag["bucket"], Flag["folder"], Flag["snapshot"]])
         if code != 0:
-            print "fail"
+            print "Fail to push"
             exit(1)
 
     if Flag["process"] == "restore":
         get_auth()
-
-        code = subprocess.call(['./utils.sh', "pull", Flag["cloud"], Flag["bucket"], Flag["database"], Flag["snapshot"]])
+        code = subprocess.call(['./utils.sh', "pull", Flag["bucket"], Flag["folder"], Flag["snapshot"]])
         if code != 0:
-            print "fail"
+            print "Fail to pull data"
             exit(1)
 
         continuous_exec("restore")

@@ -1,98 +1,107 @@
 #!/bin/bash
 
-dump() {
-    cd /var/dump-backup
+exec 1> >(logger -s -p daemon.info -t pg)
+exec 2> >(logger -s -p daemon.error -t pg)
+
+RETVAL=0
+
+backup() {
+    # 1 - host
+    # 2 - username
+    # 3 - password
+
+    path=/var/dump-backup
+    mkdir -p "$path"
+    cd "$path"
+    rm -rf "$path"/*
+
     # Wait for postgres to start
 	# ref: http://unix.stackexchange.com/a/5279
 	while ! nc -q 1 $1 5432 </dev/null; do echo "Waiting... Master pod is not ready yet"; sleep 5; done
-	PGPASSWORD=$3 pg_dumpall -U $2 -h $1 > dumpfile.sql
+
+	PGPASSWORD="$3" pg_dumpall -U "$2" -h "$1" > dumpfile.sql
 	retval=$?
 	if [ "$retval" -ne 0 ]; then
+	    echo "Fail to take backup"
 	    exit 1
 	fi
     exit 0
 }
 
 restore() {
-    cd /var/dump-restore
+    # 1 - Host
+    # 2 - username
+    # 3 - password
+
+    path=/var/dump-restore/
+    mkdir -p "$path"
+    cd "$path"
+
     # Wait for postgres to start
     # ref: http://unix.stackexchange.com/a/5279
     while ! nc -q 1 $1 5432 </dev/null; do echo "Waiting... Master pod is not ready yet"; sleep 5; done
-    PGPASSWORD=$3 psql -U $2 -h $1  -f dumpfile.sql postgres
+
+    PGPASSWORD="$3" psql -U "$2" -h "$1"  -f dumpfile.sql postgres
     retval=$?
     if [ "$retval" -ne 0 ]; then
+        echo "Fail to restore"
         exit 1
     fi
     exit 0
 }
 
-pull() {
-    cd /var/dump-restore
-
-    if [ "$1" = 'gce' ]; then
-        gsutil cp  gs://$2/$3/$4.sql dumpfile.sql
-        retval=$?
-        if [ "$retval" -ne 0 ]; then
-            exit 1
-        fi
-        exit 0
-    fi
-
-    if [ "$1" = 'aws' ]; then
-        region=$(aws s3api get-bucket-location --bucket=$2 --output=text)
-        if [ $region = "None" ]; then
-            aws s3 cp s3://$2/$3/$4.sql dumpfile.sql
-        else
-            aws s3 cp --region $region s3://$2/$3/$4.sql dumpfile.sql
-        fi
-        retval=$?
-        if [ "$retval" -ne 0 ]; then
-            exit 1
-        fi
-        exit 0
-    fi
-}
-
 push() {
-    cd /var/dump-backup
+    # 1 - bucket
+    # 2 - folder
+    # 3 - snapshot-name
 
-    if [ "$1" = 'gce' ]; then
-        gsutil cp dumpfile.sql gs://$2/$3/$4.sql
-        retval=$?
-        if [ "$retval" -ne 0 ]; then
-            exit 1
-        fi
-        exit 0
+    src_path=/var/dump-backup/dumpfile.sql
+    osm push -c "$1" "$src_path" "$2/$3/dumpfile.sql"
+    retval=$?
+    if [ "$retval" -ne 0 ]; then
+        echo "Fail to push data to cloud"
+        exit 1
     fi
 
-    if [ "$1" = 'aws' ]; then
-        region=$(aws s3api get-bucket-location --bucket=$2 --output=text)
-        if [ $region = "None" ]; then
-            aws s3 cp dumpfile.sql s3://$2/$3/$4.sql
-        else
-            aws s3 cp --region $region dumpfile.sql s3://$2/$3/$4.sql
-        fi
-        retval=$?
-        if [ "$retval" -ne 0 ]; then
-            exit 1
-        fi
-        exit 0
-    fi
+    exit 0
 }
 
+pull() {
+    # 1 - bucket
+    # 2 - folder
+    # 3 - snapshot-name
 
-if [ "$1" == "dump" ]; then
-    dump $2 $3 $4
-fi
+    dst_path=/var/dump-restore/
+    mkdir -p "$dst_path"
+    rm -rf "$dst_path"
 
-if [ "$1" == "restore" ]; then
-    restore $2 $3 $4
-fi
+    osm pull -c "$1" "$2/$3" "$dst_path"
+    retval=$?
+    if [ "$retval" -ne 0 ]; then
+        echo "Fail to pull data from cloud"
+        exit 1
+    fi
 
-if [ "$1" == "push" ]; then
-    push $2 $3 $4 $5
-fi
+    exit 0
+}
 
-if [ "$1" == "pull" ]; then
-    pull $2 $3 $4 $5
-fi
+process=$1
+shift
+case "$process" in
+	backup)
+	    backup "$@"
+		;;
+	restore)
+		restore "$@"
+		;;
+	push)
+	    push "$@"
+	    ;;
+	pull)
+		pull "$@"
+		;;
+	*)	(10)
+		echo $"Unknown process!"
+		RETVAL=1
+esac
+exit "$RETVAL"
