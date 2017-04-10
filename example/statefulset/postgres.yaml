@@ -1,7 +1,7 @@
 apiVersion: apps/v1beta1
 kind: StatefulSet
 metadata:
-  name: db-postgres-demo
+  name: k8sdb-postgres-demo
   namespace: default
 spec:
   replicas: 1
@@ -19,7 +19,7 @@ spec:
       containers:
       - args:
         - basic
-        image: appscode/postgres:9.5-v3-db
+        image: appscode/postgres:9.5-v4-db
         imagePullPolicy: IfNotPresent
         name: postgres
         ports:

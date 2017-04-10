@@ -2,48 +2,120 @@ package controller
 
 import (
 	"fmt"
+	"time"
 
-	"github.com/appscode/log"
-	tapi "github.com/k8sdb/postgres/api"
+	"github.com/appscode/go/crypto/rand"
+	tapi "github.com/k8sdb/apimachinery/api"
+	amc "github.com/k8sdb/apimachinery/pkg/controller"
 	kapi "k8s.io/kubernetes/pkg/api"
+	k8serr "k8s.io/kubernetes/pkg/api/errors"
 	kapps "k8s.io/kubernetes/pkg/apis/apps"
+	"k8s.io/kubernetes/pkg/util/intstr"
 )
 
 const (
 	annotationDatabaseVersion = "postgres.k8sdb.com/version"
-	DatabaseNamePrefix        = "k8sdb"
 	DatabasePostgres          = "postgres"
 	GoverningPostgres         = "governing-postgres"
 	imagePostgres             = "appscode/postgres"
-	LabelDatabaseName         = "postgres.k8sdb.com/name"
-	LabelDatabaseType         = "k8sdb.com/type"
 	modeBasic                 = "basic"
+	// Duration in Minute
+	// Check whether pod under StatefulSet is running or not
+	// Continue checking for this duration until failure
+	durationCheckStatefulSet = time.Minute * 30
 )
 
-func (w *Controller) create(postgres *tapi.Postgres) {
-	if !w.validatePostgres(postgres) {
-		return
+func (c *postgresController) checkService(name, namespace string) (bool, error) {
+	service, err := c.Client.Core().Services(namespace).Get(name)
+	if err != nil {
+		if k8serr.IsNotFound(err) {
+			return false, nil
+		} else {
+			return false, err
+		}
+	}
+	if service == nil {
+		return false, nil
 	}
 
-	governingService := GoverningPostgres
-	if postgres.Spec.ServiceAccountName != "" {
-		governingService = postgres.Spec.ServiceAccountName
-	}
-	if err := w.createGoverningServiceAccount(postgres.Namespace, governingService); err != nil {
-		log.Errorln(err)
-		return
+	if service.Spec.Selector[amc.LabelDatabaseName] != name {
+		return false, fmt.Errorf(`Intended service "%v" already exists`, name)
 	}
 
-	if err := w.createService(postgres.Namespace, postgres.Name); err != nil {
-		log.Errorln(err)
-		return
+	return true, nil
+}
+
+func (w *postgresController) createService(name, namespace string) error {
+	// Check if service name exists
+	found, err := w.checkService(name, namespace)
+	if err != nil {
+		return err
+	}
+	if found {
+		return nil
 	}
 
+	label := map[string]string{
+		amc.LabelDatabaseName: name,
+	}
+	service := &kapi.Service{
+		ObjectMeta: kapi.ObjectMeta{
+			Name:   name,
+			Labels: label,
+		},
+		Spec: kapi.ServiceSpec{
+			Ports: []kapi.ServicePort{
+				{
+					Name:       "port",
+					Port:       5432,
+					TargetPort: intstr.FromString("port"),
+				},
+			},
+			Selector: label,
+		},
+	}
+
+	if _, err := w.Client.Core().Services(namespace).Create(service); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *postgresController) checkStatefulSet(postgres *tapi.Postgres) (*kapps.StatefulSet, error) {
+	// SatatefulSet for Postgres database
+	statefulSetName := fmt.Sprintf("%v-%v", amc.DatabaseNamePrefix, postgres.Name)
+	statefulSet, err := c.Client.Apps().StatefulSets(postgres.Namespace).Get(statefulSetName)
+	if err != nil {
+		if k8serr.IsNotFound(err) {
+			return nil, nil
+		} else {
+			return nil, err
+		}
+	}
+
+	if statefulSet.Labels[amc.LabelDatabaseType] != DatabasePostgres {
+		return nil, fmt.Errorf(`Intended statefulSet "%v" already exists`, statefulSetName)
+	}
+
+	return statefulSet, nil
+}
+
+func (c *postgresController) createStatefulSet(postgres *tapi.Postgres) (*kapps.StatefulSet, error) {
+	_statefulSet, err := c.checkStatefulSet(postgres)
+	if err != nil {
+		return nil, err
+	}
+	if _statefulSet != nil {
+		return _statefulSet, nil
+	}
+
+	// Set labels
 	if postgres.Labels == nil {
 		postgres.Labels = make(map[string]string)
 	}
-	postgres.Labels[LabelDatabaseType] = DatabasePostgres
-
+	postgres.Labels[amc.LabelDatabaseType] = DatabasePostgres
+	// Set Annotations
 	if postgres.Annotations == nil {
 		postgres.Annotations = make(map[string]string)
 	}
@@ -53,12 +125,13 @@ func (w *Controller) create(postgres *tapi.Postgres) {
 	for key, val := range postgres.Labels {
 		podLabels[key] = val
 	}
-	podLabels[LabelDatabaseName] = postgres.Name
+	podLabels[amc.LabelDatabaseName] = postgres.Name
 
 	dockerImage := fmt.Sprintf("%v:%v", imagePostgres, postgres.Spec.Version)
 
-	statefulSetName := fmt.Sprintf("%v-%v", DatabaseNamePrefix, postgres.Name)
-	// One single node cluster is supported for now.
+	// SatatefulSet for Postgres database
+	statefulSetName := fmt.Sprintf("%v-%v", amc.DatabaseNamePrefix, postgres.Name)
+
 	replicas := int32(1)
 	statefulSet := &kapps.StatefulSet{
 		ObjectMeta: kapi.ObjectMeta{
@@ -69,7 +142,7 @@ func (w *Controller) create(postgres *tapi.Postgres) {
 		},
 		Spec: kapps.StatefulSetSpec{
 			Replicas:    replicas,
-			ServiceName: governingService,
+			ServiceName: postgres.Spec.ServiceAccountName,
 			Template: kapi.PodTemplateSpec{
 				ObjectMeta: kapi.ObjectMeta{
 					Labels:      podLabels,
@@ -83,7 +156,7 @@ func (w *Controller) create(postgres *tapi.Postgres) {
 							ImagePullPolicy: kapi.PullIfNotPresent,
 							Ports: []kapi.ContainerPort{
 								{
-									Name:          "http",
+									Name:          "port",
 									ContainerPort: 5432,
 								},
 							},
@@ -96,96 +169,80 @@ func (w *Controller) create(postgres *tapi.Postgres) {
 		},
 	}
 
-	// Add secretVolume for authentication
-	if err := w.addSecretVolume(statefulSet, postgres.Spec.AuthSecret); err != nil {
-		log.Error(err)
-		return
+	if postgres.Spec.DatabaseSecret == nil {
+		secretVolumeSource, err := c.createDatabaseSecret(postgres)
+		if err != nil {
+			return nil, err
+		}
+		postgres.Spec.DatabaseSecret = secretVolumeSource
 	}
 
-	// Add PersistentVolumeClaim for StatefulSet
-	w.addPersistentVolumeClaim(statefulSet, postgres.Spec.Storage)
+	// Add secretVolume for authentication
+	addSecretVolume(statefulSet, postgres.Spec.DatabaseSecret)
+
+	// Add Data volume for StatefulSet
+	addDataVolume(statefulSet, postgres.Spec.Storage)
 
 	// Add InitialScript to run at startup
-	w.addInitialScript(statefulSet, postgres.Spec.InitialScript)
+	addInitialScript(statefulSet, postgres.Spec.InitialScript)
 
-	if _, err := w.Client.Apps().StatefulSets(statefulSet.Namespace).Create(statefulSet); err != nil {
-		log.Errorln(err)
-		return
+	if _, err := c.Client.Apps().StatefulSets(statefulSet.Namespace).Create(statefulSet); err != nil {
+		return nil, err
 	}
+
+	return statefulSet, nil
 }
 
-func (w *Controller) validatePostgres(postgres *tapi.Postgres) bool {
-	if postgres.Spec.Version == "" {
-		log.Errorln(fmt.Sprintf(`Object 'Version' is missing in '%v'`, postgres.Spec))
-		return false
-	}
-
-	storage := postgres.Spec.Storage
-	if storage != nil {
-		if storage.Class == "" {
-			log.Errorln(fmt.Sprintf(`Object 'Class' is missing in '%v'`, *storage))
-			return false
-		}
-		storageClass, err := w.Client.Storage().StorageClasses().Get(storage.Class)
-		if err != nil {
-			log.Errorln(err)
-			return false
-		}
-		if storageClass == nil {
-			log.Errorln(fmt.Sprintf(`Spec.Storage.Class "%v" not found`, storage.Class))
-			return false
+func (w *postgresController) checkSecret(namespace, secretName string) (bool, error) {
+	secret, err := w.Client.Core().Secrets(namespace).Get(secretName)
+	if err != nil {
+		if k8serr.IsNotFound(err) {
+			return false, nil
+		} else {
+			return false, err
 		}
 	}
-
-	authSecret := postgres.Spec.AuthSecret
-	if authSecret != nil {
-		if authSecret.SecretName == "" {
-			log.Errorln(fmt.Sprintf(`Object 'SecretName' is missing in '%v'`, *authSecret))
-			return false
-		}
-
-		found, err := w.checkSecret(postgres.Namespace, authSecret.SecretName)
-		if err != nil {
-			log.Errorln(err)
-			return false
-		}
-
-		if !found {
-			log.Errorln(fmt.Sprintf(`Spec.AuthSecret.SecretName "%v" not found`, authSecret.SecretName))
-			return false
-		}
+	if secret == nil {
+		return false, nil
 	}
 
-	initialScritp := postgres.Spec.InitialScript
-	if initialScritp != nil {
-		if initialScritp.ScriptPath == "" {
-			log.Errorln(fmt.Sprintf(`Object 'ScriptPath' is missing in '%v'`, *initialScritp))
-			return false
-		}
-	}
-	return true
+	return true, nil
 }
 
-func (w *Controller) addSecretVolume(statefulSet *kapps.StatefulSet, secretVolume *kapi.SecretVolumeSource) error {
-	if secretVolume == nil {
-		authSecretName := statefulSet.Name + "-admin-auth"
+func (c *postgresController) createDatabaseSecret(postgres *tapi.Postgres) (*kapi.SecretVolumeSource, error) {
+	authSecretName := postgres.Name + "-admin-auth"
 
-		found, err := w.checkSecret(statefulSet.Namespace, authSecretName)
-		if err != nil {
-			return err
+	found, err := c.checkSecret(postgres.Namespace, authSecretName)
+	if err != nil {
+		return nil, err
+	}
+
+	if !found {
+		POSTGRES_PASSWORD := fmt.Sprintf("POSTGRES_PASSWORD=%s\n", rand.GeneratePassword())
+		data := map[string][]byte{
+			".admin": []byte(POSTGRES_PASSWORD),
 		}
-
-		if !found {
-			if err := w.createSecret(statefulSet.Namespace, authSecretName); err != nil {
-				return err
-			}
+		secret := &kapi.Secret{
+			ObjectMeta: kapi.ObjectMeta{
+				Name: authSecretName,
+				Labels: map[string]string{
+					amc.LabelDatabaseType: DatabasePostgres,
+				},
+			},
+			Type: kapi.SecretTypeOpaque,
+			Data: data,
 		}
-
-		secretVolume = &kapi.SecretVolumeSource{
-			SecretName: authSecretName,
+		if _, err := c.Client.Core().Secrets(postgres.Namespace).Create(secret); err != nil {
+			return nil, err
 		}
 	}
 
+	return &kapi.SecretVolumeSource{
+		SecretName: authSecretName,
+	}, nil
+}
+
+func addSecretVolume(statefulSet *kapps.StatefulSet, secretVolume *kapi.SecretVolumeSource) error {
 	statefulSet.Spec.Template.Spec.Containers[0].VolumeMounts = append(statefulSet.Spec.Template.Spec.Containers[0].VolumeMounts,
 		kapi.VolumeMount{
 			Name:      "secret",
@@ -204,9 +261,10 @@ func (w *Controller) addSecretVolume(statefulSet *kapps.StatefulSet, secretVolum
 	return nil
 }
 
-func (w *Controller) addPersistentVolumeClaim(statefulSet *kapps.StatefulSet, storage *tapi.StorageSpec) {
+func addDataVolume(statefulSet *kapps.StatefulSet, storage *tapi.StorageSpec) {
 	if storage != nil {
 		// volume claim templates
+		// Dynamically attach volume
 		storageClassName := storage.Class
 		statefulSet.Spec.VolumeClaimTemplates = []kapi.PersistentVolumeClaim{
 			{
@@ -219,10 +277,21 @@ func (w *Controller) addPersistentVolumeClaim(statefulSet *kapps.StatefulSet, st
 				Spec: storage.PersistentVolumeClaimSpec,
 			},
 		}
+	} else {
+		// Attach Empty directory
+		statefulSet.Spec.Template.Spec.Volumes = append(
+			statefulSet.Spec.Template.Spec.Volumes,
+			kapi.Volume{
+				Name: "volume",
+				VolumeSource: kapi.VolumeSource{
+					EmptyDir: &kapi.EmptyDirVolumeSource{},
+				},
+			},
+		)
 	}
 }
 
-func (w *Controller) addInitialScript(statefulSet *kapps.StatefulSet, script *tapi.InitialScriptSpec) {
+func addInitialScript(statefulSet *kapps.StatefulSet, script *tapi.InitialScriptSpec) {
 	if script != nil {
 		statefulSet.Spec.Template.Spec.Containers[0].VolumeMounts = append(statefulSet.Spec.Template.Spec.Containers[0].VolumeMounts,
 			kapi.VolumeMount{
@@ -242,4 +311,36 @@ func (w *Controller) addInitialScript(statefulSet *kapps.StatefulSet, script *ta
 			},
 		)
 	}
+}
+
+func (w *postgresController) createDeletedDatabase(postgres *tapi.Postgres) (*tapi.DeletedDatabase, error) {
+	deletedDb := &tapi.DeletedDatabase{
+		ObjectMeta: kapi.ObjectMeta{
+			Name:      postgres.Name,
+			Namespace: postgres.Namespace,
+			Labels: map[string]string{
+				amc.LabelDatabaseType: DatabasePostgres,
+			},
+		},
+	}
+	return w.ExtClient.DeletedDatabases(deletedDb.Namespace).Create(deletedDb)
+}
+
+func (w *postgresController) reCreatePostgres(postgres *tapi.Postgres) error {
+	_postgres := &tapi.Postgres{
+		ObjectMeta: kapi.ObjectMeta{
+			Name:        postgres.Name,
+			Namespace:   postgres.Namespace,
+			Labels:      postgres.Labels,
+			Annotations: postgres.Annotations,
+		},
+		Spec:   postgres.Spec,
+		Status: postgres.Status,
+	}
+
+	if _, err := w.ExtClient.Postgreses(_postgres.Namespace).Create(_postgres); err != nil {
+		return err
+	}
+
+	return nil
 }

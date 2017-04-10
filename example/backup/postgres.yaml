@@ -1,0 +1,19 @@
+apiVersion: k8sdb.com/v1beta1
+kind: Postgres
+metadata:
+  name: postgres-demo
+spec:
+  Version: 9.5-v4-db
+  Replicas: 1
+  BackupSchedule:
+    CronExpression: "@every 6h"
+    BucketName: ""
+    StorageSecret:
+      SecretName: ""
+  Storage:
+    Class: ""
+    AccessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: ""
