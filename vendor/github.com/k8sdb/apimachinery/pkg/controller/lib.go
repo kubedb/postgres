@@ -133,12 +133,12 @@ func (c *Controller) CheckBucketAccess(bucketName string, secretSource *kapi.Sec
 }
 
 func (c *Controller) CreateGoverningServiceAccount(name, namespace string) error {
-	if _, err := c.Client.Core().ServiceAccounts(namespace).Get(name); err != nil {
-		if !k8serr.IsNotFound(err) {
-			return err
-		}
-	} else {
+	var err error
+	if _, err = c.Client.Core().ServiceAccounts(namespace).Get(name); err == nil {
 		return nil
+	}
+	if !k8serr.IsNotFound(err) {
+		return err
 	}
 
 	serviceAccount := &kapi.ServiceAccount{
@@ -146,7 +146,7 @@ func (c *Controller) CreateGoverningServiceAccount(name, namespace string) error
 			Name: name,
 		},
 	}
-	_, err := c.Client.Core().ServiceAccounts(namespace).Create(serviceAccount)
+	_, err = c.Client.Core().ServiceAccounts(namespace).Create(serviceAccount)
 	return err
 }
 

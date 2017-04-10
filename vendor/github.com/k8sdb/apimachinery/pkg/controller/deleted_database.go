@@ -73,14 +73,12 @@ func (c *DeletedDatabaseController) ensureThirdPartyResource() {
 	log.Infoln("Ensuring DeletedDatabase ThirdPartyResource")
 
 	resourceName := tapi.ResourceNameDeletedDatabase + "." + tapi.V1beta1SchemeGroupVersion.Group
-
-	_, err := c.client.Extensions().ThirdPartyResources().Get(resourceName)
-	if err != nil {
-		if !k8serr.IsNotFound(err) {
-			log.Fatalln(err)
-		}
-	} else {
+	var err error
+	if _, err = c.client.Extensions().ThirdPartyResources().Get(resourceName); err == nil {
 		return
+	}
+	if !k8serr.IsNotFound(err) {
+		log.Fatalln(err)
 	}
 
 	thirdPartyResource := &extensions.ThirdPartyResource{
