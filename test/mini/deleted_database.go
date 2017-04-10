@@ -9,7 +9,7 @@ import (
 	k8serr "k8s.io/kubernetes/pkg/api/errors"
 )
 
-const durationCheckDeletedDatabase = time.Minute * 5
+const durationCheckDeletedDatabase = time.Minute * 30
 
 func CheckDeletedDatabasePhase(c *controller.Controller, postgres *tapi.Postgres, phase tapi.DeletedDatabasePhase) (bool, error) {
 	doneChecking := false

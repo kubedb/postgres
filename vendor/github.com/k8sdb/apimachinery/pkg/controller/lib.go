@@ -207,12 +207,8 @@ func (c *Controller) DeletePersistentVolumeClaims(namespace string, selector lab
 	return nil
 }
 
-func (c *Controller) DeleteSnapshotData(
-	bucketName, folderName, snapshotName string,
-	secretSource *kapi.SecretVolumeSource,
-	namespace string) error {
-
-	secret, err := c.Client.Core().Secrets(namespace).Get(secretSource.SecretName)
+func (c *Controller) DeleteSnapshotData(dbSnapshot *tapi.DatabaseSnapshot) error {
+	secret, err := c.Client.Core().Secrets(dbSnapshot.Namespace).Get(dbSnapshot.Spec.StorageSecret.SecretName)
 	if err != nil {
 		return err
 	}
@@ -236,12 +232,13 @@ func (c *Controller) DeleteSnapshotData(
 		return err
 	}
 
-	container, err := loc.Container(bucketName)
+	container, err := loc.Container(dbSnapshot.Spec.BucketName)
 	if err != nil {
 		return err
 	}
 
-	prefix := fmt.Sprintf("%v/%v", folderName, snapshotName)
+	folderName := dbSnapshot.Labels[LabelDatabaseType] + "-" + dbSnapshot.Spec.DatabaseName
+	prefix := fmt.Sprintf("%v/%v", folderName, dbSnapshot.Name)
 	cursor := stow.CursorStart
 	for {
 		items, next, err := container.Items(prefix, cursor, 50)

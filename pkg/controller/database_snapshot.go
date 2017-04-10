@@ -65,11 +65,8 @@ func (s *Snapshotter) Validate(snapshot *tapi.DatabaseSnapshot) error {
 		return err
 	}
 
-	fmt.Println("------- CheckBucketAccess ---------")
-
 	if err := s.CheckBucketAccess(snapshotSpec.BucketName, snapshotSpec.StorageSecret,
 		snapshot.Namespace); err != nil {
-		fmt.Println("---------+++ err: ", err)
 		return err
 	}
 	return nil
@@ -169,14 +166,7 @@ func (s *Snapshotter) GetSnapshotter(snapshot *tapi.DatabaseSnapshot) (*kbatch.J
 }
 
 func (s *Snapshotter) DestroySnapshot(dbSnapshot *tapi.DatabaseSnapshot) error {
-	folderName := DatabasePostgres + "-" + dbSnapshot.Spec.DatabaseName
-	snapshotName := dbSnapshot.Name
-	bucketName := dbSnapshot.Spec.BucketName
-	if err := s.DeleteSnapshotData(
-		bucketName, folderName, snapshotName, dbSnapshot.Spec.StorageSecret, dbSnapshot.Namespace); err != nil {
-		return err
-	}
-	return nil
+	return s.DeleteSnapshotData(dbSnapshot)
 }
 
 func (s *Snapshotter) getVolumeForSnapshot(storage *tapi.StorageSpec, jobName, namespace string) (*kapi.Volume, error) {

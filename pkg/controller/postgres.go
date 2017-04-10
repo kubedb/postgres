@@ -19,8 +19,32 @@ type postgresController struct {
 }
 
 func (c *postgresController) create(postgres *tapi.Postgres) {
+	unversionedNow := unversioned.Now()
+	postgres.Status.Created = &unversionedNow
+	postgres.Status.DatabaseStatus = tapi.StatusDatabaseCreating
+	var err error
+	if postgres, err = c.ExtClient.Postgreses(postgres.Namespace).Update(postgres); err != nil {
+		message := fmt.Sprintf(`Fail to update Postgres: "%v". Reason: %v`, postgres.Name, err)
+		c.eventRecorder.PushEvent(
+			kapi.EventTypeWarning, eventer.EventReasonFailedToUpdate, message, postgres,
+		)
+		log.Errorln(err)
+		return
+	}
+
 	if err := c.validatePostgres(postgres); err != nil {
 		c.eventRecorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonInvalid, err.Error(), postgres)
+
+		postgres.Status.DatabaseStatus = tapi.StatusDatabaseFailed
+		postgres.Status.Reason = err.Error()
+		if _, err := c.ExtClient.Postgreses(postgres.Namespace).Update(postgres); err != nil {
+			message := fmt.Sprintf(`Fail to update Postgres: "%v". Reason: %v`, postgres.Name, err)
+			c.eventRecorder.PushEvent(
+				kapi.EventTypeWarning, eventer.EventReasonFailedToUpdate, message, postgres,
+			)
+			log.Errorln(err)
+		}
+
 		log.Errorln(err)
 		return
 	}
@@ -74,18 +98,6 @@ func (c *postgresController) create(postgres *tapi.Postgres) {
 	c.eventRecorder.PushEvent(
 		kapi.EventTypeNormal, eventer.EventReasonCreating, "Creating Kubernetes objects", postgres,
 	)
-
-	unversionedNow := unversioned.Now()
-	postgres.Status.Created = &unversionedNow
-	postgres.Status.DatabaseStatus = tapi.StatusDatabaseCreating
-	if postgres, err = c.ExtClient.Postgreses(postgres.Namespace).Update(postgres); err != nil {
-		message := fmt.Sprintf(`Fail to update Postgres: "%v". Reason: %v`, postgres.Name, err)
-		c.eventRecorder.PushEvent(
-			kapi.EventTypeWarning, eventer.EventReasonFailedToUpdate, message, postgres,
-		)
-		log.Errorln(err)
-		return
-	}
 
 	// create Governing Service
 	governingService := GoverningPostgres
