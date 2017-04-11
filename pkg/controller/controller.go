@@ -74,7 +74,7 @@ func (c *Controller) watchPostgres() {
 		cache.ResourceEventHandlerFuncs{
 			AddFunc: func(obj interface{}) {
 				postgres := obj.(*tapi.Postgres)
-				if postgres.Status.Created != nil {
+				if postgres.Status.Created == nil {
 					pController.create(postgres)
 				}
 			},
