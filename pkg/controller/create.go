@@ -34,9 +34,6 @@ func (c *postgresController) checkService(name, namespace string) (bool, error) 
 			return false, err
 		}
 	}
-	if service == nil {
-		return false, nil
-	}
 
 	if service.Spec.Selector[amc.LabelDatabaseName] != name {
 		return false, fmt.Errorf(`Intended service "%v" already exists`, name)
