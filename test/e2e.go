@@ -19,7 +19,7 @@ type postgresController struct {
 var e2eController = postgresController{isControllerRunning: false}
 
 const (
-	configPath = "/home/tiger/.kube/config"
+	configPath = ""
 )
 
 func getController() (c *controller.Controller, err error) {

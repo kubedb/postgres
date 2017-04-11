@@ -74,11 +74,7 @@ func (c *Controller) watchPostgres() {
 		cache.ResourceEventHandlerFuncs{
 			AddFunc: func(obj interface{}) {
 				postgres := obj.(*tapi.Postgres)
-				/*
-					TODO: set appropriate checking
-					We do not want to handle same TPR objects multiple times
-				*/
-				if true {
+				if postgres.Status.Created != nil {
 					pController.create(postgres)
 				}
 			},
