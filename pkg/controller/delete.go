@@ -19,9 +19,6 @@ func (c *Deleter) deleteService(name, namespace string) error {
 			return err
 		}
 	}
-	if service == nil {
-		return nil
-	}
 
 	if service.Spec.Selector[amc.LabelDatabaseName] != name {
 		return nil
