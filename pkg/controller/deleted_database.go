@@ -31,7 +31,7 @@ func (d *Deleter) Exists(deletedDb *tapi.DeletedDatabase) (bool, error) {
 
 func (d *Deleter) DeleteDatabase(deletedDb *tapi.DeletedDatabase) error {
 	// Delete Service
-	if err := d.deleteService(deletedDb.Namespace, deletedDb.Name); err != nil {
+	if err := d.deleteService(deletedDb.Name, deletedDb.Namespace); err != nil {
 		log.Errorln(err)
 		return err
 	}
