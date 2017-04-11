@@ -2,7 +2,6 @@ package controller
 
 import (
 	"fmt"
-
 	"reflect"
 
 	"github.com/appscode/log"
@@ -73,7 +72,7 @@ func (c *postgresController) create(postgres *tapi.Postgres) {
 			Or use different name for your new Postgres database
 		*/
 		if deletedDb.Labels[amc.LabelDatabaseType] != DatabasePostgres {
-			message := fmt.Sprintf(`Invalid Postgres: "%v". Exists irrelevent DeletedDatabase: "%v"`,
+			message := fmt.Sprintf(`Invalid Postgres: "%v". Exists irrelevant DeletedDatabase: "%v"`,
 				postgres.Name, deletedDb.Name)
 			// Set status to Failed
 			postgres.Status.DatabaseStatus = tapi.StatusDatabaseFailed

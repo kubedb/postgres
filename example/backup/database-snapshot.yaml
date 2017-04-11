@@ -1,11 +1,11 @@
 apiVersion: k8sdb.com/v1beta1
 kind: DatabaseSnapshot
 metadata:
-  name: snapshot-xyz-5
+  name: snapshot-xyz
   labels:
     "k8sdb.com/type": "postgres"
 spec:
   DatabaseName: postgres-demo
-  BucketName: "database-test"
+  BucketName: ""
   StorageSecret:
-    SecretName: "google-cred"
+    SecretName: ""
