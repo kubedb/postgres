@@ -2,6 +2,7 @@ package: github.com/k8sdb/postgres
 import:
 - package: github.com/appscode/log
 - package: github.com/ghodss/yaml
+- package: github.com/k8sdb/apimachinery
 - package: k8s.io/kubernetes
   version: ~1.5.0
 testImport:

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	_ "github.com/k8sdb/postgres/api/install"
 	"github.com/k8sdb/postgres/pkg/controller"
 	"github.com/spf13/cobra"
 	"k8s.io/kubernetes/pkg/client/unversioned/clientcmd"
