@@ -25,9 +25,7 @@ func (c *postgresController) validatePostgres(postgres *tapi.Postgres) error {
 			return err
 		}
 
-		if err := c.CheckBucketAccess(
-			backupScheduleSpec.BucketName, backupScheduleSpec.StorageSecret,
-			postgres.Namespace); err != nil {
+		if err := c.CheckBucketAccess(backupScheduleSpec.SnapshotSpec, postgres.Namespace); err != nil {
 			return err
 		}
 	}

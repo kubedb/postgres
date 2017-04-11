@@ -233,7 +233,7 @@ func TestDatabaseSnapshot(t *testing.T) {
 		},
 	}
 
-	err = controller.CheckBucketAccess(bucket, &kapi.SecretVolumeSource{SecretName: secretName}, postgres.Namespace)
+	err = controller.CheckBucketAccess(snapshotSpec, postgres.Namespace)
 	if !assert.Nil(t, err) {
 		return
 	}

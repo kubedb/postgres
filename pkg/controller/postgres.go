@@ -254,9 +254,7 @@ func (c *postgresController) update(oldPostgres, updatedPostgres *tapi.Postgres)
 				return
 			}
 
-			if err := c.CheckBucketAccess(
-				backupScheduleSpec.BucketName, backupScheduleSpec.StorageSecret,
-				updatedPostgres.Namespace); err != nil {
+			if err := c.CheckBucketAccess(backupScheduleSpec.SnapshotSpec, oldPostgres.Namespace); err != nil {
 				c.eventRecorder.PushEvent(
 					kapi.EventTypeNormal, eventer.EventReasonInvalid, err.Error(), updatedPostgres,
 				)

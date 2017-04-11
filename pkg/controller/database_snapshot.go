@@ -28,20 +28,20 @@ func NewSnapshotter(c *amc.Controller) amc.Snapshotter {
 	return &Snapshotter{c}
 }
 
-func (s *Snapshotter) Validate(snapshot *tapi.DatabaseSnapshot) error {
+func (s *Snapshotter) Validate(dbSnapshot *tapi.DatabaseSnapshot) error {
 	// Database name can't empty
-	databaseName := snapshot.Spec.DatabaseName
+	databaseName := dbSnapshot.Spec.DatabaseName
 	if databaseName == "" {
-		return fmt.Errorf(`Object 'DatabaseName' is missing in '%v'`, snapshot.Spec)
+		return fmt.Errorf(`Object 'DatabaseName' is missing in '%v'`, dbSnapshot.Spec)
 	}
 
 	labelMap := map[string]string{
 		amc.LabelDatabaseType:   DatabasePostgres,
-		amc.LabelDatabaseName:   snapshot.Spec.DatabaseName,
+		amc.LabelDatabaseName:   dbSnapshot.Spec.DatabaseName,
 		amc.LabelSnapshotStatus: string(tapi.StatusSnapshotRunning),
 	}
 
-	snapshotList, err := s.ExtClient.DatabaseSnapshots(snapshot.Namespace).List(kapi.ListOptions{
+	snapshotList, err := s.ExtClient.DatabaseSnapshots(dbSnapshot.Namespace).List(kapi.ListOptions{
 		LabelSelector: labels.SelectorFromSet(labels.Set(labelMap)),
 	})
 	if err != nil {
@@ -50,23 +50,22 @@ func (s *Snapshotter) Validate(snapshot *tapi.DatabaseSnapshot) error {
 
 	if len(snapshotList.Items) > 0 {
 		unversionedNow := unversioned.Now()
-		snapshot.Status.StartTime = &unversionedNow
-		snapshot.Status.CompletionTime = &unversionedNow
-		snapshot.Status.Status = tapi.StatusSnapshotFailed
-		snapshot.Status.Reason = "One DatabaseSnapshot is already Running"
-		if _, err := s.ExtClient.DatabaseSnapshots(snapshot.Namespace).Update(snapshot); err != nil {
+		dbSnapshot.Status.StartTime = &unversionedNow
+		dbSnapshot.Status.CompletionTime = &unversionedNow
+		dbSnapshot.Status.Status = tapi.StatusSnapshotFailed
+		dbSnapshot.Status.Reason = "One DatabaseSnapshot is already Running"
+		if _, err := s.ExtClient.DatabaseSnapshots(dbSnapshot.Namespace).Update(dbSnapshot); err != nil {
 			return err
 		}
 		return errors.New("One DatabaseSnapshot is already Running")
 	}
 
-	snapshotSpec := snapshot.Spec.SnapshotSpec
+	snapshotSpec := dbSnapshot.Spec.SnapshotSpec
 	if err := s.ValidateSnapshotSpec(snapshotSpec); err != nil {
 		return err
 	}
 
-	if err := s.CheckBucketAccess(snapshotSpec.BucketName, snapshotSpec.StorageSecret,
-		snapshot.Namespace); err != nil {
+	if err := s.CheckBucketAccess(dbSnapshot.Spec.SnapshotSpec, dbSnapshot.Namespace); err != nil {
 		return err
 	}
 	return nil
