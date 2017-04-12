@@ -219,7 +219,7 @@ func (c *DeletedDatabaseController) update(oldDeletedDb, updatedDeletedDb *tapi.
 			c.recover(updatedDeletedDb)
 		} else {
 			message := "Failed to recover Database. " +
-				"Only DeletedDatabase with Phase \"Deleted\" can be recovered"
+				"Only DeletedDatabase of \"Deleted\" Phase can be recovered"
 			c.eventRecorder.PushEvent(
 				kapi.EventTypeWarning, eventer.EventReasonFailedToUpdate, message, updatedDeletedDb,
 			)
