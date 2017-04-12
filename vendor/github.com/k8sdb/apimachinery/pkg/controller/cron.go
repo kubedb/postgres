@@ -17,8 +17,10 @@ import (
 )
 
 type CronControllerInterface interface {
+	StartCron()
 	ScheduleBackup(runtime.Object, kapi.ObjectMeta, *tapi.BackupScheduleSpec) error
 	StopScheduleBackup(kapi.ObjectMeta)
+	StopCron()
 }
 
 type cronController struct {
@@ -32,18 +34,21 @@ type cronController struct {
 	eventRecorder eventer.EventRecorderInterface
 }
 
-func NewCronController(
-	// Kubernetes client
-	client clientset.Interface,
-	// ThirdPartyExtension client
-	extClient tcs.ExtensionInterface,
-) CronControllerInterface {
+/*
+ NewCronController returns CronControllerInterface.
+ Need to call StartCron() method to start Cron.
+*/
+func NewCronController(client clientset.Interface, extClient tcs.ExtensionInterface) CronControllerInterface {
 	return &cronController{
 		extClient:     extClient,
 		cron:          cron.New(),
 		cronEntryIDs:  cmap.New(),
 		eventRecorder: eventer.NewEventRecorder(client, "Cron Controller"),
 	}
+}
+
+func (c *cronController) StartCron() {
+	c.cron.Start()
 }
 
 func (c *cronController) ScheduleBackup(
@@ -88,6 +93,10 @@ func (c *cronController) StopScheduleBackup(om kapi.ObjectMeta) {
 	if id, exists := c.cronEntryIDs.Pop(cronEntryName); exists {
 		c.cron.Remove(id.(cron.EntryID))
 	}
+}
+
+func (c *cronController) StopCron() {
+	c.cron.Stop()
 }
 
 type snapshotInvoker struct {
