@@ -217,7 +217,7 @@ func (c *postgresController) delete(postgres *tapi.Postgres) {
 		kapi.EventTypeNormal, eventer.EventReasonSuccessfulCreate, message, postgres,
 	)
 
-	c.cronController.StopScheduleBackup(postgres.ObjectMeta)
+	c.cronController.StopBackupScheduling(postgres.ObjectMeta)
 }
 
 func (c *postgresController) update(oldPostgres, updatedPostgres *tapi.Postgres) {
@@ -271,7 +271,7 @@ func (c *postgresController) update(oldPostgres, updatedPostgres *tapi.Postgres)
 				log.Errorln(err)
 			}
 		} else {
-			c.cronController.StopScheduleBackup(oldPostgres.ObjectMeta)
+			c.cronController.StopBackupScheduling(oldPostgres.ObjectMeta)
 		}
 	}
 }
