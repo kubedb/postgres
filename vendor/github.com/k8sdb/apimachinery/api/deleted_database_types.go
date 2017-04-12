@@ -25,6 +25,9 @@ type DeletedDatabaseSpec struct {
 	// If true, invoke destroy operation
 	// +optional
 	Destroy bool `json:"destroy,omitempty"`
+	// If true, invoke recover operation
+	// +optional
+	Recover bool `json:"recover,omitempty"`
 }
 
 type DeletedDatabasePhase string
@@ -38,6 +41,8 @@ const (
 	PhaseDatabaseDestroyed DeletedDatabasePhase = "Destroyed"
 	// used for Databases that are currently destroying
 	PhaseDatabaseDestroying DeletedDatabasePhase = "Destroying"
+	// used for Databases that are currently recovering
+	PhaseDatabaseRecovering DeletedDatabasePhase = "Recovering"
 )
 
 type DeletedDatabaseStatus struct {

@@ -4,8 +4,10 @@ import (
 	"fmt"
 
 	"github.com/appscode/log"
+	"github.com/ghodss/yaml"
 	tapi "github.com/k8sdb/apimachinery/api"
 	amc "github.com/k8sdb/apimachinery/pkg/controller"
+	kapi "k8s.io/kubernetes/pkg/api"
 	k8serr "k8s.io/kubernetes/pkg/api/errors"
 	"k8s.io/kubernetes/pkg/labels"
 )
@@ -62,4 +64,23 @@ func (d *Deleter) DestroyDatabase(deletedDb *tapi.DeletedDatabase) error {
 		return err
 	}
 	return nil
+}
+
+func (d *Deleter) RecoverDatabase(deletedDb *tapi.DeletedDatabase) error {
+	var _postgres tapi.Postgres
+	if err := yaml.Unmarshal([]byte(deletedDb.Annotations[DatabasePostgres]), &_postgres); err != nil {
+		return err
+	}
+	postgres := &tapi.Postgres{
+		ObjectMeta: kapi.ObjectMeta{
+			Name:        deletedDb.Name,
+			Namespace:   deletedDb.Namespace,
+			Labels:      _postgres.Labels,
+			Annotations: _postgres.Annotations,
+		},
+		Spec: _postgres.Spec,
+	}
+
+	_, err := d.ExtClient.Postgreses(deletedDb.Namespace).Create(postgres)
+	return err
 }

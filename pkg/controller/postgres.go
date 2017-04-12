@@ -53,7 +53,7 @@ func (c *postgresController) create(postgres *tapi.Postgres) {
 	)
 
 	// Check if DeletedDatabase exists or not
-	foundDeleteDb := false
+	recovering := false
 	deletedDb, err := c.ExtClient.DeletedDatabases(postgres.Namespace).Get(postgres.Name)
 	if err != nil {
 		if !k8serr.IsNotFound(err) {
@@ -63,17 +63,19 @@ func (c *postgresController) create(postgres *tapi.Postgres) {
 			return
 		}
 	} else {
-		/*
-			If exists, check label for database type in label.
-			* If   - DeletedDatabase type is "postgres", continue create process
-			* Else - Do not create Further kubernetes objects.
-			         These may overlaps/conflicts database data
-			Destroy previous database and delete DeletedDatabase object
-			Or use different name for your new Postgres database
-		*/
+		var message string
+
 		if deletedDb.Labels[amc.LabelDatabaseType] != DatabasePostgres {
-			message := fmt.Sprintf(`Invalid Postgres: "%v". Exists irrelevant DeletedDatabase: "%v"`,
+			message = fmt.Sprintf(`Invalid Postgres: "%v". Exists irrelevant DeletedDatabase: "%v"`,
 				postgres.Name, deletedDb.Name)
+		} else {
+			if deletedDb.Status.Phase == tapi.PhaseDatabaseRecovering {
+				recovering = true
+			} else {
+				message = fmt.Sprintf(`Recover from DeletedDatabase: "%v"`, deletedDb.Name)
+			}
+		}
+		if !recovering {
 			// Set status to Failed
 			postgres.Status.DatabaseStatus = tapi.StatusDatabaseFailed
 			postgres.Status.Reason = message
@@ -90,7 +92,6 @@ func (c *postgresController) create(postgres *tapi.Postgres) {
 			log.Infoln(message)
 			return
 		}
-		foundDeleteDb = true
 	}
 
 	// Event for notification that kubernetes objects are creating
@@ -144,7 +145,7 @@ func (c *postgresController) create(postgres *tapi.Postgres) {
 		)
 	}
 
-	if foundDeleteDb {
+	if recovering {
 		// Delete DeletedDatabase instance
 		if err := c.ExtClient.DeletedDatabases(deletedDb.Namespace).Delete(deletedDb.Name); err != nil {
 			message := fmt.Sprintf(`Failed to delete DeletedDatabase: "%v". Reason: %v`, deletedDb.Name, err)

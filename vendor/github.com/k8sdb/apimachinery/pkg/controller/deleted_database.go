@@ -25,6 +25,8 @@ type Deleter interface {
 	DeleteDatabase(*tapi.DeletedDatabase) error
 	// Destroy operation
 	DestroyDatabase(*tapi.DeletedDatabase) error
+	// Recover operation
+	RecoverDatabase(*tapi.DeletedDatabase) error
 }
 
 type DeletedDatabaseController struct {
@@ -123,7 +125,7 @@ func (c *DeletedDatabaseController) watch() {
 				// TODO: Find appropriate checking
 				// Only allow if Spec varies
 				if !reflect.DeepEqual(oldDeletedDb.Spec, newDeletedDb.Spec) {
-					c.update(newDeletedDb)
+					c.update(oldDeletedDb, newDeletedDb)
 				}
 			},
 		},
@@ -207,13 +209,27 @@ func (c *DeletedDatabaseController) create(deletedDb *tapi.DeletedDatabase) {
 	return
 }
 
-func (c *DeletedDatabaseController) update(deletedDb *tapi.DeletedDatabase) {
-	if !deletedDb.Spec.Destroy {
-		message := fmt.Sprintf(`Invalid update`)
-		c.eventRecorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonInvalidUpdate, message, deletedDb)
-		return
+func (c *DeletedDatabaseController) update(oldDeletedDb, updatedDeletedDb *tapi.DeletedDatabase) {
+	if oldDeletedDb.Spec.Destroy != updatedDeletedDb.Spec.Destroy && updatedDeletedDb.Spec.Destroy {
+		c.destroy(updatedDeletedDb)
 	}
 
+	if oldDeletedDb.Spec.Recover != updatedDeletedDb.Spec.Recover && updatedDeletedDb.Spec.Recover {
+		if oldDeletedDb.Status.Phase == tapi.PhaseDatabaseDeleted {
+			c.recover(updatedDeletedDb)
+		} else {
+			message := "Failed to recover Database. " +
+				"Only DeletedDatabase with Phase \"Deleted\" can be recovered"
+			c.eventRecorder.PushEvent(
+				kapi.EventTypeWarning, eventer.EventReasonFailedToUpdate, message, updatedDeletedDb,
+			)
+			return
+		}
+
+	}
+}
+
+func (c *DeletedDatabaseController) destroy(deletedDb *tapi.DeletedDatabase) {
 	// Check if DB TPR object exists
 	found, err := c.deleter.Exists(deletedDb)
 	if err != nil {
@@ -276,4 +292,43 @@ func (c *DeletedDatabaseController) update(deletedDb *tapi.DeletedDatabase) {
 		c.eventRecorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonFailedToUpdate, message, deletedDb)
 		return
 	}
+}
+
+func (c *DeletedDatabaseController) recover(deletedDb *tapi.DeletedDatabase) {
+	// Check if DB TPR object exists
+	found, err := c.deleter.Exists(deletedDb)
+	if err != nil {
+		message := fmt.Sprintf(`Failed to recover Database. Reason: "%v"`, err)
+		c.eventRecorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonFailedToRecover, message, deletedDb)
+		return
+	}
+
+	if found {
+		message := "Failed to recover Database. One Database TPR object exists with same name"
+		c.eventRecorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonFailedToRecover, message, deletedDb)
+		return
+	}
+
+	deletedDb.Status.Phase = tapi.PhaseDatabaseRecovering
+	if deletedDb, err = c.extClient.DeletedDatabases(deletedDb.Namespace).Update(deletedDb); err != nil {
+		message := fmt.Sprintf(`Failed to update DeletedDatabase. Reason: "%v"`, err)
+		c.eventRecorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonFailedToUpdate, message, deletedDb)
+		return
+	}
+
+	if err = c.deleter.RecoverDatabase(deletedDb); err != nil {
+		message := fmt.Sprintf(`Failed to recover Database. Reason: "%v"`, err)
+		c.eventRecorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonFailedToRecover, message, deletedDb)
+
+		deletedDb.Status.Phase = tapi.PhaseDatabaseDeleted
+		if deletedDb, err = c.extClient.DeletedDatabases(deletedDb.Namespace).Update(deletedDb); err != nil {
+			message := fmt.Sprintf(`Failed to update DeletedDatabase. Reason: "%v"`, err)
+			c.eventRecorder.PushEvent(
+				kapi.EventTypeWarning, eventer.EventReasonFailedToUpdate, message, deletedDb,
+			)
+			return
+		}
+		return
+	}
+
 }

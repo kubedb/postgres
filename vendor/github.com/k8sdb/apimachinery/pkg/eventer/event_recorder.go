@@ -17,6 +17,7 @@ const (
 	EventReasonFailedToDestroy    string = "Failed"
 	EventReasonFailedToGet        string = "Failed"
 	EventReasonFailedToList       string = "Failed"
+	EventReasonFailedToRecover    string = "Failed"
 	EventReasonFailedToSchedule   string = "Failed"
 	EventReasonFailedToStart      string = "Failed"
 	EventReasonFailedToUpdate     string = "Failed"

@@ -248,3 +248,85 @@ func TestDatabaseSnapshot(t *testing.T) {
 		fmt.Println("---- >> Failed to be deleted")
 	}
 }
+
+func TestDeletedDatabase(t *testing.T) {
+	controller, err := getController()
+	if !assert.Nil(t, err) {
+		return
+	}
+
+	fmt.Println("--> Running Postgres Controller")
+
+	// Postgres
+	fmt.Println()
+	fmt.Println("-- >> Testing postgres")
+	fmt.Println("---- >> Creating Postgres")
+	postgres := mini.NewPostgres()
+	postgres, err = controller.ExtClient.Postgreses("default").Create(postgres)
+	if !assert.Nil(t, err) {
+		return
+	}
+
+	time.Sleep(time.Second * 30)
+	fmt.Println("---- >> Checking Postgres")
+	running, err := mini.CheckPostgresStatus(controller, postgres)
+	assert.Nil(t, err)
+	if !assert.True(t, running) {
+		fmt.Println("---- >> Postgres fails to be Ready")
+		return
+	} else {
+		err := mini.CheckPostgresWorkload(controller, postgres)
+		if !assert.Nil(t, err) {
+			fmt.Println("---- >> Failed to check PostgresWorkload")
+			return
+		}
+	}
+
+	fmt.Println("---- >> Deleting Postgres")
+	err = mini.DeletePostgres(controller, postgres)
+	assert.Nil(t, err)
+
+	fmt.Println("---- >> Checking DeletedDatabase")
+	done, err := mini.CheckDeletedDatabasePhase(controller, postgres, tapi.PhaseDatabaseDeleted)
+	assert.Nil(t, err)
+	if !assert.True(t, done) {
+		fmt.Println("---- >> Failed to be delete")
+	}
+
+	fmt.Println("---- >> Updating DeletedDatabase")
+	deletedDb, err := controller.ExtClient.DeletedDatabases(postgres.Namespace).Get(postgres.Name)
+	if !assert.Nil(t, err) {
+		fmt.Println("---- >> Failed to get DeletedDatabase")
+		return
+	}
+
+	deletedDb.Spec.Recover = true
+	_, err = controller.ExtClient.DeletedDatabases(deletedDb.Namespace).Update(deletedDb)
+	assert.Nil(t, err)
+
+	time.Sleep(time.Second * 30)
+	fmt.Println("---- >> Checking Postgres")
+	running, err = mini.CheckPostgresStatus(controller, postgres)
+	assert.Nil(t, err)
+	if !assert.True(t, running) {
+		fmt.Println("---- >> Postgres fails to be Ready")
+		return
+	} else {
+		err := mini.CheckPostgresWorkload(controller, postgres)
+		if !assert.Nil(t, err) {
+			fmt.Println("---- >> Failed to check PostgresWorkload")
+			return
+		}
+	}
+
+	fmt.Println("---- >> Deleting Postgres")
+	err = mini.DeletePostgres(controller, postgres)
+	assert.Nil(t, err)
+
+	fmt.Println("---- >> Checking DeletedDatabase")
+	done, err = mini.CheckDeletedDatabasePhase(controller, postgres, tapi.PhaseDatabaseDeleted)
+	assert.Nil(t, err)
+	if !assert.True(t, done) {
+		fmt.Println("---- >> Failed to be delete")
+	}
+}
