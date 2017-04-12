@@ -169,9 +169,13 @@ func TestDatabaseSnapshot(t *testing.T) {
 	assert.Nil(t, err)
 	if !assert.True(t, running) {
 		fmt.Println("---- >> Postgres fails to be Ready")
+		return
 	} else {
 		err := mini.CheckPostgresWorkload(controller, postgres)
-		assert.Nil(t, err)
+		if !assert.Nil(t, err) {
+			fmt.Println("---- >> Failed to check PostgresWorkload")
+			return
+		}
 	}
 
 	const (
