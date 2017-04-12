@@ -15,18 +15,16 @@ import (
 
 const durationCheckPostgres = time.Minute * 30
 
-func CreatePostgres(c *controller.Controller, namespace string) (*tapi.Postgres, error) {
+func NewPostgres() *tapi.Postgres {
 	postgres := &tapi.Postgres{
 		ObjectMeta: kapi.ObjectMeta{
 			Name:      rand.WithUniqSuffix("e2e-postgres"),
-			Namespace: namespace,
 		},
 		Spec: tapi.PostgresSpec{
 			Version: "9.5-v4-db",
 		},
 	}
-
-	return c.ExtClient.Postgreses(namespace).Create(postgres)
+	return postgres
 }
 
 func ReCreatePostgres(c *controller.Controller, postgres *tapi.Postgres) (*tapi.Postgres, error) {

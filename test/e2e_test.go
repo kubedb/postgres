@@ -23,47 +23,8 @@ func TestCreate(t *testing.T) {
 	fmt.Println()
 	fmt.Println("-- >> Testing postgres")
 	fmt.Println("---- >> Creating Postgres")
-	postgres, err := mini.CreatePostgres(controller, "default")
-	if !assert.Nil(t, err) {
-		return
-	}
-
-	time.Sleep(time.Second * 30)
-	fmt.Println("---- >> Checking Postgres")
-	running, err := mini.CheckPostgresStatus(controller, postgres)
-	assert.Nil(t, err)
-	if !assert.True(t, running) {
-		fmt.Println("---- >> Postgres fails to be Ready")
-	} else {
-		err := mini.CheckPostgresWorkload(controller, postgres)
-		assert.Nil(t, err)
-	}
-
-	fmt.Println("---- >> Deleted Postgres")
-	err = mini.DeletePostgres(controller, postgres)
-	assert.Nil(t, err)
-
-	fmt.Println("---- >> Checking DeletedDatabase")
-	done, err := mini.CheckDeletedDatabasePhase(controller, postgres, tapi.PhaseDatabaseDeleted)
-	assert.Nil(t, err)
-	if !assert.True(t, done) {
-		fmt.Println("---- >> Failed to be deleted")
-	}
-}
-
-func TestReCreate(t *testing.T) {
-	controller, err := getController()
-	if !assert.Nil(t, err) {
-		return
-	}
-
-	fmt.Println("--> Running Postgres Controller")
-
-	// Postgres
-	fmt.Println()
-	fmt.Println("-- >> Testing postgres")
-	fmt.Println("---- >> Creating Postgres")
-	postgres, err := mini.CreatePostgres(controller, "default")
+	postgres := mini.NewPostgres()
+	postgres, err = controller.ExtClient.Postgreses("default").Create(postgres)
 	if !assert.Nil(t, err) {
 		return
 	}
@@ -131,7 +92,9 @@ func TestDoNotDelete(t *testing.T) {
 	fmt.Println()
 	fmt.Println("-- >> Testing postgres")
 	fmt.Println("---- >> Creating Postgres")
-	postgres, err := mini.CreatePostgres(controller, "default")
+	postgres := mini.NewPostgres()
+	postgres.Spec.DoNotDelete = true
+	postgres, err = controller.ExtClient.Postgreses("default").Create(postgres)
 	if !assert.Nil(t, err) {
 		return
 	}
@@ -146,14 +109,6 @@ func TestDoNotDelete(t *testing.T) {
 		err := mini.CheckPostgresWorkload(controller, postgres)
 		assert.Nil(t, err)
 	}
-
-	postgres, _ = controller.ExtClient.Postgreses(postgres.Namespace).Get(postgres.Name)
-	postgres.Spec.DoNotDelete = true
-	postgres, err = mini.UpdatePostres(controller, postgres)
-	if !assert.Nil(t, err) {
-		return
-	}
-	time.Sleep(time.Second * 10)
 
 	fmt.Println("---- >> Deleted Postgres")
 	err = mini.DeletePostgres(controller, postgres)
@@ -202,7 +157,8 @@ func TestDatabaseSnapshot(t *testing.T) {
 	fmt.Println()
 	fmt.Println("-- >> Testing postgres")
 	fmt.Println("---- >> Creating Postgres")
-	postgres, err := mini.CreatePostgres(controller, "default")
+	postgres := mini.NewPostgres()
+	postgres, err = controller.ExtClient.Postgreses("default").Create(postgres)
 	if !assert.Nil(t, err) {
 		return
 	}
@@ -219,11 +175,11 @@ func TestDatabaseSnapshot(t *testing.T) {
 	}
 
 	const (
-		bucket     = "database-test"
-		secretName = "google-cred"
+		bucket     = ""
+		secretName = ""
 	)
 
-	snapshotSpec := tapi.DatabaseSnapshotSpec{
+	dbSnapshotSpec := tapi.DatabaseSnapshotSpec{
 		DatabaseName: postgres.Name,
 		SnapshotSpec: tapi.SnapshotSpec{
 			BucketName: bucket,
@@ -233,20 +189,58 @@ func TestDatabaseSnapshot(t *testing.T) {
 		},
 	}
 
-	err = controller.CheckBucketAccess(snapshotSpec, postgres.Namespace)
+	err = controller.CheckBucketAccess(dbSnapshotSpec.SnapshotSpec, postgres.Namespace)
 	if !assert.Nil(t, err) {
 		return
 	}
 
-	dbSnapshot, err := mini.CreateDatabaseSnapshot(controller, postgres.Namespace, snapshotSpec)
+	fmt.Println("---- >> Creating DatabaseSnapshot")
+	dbSnapshot, err := mini.CreateDatabaseSnapshot(controller, postgres.Namespace, dbSnapshotSpec)
 	if !assert.Nil(t, err) {
 		return
 	}
 
+	fmt.Println("---- >> Checking DatabaseSnapshot")
 	done, err := mini.CheckDatabaseSnapshot(controller, dbSnapshot)
 	assert.Nil(t, err)
 	if !assert.True(t, done) {
 		fmt.Println("---- >> Failed to take snapshot")
 		return
+	}
+
+	fmt.Println("---- >> Checking Snapshot data")
+	count, err := mini.CheckSnapshotData(controller, dbSnapshot)
+	if !assert.Nil(t, err) {
+		fmt.Println("---- >> Failed to check snapshot data")
+		return
+	}
+	assert.NotZero(t, count)
+
+	fmt.Println("---- >> Deleting DatabaseSnapshot")
+	err = controller.ExtClient.DatabaseSnapshots(dbSnapshot.Namespace).Delete(dbSnapshot.Name)
+	if !assert.Nil(t, err) {
+		fmt.Println("---- >> Failed to delete DatabaseSnapshot")
+		return
+	}
+
+	time.Sleep(time.Second * 30)
+
+	fmt.Println("---- >> Checking Snapshot data")
+	count, err = mini.CheckSnapshotData(controller, dbSnapshot)
+	if !assert.Nil(t, err) {
+		fmt.Println("---- >> Failed to check snapshot data")
+		return
+	}
+	assert.Zero(t, count)
+
+	fmt.Println("---- >> Deleted Postgres")
+	err = mini.DeletePostgres(controller, postgres)
+	assert.Nil(t, err)
+
+	fmt.Println("---- >> Checking DeletedDatabase")
+	done, err = mini.CheckDeletedDatabasePhase(controller, postgres, tapi.PhaseDatabaseDeleted)
+	assert.Nil(t, err)
+	if !assert.True(t, done) {
+		fmt.Println("---- >> Failed to be deleted")
 	}
 }

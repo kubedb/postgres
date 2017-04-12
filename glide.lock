@@ -1,5 +1,5 @@
 hash: 74ffb7c26fb61d361fc4f4ac6c0a118cd8fda9b956efc7f6822233be19f28473
-updated: 2017-04-11T15:36:33.81663809+06:00
+updated: 2017-04-12T11:47:10.874309106+06:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -7,7 +7,7 @@ imports:
   - compute/metadata
   - internal
 - name: github.com/appscode/go
-  version: 46d947ba0fae9cf11054828772d6f8a0ad160434
+  version: bd371af23fb2398b60c065a9e07df5084422d6ad
   subpackages:
   - crypto/rand
   - hold
@@ -157,7 +157,7 @@ imports:
 - name: github.com/juju/ratelimit
   version: 77ed1c8a01217656d2080ad51981f6e99adaa177
 - name: github.com/k8sdb/apimachinery
-  version: d0c6d993986e7e9c69db017801ee56517986948d
+  version: 0581c14810fd49bd2a8accb79324aacc55c42122
   subpackages:
   - api
   - api/install
