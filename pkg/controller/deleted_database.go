@@ -12,16 +12,8 @@ import (
 	"k8s.io/kubernetes/pkg/labels"
 )
 
-type Deleter struct {
-	*amc.Controller
-}
-
-func NewDeleter(c *amc.Controller) amc.Deleter {
-	return &Deleter{c}
-}
-
-func (d *Deleter) Exists(deletedDb *tapi.DeletedDatabase) (bool, error) {
-	if _, err := d.ExtClient.Postgreses(deletedDb.Namespace).Get(deletedDb.Name); err != nil {
+func (c *Controller) Exists(deletedDb *tapi.DeletedDatabase) (bool, error) {
+	if _, err := c.ExtClient.Postgreses(deletedDb.Namespace).Get(deletedDb.Name); err != nil {
 		if !k8serr.IsNotFound(err) {
 			return false, err
 		}
@@ -31,22 +23,22 @@ func (d *Deleter) Exists(deletedDb *tapi.DeletedDatabase) (bool, error) {
 	return true, nil
 }
 
-func (d *Deleter) DeleteDatabase(deletedDb *tapi.DeletedDatabase) error {
+func (c *Controller) DeleteDatabase(deletedDb *tapi.DeletedDatabase) error {
 	// Delete Service
-	if err := d.deleteService(deletedDb.Name, deletedDb.Namespace); err != nil {
+	if err := c.deleteService(deletedDb.Name, deletedDb.Namespace); err != nil {
 		log.Errorln(err)
 		return err
 	}
 
 	statefulSetName := fmt.Sprintf("%v-%v", amc.DatabaseNamePrefix, deletedDb.Name)
-	if err := d.deleteStatefulSet(statefulSetName, deletedDb.Namespace); err != nil {
+	if err := c.deleteStatefulSet(statefulSetName, deletedDb.Namespace); err != nil {
 		log.Errorln(err)
 		return err
 	}
 	return nil
 }
 
-func (d *Deleter) DestroyDatabase(deletedDb *tapi.DeletedDatabase) error {
+func (c *Controller) DestroyDatabase(deletedDb *tapi.DeletedDatabase) error {
 	labelMap := map[string]string{
 		amc.LabelDatabaseName: deletedDb.Name,
 		amc.LabelDatabaseType: DatabasePostgres,
@@ -54,19 +46,19 @@ func (d *Deleter) DestroyDatabase(deletedDb *tapi.DeletedDatabase) error {
 
 	labelSelector := labels.SelectorFromSet(labelMap)
 
-	if err := d.DeleteDatabaseSnapshots(deletedDb.Namespace, labelSelector); err != nil {
+	if err := c.DeleteDatabaseSnapshots(deletedDb.Namespace, labelSelector); err != nil {
 		log.Errorln(err)
 		return err
 	}
 
-	if err := d.DeletePersistentVolumeClaims(deletedDb.Namespace, labelSelector); err != nil {
+	if err := c.DeletePersistentVolumeClaims(deletedDb.Namespace, labelSelector); err != nil {
 		log.Errorln(err)
 		return err
 	}
 	return nil
 }
 
-func (d *Deleter) RecoverDatabase(deletedDb *tapi.DeletedDatabase) error {
+func (c *Controller) RecoverDatabase(deletedDb *tapi.DeletedDatabase) error {
 	var _postgres tapi.Postgres
 	if err := yaml.Unmarshal([]byte(deletedDb.Annotations[DatabasePostgres]), &_postgres); err != nil {
 		return err
@@ -81,6 +73,6 @@ func (d *Deleter) RecoverDatabase(deletedDb *tapi.DeletedDatabase) error {
 		Spec: _postgres.Spec,
 	}
 
-	_, err := d.ExtClient.Postgreses(deletedDb.Namespace).Create(postgres)
+	_, err := c.ExtClient.Postgreses(deletedDb.Namespace).Create(postgres)
 	return err
 }

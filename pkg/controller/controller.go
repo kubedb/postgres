@@ -124,8 +124,7 @@ func (c *Controller) watchDatabaseSnapshot() {
 		},
 	}
 
-	snapshotter := NewSnapshotter(c.Controller)
-	amc.NewDatabaseSnapshotController(c.Client, c.ExtClient, snapshotter, lw, c.syncPeriod).Run()
+	amc.NewDatabaseSnapshotController(c.Client, c.ExtClient, c, lw, c.syncPeriod).Run()
 }
 
 func (c *Controller) watchDeletedDatabase() {
@@ -148,8 +147,7 @@ func (c *Controller) watchDeletedDatabase() {
 		},
 	}
 
-	deleter := NewDeleter(c.Controller)
-	amc.NewDeletedDbController(c.Client, c.ExtClient, deleter, lw, c.syncPeriod).Run()
+	amc.NewDeletedDbController(c.Client, c.ExtClient, c, lw, c.syncPeriod).Run()
 }
 
 func (c *Controller) ensureThirdPartyResource() {
