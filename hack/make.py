@@ -38,7 +38,7 @@ from os.path import expandvars
 libbuild.REPO_ROOT = expandvars('$GOPATH') + '/src/github.com/k8sdb/postgres'
 BUILD_METADATA = libbuild.metadata(libbuild.REPO_ROOT)
 libbuild.BIN_MATRIX = {
-    'k8spg': {
+    'k8s-pg': {
         'type': 'go',
         'go_version': True,
         'use_cgo': False,
