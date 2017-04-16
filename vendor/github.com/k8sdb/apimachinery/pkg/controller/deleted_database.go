@@ -20,7 +20,7 @@ import (
 
 type Deleter interface {
 	// Check Database TPR
-	Exists(*tapi.DeletedDatabase) (bool, error)
+	Exists(*kapi.ObjectMeta) (bool, error)
 	// Delete operation
 	DeleteDatabase(*tapi.DeletedDatabase) error
 	// Destroy operation
@@ -147,7 +147,7 @@ func (c *DeletedDatabaseController) create(deletedDb *tapi.DeletedDatabase) {
 	deletedDb = _deletedDb
 
 	// Check if DB TPR object exists
-	found, err := c.deleter.Exists(deletedDb)
+	found, err := c.deleter.Exists(&deletedDb.ObjectMeta)
 	if err != nil {
 		message := fmt.Sprintf(`Failed to delete Database. Reason: "%v"`, err)
 		c.eventRecorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonFailedToDelete, message, deletedDb)
@@ -231,7 +231,7 @@ func (c *DeletedDatabaseController) update(oldDeletedDb, updatedDeletedDb *tapi.
 
 func (c *DeletedDatabaseController) destroy(deletedDb *tapi.DeletedDatabase) {
 	// Check if DB TPR object exists
-	found, err := c.deleter.Exists(deletedDb)
+	found, err := c.deleter.Exists(&deletedDb.ObjectMeta)
 	if err != nil {
 		message := fmt.Sprintf(`Failed to destroy Database. Reason: "%v"`, err)
 		c.eventRecorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonFailedToDelete, message, deletedDb)
@@ -296,7 +296,7 @@ func (c *DeletedDatabaseController) destroy(deletedDb *tapi.DeletedDatabase) {
 
 func (c *DeletedDatabaseController) recover(deletedDb *tapi.DeletedDatabase) {
 	// Check if DB TPR object exists
-	found, err := c.deleter.Exists(deletedDb)
+	found, err := c.deleter.Exists(&deletedDb.ObjectMeta)
 	if err != nil {
 		message := fmt.Sprintf(`Failed to recover Database. Reason: "%v"`, err)
 		c.eventRecorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonFailedToRecover, message, deletedDb)

@@ -12,8 +12,8 @@ import (
 	"k8s.io/kubernetes/pkg/labels"
 )
 
-func (c *Controller) Exists(deletedDb *tapi.DeletedDatabase) (bool, error) {
-	if _, err := c.ExtClient.Postgreses(deletedDb.Namespace).Get(deletedDb.Name); err != nil {
+func (c *Controller) Exists(om *kapi.ObjectMeta) (bool, error) {
+	if _, err := c.ExtClient.Postgreses(om.Namespace).Get(om.Name); err != nil {
 		if !k8serr.IsNotFound(err) {
 			return false, err
 		}

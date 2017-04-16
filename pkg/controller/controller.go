@@ -31,6 +31,9 @@ type Controller struct {
 	syncPeriod time.Duration
 }
 
+var _ amc.Snapshotter = &Controller{}
+var _ amc.Deleter = &Controller{}
+
 func New(c *rest.Config) *Controller {
 	controller := amc.NewController(c)
 	return &Controller{

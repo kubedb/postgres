@@ -20,7 +20,7 @@ const (
 	tagPostgresUtil        = "9.5-v4-util"
 )
 
-func (c *Controller) Validate(dbSnapshot *tapi.DatabaseSnapshot) error {
+func (c *Controller) ValidateSnapshot(dbSnapshot *tapi.DatabaseSnapshot) error {
 	// Database name can't empty
 	databaseName := dbSnapshot.Spec.DatabaseName
 	if databaseName == "" {
