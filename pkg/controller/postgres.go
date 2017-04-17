@@ -61,7 +61,7 @@ func (c *Controller) create(postgres *tapi.Postgres) {
 	} else {
 		var message string
 
-		if deletedDb.Labels[amc.LabelDatabaseType] != DatabasePostgres {
+		if deletedDb.Labels[amc.LabelDatabaseType] != tapi.ResourceNamePostgres {
 			message = fmt.Sprintf(`Invalid Postgres: "%v". Exists irrelevant DeletedDatabase: "%v"`,
 				postgres.Name, deletedDb.Name)
 		} else {

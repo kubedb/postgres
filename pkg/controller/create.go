@@ -16,7 +16,6 @@ import (
 
 const (
 	annotationDatabaseVersion = "postgres.k8sdb.com/version"
-	DatabasePostgres          = "postgres"
 	GoverningPostgres         = "governing-postgres"
 	imagePostgres             = "appscode/postgres"
 	modeBasic                 = "basic"
@@ -92,7 +91,7 @@ func (c *Controller) checkStatefulSet(postgres *tapi.Postgres) (*kapps.StatefulS
 		}
 	}
 
-	if statefulSet.Labels[amc.LabelDatabaseType] != DatabasePostgres {
+	if statefulSet.Labels[amc.LabelDatabaseType] != tapi.ResourceNamePostgres {
 		return nil, fmt.Errorf(`Intended statefulSet "%v" already exists`, statefulSetName)
 	}
 
@@ -112,7 +111,7 @@ func (c *Controller) createStatefulSet(postgres *tapi.Postgres) (*kapps.Stateful
 	if postgres.Labels == nil {
 		postgres.Labels = make(map[string]string)
 	}
-	postgres.Labels[amc.LabelDatabaseType] = DatabasePostgres
+	postgres.Labels[amc.LabelDatabaseType] = tapi.ResourceNamePostgres
 	// Set Annotations
 	if postgres.Annotations == nil {
 		postgres.Annotations = make(map[string]string)
@@ -149,7 +148,7 @@ func (c *Controller) createStatefulSet(postgres *tapi.Postgres) (*kapps.Stateful
 				Spec: kapi.PodSpec{
 					Containers: []kapi.Container{
 						{
-							Name:            DatabasePostgres,
+							Name:            tapi.ResourceNamePostgres,
 							Image:           dockerImage,
 							ImagePullPolicy: kapi.PullIfNotPresent,
 							Ports: []kapi.ContainerPort{
@@ -224,7 +223,7 @@ func (c *Controller) createDatabaseSecret(postgres *tapi.Postgres) (*kapi.Secret
 			ObjectMeta: kapi.ObjectMeta{
 				Name: authSecretName,
 				Labels: map[string]string{
-					amc.LabelDatabaseType: DatabasePostgres,
+					amc.LabelDatabaseType: tapi.ResourceNamePostgres,
 				},
 			},
 			Type: kapi.SecretTypeOpaque,
@@ -244,7 +243,7 @@ func addSecretVolume(statefulSet *kapps.StatefulSet, secretVolume *kapi.SecretVo
 	statefulSet.Spec.Template.Spec.Containers[0].VolumeMounts = append(statefulSet.Spec.Template.Spec.Containers[0].VolumeMounts,
 		kapi.VolumeMount{
 			Name:      "secret",
-			MountPath: "/srv/" + DatabasePostgres + "/secrets",
+			MountPath: "/srv/" + tapi.ResourceNamePostgres + "/secrets",
 		},
 	)
 
@@ -317,7 +316,7 @@ func (w *Controller) createDeletedDatabase(postgres *tapi.Postgres) (*tapi.Delet
 			Name:      postgres.Name,
 			Namespace: postgres.Namespace,
 			Labels: map[string]string{
-				amc.LabelDatabaseType: DatabasePostgres,
+				amc.LabelDatabaseType: tapi.ResourceNamePostgres,
 			},
 		},
 	}
@@ -325,7 +324,7 @@ func (w *Controller) createDeletedDatabase(postgres *tapi.Postgres) (*tapi.Delet
 	yamlDataByte, _ := yaml.Marshal(postgres)
 	if yamlDataByte != nil {
 		deletedDb.Annotations = map[string]string{
-			DatabasePostgres: string(yamlDataByte),
+			tapi.ResourceNamePostgres: string(yamlDataByte),
 		}
 	}
 	return w.ExtClient.DeletedDatabases(deletedDb.Namespace).Create(deletedDb)

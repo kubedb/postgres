@@ -41,7 +41,7 @@ func (c *Controller) DeleteDatabase(deletedDb *tapi.DeletedDatabase) error {
 func (c *Controller) DestroyDatabase(deletedDb *tapi.DeletedDatabase) error {
 	labelMap := map[string]string{
 		amc.LabelDatabaseName: deletedDb.Name,
-		amc.LabelDatabaseType: DatabasePostgres,
+		amc.LabelDatabaseType: tapi.ResourceNamePostgres,
 	}
 
 	labelSelector := labels.SelectorFromSet(labelMap)
@@ -60,7 +60,7 @@ func (c *Controller) DestroyDatabase(deletedDb *tapi.DeletedDatabase) error {
 
 func (c *Controller) RecoverDatabase(deletedDb *tapi.DeletedDatabase) error {
 	var _postgres tapi.Postgres
-	if err := yaml.Unmarshal([]byte(deletedDb.Annotations[DatabasePostgres]), &_postgres); err != nil {
+	if err := yaml.Unmarshal([]byte(deletedDb.Annotations[tapi.ResourceNamePostgres]), &_postgres); err != nil {
 		return err
 	}
 	postgres := &tapi.Postgres{
