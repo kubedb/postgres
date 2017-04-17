@@ -6,7 +6,7 @@ import (
 	tapi "github.com/k8sdb/apimachinery/api"
 )
 
-func (c *postgresController) validatePostgres(postgres *tapi.Postgres) error {
+func (c *Controller) validatePostgres(postgres *tapi.Postgres) error {
 	if postgres.Spec.Version == "" {
 		return fmt.Errorf(`Object 'Version' is missing in '%v'`, postgres.Spec)
 	}

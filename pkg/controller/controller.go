@@ -34,12 +34,12 @@ type Controller struct {
 var _ amc.Snapshotter = &Controller{}
 var _ amc.Deleter = &Controller{}
 
-func New(c *rest.Config) *Controller {
-	controller := amc.NewController(c)
+func New(cfg *rest.Config) *Controller {
+	c := amc.NewController(cfg)
 	return &Controller{
-		Controller:     controller,
-		cronController: amc.NewCronController(controller.Client, controller.ExtClient),
-		eventRecorder:  eventer.NewEventRecorder(controller.Client, "Postgres Controller"),
+		Controller:     c,
+		cronController: amc.NewCronController(c.Client, c.ExtClient),
+		eventRecorder:  eventer.NewEventRecorder(c.Client, "Postgres Controller"),
 		syncPeriod:     time.Minute * 2,
 	}
 }
@@ -74,7 +74,6 @@ func (c *Controller) watchPostgres() {
 		},
 	}
 
-	pController := &postgresController{c}
 	_, cacheController := cache.NewInformer(
 		lw,
 		&tapi.Postgres{},
@@ -83,11 +82,11 @@ func (c *Controller) watchPostgres() {
 			AddFunc: func(obj interface{}) {
 				postgres := obj.(*tapi.Postgres)
 				if postgres.Status.Created == nil {
-					pController.create(postgres)
+					c.create(postgres)
 				}
 			},
 			DeleteFunc: func(obj interface{}) {
-				pController.delete(obj.(*tapi.Postgres))
+				c.delete(obj.(*tapi.Postgres))
 			},
 			UpdateFunc: func(old, new interface{}) {
 				oldObj, ok := old.(*tapi.Postgres)
@@ -99,7 +98,7 @@ func (c *Controller) watchPostgres() {
 					return
 				}
 				if !reflect.DeepEqual(oldObj.Spec, newObj.Spec) {
-					pController.update(oldObj, newObj)
+					c.update(oldObj, newObj)
 				}
 			},
 		},

@@ -26,7 +26,7 @@ const (
 	durationCheckStatefulSet = time.Minute * 30
 )
 
-func (c *postgresController) checkService(name, namespace string) (bool, error) {
+func (c *Controller) checkService(name, namespace string) (bool, error) {
 	service, err := c.Client.Core().Services(namespace).Get(name)
 	if err != nil {
 		if k8serr.IsNotFound(err) {
@@ -43,7 +43,7 @@ func (c *postgresController) checkService(name, namespace string) (bool, error) 
 	return true, nil
 }
 
-func (w *postgresController) createService(name, namespace string) error {
+func (w *Controller) createService(name, namespace string) error {
 	// Check if service name exists
 	found, err := w.checkService(name, namespace)
 	if err != nil {
@@ -80,7 +80,7 @@ func (w *postgresController) createService(name, namespace string) error {
 	return nil
 }
 
-func (c *postgresController) checkStatefulSet(postgres *tapi.Postgres) (*kapps.StatefulSet, error) {
+func (c *Controller) checkStatefulSet(postgres *tapi.Postgres) (*kapps.StatefulSet, error) {
 	// SatatefulSet for Postgres database
 	statefulSetName := fmt.Sprintf("%v-%v", amc.DatabaseNamePrefix, postgres.Name)
 	statefulSet, err := c.Client.Apps().StatefulSets(postgres.Namespace).Get(statefulSetName)
@@ -99,7 +99,7 @@ func (c *postgresController) checkStatefulSet(postgres *tapi.Postgres) (*kapps.S
 	return statefulSet, nil
 }
 
-func (c *postgresController) createStatefulSet(postgres *tapi.Postgres) (*kapps.StatefulSet, error) {
+func (c *Controller) createStatefulSet(postgres *tapi.Postgres) (*kapps.StatefulSet, error) {
 	_statefulSet, err := c.checkStatefulSet(postgres)
 	if err != nil {
 		return nil, err
@@ -191,7 +191,7 @@ func (c *postgresController) createStatefulSet(postgres *tapi.Postgres) (*kapps.
 	return statefulSet, nil
 }
 
-func (w *postgresController) checkSecret(namespace, secretName string) (bool, error) {
+func (w *Controller) checkSecret(namespace, secretName string) (bool, error) {
 	secret, err := w.Client.Core().Secrets(namespace).Get(secretName)
 	if err != nil {
 		if k8serr.IsNotFound(err) {
@@ -207,7 +207,7 @@ func (w *postgresController) checkSecret(namespace, secretName string) (bool, er
 	return true, nil
 }
 
-func (c *postgresController) createDatabaseSecret(postgres *tapi.Postgres) (*kapi.SecretVolumeSource, error) {
+func (c *Controller) createDatabaseSecret(postgres *tapi.Postgres) (*kapi.SecretVolumeSource, error) {
 	authSecretName := postgres.Name + "-admin-auth"
 
 	found, err := c.checkSecret(postgres.Namespace, authSecretName)
@@ -311,7 +311,7 @@ func addInitialScript(statefulSet *kapps.StatefulSet, script *tapi.InitialScript
 	}
 }
 
-func (w *postgresController) createDeletedDatabase(postgres *tapi.Postgres) (*tapi.DeletedDatabase, error) {
+func (w *Controller) createDeletedDatabase(postgres *tapi.Postgres) (*tapi.DeletedDatabase, error) {
 	deletedDb := &tapi.DeletedDatabase{
 		ObjectMeta: kapi.ObjectMeta{
 			Name:      postgres.Name,
@@ -331,7 +331,7 @@ func (w *postgresController) createDeletedDatabase(postgres *tapi.Postgres) (*ta
 	return w.ExtClient.DeletedDatabases(deletedDb.Namespace).Create(deletedDb)
 }
 
-func (w *postgresController) reCreatePostgres(postgres *tapi.Postgres) error {
+func (w *Controller) reCreatePostgres(postgres *tapi.Postgres) error {
 	_postgres := &tapi.Postgres{
 		ObjectMeta: kapi.ObjectMeta{
 			Name:        postgres.Name,

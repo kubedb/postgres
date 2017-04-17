@@ -13,11 +13,7 @@ import (
 	"k8s.io/kubernetes/pkg/api/unversioned"
 )
 
-type postgresController struct {
-	*Controller
-}
-
-func (c *postgresController) create(postgres *tapi.Postgres) {
+func (c *Controller) create(postgres *tapi.Postgres) {
 	unversionedNow := unversioned.Now()
 	postgres.Status.Created = &unversionedNow
 	postgres.Status.DatabaseStatus = tapi.StatusDatabaseCreating
@@ -182,7 +178,7 @@ func (c *postgresController) create(postgres *tapi.Postgres) {
 	}
 }
 
-func (c *postgresController) delete(postgres *tapi.Postgres) {
+func (c *Controller) delete(postgres *tapi.Postgres) {
 
 	c.eventRecorder.PushEvent(
 		kapi.EventTypeNormal, eventer.EventReasonDeleting, "Deleting Postgres", postgres,
@@ -221,7 +217,7 @@ func (c *postgresController) delete(postgres *tapi.Postgres) {
 	c.cronController.StopBackupScheduling(postgres.ObjectMeta)
 }
 
-func (c *postgresController) update(oldPostgres, updatedPostgres *tapi.Postgres) {
+func (c *Controller) update(oldPostgres, updatedPostgres *tapi.Postgres) {
 	if (updatedPostgres.Spec.Replicas != oldPostgres.Spec.Replicas) && oldPostgres.Spec.Replicas >= 0 {
 		statefulSetName := fmt.Sprintf("%v-%v", amc.DatabaseNamePrefix, updatedPostgres.Name)
 		statefulSet, err := c.Client.Apps().StatefulSets(updatedPostgres.Namespace).Get(statefulSetName)
