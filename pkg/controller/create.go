@@ -292,25 +292,23 @@ func addDataVolume(statefulSet *kapps.StatefulSet, storage *tapi.StorageSpec) {
 }
 
 func addInitialScript(statefulSet *kapps.StatefulSet, script *tapi.ScriptSourceSpec) {
-	if script != nil {
-		statefulSet.Spec.Template.Spec.Containers[0].VolumeMounts = append(statefulSet.Spec.Template.Spec.Containers[0].VolumeMounts,
-			kapi.VolumeMount{
-				Name:      "initial-script",
-				MountPath: "/var/db-script",
-			},
-		)
-		statefulSet.Spec.Template.Spec.Containers[0].Args = []string{
-			modeBasic,
-			script.ScriptPath,
-		}
-
-		statefulSet.Spec.Template.Spec.Volumes = append(statefulSet.Spec.Template.Spec.Volumes,
-			kapi.Volume{
-				Name:         "initial-script",
-				VolumeSource: script.VolumeSource,
-			},
-		)
+	statefulSet.Spec.Template.Spec.Containers[0].VolumeMounts = append(statefulSet.Spec.Template.Spec.Containers[0].VolumeMounts,
+		kapi.VolumeMount{
+			Name:      "initial-script",
+			MountPath: "/var/db-script",
+		},
+	)
+	statefulSet.Spec.Template.Spec.Containers[0].Args = []string{
+		modeBasic,
+		script.ScriptPath,
 	}
+
+	statefulSet.Spec.Template.Spec.Volumes = append(statefulSet.Spec.Template.Spec.Volumes,
+		kapi.Volume{
+			Name:         "initial-script",
+			VolumeSource: script.VolumeSource,
+		},
+	)
 }
 
 func (w *Controller) createDeletedDatabase(postgres *tapi.Postgres) (*tapi.DeletedDatabase, error) {
