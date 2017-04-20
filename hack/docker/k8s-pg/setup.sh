@@ -63,7 +63,11 @@ build() {
 docker_push() {
     if [ "$APPSCODE_ENV" = "prod" ]; then
         echo "Nothing to do in prod env. Are you trying to 'release' binaries to prod?"
-        exit 0
+        exit 1
+    fi
+    if [ "$TAG_STRATEGY" = "git_tag" ]; then
+        echo "Are you trying to 'release' binaries to prod?"
+        exit 1
     fi
     hub_canary
 }
