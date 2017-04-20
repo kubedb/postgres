@@ -12,10 +12,13 @@ import (
 	_ "github.com/graymeta/stow/google"
 	_ "github.com/graymeta/stow/s3"
 	tapi "github.com/k8sdb/apimachinery/api"
+	"github.com/k8sdb/apimachinery/pkg/eventer"
 	kapi "k8s.io/kubernetes/pkg/api"
 	k8serr "k8s.io/kubernetes/pkg/api/errors"
 	kapps "k8s.io/kubernetes/pkg/apis/apps"
+	kbatch "k8s.io/kubernetes/pkg/apis/batch"
 	"k8s.io/kubernetes/pkg/labels"
+	"k8s.io/kubernetes/pkg/runtime"
 )
 
 func (c *Controller) ValidateStorageSpec(spec *tapi.StorageSpec) (*tapi.StorageSpec, error) {
@@ -275,4 +278,83 @@ func (c *Controller) DeleteDatabaseSnapshots(namespace string, selector labels.S
 		}
 	}
 	return nil
+}
+
+func (c *Controller) CheckDatabaseRestoreJob(
+	job *kbatch.Job,
+	runtimeObj runtime.Object,
+	recorder eventer.EventRecorderInterface,
+	checkDuration time.Duration,
+) bool {
+	var jobSuccess bool = false
+	var err error
+
+	then := time.Now()
+	now := time.Now()
+	for now.Sub(then) < checkDuration {
+		log.Debugln("Checking for Job ", job.Name)
+		job, err = c.Client.Batch().Jobs(job.Namespace).Get(job.Name)
+		if err != nil {
+			message := fmt.Sprintf(`Failed to get Job. Reason: %v`, err)
+			recorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonFailedToList, message, runtimeObj)
+			log.Errorln(err)
+			return jobSuccess
+		}
+		log.Debugf("Pods Statuses:	%d Running / %d Succeeded / %d Failed",
+			job.Status.Active, job.Status.Succeeded, job.Status.Failed)
+		// If job is success
+		if job.Status.Succeeded > 0 {
+			jobSuccess = true
+			break
+		} else if job.Status.Failed > 0 {
+			break
+		}
+
+		time.Sleep(time.Minute)
+		now = time.Now()
+	}
+
+	podList, err := c.Client.Core().Pods(job.Namespace).List(
+		kapi.ListOptions{
+			LabelSelector: labels.SelectorFromSet(job.Spec.Selector.MatchLabels),
+		},
+	)
+	if err != nil {
+		message := fmt.Sprintf(`Failed to list Pods. Reason: %v`, err)
+		recorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonFailedToList, message, runtimeObj)
+		log.Errorln(err)
+		return jobSuccess
+	}
+
+	for _, pod := range podList.Items {
+		if err := c.Client.Core().Pods(pod.Namespace).Delete(pod.Name, nil); err != nil {
+			message := fmt.Sprintf(`Failed to delete Pod. Reason: %v`, err)
+			recorder.PushEvent(
+				kapi.EventTypeWarning, eventer.EventReasonFailedToDelete, message, runtimeObj,
+			)
+			log.Errorln(err)
+		}
+	}
+
+	for _, volume := range job.Spec.Template.Spec.Volumes {
+		claim := volume.PersistentVolumeClaim
+		if claim != nil {
+			err := c.Client.Core().PersistentVolumeClaims(job.Namespace).Delete(claim.ClaimName, nil)
+			if err != nil {
+				message := fmt.Sprintf(`Failed to delete PersistentVolumeClaim. Reason: %v`, err)
+				recorder.PushEvent(
+					kapi.EventTypeWarning, eventer.EventReasonFailedToDelete, message, runtimeObj,
+				)
+				log.Errorln(err)
+			}
+		}
+	}
+
+	if err := c.Client.Batch().Jobs(job.Namespace).Delete(job.Name, nil); err != nil {
+		message := fmt.Sprintf(`Failed to delete Job. Reason: %v`, err)
+		recorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonFailedToDelete, message, runtimeObj)
+		log.Errorln(err)
+	}
+
+	return jobSuccess
 }

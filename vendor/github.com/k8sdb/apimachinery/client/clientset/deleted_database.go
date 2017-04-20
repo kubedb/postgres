@@ -26,7 +26,7 @@ type DeletedDatabaseImpl struct {
 	ns string
 }
 
-func newDeletedDatabase(c *AppsCodeExtensionsClient, namespace string) *DeletedDatabaseImpl {
+func newDeletedDatabase(c *ExtensionsClient, namespace string) *DeletedDatabaseImpl {
 	return &DeletedDatabaseImpl{c.restClient, namespace}
 }
 

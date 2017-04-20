@@ -34,8 +34,9 @@ type PostgresSpec struct {
 	// NodeSelector is a selector which must be true for the pod to fit on a node
 	// +optional
 	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
-	// Run initial script when starting Postgres master
-	InitialScript *InitialScriptSpec `json:"initialScript,omitempty"`
+	// Init is used to initialize database
+	// +optional
+	Init *InitSpec `json:"init,omitempty"`
 	// BackupSchedule spec to specify how database backup will be taken
 	// +optional
 	BackupSchedule *BackupScheduleSpec `json:"backupSchedule,omitempty"`

@@ -15,9 +15,10 @@ import (
 )
 
 const (
-	SnapshotProcess_Backup = "backup"
-	storageSecretMountPath = "/var/credentials/"
-	tagPostgresUtil        = "9.5-v4-util"
+	SnapshotProcess_Backup  = "backup"
+	storageSecretMountPath  = "/var/credentials/"
+	tagPostgresUtil         = "9.5-v4-util"
+	snapshotType_DumpBackup = "dump-backup"
 )
 
 func (c *Controller) ValidateSnapshot(dbSnapshot *tapi.DatabaseSnapshot) error {
@@ -123,7 +124,7 @@ func (c *Controller) GetSnapshotter(snapshot *tapi.DatabaseSnapshot) (*kbatch.Jo
 								},
 								{
 									Name:      persistentVolume.Name,
-									MountPath: "/var/" + SnapshotProcess_Backup + "/",
+									MountPath: "/var/" + snapshotType_DumpBackup + "/",
 								},
 							},
 						},

@@ -10,9 +10,19 @@ type StorageSpec struct {
 	api.PersistentVolumeClaimSpec `json:",inline,omitempty"`
 }
 
-type InitialScriptSpec struct {
+type InitSpec struct {
+	ScriptSource   *ScriptSourceSpec   `json:"scriptSource,omitempty"`
+	SnapshotSource *SnapshotSourceSpec `json:"snapshotSource,omitempty"`
+}
+
+type ScriptSourceSpec struct {
 	ScriptPath       string `json:"scriptPath,omitempty"`
 	api.VolumeSource `json:",inline,omitempty"`
+}
+
+type SnapshotSourceSpec struct {
+	Namespace string `json:"namespace,omitempty"`
+	Name      string `json:"name,omitempty"`
 }
 
 type BackupScheduleSpec struct {
@@ -37,6 +47,8 @@ const (
 	StatusDatabaseRunning DatabaseStatus = "Running"
 	// used for Databases that are currently creating
 	StatusDatabaseCreating DatabaseStatus = "Creating"
+	// used for Databases that are currently initializing
+	StatusDatabaseInitializing DatabaseStatus = "Initializing"
 	// used for Databases that are Failed
 	StatusDatabaseFailed DatabaseStatus = "Failed"
 )

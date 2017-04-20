@@ -3,6 +3,7 @@ package controller
 import (
 	"fmt"
 	"reflect"
+	"time"
 
 	"github.com/appscode/log"
 	tapi "github.com/k8sdb/apimachinery/api"
@@ -143,6 +144,26 @@ func (c *Controller) create(postgres *tapi.Postgres) {
 		)
 	}
 
+	if postgres.Spec.Init != nil && postgres.Spec.Init.SnapshotSource != nil {
+		postgres.Status.DatabaseStatus = tapi.StatusDatabaseInitializing
+		if _postgres, err = c.ExtClient.Postgreses(postgres.Namespace).Update(postgres); err != nil {
+			message := fmt.Sprintf(`Fail to update Postgres: "%v". Reason: %v`, postgres.Name, err)
+			c.eventRecorder.PushEvent(
+				kapi.EventTypeWarning, eventer.EventReasonFailedToUpdate, message, postgres,
+			)
+			log.Errorln(err)
+			return
+		}
+		postgres = _postgres
+
+		if err := c.initialize(postgres); err != nil {
+			message := fmt.Sprintf(`Failed to initialize. Reason: %v`, err)
+			c.eventRecorder.PushEvent(
+				kapi.EventTypeWarning, eventer.EventReasonFailedToInitialize, message, postgres,
+			)
+		}
+	}
+
 	if recovering {
 		// Delete DeletedDatabase instance
 		if err := c.ExtClient.DeletedDatabases(deletedDb.Namespace).Delete(deletedDb.Name); err != nil {
@@ -179,6 +200,48 @@ func (c *Controller) create(postgres *tapi.Postgres) {
 			log.Errorln(err)
 		}
 	}
+}
+
+const (
+	durationCheckRestoreJob = time.Minute * 30
+)
+
+func (c *Controller) initialize(postgres *tapi.Postgres) error {
+	snapshotSource := postgres.Spec.Init.SnapshotSource
+	// Event for notification that kubernetes objects are creating
+	c.eventRecorder.PushEvent(
+		kapi.EventTypeNormal, eventer.EventReasonInitializing,
+		fmt.Sprintf(`Initializing from DatabaseSnapshot: "%v"`, snapshotSource.Name),
+		postgres,
+	)
+
+	namespace := snapshotSource.Namespace
+	if namespace == "" {
+		namespace = postgres.Namespace
+	}
+	dbSnapshot, err := c.ExtClient.DatabaseSnapshots(namespace).Get(snapshotSource.Name)
+	if err != nil {
+		return err
+	}
+
+	job, err := c.createRestoreJob(postgres, dbSnapshot)
+	if err != nil {
+		return err
+	}
+
+	jobSuccess := c.CheckDatabaseRestoreJob(job, postgres, c.eventRecorder, durationCheckRestoreJob)
+	if jobSuccess {
+		c.eventRecorder.PushEvent(
+			kapi.EventTypeNormal, eventer.EventReasonSuccessfulInitialize,
+			"Successfully completed initialization", postgres,
+		)
+	} else {
+		c.eventRecorder.PushEvent(
+			kapi.EventTypeWarning, eventer.EventReasonFailedToInitialize,
+			"Failed to complete initialization", postgres,
+		)
+	}
+	return nil
 }
 
 func (c *Controller) delete(postgres *tapi.Postgres) {

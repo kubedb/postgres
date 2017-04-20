@@ -11,6 +11,7 @@ import (
 	kapi "k8s.io/kubernetes/pkg/api"
 	k8serr "k8s.io/kubernetes/pkg/api/errors"
 	kapps "k8s.io/kubernetes/pkg/apis/apps"
+	kbatch "k8s.io/kubernetes/pkg/apis/batch"
 	"k8s.io/kubernetes/pkg/util/intstr"
 )
 
@@ -181,7 +182,9 @@ func (c *Controller) createStatefulSet(postgres *tapi.Postgres) (*kapps.Stateful
 	addDataVolume(statefulSet, postgres.Spec.Storage)
 
 	// Add InitialScript to run at startup
-	addInitialScript(statefulSet, postgres.Spec.InitialScript)
+	if postgres.Spec.Init != nil && postgres.Spec.Init.ScriptSource != nil {
+		addInitialScript(statefulSet, postgres.Spec.Init.ScriptSource)
+	}
 
 	if _, err := c.Client.Apps().StatefulSets(statefulSet.Namespace).Create(statefulSet); err != nil {
 		return nil, err
@@ -288,7 +291,7 @@ func addDataVolume(statefulSet *kapps.StatefulSet, storage *tapi.StorageSpec) {
 	}
 }
 
-func addInitialScript(statefulSet *kapps.StatefulSet, script *tapi.InitialScriptSpec) {
+func addInitialScript(statefulSet *kapps.StatefulSet, script *tapi.ScriptSourceSpec) {
 	if script != nil {
 		statefulSet.Spec.Template.Spec.Containers[0].VolumeMounts = append(statefulSet.Spec.Template.Spec.Containers[0].VolumeMounts,
 			kapi.VolumeMount{
@@ -317,7 +320,6 @@ func (w *Controller) createDeletedDatabase(postgres *tapi.Postgres) (*tapi.Delet
 			Namespace: postgres.Namespace,
 			Labels: map[string]string{
 				amc.LabelDatabaseType: tapi.ResourceNamePostgres,
-				amc.LabelDatabaseName: postgres.Name,
 			},
 		},
 	}
@@ -348,4 +350,95 @@ func (w *Controller) reCreatePostgres(postgres *tapi.Postgres) error {
 	}
 
 	return nil
+}
+
+const (
+	SnapshotProcess_Restore  = "restore"
+	snapshotType_DumpRestore = "dump-restore"
+)
+
+func (w *Controller) createRestoreJob(postgres *tapi.Postgres, dbSnapshot *tapi.DatabaseSnapshot) (*kbatch.Job, error) {
+
+	databaseName := postgres.Name
+	jobName := rand.WithUniqSuffix(SnapshotProcess_Restore + "-" + databaseName)
+	jobLabel := map[string]string{
+		amc.LabelDatabaseName: databaseName,
+		amc.LabelJobType:      SnapshotProcess_Restore,
+	}
+	backupSpec := dbSnapshot.Spec.SnapshotSpec
+
+	// Get PersistentVolume object for Backup Util pod.
+	persistentVolume, err := w.getVolumeForSnapshot(postgres.Spec.Storage, jobName, postgres.Namespace)
+	if err != nil {
+		return nil, err
+	}
+
+	// Folder name inside Cloud bucket where backup will be uploaded
+	folderName := tapi.ResourceNamePostgres + "-" + dbSnapshot.Spec.DatabaseName
+
+	job := &kbatch.Job{
+		ObjectMeta: kapi.ObjectMeta{
+			Name:   jobName,
+			Labels: jobLabel,
+		},
+		Spec: kbatch.JobSpec{
+			Template: kapi.PodTemplateSpec{
+				ObjectMeta: kapi.ObjectMeta{
+					Labels: jobLabel,
+				},
+				Spec: kapi.PodSpec{
+					Containers: []kapi.Container{
+						{
+							Name:  SnapshotProcess_Restore,
+							Image: imagePostgres + ":" + tagPostgresUtil,
+							Args: []string{
+								fmt.Sprintf(`--process=%s`, SnapshotProcess_Restore),
+								fmt.Sprintf(`--host=%s`, databaseName),
+								fmt.Sprintf(`--bucket=%s`, backupSpec.BucketName),
+								fmt.Sprintf(`--folder=%s`, folderName),
+								fmt.Sprintf(`--snapshot=%s`, dbSnapshot.Name),
+							},
+							VolumeMounts: []kapi.VolumeMount{
+								{
+									Name:      "secret",
+									MountPath: "/srv/" + tapi.ResourceNamePostgres + "/secrets",
+								},
+								{
+									Name:      "cloud",
+									MountPath: storageSecretMountPath,
+								},
+								{
+									Name:      persistentVolume.Name,
+									MountPath: "/var/" + snapshotType_DumpRestore + "/",
+								},
+							},
+						},
+					},
+					Volumes: []kapi.Volume{
+						{
+							Name: "secret",
+							VolumeSource: kapi.VolumeSource{
+								Secret: &kapi.SecretVolumeSource{
+									SecretName: postgres.Spec.DatabaseSecret.SecretName,
+								},
+							},
+						},
+						{
+							Name: "cloud",
+							VolumeSource: kapi.VolumeSource{
+								Secret: backupSpec.StorageSecret,
+							},
+						},
+						{
+							Name:         persistentVolume.Name,
+							VolumeSource: persistentVolume.VolumeSource,
+						},
+					},
+					RestartPolicy: kapi.RestartPolicyNever,
+				},
+			},
+		},
+	}
+
+	return w.Client.Batch().Jobs(postgres.Namespace).Create(job)
 }

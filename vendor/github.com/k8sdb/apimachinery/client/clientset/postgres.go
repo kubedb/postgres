@@ -26,7 +26,7 @@ type PostgresImpl struct {
 	ns string
 }
 
-func newPostgres(c *AppsCodeExtensionsClient, namespace string) *PostgresImpl {
+func newPostgres(c *ExtensionsClient, namespace string) *PostgresImpl {
 	return &PostgresImpl{c.restClient, namespace}
 }
 

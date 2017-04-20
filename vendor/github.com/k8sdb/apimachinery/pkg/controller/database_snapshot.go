@@ -12,7 +12,6 @@ import (
 	kapi "k8s.io/kubernetes/pkg/api"
 	k8serr "k8s.io/kubernetes/pkg/api/errors"
 	"k8s.io/kubernetes/pkg/api/unversioned"
-	"k8s.io/kubernetes/pkg/apis/batch"
 	kbatch "k8s.io/kubernetes/pkg/apis/batch"
 	"k8s.io/kubernetes/pkg/apis/extensions"
 	"k8s.io/kubernetes/pkg/client/cache"
@@ -232,7 +231,7 @@ func (c *DatabaseSnapshotController) checkDatabaseSnapshotJob(dbSnapshot *tapi.D
 	}
 
 	var jobSuccess bool = false
-	var job *batch.Job
+	var job *kbatch.Job
 
 	then := time.Now()
 	now := time.Now()
@@ -240,7 +239,12 @@ func (c *DatabaseSnapshotController) checkDatabaseSnapshotJob(dbSnapshot *tapi.D
 		log.Debugln("Checking for Job ", jobName)
 		job, err = c.client.Batch().Jobs(dbSnapshot.Namespace).Get(jobName)
 		if err != nil {
-			break
+			message := fmt.Sprintf(`Failed to get Job. Reason: %v`, err)
+			c.eventRecorder.PushEvent(
+				kapi.EventTypeWarning, eventer.EventReasonFailedToList, message, dbSnapshot,
+			)
+			log.Errorln(err)
+			return
 		}
 		log.Debugf("Pods Statuses:	%d Running / %d Succeeded / %d Failed",
 			job.Status.Active, job.Status.Succeeded, job.Status.Failed)

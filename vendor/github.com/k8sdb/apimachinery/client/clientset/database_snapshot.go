@@ -26,7 +26,7 @@ type DatabaseSnapshotImpl struct {
 	ns string
 }
 
-func newDatabaseSnapshot(c *AppsCodeExtensionsClient, namespace string) *DatabaseSnapshotImpl {
+func newDatabaseSnapshot(c *ExtensionsClient, namespace string) *DatabaseSnapshotImpl {
 	return &DatabaseSnapshotImpl{c.restClient, namespace}
 }
 
