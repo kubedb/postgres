@@ -218,8 +218,8 @@ func (c *DatabaseSnapshotController) delete(dbSnapshot *tapi.DatabaseSnapshot) {
 }
 
 func (c *DatabaseSnapshotController) checkDatabaseSnapshotJob(dbSnapshot *tapi.DatabaseSnapshot, jobName string, checkDuration time.Duration) {
-	unversionedNow := unversioned.Now()
-	dbSnapshot.Status.StartTime = &unversionedNow
+	t := unversioned.Now()
+	dbSnapshot.Status.StartTime = &t
 	dbSnapshot.Status.Status = tapi.StatusSnapshotRunning
 	dbSnapshot.Labels[LabelSnapshotStatus] = string(tapi.StatusSnapshotRunning)
 	var err error
@@ -316,8 +316,8 @@ func (c *DatabaseSnapshotController) checkDatabaseSnapshotJob(dbSnapshot *tapi.D
 		return
 	}
 
-	unversionedNow = unversioned.Now()
-	dbSnapshot.Status.CompleteTime = &unversionedNow
+	t = unversioned.Now()
+	dbSnapshot.Status.CompletionTime = &t
 	if jobSuccess {
 		dbSnapshot.Status.Status = tapi.StatusSnapshotSuccessed
 		c.eventRecorder.PushEvent(

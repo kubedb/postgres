@@ -42,9 +42,9 @@ func (c *Controller) ValidateSnapshot(dbSnapshot *tapi.DatabaseSnapshot) error {
 	}
 
 	if len(snapshotList.Items) > 0 {
-		unversionedNow := unversioned.Now()
-		dbSnapshot.Status.StartTime = &unversionedNow
-		dbSnapshot.Status.CompleteTime = &unversionedNow
+		t := unversioned.Now()
+		dbSnapshot.Status.StartTime = &t
+		dbSnapshot.Status.CompletionTime = &t
 		dbSnapshot.Status.Status = tapi.StatusSnapshotFailed
 		dbSnapshot.Status.Reason = "One DatabaseSnapshot is already Running"
 		if _, err := c.ExtClient.DatabaseSnapshots(dbSnapshot.Namespace).Update(dbSnapshot); err != nil {

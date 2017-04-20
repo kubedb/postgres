@@ -46,11 +46,11 @@ const (
 )
 
 type DeletedDatabaseStatus struct {
-	CreateTime  *unversioned.Time    `json:"createTime,omitempty"`
-	DeleteTime  *unversioned.Time    `json:"deleteTime,omitempty"`
-	DestroyTime *unversioned.Time    `json:"destroyTime,omitempty"`
-	Phase       DeletedDatabasePhase `json:"phase,omitempty"`
-	Reason      string               `json:"reason,omitempty"`
+	CreationTime *unversioned.Time    `json:"creationTime,omitempty"`
+	DeletionTime *unversioned.Time    `json:"deletionTime,omitempty"`
+	DestroyTime  *unversioned.Time    `json:"destroyTime,omitempty"`
+	Phase        DeletedDatabasePhase `json:"phase,omitempty"`
+	Reason       string               `json:"reason,omitempty"`
 }
 
 type DeletedDatabaseList struct {

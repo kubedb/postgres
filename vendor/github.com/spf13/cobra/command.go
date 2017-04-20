@@ -66,6 +66,10 @@ type Command struct {
 	pflags *flag.FlagSet
 	// Flags that are declared specifically by this command (not inherited).
 	lflags *flag.FlagSet
+	// Inherited flags.
+	iflags *flag.FlagSet
+	// All persistent flags of cmd's parents.
+	parentsPflags *flag.FlagSet
 	// SilenceErrors is an option to quiet errors down stream
 	SilenceErrors bool
 	// Silence Usage is an option to silence usage when an error occurs.
@@ -544,32 +548,18 @@ func (c *Command) SuggestionsFor(typedName string) []string {
 
 // VisitParents visits all parents of the command and invokes fn on each parent.
 func (c *Command) VisitParents(fn func(*Command)) {
-	var traverse func(*Command) *Command
-
-	traverse = func(x *Command) *Command {
-		if x != c {
-			fn(x)
-		}
-		if x.HasParent() {
-			return traverse(x.parent)
-		}
-		return x
+	if c.HasParent() {
+		fn(c.Parent())
+		c.Parent().VisitParents(fn)
 	}
-	traverse(c)
 }
 
 // Root finds root command.
 func (c *Command) Root() *Command {
-	var findRoot func(*Command) *Command
-
-	findRoot = func(x *Command) *Command {
-		if x.HasParent() {
-			return findRoot(x.parent)
-		}
-		return x
+	if c.HasParent() {
+		return c.Parent().Root()
 	}
-
-	return findRoot(c)
+	return c
 }
 
 // ArgsLenAtDash will return the length of f.Args at the moment when a -- was
@@ -782,6 +772,7 @@ func (c *Command) initHelpCmd() {
 func (c *Command) ResetCommands() {
 	c.commands = nil
 	c.helpCommand = nil
+	c.parentsPflags = nil
 }
 
 // Sorts commands by their names.
@@ -913,12 +904,8 @@ func (c *Command) DebugFlags() {
 		}
 		if x.HasFlags() {
 			x.flags.VisitAll(func(f *flag.Flag) {
-				if x.HasPersistentFlags() {
-					if x.persistentFlag(f.Name) == nil {
-						c.Println("  -"+f.Shorthand+",", "--"+f.Name, "["+f.DefValue+"]", "", f.Value, "  [L]")
-					} else {
-						c.Println("  -"+f.Shorthand+",", "--"+f.Name, "["+f.DefValue+"]", "", f.Value, "  [LP]")
-					}
+				if x.HasPersistentFlags() && x.persistentFlag(f.Name) != nil {
+					c.Println("  -"+f.Shorthand+",", "--"+f.Name, "["+f.DefValue+"]", "", f.Value, "  [LP]")
 				} else {
 					c.Println("  -"+f.Shorthand+",", "--"+f.Name, "["+f.DefValue+"]", "", f.Value, "  [L]")
 				}
@@ -1077,6 +1064,7 @@ func (c *Command) Flags() *flag.FlagSet {
 		c.flags = flag.NewFlagSet(c.Name(), flag.ContinueOnError)
 		c.flags.SetOutput(c.OutOrStderr())
 	}
+
 	return c.flags
 }
 
@@ -1097,47 +1085,37 @@ func (c *Command) LocalNonPersistentFlags() *flag.FlagSet {
 func (c *Command) LocalFlags() *flag.FlagSet {
 	c.mergePersistentFlags()
 
-	local := flag.NewFlagSet(c.Name(), flag.ContinueOnError)
-	c.lflags.VisitAll(func(f *flag.Flag) {
-		local.AddFlag(f)
-	})
-	if !c.HasParent() {
-		flag.CommandLine.VisitAll(func(f *flag.Flag) {
-			if local.Lookup(f.Name) == nil {
-				local.AddFlag(f)
-			}
-		})
+	if c.lflags == nil {
+		c.lflags = flag.NewFlagSet(c.Name(), flag.ContinueOnError)
+		c.lflags.SetOutput(c.OutOrStderr())
 	}
-	return local
+	c.lflags.SortFlags = c.Flags().SortFlags
+
+	addToLocal := func(f *flag.Flag) {
+		if c.lflags.Lookup(f.Name) == nil && c.parentsPflags.Lookup(f.Name) == nil {
+			c.lflags.AddFlag(f)
+		}
+	}
+	c.Flags().VisitAll(addToLocal)
+	c.PersistentFlags().VisitAll(addToLocal)
+	return c.lflags
 }
 
 // InheritedFlags returns all flags which were inherited from parents commands.
 func (c *Command) InheritedFlags() *flag.FlagSet {
 	c.mergePersistentFlags()
 
-	inherited := flag.NewFlagSet(c.Name(), flag.ContinueOnError)
+	if c.iflags == nil {
+		c.iflags = flag.NewFlagSet(c.Name(), flag.ContinueOnError)
+	}
+
 	local := c.LocalFlags()
-
-	var rmerge func(x *Command)
-
-	rmerge = func(x *Command) {
-		if x.HasPersistentFlags() {
-			x.PersistentFlags().VisitAll(func(f *flag.Flag) {
-				if inherited.Lookup(f.Name) == nil && local.Lookup(f.Name) == nil {
-					inherited.AddFlag(f)
-				}
-			})
+	c.parentsPflags.VisitAll(func(f *flag.Flag) {
+		if c.iflags.Lookup(f.Name) == nil && local.Lookup(f.Name) == nil {
+			c.iflags.AddFlag(f)
 		}
-		if x.HasParent() {
-			rmerge(x.parent)
-		}
-	}
-
-	if c.HasParent() {
-		rmerge(c.parent)
-	}
-
-	return inherited
+	})
+	return c.iflags
 }
 
 // NonInheritedFlags returns all flags which were not inherited from parent commands.
@@ -1222,8 +1200,9 @@ func (c *Command) persistentFlag(name string) (flag *flag.Flag) {
 		flag = c.PersistentFlags().Lookup(name)
 	}
 
-	if flag == nil && c.HasParent() {
-		flag = c.parent.persistentFlag(name)
+	if flag == nil {
+		c.updateParentsPflags()
+		flag = c.parentsPflags.Lookup(name)
 	}
 	return
 }
@@ -1243,38 +1222,27 @@ func (c *Command) Parent() *Command {
 	return c.parent
 }
 
+// mergePersistentFlags merges c.PersistentFlags() to c.Flags()
+// and adds missing persistent flags of all parents.
 func (c *Command) mergePersistentFlags() {
-	var rmerge func(x *Command)
+	c.Flags().AddFlagSet(c.PersistentFlags())
+	c.updateParentsPflags()
+	c.Flags().AddFlagSet(c.parentsPflags)
+}
 
-	// Save the set of local flags
-	if c.lflags == nil {
-		c.lflags = flag.NewFlagSet(c.Name(), flag.ContinueOnError)
-		c.lflags.SetOutput(c.OutOrStderr())
-		addtolocal := func(f *flag.Flag) {
-			c.lflags.AddFlag(f)
-		}
-		c.Flags().VisitAll(addtolocal)
-		c.PersistentFlags().VisitAll(addtolocal)
-	}
-	rmerge = func(x *Command) {
-		if !x.HasParent() {
-			flag.CommandLine.VisitAll(func(f *flag.Flag) {
-				if x.PersistentFlags().Lookup(f.Name) == nil {
-					x.PersistentFlags().AddFlag(f)
-				}
-			})
-		}
-		if x.HasPersistentFlags() {
-			x.PersistentFlags().VisitAll(func(f *flag.Flag) {
-				if c.Flags().Lookup(f.Name) == nil {
-					c.Flags().AddFlag(f)
-				}
-			})
-		}
-		if x.HasParent() {
-			rmerge(x.parent)
-		}
+// updateParentsPflags updates c.parentsPflags by adding
+// new persistent flags of all parents.
+// If c.parentsPflags == nil, it makes new.
+func (c *Command) updateParentsPflags() {
+	if c.parentsPflags == nil {
+		c.parentsPflags = flag.NewFlagSet(c.Name(), flag.ContinueOnError)
+		c.parentsPflags.SetOutput(c.OutOrStderr())
+		c.parentsPflags.SortFlags = false
 	}
 
-	rmerge(c)
+	c.Root().PersistentFlags().AddFlagSet(flag.CommandLine)
+
+	c.VisitParents(func(parent *Command) {
+		c.parentsPflags.AddFlagSet(parent.PersistentFlags())
+	})
 }

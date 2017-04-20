@@ -15,8 +15,8 @@ import (
 )
 
 func (c *Controller) create(postgres *tapi.Postgres) {
-	unversionedNow := unversioned.Now()
-	postgres.Status.CreateTime = &unversionedNow
+	t := unversioned.Now()
+	postgres.Status.CreationTime = &t
 	postgres.Status.DatabaseStatus = tapi.StatusDatabaseCreating
 	var _postgres *tapi.Postgres
 	var err error

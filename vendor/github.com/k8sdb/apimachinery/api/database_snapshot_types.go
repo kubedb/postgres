@@ -37,10 +37,10 @@ const (
 )
 
 type DatabaseSnapshotStatus struct {
-	StartTime    *unversioned.Time `json:"startTime,omitempty"`
-	CompleteTime *unversioned.Time `json:"completeTime,omitempty"`
-	Status       SnapshotStatus    `json:"status,omitempty"`
-	Reason       string            `json:"reason,omitempty"`
+	StartTime      *unversioned.Time `json:"startTime,omitempty"`
+	CompletionTime *unversioned.Time `json:"completionTime,omitempty"`
+	Status         SnapshotStatus    `json:"status,omitempty"`
+	Reason         string            `json:"reason,omitempty"`
 }
 
 type DatabaseSnapshotList struct {

@@ -109,7 +109,7 @@ func (c *DeletedDatabaseController) watch() {
 		cache.ResourceEventHandlerFuncs{
 			AddFunc: func(obj interface{}) {
 				deletedDb := obj.(*tapi.DeletedDatabase)
-				if deletedDb.Status.CreateTime == nil {
+				if deletedDb.Status.CreationTime == nil {
 					c.create(deletedDb)
 				}
 			},
@@ -136,8 +136,8 @@ func (c *DeletedDatabaseController) watch() {
 func (c *DeletedDatabaseController) create(deletedDb *tapi.DeletedDatabase) {
 
 	// Set DeletedDatabase Phase: Deleting
-	unversionedNow := unversioned.Now()
-	deletedDb.Status.CreateTime = &unversionedNow
+	t := unversioned.Now()
+	deletedDb.Status.CreationTime = &t
 	_deletedDb, err := c.extClient.DeletedDatabases(deletedDb.Namespace).Update(deletedDb)
 	if err != nil {
 		message := fmt.Sprintf(`Failed to update DeletedDatabase. Reason: "%v"`, err)
@@ -161,16 +161,14 @@ func (c *DeletedDatabaseController) create(deletedDb *tapi.DeletedDatabase) {
 		// Delete DeletedDatabase object
 		if err := c.extClient.DeletedDatabases(deletedDb.Namespace).Delete(deletedDb.Name); err != nil {
 			message := fmt.Sprintf(`Failed to delete DeletedDatabase. Reason: %v`, err)
-			c.eventRecorder.PushEvent(
-				kapi.EventTypeWarning, eventer.EventReasonFailedToDelete, message, deletedDb,
-			)
+			c.eventRecorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonFailedToDelete, message, deletedDb)
 			log.Errorln(err)
 		}
 		return
 	}
 
 	// Set DeletedDatabase Phase: Deleting
-	unversionedNow = unversioned.Now()
+	t = unversioned.Now()
 	deletedDb.Status.Phase = tapi.PhaseDatabaseDeleting
 	_deletedDb, err = c.extClient.DeletedDatabases(deletedDb.Namespace).Update(deletedDb)
 	if err != nil {
@@ -191,13 +189,15 @@ func (c *DeletedDatabaseController) create(deletedDb *tapi.DeletedDatabase) {
 	}
 
 	c.eventRecorder.PushEvent(
-		kapi.EventTypeNormal, eventer.EventReasonSuccessfulDelete, "Successfully deleted Database workload",
+		kapi.EventTypeNormal,
+		eventer.EventReasonSuccessfulDelete,
+		"Successfully deleted Database workload",
 		deletedDb,
 	)
 
 	// Set DeletedDatabase Phase: Deleted
-	unversionedNow = unversioned.Now()
-	deletedDb.Status.DeleteTime = &unversionedNow
+	t = unversioned.Now()
+	deletedDb.Status.DeletionTime = &t
 	deletedDb.Status.Phase = tapi.PhaseDatabaseDeleted
 	_, err = c.extClient.DeletedDatabases(deletedDb.Namespace).Update(deletedDb)
 	if err != nil {
@@ -220,9 +220,7 @@ func (c *DeletedDatabaseController) update(oldDeletedDb, updatedDeletedDb *tapi.
 		} else {
 			message := "Failed to recover Database. " +
 				"Only DeletedDatabase of \"Deleted\" Phase can be recovered"
-			c.eventRecorder.PushEvent(
-				kapi.EventTypeWarning, eventer.EventReasonFailedToUpdate, message, updatedDeletedDb,
-			)
+			c.eventRecorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonFailedToUpdate, message, updatedDeletedDb)
 			return
 		}
 
@@ -254,7 +252,7 @@ func (c *DeletedDatabaseController) destroy(deletedDb *tapi.DeletedDatabase) {
 	}
 
 	// Set DeletedDatabase Phase: Destroying
-	unversionedNow := unversioned.Now()
+	t := unversioned.Now()
 	deletedDb.Status.Phase = tapi.PhaseDatabaseDestroying
 	_deletedDb, err := c.extClient.DeletedDatabases(deletedDb.Namespace).Update(deletedDb)
 	if err != nil {
@@ -283,8 +281,8 @@ func (c *DeletedDatabaseController) destroy(deletedDb *tapi.DeletedDatabase) {
 	)
 
 	// Set DeletedDatabase Phase: Deleted
-	unversionedNow = unversioned.Now()
-	deletedDb.Status.DestroyTime = &unversionedNow
+	t = unversioned.Now()
+	deletedDb.Status.DestroyTime = &t
 	deletedDb.Status.Phase = tapi.PhaseDatabaseDestroyed
 	_, err = c.extClient.DeletedDatabases(deletedDb.Namespace).Update(deletedDb)
 	if err != nil {

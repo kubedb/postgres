@@ -45,7 +45,7 @@ type ElasticSpec struct {
 }
 
 type ElasticStatus struct {
-	CreateTime     *unversioned.Time `json:"createTime,omitempty"`
+	CreationTime   *unversioned.Time `json:"creationTime,omitempty"`
 	DatabaseStatus `json:",inline,omitempty"`
 	Reason         string `json:"reason,omitempty"`
 }
