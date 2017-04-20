@@ -37,7 +37,7 @@ build() {
 docker_push() {
     for name in "${docker_names[@]}"
     do
-        docker_up $IMG:$TAG-$name
+        docker push k8sdb/$IMG:$TAG-$name
     done
 }
 
