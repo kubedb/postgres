@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/appscode/go/crypto/rand"
-	"github.com/ghodss/yaml"
 	tapi "github.com/k8sdb/apimachinery/api"
 	amc "github.com/k8sdb/apimachinery/pkg/controller"
 	kapi "k8s.io/kubernetes/pkg/api"
@@ -320,13 +319,14 @@ func (w *Controller) createDeletedDatabase(postgres *tapi.Postgres) (*tapi.Delet
 				amc.LabelDatabaseType: tapi.ResourceNamePostgres,
 			},
 		},
-	}
-
-	yamlDataByte, _ := yaml.Marshal(postgres)
-	if yamlDataByte != nil {
-		deletedDb.Annotations = map[string]string{
-			tapi.ResourceNamePostgres: string(yamlDataByte),
-		}
+		Spec: tapi.DeletedDatabaseSpec{
+			Origin: tapi.Origin{
+				ObjectMeta: postgres.ObjectMeta,
+				Spec: tapi.OriginSpec{
+					Postgres: &postgres.Spec,
+				},
+			},
+		},
 	}
 	return w.ExtClient.DeletedDatabases(deletedDb.Namespace).Create(deletedDb)
 }

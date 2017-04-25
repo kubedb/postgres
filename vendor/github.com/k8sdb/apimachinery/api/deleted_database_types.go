@@ -19,15 +19,29 @@ type DeletedDatabase struct {
 }
 
 type DeletedDatabaseSpec struct {
-	// Database authentication secret
-	// +optional
-	AuthSecret *api.SecretVolumeSource `json:"authSecret,omitempty"`
 	// If true, invoke destroy operation
 	// +optional
 	Destroy bool `json:"destroy,omitempty"`
 	// If true, invoke recover operation
 	// +optional
 	Recover bool `json:"recover,omitempty"`
+	// Origin to store original database information
+	Origin Origin `json:"origin,omitempty"`
+}
+
+type Origin struct {
+	api.ObjectMeta `json:"metadata,omitempty"`
+	// Origin Spec to store original database Spec
+	Spec OriginSpec `json:"spec,omitempty"`
+}
+
+type OriginSpec struct {
+	// Elastic Spec
+	// +optional
+	Elastic *ElasticSpec `json:"elastic,omitempty"`
+	// Postgres Spec
+	// +optional
+	Postgres *PostgresSpec `json:"postgres,omitempty"`
 }
 
 type DeletedDatabasePhase string
