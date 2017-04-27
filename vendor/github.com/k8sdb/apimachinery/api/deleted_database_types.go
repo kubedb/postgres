@@ -19,9 +19,9 @@ type DeletedDatabase struct {
 }
 
 type DeletedDatabaseSpec struct {
-	// If true, invoke destroy operation
+	// If true, invoke wipe out operation
 	// +optional
-	Destroy bool `json:"destroy,omitempty"`
+	WipeOut bool `json:"wipeOut,omitempty"`
 	// If true, invoke recover operation
 	// +optional
 	Recover bool `json:"recover,omitempty"`
@@ -51,10 +51,10 @@ const (
 	PhaseDatabaseDeleted DeletedDatabasePhase = "Deleted"
 	// used for Databases that are currently deleting
 	PhaseDatabaseDeleting DeletedDatabasePhase = "Deleting"
-	// used for Databases that are destroyed
-	PhaseDatabaseDestroyed DeletedDatabasePhase = "Destroyed"
-	// used for Databases that are currently destroying
-	PhaseDatabaseDestroying DeletedDatabasePhase = "Destroying"
+	// used for Databases that are wiped out
+	PhaseDatabaseWipedOut DeletedDatabasePhase = "WipedOut"
+	// used for Databases that are currently wiping out
+	PhaseDatabaseWipingOut DeletedDatabasePhase = "WipingOut"
 	// used for Databases that are currently recovering
 	PhaseDatabaseRecovering DeletedDatabasePhase = "Recovering"
 )
@@ -62,7 +62,7 @@ const (
 type DeletedDatabaseStatus struct {
 	CreationTime *unversioned.Time    `json:"creationTime,omitempty"`
 	DeletionTime *unversioned.Time    `json:"deletionTime,omitempty"`
-	DestroyTime  *unversioned.Time    `json:"destroyTime,omitempty"`
+	WipeOutTime  *unversioned.Time    `json:"wipeOutTime,omitempty"`
 	Phase        DeletedDatabasePhase `json:"phase,omitempty"`
 	Reason       string               `json:"reason,omitempty"`
 }

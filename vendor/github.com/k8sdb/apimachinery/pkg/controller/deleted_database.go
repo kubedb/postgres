@@ -23,8 +23,8 @@ type Deleter interface {
 	Exists(*kapi.ObjectMeta) (bool, error)
 	// Delete operation
 	DeleteDatabase(*tapi.DeletedDatabase) error
-	// Destroy operation
-	DestroyDatabase(*tapi.DeletedDatabase) error
+	// Wipe out operation
+	WipeOutDatabase(*tapi.DeletedDatabase) error
 	// Recover operation
 	RecoverDatabase(*tapi.DeletedDatabase) error
 }
@@ -210,8 +210,8 @@ func (c *DeletedDatabaseController) create(deletedDb *tapi.DeletedDatabase) {
 }
 
 func (c *DeletedDatabaseController) update(oldDeletedDb, updatedDeletedDb *tapi.DeletedDatabase) {
-	if oldDeletedDb.Spec.Destroy != updatedDeletedDb.Spec.Destroy && updatedDeletedDb.Spec.Destroy {
-		c.destroy(updatedDeletedDb)
+	if oldDeletedDb.Spec.WipeOut != updatedDeletedDb.Spec.WipeOut && updatedDeletedDb.Spec.WipeOut {
+		c.wipeOut(updatedDeletedDb)
 	}
 
 	if oldDeletedDb.Spec.Recover != updatedDeletedDb.Spec.Recover && updatedDeletedDb.Spec.Recover {
@@ -227,18 +227,18 @@ func (c *DeletedDatabaseController) update(oldDeletedDb, updatedDeletedDb *tapi.
 	}
 }
 
-func (c *DeletedDatabaseController) destroy(deletedDb *tapi.DeletedDatabase) {
+func (c *DeletedDatabaseController) wipeOut(deletedDb *tapi.DeletedDatabase) {
 	// Check if DB TPR object exists
 	found, err := c.deleter.Exists(&deletedDb.ObjectMeta)
 	if err != nil {
-		message := fmt.Sprintf(`Failed to destroy Database. Reason: "%v"`, err)
+		message := fmt.Sprintf(`Failed to wipeOut Database. Reason: "%v"`, err)
 		c.eventRecorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonFailedToDelete, message, deletedDb)
 		return
 	}
 
 	if found {
-		message := "Failed to destroy Database. Delete Database TPR object first"
-		c.eventRecorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonFailedToDestroy, message, deletedDb)
+		message := "Failed to wipeOut Database. Delete Database TPR object first"
+		c.eventRecorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonFailedToWipeOut, message, deletedDb)
 
 		// Delete DeletedDatabase object
 		if err := c.extClient.DeletedDatabases(deletedDb.Namespace).Delete(deletedDb.Name); err != nil {
@@ -251,9 +251,9 @@ func (c *DeletedDatabaseController) destroy(deletedDb *tapi.DeletedDatabase) {
 		return
 	}
 
-	// Set DeletedDatabase Phase: Destroying
+	// Set DeletedDatabase Phase: Wiping out
 	t := unversioned.Now()
-	deletedDb.Status.Phase = tapi.PhaseDatabaseDestroying
+	deletedDb.Status.Phase = tapi.PhaseDatabaseWipingOut
 	_deletedDb, err := c.extClient.DeletedDatabases(deletedDb.Namespace).Update(deletedDb)
 	if err != nil {
 		message := fmt.Sprintf(`Failed to update DeletedDatabase. Reason: "%v"`, err)
@@ -262,28 +262,28 @@ func (c *DeletedDatabaseController) destroy(deletedDb *tapi.DeletedDatabase) {
 	}
 	deletedDb = _deletedDb
 
-	// Destroy Database workload
+	// Wipe out Database workload
 	c.eventRecorder.PushEvent(
-		kapi.EventTypeNormal, eventer.EventReasonDestroying, "Destroying Database", deletedDb,
+		kapi.EventTypeNormal, eventer.EventReasonWipingOut, "Wiping out Database", deletedDb,
 	)
-	if err := c.deleter.DestroyDatabase(deletedDb); err != nil {
-		message := fmt.Sprintf(`Failed to destroy. Reason: %v`, err)
+	if err := c.deleter.WipeOutDatabase(deletedDb); err != nil {
+		message := fmt.Sprintf(`Failed to wipeOut. Reason: %v`, err)
 		c.eventRecorder.PushEvent(
-			kapi.EventTypeWarning, eventer.EventReasonFailedToDestroy, message, deletedDb,
+			kapi.EventTypeWarning, eventer.EventReasonFailedToWipeOut, message, deletedDb,
 		)
 		log.Errorln(err)
 		return
 	}
 
 	c.eventRecorder.PushEvent(
-		kapi.EventTypeNormal, eventer.EventReasonSuccessfulDestroy,
-		"Successfully destroyed Database workload", deletedDb,
+		kapi.EventTypeNormal, eventer.EventReasonSuccessfulWipeOut,
+		"Successfully wiped out Database workload", deletedDb,
 	)
 
 	// Set DeletedDatabase Phase: Deleted
 	t = unversioned.Now()
-	deletedDb.Status.DestroyTime = &t
-	deletedDb.Status.Phase = tapi.PhaseDatabaseDestroyed
+	deletedDb.Status.WipeOutTime = &t
+	deletedDb.Status.Phase = tapi.PhaseDatabaseWipedOut
 	_, err = c.extClient.DeletedDatabases(deletedDb.Namespace).Update(deletedDb)
 	if err != nil {
 		message := fmt.Sprintf(`Failed to update DeletedDatabase. Reason: "%v"`, err)
