@@ -157,7 +157,7 @@ func (c *Controller) GetSnapshotter(snapshot *tapi.DatabaseSnapshot) (*kbatch.Jo
 	return job, nil
 }
 
-func (c *Controller) DestroySnapshot(dbSnapshot *tapi.DatabaseSnapshot) error {
+func (c *Controller) WipeOutSnapshot(dbSnapshot *tapi.DatabaseSnapshot) error {
 	return c.DeleteSnapshotData(dbSnapshot)
 }
 

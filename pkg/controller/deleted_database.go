@@ -37,7 +37,7 @@ func (c *Controller) DeleteDatabase(deletedDb *tapi.DeletedDatabase) error {
 	return nil
 }
 
-func (c *Controller) DestroyDatabase(deletedDb *tapi.DeletedDatabase) error {
+func (c *Controller) WipeOutDatabase(deletedDb *tapi.DeletedDatabase) error {
 	labelMap := map[string]string{
 		amc.LabelDatabaseName: deletedDb.Name,
 		amc.LabelDatabaseType: tapi.ResourceNamePostgres,
