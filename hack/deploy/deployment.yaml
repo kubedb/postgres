@@ -1,0 +1,23 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    run: k8sdb-postgres
+  name: k8sdb-postgres
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      run: k8sdb-postgres
+  template:
+    metadata:
+      labels:
+        run: k8sdb-postgres
+    spec:
+      containers:
+      - name: k8sdb-pg
+        image: k8sdb/k8s-pg:canary
+        args:
+        - run
+        - --v=4
