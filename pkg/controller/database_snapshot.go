@@ -17,7 +17,7 @@ import (
 const (
 	SnapshotProcess_Backup  = "backup"
 	storageSecretMountPath  = "/var/credentials/"
-	tagPostgresUtil         = "9.5-v4-util"
+	tagPostgresUtil         = "canary-util"
 	snapshotType_DumpBackup = "dump-backup"
 )
 
