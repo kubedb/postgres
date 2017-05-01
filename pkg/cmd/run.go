@@ -12,7 +12,7 @@ import (
 
 const (
 	// Default tag
-	canary = "canary"
+	canary = "canary-util"
 )
 
 func NewCmdRun() *cobra.Command {
