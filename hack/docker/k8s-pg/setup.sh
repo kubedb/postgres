@@ -43,6 +43,12 @@ build_docker() {
     cat >Dockerfile <<EOL
 FROM alpine
 
+RUN set -x \
+    && apk --update upgrade \
+    && apk add ca-certificates \
+    && update-ca-certificates \
+    && rm -rf /var/cache/apk/*
+
 COPY k8s-pg /k8s-pg
 
 USER nobody:nobody
