@@ -27,6 +27,8 @@ type Controller struct {
 	cronController amc.CronControllerInterface
 	// Event Recorder
 	eventRecorder eventer.EventRecorderInterface
+	// Tag of postgres util
+	postgresUtilTag string
 	// sync time to sync the list.
 	syncPeriod time.Duration
 }
@@ -34,13 +36,14 @@ type Controller struct {
 var _ amc.Snapshotter = &Controller{}
 var _ amc.Deleter = &Controller{}
 
-func New(cfg *rest.Config) *Controller {
+func New(cfg *rest.Config, postgresUtilTag string) *Controller {
 	c := amc.NewController(cfg)
 	return &Controller{
-		Controller:     c,
-		cronController: amc.NewCronController(c.Client, c.ExtClient),
-		eventRecorder:  eventer.NewEventRecorder(c.Client, "Postgres Controller"),
-		syncPeriod:     time.Minute * 2,
+		Controller:      c,
+		cronController:  amc.NewCronController(c.Client, c.ExtClient),
+		eventRecorder:   eventer.NewEventRecorder(c.Client, "Postgres Controller"),
+		postgresUtilTag: postgresUtilTag,
+		syncPeriod:      time.Minute * 2,
 	}
 }
 

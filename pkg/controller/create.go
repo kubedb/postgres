@@ -388,7 +388,7 @@ func (w *Controller) createRestoreJob(postgres *tapi.Postgres, dbSnapshot *tapi.
 					Containers: []kapi.Container{
 						{
 							Name:  SnapshotProcess_Restore,
-							Image: imagePostgres + ":" + tagPostgresUtil,
+							Image: imagePostgres + ":" + w.postgresUtilTag,
 							Args: []string{
 								fmt.Sprintf(`--process=%s`, SnapshotProcess_Restore),
 								fmt.Sprintf(`--host=%s`, databaseName),

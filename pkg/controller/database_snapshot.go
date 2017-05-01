@@ -17,7 +17,6 @@ import (
 const (
 	SnapshotProcess_Backup  = "backup"
 	storageSecretMountPath  = "/var/credentials/"
-	tagPostgresUtil         = "canary-util"
 	snapshotType_DumpBackup = "dump-backup"
 )
 
@@ -105,7 +104,7 @@ func (c *Controller) GetSnapshotter(snapshot *tapi.DatabaseSnapshot) (*kbatch.Jo
 					Containers: []kapi.Container{
 						{
 							Name:  SnapshotProcess_Backup,
-							Image: imagePostgres + ":" + tagPostgresUtil,
+							Image: imagePostgres + ":" + c.postgresUtilTag,
 							Args: []string{
 								fmt.Sprintf(`--process=%s`, SnapshotProcess_Backup),
 								fmt.Sprintf(`--host=%s`, databaseName),

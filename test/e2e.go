@@ -40,7 +40,7 @@ func getController() (c *controller.Controller, err error) {
 				err = fmt.Errorf("Could not get kubernetes config: %s", err)
 				return
 			}
-			c = controller.New(config)
+			c = controller.New(config, "canary")
 
 			e2eController.controller = c
 			e2eController.isControllerRunning = true

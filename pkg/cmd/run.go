@@ -10,10 +10,16 @@ import (
 	"k8s.io/kubernetes/pkg/util/runtime"
 )
 
+const (
+	// Default tag
+	canary = "canary"
+)
+
 func NewCmdRun() *cobra.Command {
 	var (
 		masterURL      string
 		kubeconfigPath string
+		postgresUtilTag string
 	)
 
 	cmd := &cobra.Command{
@@ -28,13 +34,14 @@ func NewCmdRun() *cobra.Command {
 			}
 			defer runtime.HandleCrash()
 
-			w := controller.New(config)
+			w := controller.New(config, postgresUtilTag)
 			fmt.Println("Starting operator...")
 			w.RunAndHold()
 		},
 	}
 	cmd.Flags().StringVar(&masterURL, "master", "", "The address of the Kubernetes API server (overrides any value in kubeconfig)")
 	cmd.Flags().StringVar(&kubeconfigPath, "kubeconfig", "", "Path to kubeconfig file with authorization information (the master location is set by the master flag).")
+	cmd.Flags().StringVar(&postgresUtilTag, "postgres-util", canary, "Tag of postgres util")
 
 	return cmd
 }
