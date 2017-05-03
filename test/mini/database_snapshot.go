@@ -50,9 +50,9 @@ func CheckDatabaseSnapshot(c *controller.Controller, dbSnapshot *tapi.DatabaseSn
 			}
 		}
 
-		log.Debugf("DatabaseSnapshot Phase: %v", dbSnapshot.Status.Status)
+		log.Debugf("DatabaseSnapshot Phase: %v", dbSnapshot.Status.Phase)
 
-		if dbSnapshot.Status.Status == tapi.StatusSnapshotSuccessed {
+		if dbSnapshot.Status.Phase == tapi.SnapshotPhaseSuccessed {
 			doneChecking = true
 			break
 		}

@@ -45,7 +45,7 @@ func TestCreate(t *testing.T) {
 	assert.Nil(t, err)
 
 	fmt.Println("---- >> Checking DeletedDatabase")
-	done, err := mini.CheckDeletedDatabasePhase(controller, postgres, tapi.PhaseDatabaseDeleted)
+	done, err := mini.CheckDeletedDatabasePhase(controller, postgres, tapi.DeletedDatabasePhaseDeleted)
 	assert.Nil(t, err)
 	if !assert.True(t, done) {
 		fmt.Println("---- >> Failed to be deleted")
@@ -73,7 +73,7 @@ func TestCreate(t *testing.T) {
 	assert.Nil(t, err)
 
 	fmt.Println("---- >> Checking DeletedDatabase")
-	done, err = mini.CheckDeletedDatabasePhase(controller, postgres, tapi.PhaseDatabaseDeleted)
+	done, err = mini.CheckDeletedDatabasePhase(controller, postgres, tapi.DeletedDatabasePhaseDeleted)
 	assert.Nil(t, err)
 	if !assert.True(t, done) {
 		fmt.Println("---- >> Failed to be deleted")
@@ -138,7 +138,7 @@ func TestDoNotDelete(t *testing.T) {
 	assert.Nil(t, err)
 
 	fmt.Println("---- >> Checking DeletedDatabase")
-	done, err := mini.CheckDeletedDatabasePhase(controller, postgres, tapi.PhaseDatabaseDeleted)
+	done, err := mini.CheckDeletedDatabasePhase(controller, postgres, tapi.DeletedDatabasePhaseDeleted)
 	assert.Nil(t, err)
 	if !assert.True(t, done) {
 		fmt.Println("---- >> Failed to be deleted")
@@ -242,7 +242,7 @@ func TestDatabaseSnapshot(t *testing.T) {
 	assert.Nil(t, err)
 
 	fmt.Println("---- >> Checking DeletedDatabase")
-	done, err = mini.CheckDeletedDatabasePhase(controller, postgres, tapi.PhaseDatabaseDeleted)
+	done, err = mini.CheckDeletedDatabasePhase(controller, postgres, tapi.DeletedDatabasePhaseDeleted)
 	assert.Nil(t, err)
 	if !assert.True(t, done) {
 		fmt.Println("---- >> Failed to be deleted")
@@ -287,7 +287,7 @@ func TestDatabaseRecovery(t *testing.T) {
 	assert.Nil(t, err)
 
 	fmt.Println("---- >> Checking DeletedDatabase")
-	done, err := mini.CheckDeletedDatabasePhase(controller, postgres, tapi.PhaseDatabaseDeleted)
+	done, err := mini.CheckDeletedDatabasePhase(controller, postgres, tapi.DeletedDatabasePhaseDeleted)
 	assert.Nil(t, err)
 	if !assert.True(t, done) {
 		fmt.Println("---- >> Failed to be delete")
@@ -324,7 +324,7 @@ func TestDatabaseRecovery(t *testing.T) {
 	assert.Nil(t, err)
 
 	fmt.Println("---- >> Checking DeletedDatabase")
-	done, err = mini.CheckDeletedDatabasePhase(controller, postgres, tapi.PhaseDatabaseDeleted)
+	done, err = mini.CheckDeletedDatabasePhase(controller, postgres, tapi.DeletedDatabasePhaseDeleted)
 	assert.Nil(t, err)
 	if !assert.True(t, done) {
 		fmt.Println("---- >> Failed to be delete")
@@ -456,7 +456,7 @@ func TestInitialize(t *testing.T) {
 	assert.Nil(t, err)
 
 	fmt.Println("---- >> Checking DeletedDatabase")
-	done, err = mini.CheckDeletedDatabasePhase(controller, postgres, tapi.PhaseDatabaseDeleted)
+	done, err = mini.CheckDeletedDatabasePhase(controller, postgres, tapi.DeletedDatabasePhaseDeleted)
 	assert.Nil(t, err)
 	if !assert.True(t, done) {
 		fmt.Println("---- >> Failed to be deleted")
@@ -467,7 +467,7 @@ func TestInitialize(t *testing.T) {
 	assert.Nil(t, err)
 
 	fmt.Println("---- >> Checking DeletedDatabase")
-	done, err = mini.CheckDeletedDatabasePhase(controller, postgres_init, tapi.PhaseDatabaseDeleted)
+	done, err = mini.CheckDeletedDatabasePhase(controller, postgres_init, tapi.DeletedDatabasePhaseDeleted)
 	assert.Nil(t, err)
 	if !assert.True(t, done) {
 		fmt.Println("---- >> Failed to be deleted")

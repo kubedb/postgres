@@ -52,9 +52,9 @@ func CheckPostgresStatus(c *controller.Controller, postgres *tapi.Postgres) (boo
 			return false, err
 		}
 
-		log.Debugf("Pod Phase: %v", _postgres.Status.DatabaseStatus)
+		log.Debugf("Pod Phase: %v", _postgres.Status.Phase)
 
-		if _postgres.Status.DatabaseStatus == tapi.StatusDatabaseRunning {
+		if _postgres.Status.Phase== tapi.DatabasePhaseRunning {
 			postgresReady = true
 			break
 		}
