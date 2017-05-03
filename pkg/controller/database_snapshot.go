@@ -30,7 +30,7 @@ func (c *Controller) ValidateSnapshot(dbSnapshot *tapi.DatabaseSnapshot) error {
 	labelMap := map[string]string{
 		amc.LabelDatabaseType:   tapi.ResourceNamePostgres,
 		amc.LabelDatabaseName:   dbSnapshot.Spec.DatabaseName,
-		amc.LabelSnapshotStatus: string(tapi.StatusSnapshotRunning),
+		amc.LabelSnapshotStatus: string(tapi.SnapshotPhaseRunning),
 	}
 
 	snapshotList, err := c.ExtClient.DatabaseSnapshots(dbSnapshot.Namespace).List(kapi.ListOptions{
@@ -44,7 +44,7 @@ func (c *Controller) ValidateSnapshot(dbSnapshot *tapi.DatabaseSnapshot) error {
 		t := unversioned.Now()
 		dbSnapshot.Status.StartTime = &t
 		dbSnapshot.Status.CompletionTime = &t
-		dbSnapshot.Status.Status = tapi.StatusSnapshotFailed
+		dbSnapshot.Status.Phase = tapi.SnapshotPhaseFailed
 		dbSnapshot.Status.Reason = "One DatabaseSnapshot is already Running"
 		if _, err := c.ExtClient.DatabaseSnapshots(dbSnapshot.Namespace).Update(dbSnapshot); err != nil {
 			return err

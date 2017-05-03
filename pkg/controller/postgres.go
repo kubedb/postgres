@@ -17,7 +17,7 @@ import (
 func (c *Controller) create(postgres *tapi.Postgres) {
 	t := unversioned.Now()
 	postgres.Status.CreationTime = &t
-	postgres.Status.DatabaseStatus = tapi.StatusDatabaseCreating
+	postgres.Status.Phase = tapi.DatabasePhaseCreating
 	var _postgres *tapi.Postgres
 	var err error
 	if _postgres, err = c.ExtClient.Postgreses(postgres.Namespace).Update(postgres); err != nil {
@@ -33,7 +33,7 @@ func (c *Controller) create(postgres *tapi.Postgres) {
 	if err := c.validatePostgres(postgres); err != nil {
 		c.eventRecorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonInvalid, err.Error(), postgres)
 
-		postgres.Status.DatabaseStatus = tapi.StatusDatabaseFailed
+		postgres.Status.Phase = tapi.DatabasePhaseFailed
 		postgres.Status.Reason = err.Error()
 		if _, err := c.ExtClient.Postgreses(postgres.Namespace).Update(postgres); err != nil {
 			message := fmt.Sprintf(`Fail to update Postgres: "%v". Reason: %v`, postgres.Name, err)
@@ -68,7 +68,7 @@ func (c *Controller) create(postgres *tapi.Postgres) {
 			message = fmt.Sprintf(`Invalid Postgres: "%v". Exists irrelevant DeletedDatabase: "%v"`,
 				postgres.Name, deletedDb.Name)
 		} else {
-			if deletedDb.Status.Phase == tapi.PhaseDatabaseRecovering {
+			if deletedDb.Status.Phase == tapi.DeletedDatabasePhaseRecovering {
 				recovering = true
 			} else {
 				message = fmt.Sprintf(`Recover from DeletedDatabase: "%v"`, deletedDb.Name)
@@ -76,7 +76,7 @@ func (c *Controller) create(postgres *tapi.Postgres) {
 		}
 		if !recovering {
 			// Set status to Failed
-			postgres.Status.DatabaseStatus = tapi.StatusDatabaseFailed
+			postgres.Status.Phase = tapi.DatabasePhaseFailed
 			postgres.Status.Reason = message
 			if _, err := c.ExtClient.Postgreses(postgres.Namespace).Update(postgres); err != nil {
 				message := fmt.Sprintf(`Fail to update Postgres: "%v". Reason: %v`, postgres.Name, err)
@@ -145,7 +145,7 @@ func (c *Controller) create(postgres *tapi.Postgres) {
 	}
 
 	if postgres.Spec.Init != nil && postgres.Spec.Init.SnapshotSource != nil {
-		postgres.Status.DatabaseStatus = tapi.StatusDatabaseInitializing
+		postgres.Status.Phase = tapi.DatabasePhaseInitializing
 		if _postgres, err = c.ExtClient.Postgreses(postgres.Namespace).Update(postgres); err != nil {
 			message := fmt.Sprintf(`Fail to update Postgres: "%v". Reason: %v`, postgres.Name, err)
 			c.eventRecorder.PushEvent(
@@ -179,7 +179,7 @@ func (c *Controller) create(postgres *tapi.Postgres) {
 		)
 	}
 
-	postgres.Status.DatabaseStatus = tapi.StatusDatabaseRunning
+	postgres.Status.Phase = tapi.DatabasePhaseRunning
 	if _postgres, err = c.ExtClient.Postgreses(postgres.Namespace).Update(postgres); err != nil {
 		message := fmt.Sprintf(`Fail to update Postgres: "%v". Reason: %v`, postgres.Name, err)
 		c.eventRecorder.PushEvent(

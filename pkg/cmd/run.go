@@ -17,8 +17,8 @@ const (
 
 func NewCmdRun() *cobra.Command {
 	var (
-		masterURL      string
-		kubeconfigPath string
+		masterURL       string
+		kubeconfigPath  string
 		postgresUtilTag string
 	)
 

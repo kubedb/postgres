@@ -169,7 +169,7 @@ func (c *DeletedDatabaseController) create(deletedDb *tapi.DeletedDatabase) {
 
 	// Set DeletedDatabase Phase: Deleting
 	t = unversioned.Now()
-	deletedDb.Status.Phase = tapi.PhaseDatabaseDeleting
+	deletedDb.Status.Phase = tapi.DeletedDatabasePhaseDeleting
 	_deletedDb, err = c.extClient.DeletedDatabases(deletedDb.Namespace).Update(deletedDb)
 	if err != nil {
 		message := fmt.Sprintf(`Failed to update DeletedDatabase. Reason: "%v"`, err)
@@ -198,7 +198,7 @@ func (c *DeletedDatabaseController) create(deletedDb *tapi.DeletedDatabase) {
 	// Set DeletedDatabase Phase: Deleted
 	t = unversioned.Now()
 	deletedDb.Status.DeletionTime = &t
-	deletedDb.Status.Phase = tapi.PhaseDatabaseDeleted
+	deletedDb.Status.Phase = tapi.DeletedDatabasePhaseDeleted
 	_, err = c.extClient.DeletedDatabases(deletedDb.Namespace).Update(deletedDb)
 	if err != nil {
 		message := fmt.Sprintf(`Failed to update DeletedDatabase. Reason: "%v"`, err)
@@ -215,7 +215,7 @@ func (c *DeletedDatabaseController) update(oldDeletedDb, updatedDeletedDb *tapi.
 	}
 
 	if oldDeletedDb.Spec.Recover != updatedDeletedDb.Spec.Recover && updatedDeletedDb.Spec.Recover {
-		if oldDeletedDb.Status.Phase == tapi.PhaseDatabaseDeleted {
+		if oldDeletedDb.Status.Phase == tapi.DeletedDatabasePhaseDeleted {
 			c.recover(updatedDeletedDb)
 		} else {
 			message := "Failed to recover Database. " +
@@ -253,7 +253,7 @@ func (c *DeletedDatabaseController) wipeOut(deletedDb *tapi.DeletedDatabase) {
 
 	// Set DeletedDatabase Phase: Wiping out
 	t := unversioned.Now()
-	deletedDb.Status.Phase = tapi.PhaseDatabaseWipingOut
+	deletedDb.Status.Phase = tapi.DeletedDatabasePhaseWipingOut
 	_deletedDb, err := c.extClient.DeletedDatabases(deletedDb.Namespace).Update(deletedDb)
 	if err != nil {
 		message := fmt.Sprintf(`Failed to update DeletedDatabase. Reason: "%v"`, err)
@@ -283,7 +283,7 @@ func (c *DeletedDatabaseController) wipeOut(deletedDb *tapi.DeletedDatabase) {
 	// Set DeletedDatabase Phase: Deleted
 	t = unversioned.Now()
 	deletedDb.Status.WipeOutTime = &t
-	deletedDb.Status.Phase = tapi.PhaseDatabaseWipedOut
+	deletedDb.Status.Phase = tapi.DeletedDatabasePhaseWipedOut
 	_, err = c.extClient.DeletedDatabases(deletedDb.Namespace).Update(deletedDb)
 	if err != nil {
 		message := fmt.Sprintf(`Failed to update DeletedDatabase. Reason: "%v"`, err)
@@ -307,7 +307,7 @@ func (c *DeletedDatabaseController) recover(deletedDb *tapi.DeletedDatabase) {
 		return
 	}
 
-	deletedDb.Status.Phase = tapi.PhaseDatabaseRecovering
+	deletedDb.Status.Phase = tapi.DeletedDatabasePhaseRecovering
 	if deletedDb, err = c.extClient.DeletedDatabases(deletedDb.Namespace).Update(deletedDb); err != nil {
 		message := fmt.Sprintf(`Failed to update DeletedDatabase. Reason: "%v"`, err)
 		c.eventRecorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonFailedToUpdate, message, deletedDb)
@@ -318,7 +318,7 @@ func (c *DeletedDatabaseController) recover(deletedDb *tapi.DeletedDatabase) {
 		message := fmt.Sprintf(`Failed to recover Database. Reason: "%v"`, err)
 		c.eventRecorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonFailedToRecover, message, deletedDb)
 
-		deletedDb.Status.Phase = tapi.PhaseDatabaseDeleted
+		deletedDb.Status.Phase = tapi.DeletedDatabasePhaseDeleted
 		if deletedDb, err = c.extClient.DeletedDatabases(deletedDb.Namespace).Update(deletedDb); err != nil {
 			message := fmt.Sprintf(`Failed to update DeletedDatabase. Reason: "%v"`, err)
 			c.eventRecorder.PushEvent(
