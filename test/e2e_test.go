@@ -51,29 +51,8 @@ func TestCreate(t *testing.T) {
 		fmt.Println("---- >> Failed to be deleted")
 	}
 
-	fmt.Println("---- >> ReCreating Postgres")
-	postgres, err = mini.ReCreatePostgres(controller, postgres)
-	if !assert.Nil(t, err) {
-		return
-	}
-
-	time.Sleep(time.Second * 30)
-	fmt.Println("---- >> Checking Postgres")
-	running, err = mini.CheckPostgresStatus(controller, postgres)
-	assert.Nil(t, err)
-	if !assert.True(t, running) {
-		fmt.Println("---- >> Postgres fails to be Ready")
-	} else {
-		err := mini.CheckPostgresWorkload(controller, postgres)
-		assert.Nil(t, err)
-	}
-
-	fmt.Println("---- >> Deleted Postgres")
-	err = mini.DeletePostgres(controller, postgres)
-	assert.Nil(t, err)
-
-	fmt.Println("---- >> Checking DeletedDatabase")
-	done, err = mini.CheckDeletedDatabasePhase(controller, postgres, tapi.DeletedDatabasePhaseDeleted)
+	fmt.Println("---- >> Deleting DeletedDatabase")
+	err = mini.DeleteDeletedDatabase(controller, postgres)
 	assert.Nil(t, err)
 	if !assert.True(t, done) {
 		fmt.Println("---- >> Failed to be deleted")

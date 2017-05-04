@@ -27,21 +27,6 @@ func NewPostgres() *tapi.Postgres {
 	return postgres
 }
 
-func ReCreatePostgres(c *controller.Controller, postgres *tapi.Postgres) (*tapi.Postgres, error) {
-	_postgres := &tapi.Postgres{
-		ObjectMeta: kapi.ObjectMeta{
-			Name:        postgres.Name,
-			Namespace:   postgres.Namespace,
-			Labels:      postgres.Labels,
-			Annotations: postgres.Annotations,
-		},
-		Spec:   postgres.Spec,
-		Status: postgres.Status,
-	}
-
-	return c.ExtClient.Postgreses(_postgres.Namespace).Create(_postgres)
-}
-
 func CheckPostgresStatus(c *controller.Controller, postgres *tapi.Postgres) (bool, error) {
 	postgresReady := false
 	then := time.Now()
