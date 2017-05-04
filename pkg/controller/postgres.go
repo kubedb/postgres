@@ -21,9 +21,13 @@ func (c *Controller) create(postgres *tapi.Postgres) {
 	var _postgres *tapi.Postgres
 	var err error
 	if _postgres, err = c.ExtClient.Postgreses(postgres.Namespace).Update(postgres); err != nil {
-		message := fmt.Sprintf(`Fail to update Postgres: "%v". Reason: %v`, postgres.Name, err)
-		c.eventRecorder.PushEvent(
-			kapi.EventTypeWarning, eventer.EventReasonFailedToUpdate, message, postgres,
+		c.eventRecorder.Eventf(
+			postgres,
+			kapi.EventTypeWarning,
+			eventer.EventReasonFailedToUpdate,
+			`Fail to update Postgres: "%v". Reason: %v`,
+			postgres.Name,
+			err,
 		)
 		log.Errorln(err)
 		return
@@ -31,14 +35,18 @@ func (c *Controller) create(postgres *tapi.Postgres) {
 	postgres = _postgres
 
 	if err := c.validatePostgres(postgres); err != nil {
-		c.eventRecorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonInvalid, err.Error(), postgres)
+		c.eventRecorder.Event(postgres, kapi.EventTypeWarning, eventer.EventReasonInvalid, err.Error())
 
 		postgres.Status.Phase = tapi.DatabasePhaseFailed
 		postgres.Status.Reason = err.Error()
 		if _, err := c.ExtClient.Postgreses(postgres.Namespace).Update(postgres); err != nil {
-			message := fmt.Sprintf(`Fail to update Postgres: "%v". Reason: %v`, postgres.Name, err)
-			c.eventRecorder.PushEvent(
-				kapi.EventTypeWarning, eventer.EventReasonFailedToUpdate, message, postgres,
+			c.eventRecorder.Eventf(
+				postgres,
+				kapi.EventTypeWarning,
+				eventer.EventReasonFailedToUpdate,
+				`Fail to update Postgres: "%v". Reason: %v`,
+				postgres.Name,
+				err,
 			)
 			log.Errorln(err)
 		}
@@ -47,8 +55,11 @@ func (c *Controller) create(postgres *tapi.Postgres) {
 		return
 	}
 	// Event for successful validation
-	c.eventRecorder.PushEvent(
-		kapi.EventTypeNormal, eventer.EventReasonSuccessfulValidate, "Successfully validate Postgres", postgres,
+	c.eventRecorder.Event(
+		postgres,
+		kapi.EventTypeNormal,
+		eventer.EventReasonSuccessfulValidate,
+		"Successfully validate Postgres",
 	)
 
 	// Check if DeletedDatabase exists or not
@@ -56,8 +67,14 @@ func (c *Controller) create(postgres *tapi.Postgres) {
 	deletedDb, err := c.ExtClient.DeletedDatabases(postgres.Namespace).Get(postgres.Name)
 	if err != nil {
 		if !k8serr.IsNotFound(err) {
-			message := fmt.Sprintf(`Fail to get DeletedDatabase: "%v". Reason: %v`, postgres.Name, err)
-			c.eventRecorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonFailedToGet, message, postgres)
+			c.eventRecorder.Eventf(
+				postgres,
+				kapi.EventTypeWarning,
+				eventer.EventReasonFailedToGet,
+				`Fail to get DeletedDatabase: "%v". Reason: %v`,
+				postgres.Name,
+				err,
+			)
 			log.Errorln(err)
 			return
 		}
@@ -79,24 +96,22 @@ func (c *Controller) create(postgres *tapi.Postgres) {
 			postgres.Status.Phase = tapi.DatabasePhaseFailed
 			postgres.Status.Reason = message
 			if _, err := c.ExtClient.Postgreses(postgres.Namespace).Update(postgres); err != nil {
-				message := fmt.Sprintf(`Fail to update Postgres: "%v". Reason: %v`, postgres.Name, err)
-				c.eventRecorder.PushEvent(
-					kapi.EventTypeWarning, eventer.EventReasonFailedToUpdate, message, postgres,
+				c.eventRecorder.Eventf(
+					postgres,
+					kapi.EventTypeWarning,
+					eventer.EventReasonFailedToUpdate,
+					`Fail to update Postgres: "%v". Reason: %v`, postgres.Name, err,
 				)
 				log.Errorln(err)
 			}
-			c.eventRecorder.PushEvent(
-				kapi.EventTypeWarning, eventer.EventReasonFailedToCreate, message, postgres,
-			)
+			c.eventRecorder.Event(postgres, kapi.EventTypeWarning, eventer.EventReasonFailedToCreate, message)
 			log.Infoln(message)
 			return
 		}
 	}
 
 	// Event for notification that kubernetes objects are creating
-	c.eventRecorder.PushEvent(
-		kapi.EventTypeNormal, eventer.EventReasonCreating, "Creating Kubernetes objects", postgres,
-	)
+	c.eventRecorder.Event(postgres, kapi.EventTypeNormal, eventer.EventReasonCreating, "Creating Kubernetes objects")
 
 	// create Governing Service
 	governingService := GoverningPostgres
@@ -105,8 +120,14 @@ func (c *Controller) create(postgres *tapi.Postgres) {
 	}
 
 	if err := c.CreateGoverningServiceAccount(governingService, postgres.Namespace); err != nil {
-		message := fmt.Sprintf(`Failed to create ServiceAccount: "%v". Reason: %v`, governingService, err)
-		c.eventRecorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonFailedToCreate, message, postgres)
+		c.eventRecorder.Eventf(
+			postgres,
+			kapi.EventTypeWarning,
+			eventer.EventReasonFailedToCreate,
+			`Failed to create ServiceAccount: "%v". Reason: %v`,
+			governingService,
+			err,
+		)
 		log.Errorln(err)
 		return
 	}
@@ -114,8 +135,13 @@ func (c *Controller) create(postgres *tapi.Postgres) {
 
 	// create database Service
 	if err := c.createService(postgres.Name, postgres.Namespace); err != nil {
-		message := fmt.Sprintf(`Failed to create Service. Reason: %v`, err)
-		c.eventRecorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonFailedToCreate, message, postgres)
+		c.eventRecorder.Eventf(
+			postgres,
+			kapi.EventTypeWarning,
+			eventer.EventReasonFailedToCreate,
+			"Failed to create Service. Reason: %v",
+			err,
+		)
 		log.Errorln(err)
 		return
 	}
@@ -123,33 +149,48 @@ func (c *Controller) create(postgres *tapi.Postgres) {
 	// Create statefulSet for Postgres database
 	statefulSet, err := c.createStatefulSet(postgres)
 	if err != nil {
-		message := fmt.Sprintf(`Failed to create StatefulSet. Reason: %v`, err)
-		c.eventRecorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonFailedToCreate, message, postgres)
+		c.eventRecorder.Eventf(
+			postgres,
+			kapi.EventTypeWarning,
+			eventer.EventReasonFailedToCreate,
+			"Failed to create StatefulSet. Reason: %v",
+			err,
+		)
+
 		log.Errorln(err)
 		return
 	}
 
 	// Check StatefulSet Pod status
 	if err := c.CheckStatefulSetPodStatus(statefulSet, durationCheckStatefulSet); err != nil {
-		message := fmt.Sprintf(`Failed to create StatefulSet. Reason: %v`, err)
-		c.eventRecorder.PushEvent(
-			kapi.EventTypeWarning, eventer.EventReasonFailedToStart, message, postgres,
+		c.eventRecorder.Eventf(
+			postgres,
+			kapi.EventTypeWarning,
+			eventer.EventReasonFailedToStart,
+			`Failed to create StatefulSet. Reason: %v`,
+			err,
 		)
 		log.Errorln(err)
 		return
 	} else {
-		c.eventRecorder.PushEvent(
-			kapi.EventTypeNormal, eventer.EventReasonSuccessfulCreate, "Successfully created Postgres",
+		c.eventRecorder.Event(
 			postgres,
+			kapi.EventTypeNormal,
+			eventer.EventReasonSuccessfulCreate,
+			"Successfully created Postgres",
 		)
 	}
 
 	if postgres.Spec.Init != nil && postgres.Spec.Init.SnapshotSource != nil {
 		postgres.Status.Phase = tapi.DatabasePhaseInitializing
 		if _postgres, err = c.ExtClient.Postgreses(postgres.Namespace).Update(postgres); err != nil {
-			message := fmt.Sprintf(`Fail to update Postgres: "%v". Reason: %v`, postgres.Name, err)
-			c.eventRecorder.PushEvent(
-				kapi.EventTypeWarning, eventer.EventReasonFailedToUpdate, message, postgres,
+			c.eventRecorder.Eventf(
+				postgres,
+				kapi.EventTypeWarning,
+				eventer.EventReasonFailedToUpdate,
+				`Fail to update Postgres: "%v". Reason: %v`,
+				postgres.Name,
+				err,
 			)
 			log.Errorln(err)
 			return
@@ -157,9 +198,12 @@ func (c *Controller) create(postgres *tapi.Postgres) {
 		postgres = _postgres
 
 		if err := c.initialize(postgres); err != nil {
-			message := fmt.Sprintf(`Failed to initialize. Reason: %v`, err)
-			c.eventRecorder.PushEvent(
-				kapi.EventTypeWarning, eventer.EventReasonFailedToInitialize, message, postgres,
+			c.eventRecorder.Eventf(
+				postgres,
+				kapi.EventTypeWarning,
+				eventer.EventReasonFailedToInitialize,
+				"Failed to initialize. Reason: %v",
+				err,
 			)
 		}
 	}
@@ -167,23 +211,34 @@ func (c *Controller) create(postgres *tapi.Postgres) {
 	if recovering {
 		// Delete DeletedDatabase instance
 		if err := c.ExtClient.DeletedDatabases(deletedDb.Namespace).Delete(deletedDb.Name); err != nil {
-			message := fmt.Sprintf(`Failed to delete DeletedDatabase: "%v". Reason: %v`, deletedDb.Name, err)
-			c.eventRecorder.PushEvent(
-				kapi.EventTypeWarning, eventer.EventReasonFailedToDelete, message, postgres,
+			c.eventRecorder.Eventf(
+				postgres,
+				kapi.EventTypeWarning,
+				eventer.EventReasonFailedToDelete,
+				`Failed to delete DeletedDatabase: "%v". Reason: %v`,
+				deletedDb.Name,
+				err,
 			)
 			log.Errorln(err)
 		}
-		message := fmt.Sprintf(`Successfully deleted DeletedDatabase: "%v"`, deletedDb.Name)
-		c.eventRecorder.PushEvent(
-			kapi.EventTypeNormal, eventer.EventReasonSuccessfulDelete, message, postgres,
+		c.eventRecorder.Eventf(
+			postgres,
+			kapi.EventTypeNormal,
+			eventer.EventReasonSuccessfulDelete,
+			`Successfully deleted DeletedDatabase: "%v"`,
+			deletedDb.Name,
 		)
 	}
 
 	postgres.Status.Phase = tapi.DatabasePhaseRunning
 	if _postgres, err = c.ExtClient.Postgreses(postgres.Namespace).Update(postgres); err != nil {
-		message := fmt.Sprintf(`Fail to update Postgres: "%v". Reason: %v`, postgres.Name, err)
-		c.eventRecorder.PushEvent(
-			kapi.EventTypeWarning, eventer.EventReasonFailedToUpdate, message, postgres,
+		c.eventRecorder.Eventf(
+			postgres,
+			kapi.EventTypeWarning,
+			eventer.EventReasonFailedToUpdate,
+			`Fail to update Postgres: "%v". Reason: %v`,
+			postgres.Name,
+			err,
 		)
 		log.Errorln(err)
 	}
@@ -193,9 +248,12 @@ func (c *Controller) create(postgres *tapi.Postgres) {
 	if postgres.Spec.BackupSchedule != nil {
 		err := c.cronController.ScheduleBackup(postgres, postgres.ObjectMeta, postgres.Spec.BackupSchedule)
 		if err != nil {
-			message := fmt.Sprintf(`Failed to schedule snapshot. Reason: %v`, err)
-			c.eventRecorder.PushEvent(
-				kapi.EventTypeWarning, eventer.EventReasonFailedToSchedule, message, postgres,
+			c.eventRecorder.Eventf(
+				postgres,
+				kapi.EventTypeWarning,
+				eventer.EventReasonFailedToSchedule,
+				"Failed to schedule snapshot. Reason: %v",
+				err,
 			)
 			log.Errorln(err)
 		}
@@ -209,10 +267,12 @@ const (
 func (c *Controller) initialize(postgres *tapi.Postgres) error {
 	snapshotSource := postgres.Spec.Init.SnapshotSource
 	// Event for notification that kubernetes objects are creating
-	c.eventRecorder.PushEvent(
-		kapi.EventTypeNormal, eventer.EventReasonInitializing,
-		fmt.Sprintf(`Initializing from DatabaseSnapshot: "%v"`, snapshotSource.Name),
+	c.eventRecorder.Eventf(
 		postgres,
+		kapi.EventTypeNormal,
+		eventer.EventReasonInitializing,
+		`Initializing from DatabaseSnapshot: "%v"`,
+		snapshotSource.Name,
 	)
 
 	namespace := snapshotSource.Namespace
@@ -231,14 +291,18 @@ func (c *Controller) initialize(postgres *tapi.Postgres) error {
 
 	jobSuccess := c.CheckDatabaseRestoreJob(job, postgres, c.eventRecorder, durationCheckRestoreJob)
 	if jobSuccess {
-		c.eventRecorder.PushEvent(
-			kapi.EventTypeNormal, eventer.EventReasonSuccessfulInitialize,
-			"Successfully completed initialization", postgres,
+		c.eventRecorder.Event(
+			postgres,
+			kapi.EventTypeNormal,
+			eventer.EventReasonSuccessfulInitialize,
+			"Successfully completed initialization",
 		)
 	} else {
-		c.eventRecorder.PushEvent(
-			kapi.EventTypeWarning, eventer.EventReasonFailedToInitialize,
-			"Failed to complete initialization", postgres,
+		c.eventRecorder.Event(
+			postgres,
+			kapi.EventTypeWarning,
+			eventer.EventReasonFailedToInitialize,
+			"Failed to complete initialization",
 		)
 	}
 	return nil
@@ -246,20 +310,25 @@ func (c *Controller) initialize(postgres *tapi.Postgres) error {
 
 func (c *Controller) delete(postgres *tapi.Postgres) {
 
-	c.eventRecorder.PushEvent(
-		kapi.EventTypeNormal, eventer.EventReasonDeleting, "Deleting Postgres", postgres,
-	)
+	c.eventRecorder.Event(postgres, kapi.EventTypeNormal, eventer.EventReasonDeleting, "Deleting Postgres")
 
 	if postgres.Spec.DoNotDelete {
-		message := fmt.Sprintf(`Postgres "%v" is locked.`, postgres.Name)
-		c.eventRecorder.PushEvent(
-			kapi.EventTypeWarning, eventer.EventReasonFailedToDelete, message, postgres,
+		c.eventRecorder.Eventf(
+			postgres,
+			kapi.EventTypeWarning,
+			eventer.EventReasonFailedToDelete,
+			`Postgres "%v" is locked.`,
+			postgres.Name,
 		)
 
 		if err := c.reCreatePostgres(postgres); err != nil {
-			message := fmt.Sprintf(`Failed to recreate Postgres: "%v". Reason: %v`, postgres, err)
-			c.eventRecorder.PushEvent(
-				kapi.EventTypeWarning, eventer.EventReasonFailedToCreate, message, postgres,
+			c.eventRecorder.Eventf(
+				postgres,
+				kapi.EventTypeWarning,
+				eventer.EventReasonFailedToCreate,
+				`Failed to recreate Postgres: "%v". Reason: %v`,
+				postgres,
+				err,
 			)
 			log.Errorln(err)
 			return
@@ -268,16 +337,23 @@ func (c *Controller) delete(postgres *tapi.Postgres) {
 	}
 
 	if _, err := c.createDeletedDatabase(postgres); err != nil {
-		message := fmt.Sprintf(`Failed to create DeletedDatabase: "%v". Reason: %v`, postgres.Name, err)
-		c.eventRecorder.PushEvent(
-			kapi.EventTypeWarning, eventer.EventReasonFailedToCreate, message, postgres,
+		c.eventRecorder.Eventf(
+			postgres,
+			kapi.EventTypeWarning,
+			eventer.EventReasonFailedToCreate,
+			`Failed to create DeletedDatabase: "%v". Reason: %v`,
+			postgres.Name,
+			err,
 		)
 		log.Errorln(err)
 		return
 	}
-	message := fmt.Sprintf(`Successfully created DeletedDatabase: "%v"`, postgres.Name)
-	c.eventRecorder.PushEvent(
-		kapi.EventTypeNormal, eventer.EventReasonSuccessfulCreate, message, postgres,
+	c.eventRecorder.Eventf(
+		postgres,
+		kapi.EventTypeNormal,
+		eventer.EventReasonSuccessfulCreate,
+		`Successfully created DeletedDatabase: "%v"`,
+		postgres.Name,
 	)
 
 	c.cronController.StopBackupScheduling(postgres.ObjectMeta)
@@ -288,18 +364,26 @@ func (c *Controller) update(oldPostgres, updatedPostgres *tapi.Postgres) {
 		statefulSetName := fmt.Sprintf("%v-%v", amc.DatabaseNamePrefix, updatedPostgres.Name)
 		statefulSet, err := c.Client.Apps().StatefulSets(updatedPostgres.Namespace).Get(statefulSetName)
 		if err != nil {
-			message := fmt.Sprintf(`Failed to get StatefulSet: "%v". Reason: %v`, statefulSetName, err)
-			c.eventRecorder.PushEvent(
-				kapi.EventTypeNormal, eventer.EventReasonFailedToGet, message, updatedPostgres,
+			c.eventRecorder.Eventf(
+				updatedPostgres,
+				kapi.EventTypeNormal,
+				eventer.EventReasonFailedToGet,
+				`Failed to get StatefulSet: "%v". Reason: %v`,
+				statefulSetName,
+				err,
 			)
 			log.Errorln(err)
 			return
 		}
 		statefulSet.Spec.Replicas = oldPostgres.Spec.Replicas
 		if _, err := c.Client.Apps().StatefulSets(statefulSet.Namespace).Update(statefulSet); err != nil {
-			message := fmt.Sprintf(`Failed to update StatefulSet: "%v". Reason: %v`, statefulSetName, err)
-			c.eventRecorder.PushEvent(
-				kapi.EventTypeNormal, eventer.EventReasonFailedToUpdate, message, updatedPostgres,
+			c.eventRecorder.Eventf(
+				updatedPostgres,
+				kapi.EventTypeNormal,
+				eventer.EventReasonFailedToUpdate,
+				`Failed to update StatefulSet: "%v". Reason: %v`,
+				statefulSetName,
+				err,
 			)
 			log.Errorln(err)
 			return
@@ -310,16 +394,22 @@ func (c *Controller) update(oldPostgres, updatedPostgres *tapi.Postgres) {
 		backupScheduleSpec := updatedPostgres.Spec.BackupSchedule
 		if backupScheduleSpec != nil {
 			if err := c.ValidateBackupSchedule(backupScheduleSpec); err != nil {
-				c.eventRecorder.PushEvent(
-					kapi.EventTypeNormal, eventer.EventReasonInvalid, err.Error(), updatedPostgres,
+				c.eventRecorder.Event(
+					updatedPostgres,
+					kapi.EventTypeNormal,
+					eventer.EventReasonInvalid,
+					err.Error(),
 				)
 				log.Errorln(err)
 				return
 			}
 
 			if err := c.CheckBucketAccess(backupScheduleSpec.SnapshotSpec, oldPostgres.Namespace); err != nil {
-				c.eventRecorder.PushEvent(
-					kapi.EventTypeNormal, eventer.EventReasonInvalid, err.Error(), updatedPostgres,
+				c.eventRecorder.Event(
+					updatedPostgres,
+					kapi.EventTypeNormal,
+					eventer.EventReasonInvalid,
+					err.Error(),
 				)
 				log.Errorln(err)
 				return
@@ -327,9 +417,11 @@ func (c *Controller) update(oldPostgres, updatedPostgres *tapi.Postgres) {
 
 			if err := c.cronController.ScheduleBackup(
 				oldPostgres, oldPostgres.ObjectMeta, oldPostgres.Spec.BackupSchedule); err != nil {
-				message := fmt.Sprintf(`Failed to schedule snapshot. Reason: %v`, err)
-				c.eventRecorder.PushEvent(
-					kapi.EventTypeWarning, eventer.EventReasonFailedToSchedule, message, updatedPostgres,
+				c.eventRecorder.Eventf(
+					updatedPostgres,
+					kapi.EventTypeWarning,
+					eventer.EventReasonFailedToSchedule,
+					"Failed to schedule snapshot. Reason: %v", err,
 				)
 				log.Errorln(err)
 			}

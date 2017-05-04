@@ -14,6 +14,7 @@ import (
 	"k8s.io/kubernetes/pkg/api/unversioned"
 	"k8s.io/kubernetes/pkg/apis/extensions"
 	"k8s.io/kubernetes/pkg/client/cache"
+	"k8s.io/kubernetes/pkg/client/record"
 	rest "k8s.io/kubernetes/pkg/client/restclient"
 	"k8s.io/kubernetes/pkg/labels"
 	"k8s.io/kubernetes/pkg/runtime"
@@ -26,7 +27,7 @@ type Controller struct {
 	// Cron Controller
 	cronController amc.CronControllerInterface
 	// Event Recorder
-	eventRecorder eventer.EventRecorderInterface
+	eventRecorder record.EventRecorder
 	// Tag of postgres util
 	postgresUtilTag string
 	// sync time to sync the list.

@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"reflect"
 	"time"
 
@@ -16,6 +15,7 @@ import (
 	"k8s.io/kubernetes/pkg/apis/extensions"
 	"k8s.io/kubernetes/pkg/client/cache"
 	clientset "k8s.io/kubernetes/pkg/client/clientset_generated/internalclientset"
+	"k8s.io/kubernetes/pkg/client/record"
 )
 
 type Deleter interface {
@@ -39,7 +39,7 @@ type DeletedDatabaseController struct {
 	// ListerWatcher
 	lw *cache.ListWatch
 	// Event Recorder
-	eventRecorder eventer.EventRecorderInterface
+	eventRecorder record.EventRecorder
 	// sync time to sync the list.
 	syncPeriod time.Duration
 }
@@ -140,8 +140,13 @@ func (c *DeletedDatabaseController) create(deletedDb *tapi.DeletedDatabase) {
 	deletedDb.Status.CreationTime = &t
 	_deletedDb, err := c.extClient.DeletedDatabases(deletedDb.Namespace).Update(deletedDb)
 	if err != nil {
-		message := fmt.Sprintf(`Failed to update DeletedDatabase. Reason: "%v"`, err)
-		c.eventRecorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonFailedToUpdate, message, deletedDb)
+		c.eventRecorder.Eventf(
+			deletedDb,
+			kapi.EventTypeWarning,
+			eventer.EventReasonFailedToUpdate,
+			"Failed to update DeletedDatabase. Reason: %v",
+			err,
+		)
 		return
 	}
 	deletedDb = _deletedDb
@@ -149,19 +154,33 @@ func (c *DeletedDatabaseController) create(deletedDb *tapi.DeletedDatabase) {
 	// Check if DB TPR object exists
 	found, err := c.deleter.Exists(&deletedDb.ObjectMeta)
 	if err != nil {
-		message := fmt.Sprintf(`Failed to delete Database. Reason: "%v"`, err)
-		c.eventRecorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonFailedToDelete, message, deletedDb)
+		c.eventRecorder.Eventf(
+			deletedDb,
+			kapi.EventTypeWarning,
+			eventer.EventReasonFailedToDelete,
+			"Failed to delete Database. Reason: %v",
+			err,
+		)
 		return
 	}
 
 	if found {
-		message := "Failed to delete Database. Delete Database TPR object first"
-		c.eventRecorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonFailedToDelete, message, deletedDb)
+		c.eventRecorder.Event(
+			deletedDb,
+			kapi.EventTypeWarning,
+			eventer.EventReasonFailedToDelete,
+			"Failed to delete Database. Delete Database TPR object first",
+		)
 
 		// Delete DeletedDatabase object
 		if err := c.extClient.DeletedDatabases(deletedDb.Namespace).Delete(deletedDb.Name); err != nil {
-			message := fmt.Sprintf(`Failed to delete DeletedDatabase. Reason: %v`, err)
-			c.eventRecorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonFailedToDelete, message, deletedDb)
+			c.eventRecorder.Eventf(
+				deletedDb,
+				kapi.EventTypeWarning,
+				eventer.EventReasonFailedToDelete,
+				"Failed to delete DeletedDatabase. Reason: %v",
+				err,
+			)
 			log.Errorln(err)
 		}
 		return
@@ -172,27 +191,37 @@ func (c *DeletedDatabaseController) create(deletedDb *tapi.DeletedDatabase) {
 	deletedDb.Status.Phase = tapi.DeletedDatabasePhaseDeleting
 	_deletedDb, err = c.extClient.DeletedDatabases(deletedDb.Namespace).Update(deletedDb)
 	if err != nil {
-		message := fmt.Sprintf(`Failed to update DeletedDatabase. Reason: "%v"`, err)
-		c.eventRecorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonFailedToUpdate, message, deletedDb)
+		c.eventRecorder.Eventf(
+			deletedDb,
+			kapi.EventTypeWarning,
+			eventer.EventReasonFailedToUpdate,
+			"Failed to update DeletedDatabase. Reason: %v",
+			err,
+		)
 		return
 	}
 	deletedDb = _deletedDb
 
-	c.eventRecorder.PushEvent(kapi.EventTypeNormal, eventer.EventReasonDeleting, "Deleting Database", deletedDb)
+	c.eventRecorder.Event(deletedDb, kapi.EventTypeNormal, eventer.EventReasonDeleting, "Deleting Database")
 
 	// Delete Database workload
 	if err := c.deleter.DeleteDatabase(deletedDb); err != nil {
-		message := fmt.Sprintf(`Failed to delete. Reason: %v`, err)
-		c.eventRecorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonFailedToDelete, message, deletedDb)
+		c.eventRecorder.Eventf(
+			deletedDb,
+			kapi.EventTypeWarning,
+			eventer.EventReasonFailedToDelete,
+			"Failed to delete. Reason: %v",
+			err,
+		)
 		log.Errorln(err)
 		return
 	}
 
-	c.eventRecorder.PushEvent(
+	c.eventRecorder.Event(
+		deletedDb,
 		kapi.EventTypeNormal,
 		eventer.EventReasonSuccessfulDelete,
 		"Successfully deleted Database workload",
-		deletedDb,
 	)
 
 	// Set DeletedDatabase Phase: Deleted
@@ -201,8 +230,13 @@ func (c *DeletedDatabaseController) create(deletedDb *tapi.DeletedDatabase) {
 	deletedDb.Status.Phase = tapi.DeletedDatabasePhaseDeleted
 	_, err = c.extClient.DeletedDatabases(deletedDb.Namespace).Update(deletedDb)
 	if err != nil {
-		message := fmt.Sprintf(`Failed to update DeletedDatabase. Reason: "%v"`, err)
-		c.eventRecorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonFailedToUpdate, message, deletedDb)
+		c.eventRecorder.Eventf(
+			deletedDb,
+			kapi.EventTypeWarning,
+			eventer.EventReasonFailedToUpdate,
+			"Failed to update DeletedDatabase. Reason: %v",
+			err,
+		)
 		return
 	}
 
@@ -220,7 +254,12 @@ func (c *DeletedDatabaseController) update(oldDeletedDb, updatedDeletedDb *tapi.
 		} else {
 			message := "Failed to recover Database. " +
 				"Only DeletedDatabase of \"Deleted\" Phase can be recovered"
-			c.eventRecorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonFailedToUpdate, message, updatedDeletedDb)
+			c.eventRecorder.Event(
+				updatedDeletedDb,
+				kapi.EventTypeWarning,
+				eventer.EventReasonFailedToUpdate,
+				message,
+			)
 			return
 		}
 
@@ -231,20 +270,33 @@ func (c *DeletedDatabaseController) wipeOut(deletedDb *tapi.DeletedDatabase) {
 	// Check if DB TPR object exists
 	found, err := c.deleter.Exists(&deletedDb.ObjectMeta)
 	if err != nil {
-		message := fmt.Sprintf(`Failed to wipeOut Database. Reason: "%v"`, err)
-		c.eventRecorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonFailedToDelete, message, deletedDb)
+		c.eventRecorder.Eventf(
+			deletedDb,
+			kapi.EventTypeWarning,
+			eventer.EventReasonFailedToDelete,
+			"Failed to wipeOut Database. Reason: %v",
+			err,
+		)
 		return
 	}
 
 	if found {
 		message := "Failed to wipeOut Database. Delete Database TPR object first"
-		c.eventRecorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonFailedToWipeOut, message, deletedDb)
+		c.eventRecorder.Event(
+			deletedDb,
+			kapi.EventTypeWarning,
+			eventer.EventReasonFailedToWipeOut,
+			message,
+		)
 
 		// Delete DeletedDatabase object
 		if err := c.extClient.DeletedDatabases(deletedDb.Namespace).Delete(deletedDb.Name); err != nil {
-			message := fmt.Sprintf(`Failed to delete DeletedDatabase. Reason: %v`, err)
-			c.eventRecorder.PushEvent(
-				kapi.EventTypeWarning, eventer.EventReasonFailedToDelete, message, deletedDb,
+			c.eventRecorder.Eventf(
+				deletedDb,
+				kapi.EventTypeWarning,
+				eventer.EventReasonFailedToDelete,
+				"Failed to delete DeletedDatabase. Reason: %v",
+				err,
 			)
 			log.Errorln(err)
 		}
@@ -256,28 +308,36 @@ func (c *DeletedDatabaseController) wipeOut(deletedDb *tapi.DeletedDatabase) {
 	deletedDb.Status.Phase = tapi.DeletedDatabasePhaseWipingOut
 	_deletedDb, err := c.extClient.DeletedDatabases(deletedDb.Namespace).Update(deletedDb)
 	if err != nil {
-		message := fmt.Sprintf(`Failed to update DeletedDatabase. Reason: "%v"`, err)
-		c.eventRecorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonFailedToUpdate, message, deletedDb)
+		c.eventRecorder.Eventf(
+			deletedDb,
+			kapi.EventTypeWarning,
+			eventer.EventReasonFailedToUpdate,
+			"Failed to update DeletedDatabase. Reason: %v",
+			err,
+		)
 		return
 	}
 	deletedDb = _deletedDb
 
 	// Wipe out Database workload
-	c.eventRecorder.PushEvent(
-		kapi.EventTypeNormal, eventer.EventReasonWipingOut, "Wiping out Database", deletedDb,
-	)
+	c.eventRecorder.Event(deletedDb, kapi.EventTypeNormal, eventer.EventReasonWipingOut, "Wiping out Database")
 	if err := c.deleter.WipeOutDatabase(deletedDb); err != nil {
-		message := fmt.Sprintf(`Failed to wipeOut. Reason: %v`, err)
-		c.eventRecorder.PushEvent(
-			kapi.EventTypeWarning, eventer.EventReasonFailedToWipeOut, message, deletedDb,
+		c.eventRecorder.Eventf(
+			deletedDb,
+			kapi.EventTypeWarning,
+			eventer.EventReasonFailedToWipeOut,
+			"Failed to wipeOut. Reason: %v",
+			err,
 		)
 		log.Errorln(err)
 		return
 	}
 
-	c.eventRecorder.PushEvent(
-		kapi.EventTypeNormal, eventer.EventReasonSuccessfulWipeOut,
-		"Successfully wiped out Database workload", deletedDb,
+	c.eventRecorder.Event(
+		deletedDb,
+		kapi.EventTypeNormal,
+		eventer.EventReasonSuccessfulWipeOut,
+		"Successfully wiped out Database workload",
 	)
 
 	// Set DeletedDatabase Phase: Deleted
@@ -286,8 +346,13 @@ func (c *DeletedDatabaseController) wipeOut(deletedDb *tapi.DeletedDatabase) {
 	deletedDb.Status.Phase = tapi.DeletedDatabasePhaseWipedOut
 	_, err = c.extClient.DeletedDatabases(deletedDb.Namespace).Update(deletedDb)
 	if err != nil {
-		message := fmt.Sprintf(`Failed to update DeletedDatabase. Reason: "%v"`, err)
-		c.eventRecorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonFailedToUpdate, message, deletedDb)
+		c.eventRecorder.Eventf(
+			deletedDb,
+			kapi.EventTypeWarning,
+			eventer.EventReasonFailedToUpdate,
+			"Failed to update DeletedDatabase. Reason: %v",
+			err,
+		)
 		return
 	}
 }
@@ -296,37 +361,56 @@ func (c *DeletedDatabaseController) recover(deletedDb *tapi.DeletedDatabase) {
 	// Check if DB TPR object exists
 	found, err := c.deleter.Exists(&deletedDb.ObjectMeta)
 	if err != nil {
-		message := fmt.Sprintf(`Failed to recover Database. Reason: "%v"`, err)
-		c.eventRecorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonFailedToRecover, message, deletedDb)
+		c.eventRecorder.Eventf(
+			deletedDb,
+			kapi.EventTypeWarning,
+			eventer.EventReasonFailedToRecover,
+			"Failed to recover Database. Reason: %v",
+			err,
+		)
 		return
 	}
 
 	if found {
-		message := "Failed to recover Database. One Database TPR object exists with same name"
-		c.eventRecorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonFailedToRecover, message, deletedDb)
+		c.eventRecorder.Event(
+			deletedDb,
+			kapi.EventTypeWarning,
+			eventer.EventReasonFailedToRecover,
+			"Failed to recover Database. One Database TPR object exists with same name",
+		)
 		return
 	}
 
 	deletedDb.Status.Phase = tapi.DeletedDatabasePhaseRecovering
 	if deletedDb, err = c.extClient.DeletedDatabases(deletedDb.Namespace).Update(deletedDb); err != nil {
-		message := fmt.Sprintf(`Failed to update DeletedDatabase. Reason: "%v"`, err)
-		c.eventRecorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonFailedToUpdate, message, deletedDb)
+		c.eventRecorder.Eventf(
+			deletedDb,
+			kapi.EventTypeWarning,
+			eventer.EventReasonFailedToUpdate,
+			"Failed to update DeletedDatabase. Reason: %v",
+			err,
+		)
 		return
 	}
 
 	if err = c.deleter.RecoverDatabase(deletedDb); err != nil {
-		message := fmt.Sprintf(`Failed to recover Database. Reason: "%v"`, err)
-		c.eventRecorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonFailedToRecover, message, deletedDb)
+		c.eventRecorder.Eventf(
+			deletedDb,
+			kapi.EventTypeWarning,
+			eventer.EventReasonFailedToRecover,
+			"Failed to recover Database. Reason: %v",
+			err,
+		)
 
 		deletedDb.Status.Phase = tapi.DeletedDatabasePhaseDeleted
 		if deletedDb, err = c.extClient.DeletedDatabases(deletedDb.Namespace).Update(deletedDb); err != nil {
-			message := fmt.Sprintf(`Failed to update DeletedDatabase. Reason: "%v"`, err)
-			c.eventRecorder.PushEvent(
-				kapi.EventTypeWarning, eventer.EventReasonFailedToUpdate, message, deletedDb,
+			c.eventRecorder.Eventf(
+				deletedDb,
+				kapi.EventTypeWarning,
+				eventer.EventReasonFailedToUpdate,
+				"Failed to update DeletedDatabase. Reason: %v",
+				err,
 			)
-			return
 		}
-		return
 	}
-
 }

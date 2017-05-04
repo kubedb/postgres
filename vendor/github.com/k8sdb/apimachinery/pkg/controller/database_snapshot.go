@@ -16,6 +16,7 @@ import (
 	"k8s.io/kubernetes/pkg/apis/extensions"
 	"k8s.io/kubernetes/pkg/client/cache"
 	clientset "k8s.io/kubernetes/pkg/client/clientset_generated/internalclientset"
+	"k8s.io/kubernetes/pkg/client/record"
 	"k8s.io/kubernetes/pkg/labels"
 	"k8s.io/kubernetes/pkg/runtime"
 )
@@ -37,7 +38,7 @@ type DatabaseSnapshotController struct {
 	// ListerWatcher
 	lw *cache.ListWatch
 	// Event Recorder
-	eventRecorder eventer.EventRecorderInterface
+	eventRecorder record.EventRecorder
 	// sync time to sync the list.
 	syncPeriod time.Duration
 }
@@ -133,47 +134,41 @@ const (
 func (c *DatabaseSnapshotController) create(dbSnapshot *tapi.DatabaseSnapshot) {
 	// Validate DatabaseSnapshot spec
 	if err := c.snapshoter.ValidateSnapshot(dbSnapshot); err != nil {
-		c.eventRecorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonInvalid, err.Error(), dbSnapshot)
+		c.eventRecorder.Event(dbSnapshot, kapi.EventTypeWarning, eventer.EventReasonInvalid, err.Error())
 		log.Errorln(err)
 		return
 	}
 
 	runtimeObj, err := c.snapshoter.GetDatabase(dbSnapshot)
 	if err != nil {
-		c.eventRecorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonFailedToGet, err.Error(), dbSnapshot)
+		c.eventRecorder.Event(dbSnapshot, kapi.EventTypeWarning, eventer.EventReasonFailedToGet, err.Error())
 		log.Errorln(err)
 		return
 	}
 
 	dbSnapshot.Labels[LabelDatabaseName] = dbSnapshot.Spec.DatabaseName
 	if dbSnapshot, err = c.extClient.DatabaseSnapshots(dbSnapshot.Namespace).Update(dbSnapshot); err != nil {
-		c.eventRecorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonFailedToGet, err.Error(), dbSnapshot)
+		c.eventRecorder.Event(dbSnapshot, kapi.EventTypeWarning, eventer.EventReasonFailedToGet, err.Error())
 		log.Errorln(err)
 		return
 	}
 
-	c.eventRecorder.PushEvent(
-		kapi.EventTypeNormal, eventer.EventReasonStarting, "Backup running",
-		runtimeObj, dbSnapshot,
-	)
+	c.eventRecorder.Event(runtimeObj, kapi.EventTypeNormal, eventer.EventReasonStarting, "Backup running")
+	c.eventRecorder.Event(dbSnapshot, kapi.EventTypeNormal, eventer.EventReasonStarting, "Backup running")
 
 	job, err := c.snapshoter.GetSnapshotter(dbSnapshot)
 	if err != nil {
-		message := fmt.Sprintf(`Failed to take snapshot. Reason: %v`, err)
-		c.eventRecorder.PushEvent(
-			kapi.EventTypeWarning, eventer.EventReasonSnapshotFailed, message,
-			runtimeObj, dbSnapshot,
-		)
+		message := fmt.Sprintf("Failed to take snapshot. Reason: %v", err)
+		c.eventRecorder.Event(runtimeObj, kapi.EventTypeWarning, eventer.EventReasonSnapshotFailed, message)
+		c.eventRecorder.Event(dbSnapshot, kapi.EventTypeWarning, eventer.EventReasonSnapshotFailed, message)
 		log.Errorln(err)
 		return
 	}
 
 	if _, err := c.client.Batch().Jobs(dbSnapshot.Namespace).Create(job); err != nil {
-		message := fmt.Sprintf(`Failed to take snapshot. Reason: %v`, err)
-		c.eventRecorder.PushEvent(
-			kapi.EventTypeWarning, eventer.EventReasonSnapshotFailed, message,
-			runtimeObj, dbSnapshot,
-		)
+		message := fmt.Sprintf("Failed to take snapshot. Reason: %v", err)
+		c.eventRecorder.Event(runtimeObj, kapi.EventTypeWarning, eventer.EventReasonSnapshotFailed, message)
+		c.eventRecorder.Event(dbSnapshot, kapi.EventTypeWarning, eventer.EventReasonSnapshotFailed, message)
 		log.Errorln(err)
 		return
 	}
@@ -185,8 +180,11 @@ func (c *DatabaseSnapshotController) delete(dbSnapshot *tapi.DatabaseSnapshot) {
 	runtimeObj, err := c.snapshoter.GetDatabase(dbSnapshot)
 	if err != nil {
 		if !k8serr.IsNotFound(err) {
-			c.eventRecorder.PushEvent(
-				kapi.EventTypeWarning, eventer.EventReasonFailedToGet, err.Error(), dbSnapshot,
+			c.eventRecorder.Event(
+				dbSnapshot,
+				kapi.EventTypeWarning,
+				eventer.EventReasonFailedToGet,
+				err.Error(),
 			)
 			log.Errorln(err)
 			return
@@ -194,15 +192,23 @@ func (c *DatabaseSnapshotController) delete(dbSnapshot *tapi.DatabaseSnapshot) {
 	}
 
 	if runtimeObj != nil {
-		message := fmt.Sprintf(`Wiping out DatabaseSnapshot: "%v"`, dbSnapshot.Name)
-		c.eventRecorder.PushEvent(kapi.EventTypeNormal, eventer.EventReasonWipingOut, message, runtimeObj)
+		c.eventRecorder.Eventf(
+			runtimeObj,
+			kapi.EventTypeNormal,
+			eventer.EventReasonWipingOut,
+			"Wiping out DatabaseSnapshot: %v",
+			dbSnapshot.Name,
+		)
 	}
 
 	if err := c.snapshoter.WipeOutSnapshot(dbSnapshot); err != nil {
 		if runtimeObj != nil {
-			message := fmt.Sprintf(`Failed to  wipeOut. Reason: %v`, err)
-			c.eventRecorder.PushEvent(
-				kapi.EventTypeWarning, eventer.EventReasonFailedToWipeOut, message, runtimeObj,
+			c.eventRecorder.Eventf(
+				runtimeObj,
+				kapi.EventTypeWarning,
+				eventer.EventReasonFailedToWipeOut,
+				"Failed to  wipeOut. Reason: %v",
+				err,
 			)
 		}
 		log.Errorln(err)
@@ -210,9 +216,12 @@ func (c *DatabaseSnapshotController) delete(dbSnapshot *tapi.DatabaseSnapshot) {
 	}
 
 	if runtimeObj != nil {
-		message := fmt.Sprintf(`Successfully wiped out DatabaseSnapshot: "%v"`, dbSnapshot.Name)
-		c.eventRecorder.PushEvent(
-			kapi.EventTypeNormal, eventer.EventReasonSuccessfulWipeOut, message, runtimeObj,
+		c.eventRecorder.Eventf(
+			runtimeObj,
+			kapi.EventTypeNormal,
+			eventer.EventReasonSuccessfulWipeOut,
+			"Successfully wiped out DatabaseSnapshot: %v",
+			dbSnapshot.Name,
 		)
 	}
 }
@@ -224,8 +233,13 @@ func (c *DatabaseSnapshotController) checkDatabaseSnapshotJob(dbSnapshot *tapi.D
 	dbSnapshot.Labels[LabelSnapshotStatus] = string(tapi.SnapshotPhaseRunning)
 	var err error
 	if dbSnapshot, err = c.extClient.DatabaseSnapshots(dbSnapshot.Namespace).Update(dbSnapshot); err != nil {
-		message := fmt.Sprintf(`Failed to update DatabaseSnapshot. Reason: %v`, err)
-		c.eventRecorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonFailedToUpdate, message, dbSnapshot)
+		c.eventRecorder.Eventf(
+			dbSnapshot,
+			kapi.EventTypeWarning,
+			eventer.EventReasonFailedToUpdate,
+			"Failed to update DatabaseSnapshot. Reason: %v",
+			err,
+		)
 		log.Errorln(err)
 		return
 	}
@@ -239,9 +253,12 @@ func (c *DatabaseSnapshotController) checkDatabaseSnapshotJob(dbSnapshot *tapi.D
 		log.Debugln("Checking for Job ", jobName)
 		job, err = c.client.Batch().Jobs(dbSnapshot.Namespace).Get(jobName)
 		if err != nil {
-			message := fmt.Sprintf(`Failed to get Job. Reason: %v`, err)
-			c.eventRecorder.PushEvent(
-				kapi.EventTypeWarning, eventer.EventReasonFailedToList, message, dbSnapshot,
+			c.eventRecorder.Eventf(
+				dbSnapshot,
+				kapi.EventTypeWarning,
+				eventer.EventReasonFailedToList,
+				"Failed to get Job. Reason: %v",
+				err,
 			)
 			log.Errorln(err)
 			return
@@ -266,17 +283,25 @@ func (c *DatabaseSnapshotController) checkDatabaseSnapshotJob(dbSnapshot *tapi.D
 		},
 	)
 	if err != nil {
-		message := fmt.Sprintf(`Failed to list Pods. Reason: %v`, err)
-		c.eventRecorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonFailedToList, message, dbSnapshot)
+		c.eventRecorder.Eventf(
+			dbSnapshot,
+			kapi.EventTypeWarning,
+			eventer.EventReasonFailedToList,
+			"Failed to list Pods. Reason: %v",
+			err,
+		)
 		log.Errorln(err)
 		return
 	}
 
 	for _, pod := range podList.Items {
 		if err := c.client.Core().Pods(pod.Namespace).Delete(pod.Name, nil); err != nil {
-			message := fmt.Sprintf(`Failed to delete Pod. Reason: %v`, err)
-			c.eventRecorder.PushEvent(
-				kapi.EventTypeWarning, eventer.EventReasonFailedToDelete, message, dbSnapshot,
+			c.eventRecorder.Eventf(
+				dbSnapshot,
+				kapi.EventTypeWarning,
+				eventer.EventReasonFailedToDelete,
+				"Failed to delete Pod. Reason: %v",
+				err,
 			)
 			log.Errorln(err)
 		}
@@ -287,9 +312,12 @@ func (c *DatabaseSnapshotController) checkDatabaseSnapshotJob(dbSnapshot *tapi.D
 		if claim != nil {
 			err := c.client.Core().PersistentVolumeClaims(job.Namespace).Delete(claim.ClaimName, nil)
 			if err != nil {
-				message := fmt.Sprintf(`Failed to delete PersistentVolumeClaim. Reason: %v`, err)
-				c.eventRecorder.PushEvent(
-					kapi.EventTypeWarning, eventer.EventReasonFailedToDelete, message, dbSnapshot,
+				c.eventRecorder.Eventf(
+					dbSnapshot,
+					kapi.EventTypeWarning,
+					eventer.EventReasonFailedToDelete,
+					"Failed to delete PersistentVolumeClaim. Reason: %v",
+					err,
 				)
 				log.Errorln(err)
 			}
@@ -297,21 +325,31 @@ func (c *DatabaseSnapshotController) checkDatabaseSnapshotJob(dbSnapshot *tapi.D
 	}
 
 	if err := c.client.Batch().Jobs(job.Namespace).Delete(job.Name, nil); err != nil {
-		message := fmt.Sprintf(`Failed to delete Job. Reason: %v`, err)
-		c.eventRecorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonFailedToDelete, message, dbSnapshot)
+		c.eventRecorder.Eventf(
+			dbSnapshot,
+			kapi.EventTypeWarning,
+			eventer.EventReasonFailedToDelete,
+			"Failed to delete Job. Reason: %v",
+			err,
+		)
 		log.Errorln(err)
 	}
 
 	if dbSnapshot, err = c.extClient.DatabaseSnapshots(dbSnapshot.Namespace).Get(dbSnapshot.Name); err != nil {
-		message := fmt.Sprintf(`Failed to get DatabaseSnapshot. Reason: %v`, err)
-		c.eventRecorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonFailedToGet, message, dbSnapshot)
+		c.eventRecorder.Eventf(
+			dbSnapshot,
+			kapi.EventTypeWarning,
+			eventer.EventReasonFailedToGet,
+			"Failed to get DatabaseSnapshot. Reason: %v",
+			err,
+		)
 		log.Errorln(err)
 		return
 	}
 
 	runtimeObj, err := c.snapshoter.GetDatabase(dbSnapshot)
 	if err != nil {
-		c.eventRecorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonFailedToGet, err.Error(), dbSnapshot)
+		c.eventRecorder.Event(dbSnapshot, kapi.EventTypeWarning, eventer.EventReasonFailedToGet, err.Error())
 		log.Errorln(err)
 		return
 	}
@@ -320,23 +358,44 @@ func (c *DatabaseSnapshotController) checkDatabaseSnapshotJob(dbSnapshot *tapi.D
 	dbSnapshot.Status.CompletionTime = &t
 	if jobSuccess {
 		dbSnapshot.Status.Phase = tapi.SnapshotPhaseSuccessed
-		c.eventRecorder.PushEvent(
-			kapi.EventTypeNormal, eventer.EventReasonSuccessfulSnapshot, "Successfully completed snapshot",
-			runtimeObj, dbSnapshot,
+		c.eventRecorder.Event(
+			runtimeObj,
+			kapi.EventTypeNormal,
+			eventer.EventReasonSuccessfulSnapshot,
+			"Successfully completed snapshot",
+		)
+		c.eventRecorder.Event(
+			dbSnapshot,
+			kapi.EventTypeNormal,
+			eventer.EventReasonSuccessfulSnapshot,
+			"Successfully completed snapshot",
 		)
 	} else {
 		dbSnapshot.Status.Phase = tapi.SnapshotPhaseFailed
-		c.eventRecorder.PushEvent(
-			kapi.EventTypeWarning, eventer.EventReasonSnapshotFailed, "Failed to complete snapshot",
-			runtimeObj, dbSnapshot,
+		c.eventRecorder.Event(
+			runtimeObj,
+			kapi.EventTypeWarning,
+			eventer.EventReasonSnapshotFailed,
+			"Failed to complete snapshot",
+		)
+		c.eventRecorder.Event(
+			dbSnapshot,
+			kapi.EventTypeWarning,
+			eventer.EventReasonSnapshotFailed,
+			"Failed to complete snapshot",
 		)
 	}
 
 	delete(dbSnapshot.Labels, LabelSnapshotStatus)
 
 	if _, err := c.extClient.DatabaseSnapshots(dbSnapshot.Namespace).Update(dbSnapshot); err != nil {
-		message := fmt.Sprintf(`Failed to update DatabaseSnapshot. Reason: %v`, err)
-		c.eventRecorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonFailedToUpdate, message, dbSnapshot)
+		c.eventRecorder.Eventf(
+			dbSnapshot,
+			kapi.EventTypeWarning,
+			eventer.EventReasonFailedToUpdate,
+			"Failed to update DatabaseSnapshot. Reason: %v",
+			err,
+		)
 		log.Errorln(err)
 	}
 }

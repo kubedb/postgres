@@ -17,6 +17,7 @@ import (
 	k8serr "k8s.io/kubernetes/pkg/api/errors"
 	kapps "k8s.io/kubernetes/pkg/apis/apps"
 	kbatch "k8s.io/kubernetes/pkg/apis/batch"
+	"k8s.io/kubernetes/pkg/client/record"
 	"k8s.io/kubernetes/pkg/labels"
 	"k8s.io/kubernetes/pkg/runtime"
 )
@@ -283,7 +284,7 @@ func (c *Controller) DeleteDatabaseSnapshots(namespace string, selector labels.S
 func (c *Controller) CheckDatabaseRestoreJob(
 	job *kbatch.Job,
 	runtimeObj runtime.Object,
-	recorder eventer.EventRecorderInterface,
+	recorder record.EventRecorder,
 	checkDuration time.Duration,
 ) bool {
 	var jobSuccess bool = false
@@ -295,8 +296,13 @@ func (c *Controller) CheckDatabaseRestoreJob(
 		log.Debugln("Checking for Job ", job.Name)
 		job, err = c.Client.Batch().Jobs(job.Namespace).Get(job.Name)
 		if err != nil {
-			message := fmt.Sprintf(`Failed to get Job. Reason: %v`, err)
-			recorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonFailedToList, message, runtimeObj)
+			recorder.Eventf(
+				runtimeObj,
+				kapi.EventTypeWarning,
+				eventer.EventReasonFailedToList,
+				"Failed to get Job. Reason: %v",
+				err,
+			)
 			log.Errorln(err)
 			return jobSuccess
 		}
@@ -320,17 +326,25 @@ func (c *Controller) CheckDatabaseRestoreJob(
 		},
 	)
 	if err != nil {
-		message := fmt.Sprintf(`Failed to list Pods. Reason: %v`, err)
-		recorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonFailedToList, message, runtimeObj)
+		recorder.Eventf(
+			runtimeObj,
+			kapi.EventTypeWarning,
+			eventer.EventReasonFailedToList,
+			"Failed to list Pods. Reason: %v",
+			err,
+		)
 		log.Errorln(err)
 		return jobSuccess
 	}
 
 	for _, pod := range podList.Items {
 		if err := c.Client.Core().Pods(pod.Namespace).Delete(pod.Name, nil); err != nil {
-			message := fmt.Sprintf(`Failed to delete Pod. Reason: %v`, err)
-			recorder.PushEvent(
-				kapi.EventTypeWarning, eventer.EventReasonFailedToDelete, message, runtimeObj,
+			recorder.Eventf(
+				runtimeObj,
+				kapi.EventTypeWarning,
+				eventer.EventReasonFailedToDelete,
+				"Failed to delete Pod. Reason: %v",
+				err,
 			)
 			log.Errorln(err)
 		}
@@ -341,9 +355,12 @@ func (c *Controller) CheckDatabaseRestoreJob(
 		if claim != nil {
 			err := c.Client.Core().PersistentVolumeClaims(job.Namespace).Delete(claim.ClaimName, nil)
 			if err != nil {
-				message := fmt.Sprintf(`Failed to delete PersistentVolumeClaim. Reason: %v`, err)
-				recorder.PushEvent(
-					kapi.EventTypeWarning, eventer.EventReasonFailedToDelete, message, runtimeObj,
+				recorder.Eventf(
+					runtimeObj,
+					kapi.EventTypeWarning,
+					eventer.EventReasonFailedToDelete,
+					"Failed to delete PersistentVolumeClaim. Reason: %v",
+					err,
 				)
 				log.Errorln(err)
 			}
@@ -351,8 +368,13 @@ func (c *Controller) CheckDatabaseRestoreJob(
 	}
 
 	if err := c.Client.Batch().Jobs(job.Namespace).Delete(job.Name, nil); err != nil {
-		message := fmt.Sprintf(`Failed to delete Job. Reason: %v`, err)
-		recorder.PushEvent(kapi.EventTypeWarning, eventer.EventReasonFailedToDelete, message, runtimeObj)
+		recorder.Eventf(
+			runtimeObj,
+			kapi.EventTypeWarning,
+			eventer.EventReasonFailedToDelete,
+			"Failed to delete Job. Reason: %v",
+			err,
+		)
 		log.Errorln(err)
 	}
 

@@ -12,6 +12,7 @@ import (
 	"gopkg.in/robfig/cron.v2"
 	kapi "k8s.io/kubernetes/pkg/api"
 	clientset "k8s.io/kubernetes/pkg/client/clientset_generated/internalclientset"
+	"k8s.io/kubernetes/pkg/client/record"
 	"k8s.io/kubernetes/pkg/labels"
 	"k8s.io/kubernetes/pkg/runtime"
 )
@@ -31,7 +32,7 @@ type cronController struct {
 	// Store Cron Job EntryID for further use
 	cronEntryIDs cmap.ConcurrentMap
 	// Event Recorder
-	eventRecorder eventer.EventRecorderInterface
+	eventRecorder record.EventRecorder
 }
 
 /*
@@ -104,7 +105,7 @@ type snapshotInvoker struct {
 	runtimeObject runtime.Object
 	om            kapi.ObjectMeta
 	spec          *tapi.BackupScheduleSpec
-	eventRecorder eventer.EventRecorderInterface
+	eventRecorder record.EventRecorder
 }
 
 func (s *snapshotInvoker) createDatabaseSnapshot() {
@@ -121,20 +122,23 @@ func (s *snapshotInvoker) createDatabaseSnapshot() {
 		LabelSelector: labels.SelectorFromSet(labels.Set(labelMap)),
 	})
 	if err != nil {
-		message := fmt.Sprintf(`Failed to list DatabaseSnapshots. Reason: %v`, err)
-		s.eventRecorder.PushEvent(
-			kapi.EventTypeWarning, eventer.EventReasonFailedToList, message,
+		s.eventRecorder.Eventf(
 			s.runtimeObject,
+			kapi.EventTypeWarning,
+			eventer.EventReasonFailedToList,
+			"Failed to list DatabaseSnapshots. Reason: %v",
+			err,
 		)
 		log.Errorln(err)
 		return
 	}
 
 	if len(snapshotList.Items) > 0 {
-		s.eventRecorder.PushEvent(
-			kapi.EventTypeNormal, eventer.EventReasonIgnoredSnapshot,
-			"Skipping scheduled Backup. One is still active.",
+		s.eventRecorder.Event(
 			s.runtimeObject,
+			kapi.EventTypeNormal,
+			eventer.EventReasonIgnoredSnapshot,
+			"Skipping scheduled Backup. One is still active.",
 		)
 		log.Debugln("Skipping scheduled Backup. One is still active.")
 		return
@@ -162,10 +166,12 @@ func (s *snapshotInvoker) createDatabaseSnapshot() {
 	}
 
 	if _, err := s.extClient.DatabaseSnapshots(snapshot.Namespace).Create(snapshot); err != nil {
-		message := fmt.Sprintf(`Failed to create DatabaseSnapshot. Reason: %v`, err)
-		s.eventRecorder.PushEvent(
-			kapi.EventTypeWarning, eventer.EventReasonFailedToCreate, message,
+		s.eventRecorder.Eventf(
 			s.runtimeObject,
+			kapi.EventTypeWarning,
+			eventer.EventReasonFailedToCreate,
+			"Failed to create DatabaseSnapshot. Reason: %v",
+			err,
 		)
 		log.Errorln(err)
 	}
