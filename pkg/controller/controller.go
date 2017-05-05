@@ -86,11 +86,15 @@ func (c *Controller) watchPostgres() {
 			AddFunc: func(obj interface{}) {
 				postgres := obj.(*tapi.Postgres)
 				if postgres.Status.CreationTime == nil {
-					c.create(postgres)
+					if err := c.create(postgres); err != nil {
+						log.Errorln(err)
+					}
 				}
 			},
 			DeleteFunc: func(obj interface{}) {
-				c.delete(obj.(*tapi.Postgres))
+				if err := c.delete(obj.(*tapi.Postgres)); err != nil {
+					log.Errorln(err)
+				}
 			},
 			UpdateFunc: func(old, new interface{}) {
 				oldObj, ok := old.(*tapi.Postgres)
@@ -102,7 +106,9 @@ func (c *Controller) watchPostgres() {
 					return
 				}
 				if !reflect.DeepEqual(oldObj.Spec, newObj.Spec) {
-					c.update(oldObj, newObj)
+					if err := c.update(oldObj, newObj); err != nil {
+						log.Errorln(err)
+					}
 				}
 			},
 		},

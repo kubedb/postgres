@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"time"
 
+	"errors"
 	"github.com/appscode/log"
 	tapi "github.com/k8sdb/apimachinery/api"
 	amc "github.com/k8sdb/apimachinery/pkg/controller"
@@ -14,7 +15,7 @@ import (
 	"k8s.io/kubernetes/pkg/api/unversioned"
 )
 
-func (c *Controller) create(postgres *tapi.Postgres) {
+func (c *Controller) create(postgres *tapi.Postgres) error {
 	t := unversioned.Now()
 	postgres.Status.CreationTime = &t
 	postgres.Status.Phase = tapi.DatabasePhaseCreating
@@ -29,8 +30,7 @@ func (c *Controller) create(postgres *tapi.Postgres) {
 			postgres.Name,
 			err,
 		)
-		log.Errorln(err)
-		return
+		return err
 	}
 	postgres = _postgres
 
@@ -50,9 +50,7 @@ func (c *Controller) create(postgres *tapi.Postgres) {
 			)
 			log.Errorln(err)
 		}
-
-		log.Errorln(err)
-		return
+		return err
 	}
 	// Event for successful validation
 	c.eventRecorder.Event(
@@ -75,8 +73,7 @@ func (c *Controller) create(postgres *tapi.Postgres) {
 				postgres.Name,
 				err,
 			)
-			log.Errorln(err)
-			return
+			return err
 		}
 	} else {
 		var message string
@@ -105,8 +102,7 @@ func (c *Controller) create(postgres *tapi.Postgres) {
 				log.Errorln(err)
 			}
 			c.eventRecorder.Event(postgres, kapi.EventTypeWarning, eventer.EventReasonFailedToCreate, message)
-			log.Infoln(message)
-			return
+			return errors.New(message)
 		}
 	}
 
@@ -128,8 +124,7 @@ func (c *Controller) create(postgres *tapi.Postgres) {
 			governingService,
 			err,
 		)
-		log.Errorln(err)
-		return
+		return err
 	}
 	postgres.Spec.ServiceAccountName = governingService
 
@@ -142,8 +137,7 @@ func (c *Controller) create(postgres *tapi.Postgres) {
 			"Failed to create Service. Reason: %v",
 			err,
 		)
-		log.Errorln(err)
-		return
+		return err
 	}
 
 	// Create statefulSet for Postgres database
@@ -156,9 +150,7 @@ func (c *Controller) create(postgres *tapi.Postgres) {
 			"Failed to create StatefulSet. Reason: %v",
 			err,
 		)
-
-		log.Errorln(err)
-		return
+		return err
 	}
 
 	// Check StatefulSet Pod status
@@ -170,8 +162,7 @@ func (c *Controller) create(postgres *tapi.Postgres) {
 			`Failed to create StatefulSet. Reason: %v`,
 			err,
 		)
-		log.Errorln(err)
-		return
+		return err
 	} else {
 		c.eventRecorder.Event(
 			postgres,
@@ -192,8 +183,7 @@ func (c *Controller) create(postgres *tapi.Postgres) {
 				postgres.Name,
 				err,
 			)
-			log.Errorln(err)
-			return
+			return err
 		}
 		postgres = _postgres
 
@@ -258,6 +248,8 @@ func (c *Controller) create(postgres *tapi.Postgres) {
 			log.Errorln(err)
 		}
 	}
+
+	return nil
 }
 
 const (
@@ -308,7 +300,7 @@ func (c *Controller) initialize(postgres *tapi.Postgres) error {
 	return nil
 }
 
-func (c *Controller) delete(postgres *tapi.Postgres) {
+func (c *Controller) delete(postgres *tapi.Postgres) error {
 
 	c.eventRecorder.Event(postgres, kapi.EventTypeNormal, eventer.EventReasonDeleting, "Deleting Postgres")
 
@@ -330,10 +322,9 @@ func (c *Controller) delete(postgres *tapi.Postgres) {
 				postgres,
 				err,
 			)
-			log.Errorln(err)
-			return
+			return err
 		}
-		return
+		return nil
 	}
 
 	if _, err := c.createDeletedDatabase(postgres); err != nil {
@@ -345,8 +336,7 @@ func (c *Controller) delete(postgres *tapi.Postgres) {
 			postgres.Name,
 			err,
 		)
-		log.Errorln(err)
-		return
+		return err
 	}
 	c.eventRecorder.Eventf(
 		postgres,
@@ -357,9 +347,10 @@ func (c *Controller) delete(postgres *tapi.Postgres) {
 	)
 
 	c.cronController.StopBackupScheduling(postgres.ObjectMeta)
+	return nil
 }
 
-func (c *Controller) update(oldPostgres, updatedPostgres *tapi.Postgres) {
+func (c *Controller) update(oldPostgres, updatedPostgres *tapi.Postgres) error {
 	if (updatedPostgres.Spec.Replicas != oldPostgres.Spec.Replicas) && oldPostgres.Spec.Replicas >= 0 {
 		statefulSetName := fmt.Sprintf("%v-%v", amc.DatabaseNamePrefix, updatedPostgres.Name)
 		statefulSet, err := c.Client.Apps().StatefulSets(updatedPostgres.Namespace).Get(statefulSetName)
@@ -372,8 +363,7 @@ func (c *Controller) update(oldPostgres, updatedPostgres *tapi.Postgres) {
 				statefulSetName,
 				err,
 			)
-			log.Errorln(err)
-			return
+			return err
 		}
 		statefulSet.Spec.Replicas = oldPostgres.Spec.Replicas
 		if _, err := c.Client.Apps().StatefulSets(statefulSet.Namespace).Update(statefulSet); err != nil {
@@ -385,8 +375,7 @@ func (c *Controller) update(oldPostgres, updatedPostgres *tapi.Postgres) {
 				statefulSetName,
 				err,
 			)
-			log.Errorln(err)
-			return
+			return err
 		}
 	}
 
@@ -400,8 +389,7 @@ func (c *Controller) update(oldPostgres, updatedPostgres *tapi.Postgres) {
 					eventer.EventReasonInvalid,
 					err.Error(),
 				)
-				log.Errorln(err)
-				return
+				return err
 			}
 
 			if err := c.CheckBucketAccess(backupScheduleSpec.SnapshotSpec, oldPostgres.Namespace); err != nil {
@@ -411,8 +399,7 @@ func (c *Controller) update(oldPostgres, updatedPostgres *tapi.Postgres) {
 					eventer.EventReasonInvalid,
 					err.Error(),
 				)
-				log.Errorln(err)
-				return
+				return err
 			}
 
 			if err := c.cronController.ScheduleBackup(
@@ -429,4 +416,5 @@ func (c *Controller) update(oldPostgres, updatedPostgres *tapi.Postgres) {
 			c.cronController.StopBackupScheduling(oldPostgres.ObjectMeta)
 		}
 	}
+	return nil
 }
