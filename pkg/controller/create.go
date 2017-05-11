@@ -321,7 +321,12 @@ func (w *Controller) createDeletedDatabase(postgres *tapi.Postgres) (*tapi.Delet
 		},
 		Spec: tapi.DeletedDatabaseSpec{
 			Origin: tapi.Origin{
-				ObjectMeta: postgres.ObjectMeta,
+				ObjectMeta: kapi.ObjectMeta{
+					Name:        postgres.Name,
+					Namespace:   postgres.Namespace,
+					Labels:      postgres.Labels,
+					Annotations: postgres.Annotations,
+				},
 				Spec: tapi.OriginSpec{
 					Postgres: &postgres.Spec,
 				},
