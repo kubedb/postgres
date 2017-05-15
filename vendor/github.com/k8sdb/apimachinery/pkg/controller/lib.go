@@ -241,8 +241,7 @@ func (c *Controller) DeleteSnapshotData(dbSnapshot *tapi.DatabaseSnapshot) error
 		return err
 	}
 
-	folderName := dbSnapshot.Labels[LabelDatabaseType] + "-" + dbSnapshot.Spec.DatabaseName
-	prefix := fmt.Sprintf("%v/%v", folderName, dbSnapshot.Name)
+	prefix := fmt.Sprintf("%v/%v/%v/%v", DatabaseNamePrefix, dbSnapshot.Namespace, dbSnapshot.Spec.DatabaseName, dbSnapshot.Name)
 	cursor := stow.CursorStart
 	for {
 		items, next, err := container.Items(prefix, cursor, 50)

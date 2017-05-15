@@ -109,12 +109,12 @@ type snapshotInvoker struct {
 }
 
 func (s *snapshotInvoker) createDatabaseSnapshot() {
-	typeLabel := s.om.Labels[LabelDatabaseType]
-	nameLabel := s.om.Labels[LabelDatabaseName]
+	kind := s.runtimeObject.GetObjectKind().GroupVersionKind().Kind
+	name := s.om.Name
 
 	labelMap := map[string]string{
-		LabelDatabaseType:   typeLabel,
-		LabelDatabaseName:   nameLabel,
+		LabelDatabaseKind:   kind,
+		LabelDatabaseName:   name,
 		LabelSnapshotStatus: string(tapi.SnapshotPhaseRunning),
 	}
 
@@ -146,8 +146,8 @@ func (s *snapshotInvoker) createDatabaseSnapshot() {
 
 	// Set label. Elastic controller will detect this using label selector
 	labelMap = map[string]string{
-		LabelDatabaseType: typeLabel,
-		LabelDatabaseName: nameLabel,
+		LabelDatabaseKind: kind,
+		LabelDatabaseName: name,
 	}
 
 	now := time.Now().UTC()

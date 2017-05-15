@@ -15,7 +15,7 @@ type Controller struct {
 
 const (
 	DatabaseNamePrefix = "k8sdb"
-	LabelDatabaseType  = "k8sdb.com/type"
+	LabelDatabaseKind  = "k8sdb.com/kind"
 	LabelDatabaseName  = "k8sdb.com/name"
 )
 

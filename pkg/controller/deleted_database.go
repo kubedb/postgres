@@ -40,7 +40,7 @@ func (c *Controller) DeleteDatabase(deletedDb *tapi.DeletedDatabase) error {
 func (c *Controller) WipeOutDatabase(deletedDb *tapi.DeletedDatabase) error {
 	labelMap := map[string]string{
 		amc.LabelDatabaseName: deletedDb.Name,
-		amc.LabelDatabaseType: tapi.ResourceNamePostgres,
+		amc.LabelDatabaseKind: tapi.ResourceKindPostgres,
 	}
 
 	labelSelector := labels.SelectorFromSet(labelMap)

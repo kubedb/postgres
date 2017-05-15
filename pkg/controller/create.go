@@ -91,7 +91,7 @@ func (c *Controller) checkStatefulSet(postgres *tapi.Postgres) (*kapps.StatefulS
 		}
 	}
 
-	if statefulSet.Labels[amc.LabelDatabaseType] != tapi.ResourceNamePostgres {
+	if statefulSet.Labels[amc.LabelDatabaseKind] != tapi.ResourceKindPostgres {
 		return nil, fmt.Errorf(`Intended statefulSet "%v" already exists`, statefulSetName)
 	}
 
@@ -108,18 +108,21 @@ func (c *Controller) createStatefulSet(postgres *tapi.Postgres) (*kapps.Stateful
 	}
 
 	// Set labels
-	if postgres.Labels == nil {
-		postgres.Labels = make(map[string]string)
+	labels := make(map[string]string)
+	for key, val := range postgres.Labels {
+		labels[key] = val
 	}
-	postgres.Labels[amc.LabelDatabaseType] = tapi.ResourceNamePostgres
+	labels[amc.LabelDatabaseKind] = tapi.ResourceKindPostgres
+
 	// Set Annotations
-	if postgres.Annotations == nil {
-		postgres.Annotations = make(map[string]string)
+	annotations := make(map[string]string)
+	for key, val := range postgres.Annotations {
+		annotations[key] = val
 	}
-	postgres.Annotations[annotationDatabaseVersion] = postgres.Spec.Version
+	annotations[annotationDatabaseVersion] = postgres.Spec.Version
 
 	podLabels := make(map[string]string)
-	for key, val := range postgres.Labels {
+	for key, val := range labels {
 		podLabels[key] = val
 	}
 	podLabels[amc.LabelDatabaseName] = postgres.Name
@@ -134,8 +137,8 @@ func (c *Controller) createStatefulSet(postgres *tapi.Postgres) (*kapps.Stateful
 		ObjectMeta: kapi.ObjectMeta{
 			Name:        statefulSetName,
 			Namespace:   postgres.Namespace,
-			Labels:      postgres.Labels,
-			Annotations: postgres.Annotations,
+			Labels:      labels,
+			Annotations: annotations,
 		},
 		Spec: kapps.StatefulSetSpec{
 			Replicas:    replicas,
@@ -143,7 +146,7 @@ func (c *Controller) createStatefulSet(postgres *tapi.Postgres) (*kapps.Stateful
 			Template: kapi.PodTemplateSpec{
 				ObjectMeta: kapi.ObjectMeta{
 					Labels:      podLabels,
-					Annotations: postgres.Annotations,
+					Annotations: annotations,
 				},
 				Spec: kapi.PodSpec{
 					Containers: []kapi.Container{
@@ -225,7 +228,7 @@ func (c *Controller) createDatabaseSecret(postgres *tapi.Postgres) (*kapi.Secret
 			ObjectMeta: kapi.ObjectMeta{
 				Name: authSecretName,
 				Labels: map[string]string{
-					amc.LabelDatabaseType: tapi.ResourceNamePostgres,
+					amc.LabelDatabaseKind: tapi.ResourceKindPostgres,
 				},
 			},
 			Type: kapi.SecretTypeOpaque,
@@ -316,7 +319,7 @@ func (w *Controller) createDeletedDatabase(postgres *tapi.Postgres) (*tapi.Delet
 			Name:      postgres.Name,
 			Namespace: postgres.Namespace,
 			Labels: map[string]string{
-				amc.LabelDatabaseType: tapi.ResourceNamePostgres,
+				amc.LabelDatabaseKind: tapi.ResourceKindPostgres,
 			},
 		},
 		Spec: tapi.DeletedDatabaseSpec{
@@ -377,7 +380,7 @@ func (w *Controller) createRestoreJob(postgres *tapi.Postgres, dbSnapshot *tapi.
 	}
 
 	// Folder name inside Cloud bucket where backup will be uploaded
-	folderName := tapi.ResourceNamePostgres + "-" + dbSnapshot.Spec.DatabaseName
+	folderName := fmt.Sprintf("%v/%v/%v", amc.DatabaseNamePrefix, dbSnapshot.Namespace, dbSnapshot.Spec.DatabaseName)
 
 	job := &kbatch.Job{
 		ObjectMeta: kapi.ObjectMeta{

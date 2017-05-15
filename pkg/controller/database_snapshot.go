@@ -28,7 +28,7 @@ func (c *Controller) ValidateSnapshot(dbSnapshot *tapi.DatabaseSnapshot) error {
 	}
 
 	labelMap := map[string]string{
-		amc.LabelDatabaseType:   tapi.ResourceNamePostgres,
+		amc.LabelDatabaseKind:   tapi.ResourceKindPostgres,
 		amc.LabelDatabaseName:   dbSnapshot.Spec.DatabaseName,
 		amc.LabelSnapshotStatus: string(tapi.SnapshotPhaseRunning),
 	}
@@ -88,7 +88,7 @@ func (c *Controller) GetSnapshotter(snapshot *tapi.DatabaseSnapshot) (*kbatch.Jo
 	}
 
 	// Folder name inside Cloud bucket where backup will be uploaded
-	folderName := tapi.ResourceNamePostgres + "-" + databaseName
+	folderName := fmt.Sprintf("%v/%v/%v", amc.DatabaseNamePrefix, snapshot.Namespace, snapshot.Spec.DatabaseName)
 
 	job := &kbatch.Job{
 		ObjectMeta: kapi.ObjectMeta{

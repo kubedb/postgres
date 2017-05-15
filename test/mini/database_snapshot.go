@@ -104,7 +104,7 @@ func CheckSnapshotData(c *controller.Controller, dbSnapshot *tapi.DatabaseSnapsh
 		return 0, err
 	}
 
-	folderName := dbSnapshot.Labels[amc.LabelDatabaseType] + "-" + dbSnapshot.Spec.DatabaseName
+	folderName := fmt.Sprintf("%v/%v/%v", amc.DatabaseNamePrefix, dbSnapshot.Namespace, dbSnapshot.Spec.DatabaseName)
 	prefix := fmt.Sprintf("%v/%v", folderName, dbSnapshot.Name)
 	cursor := stow.CursorStart
 	totalItem := 0

@@ -3,7 +3,7 @@ kind: DatabaseSnapshot
 metadata:
   name: snapshot-xyz
   labels:
-    "k8sdb.com/type": "postgres"
+    "k8sdb.com/type": "Postgres"
 spec:
   DatabaseName: postgres-demo
   BucketName: ""
