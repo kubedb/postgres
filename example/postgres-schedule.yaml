@@ -1,0 +1,11 @@
+apiVersion: k8sdb.com/v1beta1
+kind: Postgres
+metadata:
+  name: postgres-demo
+spec:
+  Version: 9.5-db
+  BackupSchedule:
+    CronExpression: "@every 6h"
+    BucketName: ""
+    StorageSecret:
+      SecretName: ""
