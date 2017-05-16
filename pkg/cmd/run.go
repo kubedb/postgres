@@ -37,7 +37,7 @@ func NewCmdRun() *cobra.Command {
 			}
 			defer runtime.HandleCrash()
 
-			// Check elasticdump docker image tag
+			// Check postgres docker image tag
 			if err := amc.CheckDockerImageVersion(controller.ImagePostgres, postgresUtilTag); err != nil {
 				log.Fatalf(`Image %v:%v not found.`, controller.ImagePostgres, postgresUtilTag)
 			}
