@@ -11,6 +11,7 @@ import (
 	"github.com/graymeta/stow"
 	_ "github.com/graymeta/stow/google"
 	_ "github.com/graymeta/stow/s3"
+	docker "github.com/heroku/docker-registry-client/registry"
 	tapi "github.com/k8sdb/apimachinery/api"
 	"github.com/k8sdb/apimachinery/pkg/eventer"
 	kapi "k8s.io/kubernetes/pkg/api"
@@ -395,5 +396,19 @@ func (c *Controller) CreateGoverningService(name, namespace string) error {
 		},
 	}
 	_, err = c.Client.Core().Services(namespace).Create(service)
+	return err
+}
+
+const (
+	registryUrl = "https://registry-1.docker.io/"
+)
+
+func CheckDockerImageVersion(repository, reference string) error {
+	hub, err := docker.New(registryUrl, "", "")
+	if err != nil {
+		return err
+	}
+
+	_, err = hub.Manifest(repository, reference)
 	return err
 }

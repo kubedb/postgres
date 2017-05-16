@@ -17,7 +17,7 @@ import (
 const (
 	annotationDatabaseVersion = "postgres.k8sdb.com/version"
 	GoverningPostgres         = "governing-postgres"
-	imagePostgres             = "k8sdb/postgres"
+	ImagePostgres             = "k8sdb/postgres"
 	modeBasic                 = "basic"
 	// Duration in Minute
 	// Check whether pod under StatefulSet is running or not
@@ -127,7 +127,7 @@ func (c *Controller) createStatefulSet(postgres *tapi.Postgres) (*kapps.Stateful
 	}
 	podLabels[amc.LabelDatabaseName] = postgres.Name
 
-	dockerImage := fmt.Sprintf("%v:%v", imagePostgres, postgres.Spec.Version)
+	dockerImage := fmt.Sprintf("%v:%v", ImagePostgres, postgres.Spec.Version)
 
 	// SatatefulSet for Postgres database
 	statefulSetName := fmt.Sprintf("%v-%v", amc.DatabaseNamePrefix, postgres.Name)
@@ -399,7 +399,7 @@ func (w *Controller) createRestoreJob(postgres *tapi.Postgres, dbSnapshot *tapi.
 					Containers: []kapi.Container{
 						{
 							Name:  SnapshotProcess_Restore,
-							Image: imagePostgres + ":" + w.postgresUtilTag,
+							Image: ImagePostgres + ":" + w.postgresUtilTag,
 							Args: []string{
 								fmt.Sprintf(`--process=%s`, SnapshotProcess_Restore),
 								fmt.Sprintf(`--host=%s`, databaseName),
