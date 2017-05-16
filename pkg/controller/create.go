@@ -160,6 +160,16 @@ func (c *Controller) createStatefulSet(postgres *tapi.Postgres) (*kapps.Stateful
 									ContainerPort: 5432,
 								},
 							},
+							VolumeMounts: []kapi.VolumeMount{
+								{
+									Name:      "secret",
+									MountPath: "/srv/" + tapi.ResourceNamePostgres + "/secrets",
+								},
+								{
+									Name:      "data",
+									MountPath: "/var/pv",
+								},
+							},
 							Args: []string{modeBasic},
 						},
 					},
@@ -245,13 +255,6 @@ func (c *Controller) createDatabaseSecret(postgres *tapi.Postgres) (*kapi.Secret
 }
 
 func addSecretVolume(statefulSet *kapps.StatefulSet, secretVolume *kapi.SecretVolumeSource) error {
-	statefulSet.Spec.Template.Spec.Containers[0].VolumeMounts = append(statefulSet.Spec.Template.Spec.Containers[0].VolumeMounts,
-		kapi.VolumeMount{
-			Name:      "secret",
-			MountPath: "/srv/" + tapi.ResourceNamePostgres + "/secrets",
-		},
-	)
-
 	statefulSet.Spec.Template.Spec.Volumes = append(statefulSet.Spec.Template.Spec.Volumes,
 		kapi.Volume{
 			Name: "secret",
@@ -271,7 +274,7 @@ func addDataVolume(statefulSet *kapps.StatefulSet, storage *tapi.StorageSpec) {
 		statefulSet.Spec.VolumeClaimTemplates = []kapi.PersistentVolumeClaim{
 			{
 				ObjectMeta: kapi.ObjectMeta{
-					Name: "volume",
+					Name: "data",
 					Annotations: map[string]string{
 						"volume.beta.kubernetes.io/storage-class": storageClassName,
 					},
@@ -284,7 +287,7 @@ func addDataVolume(statefulSet *kapps.StatefulSet, storage *tapi.StorageSpec) {
 		statefulSet.Spec.Template.Spec.Volumes = append(
 			statefulSet.Spec.Template.Spec.Volumes,
 			kapi.Volume{
-				Name: "volume",
+				Name: "data",
 				VolumeSource: kapi.VolumeSource{
 					EmptyDir: &kapi.EmptyDirVolumeSource{},
 				},
