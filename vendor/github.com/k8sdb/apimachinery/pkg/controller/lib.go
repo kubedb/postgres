@@ -11,6 +11,7 @@ import (
 	"github.com/graymeta/stow"
 	_ "github.com/graymeta/stow/google"
 	_ "github.com/graymeta/stow/s3"
+	docker "github.com/heroku/docker-registry-client/registry"
 	tapi "github.com/k8sdb/apimachinery/api"
 	"github.com/k8sdb/apimachinery/pkg/eventer"
 	kapi "k8s.io/kubernetes/pkg/api"
@@ -134,24 +135,6 @@ func (c *Controller) CheckBucketAccess(snapshotSpec tapi.SnapshotSpec, namespace
 		return err
 	}
 	return nil
-}
-
-func (c *Controller) CreateGoverningServiceAccount(name, namespace string) error {
-	var err error
-	if _, err = c.Client.Core().ServiceAccounts(namespace).Get(name); err == nil {
-		return nil
-	}
-	if !k8serr.IsNotFound(err) {
-		return err
-	}
-
-	serviceAccount := &kapi.ServiceAccount{
-		ObjectMeta: kapi.ObjectMeta{
-			Name: name,
-		},
-	}
-	_, err = c.Client.Core().ServiceAccounts(namespace).Create(serviceAccount)
-	return err
 }
 
 func (c *Controller) CheckStatefulSetPodStatus(statefulSet *kapps.StatefulSet, checkDuration time.Duration) error {
@@ -378,4 +361,54 @@ func (c *Controller) CheckDatabaseRestoreJob(
 	}
 
 	return jobSuccess
+}
+
+func (c *Controller) checkGoverningService(name, namespace string) (bool, error) {
+	_, err := c.Client.Core().Services(namespace).Get(name)
+	if err != nil {
+		if k8serr.IsNotFound(err) {
+			return false, nil
+		} else {
+			return false, err
+		}
+	}
+
+	return true, nil
+}
+
+func (c *Controller) CreateGoverningService(name, namespace string) error {
+	// Check if service name exists
+	found, err := c.checkGoverningService(name, namespace)
+	if err != nil {
+		return err
+	}
+	if found {
+		return nil
+	}
+
+	service := &kapi.Service{
+		ObjectMeta: kapi.ObjectMeta{
+			Name: name,
+		},
+		Spec: kapi.ServiceSpec{
+			Type:      kapi.ServiceTypeClusterIP,
+			ClusterIP: kapi.ClusterIPNone,
+		},
+	}
+	_, err = c.Client.Core().Services(namespace).Create(service)
+	return err
+}
+
+const (
+	registryUrl = "https://registry-1.docker.io/"
+)
+
+func CheckDockerImageVersion(repository, reference string) error {
+	hub, err := docker.New(registryUrl, "", "")
+	if err != nil {
+		return err
+	}
+
+	_, err = hub.Manifest(repository, reference)
+	return err
 }

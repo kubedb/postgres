@@ -26,9 +26,6 @@ type ElasticSpec struct {
 	Replicas int32 `json:"replicas,omitempty"`
 	// Storage spec to specify how storage shall be used.
 	Storage *StorageSpec `json:"storage,omitempty"`
-	// ServiceAccountName is the name of the ServiceAccount to use to run the
-	// Prometheus Pods.
-	ServiceAccountName string `json:"serviceAccountName,omitempty"`
 	// NodeSelector is a selector which must be true for the pod to fit on a node
 	// +optional
 	NodeSelector map[string]string `json:"nodeSelector,omitempty"`

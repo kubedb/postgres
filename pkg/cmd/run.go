@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/appscode/log"
+	amc "github.com/k8sdb/apimachinery/pkg/controller"
 	"github.com/k8sdb/postgres/pkg/controller"
 	"github.com/spf13/cobra"
 	"k8s.io/kubernetes/pkg/client/unversioned/clientcmd"
@@ -17,9 +19,10 @@ const (
 
 func NewCmdRun() *cobra.Command {
 	var (
-		masterURL       string
-		kubeconfigPath  string
-		postgresUtilTag string
+		masterURL        string
+		kubeconfigPath   string
+		postgresUtilTag  string
+		governingService string
 	)
 
 	cmd := &cobra.Command{
@@ -34,7 +37,12 @@ func NewCmdRun() *cobra.Command {
 			}
 			defer runtime.HandleCrash()
 
-			w := controller.New(config, postgresUtilTag)
+			// Check postgres docker image tag
+			if err := amc.CheckDockerImageVersion(controller.ImagePostgres, postgresUtilTag); err != nil {
+				log.Fatalf(`Image %v:%v not found.`, controller.ImagePostgres, postgresUtilTag)
+			}
+
+			w := controller.New(config, postgresUtilTag, governingService)
 			fmt.Println("Starting operator...")
 			w.RunAndHold()
 		},
@@ -42,6 +50,7 @@ func NewCmdRun() *cobra.Command {
 	cmd.Flags().StringVar(&masterURL, "master", "", "The address of the Kubernetes API server (overrides any value in kubeconfig)")
 	cmd.Flags().StringVar(&kubeconfigPath, "kubeconfig", "", "Path to kubeconfig file with authorization information (the master location is set by the master flag).")
 	cmd.Flags().StringVar(&postgresUtilTag, "postgres-util", canary, "Tag of postgres util")
+	cmd.Flags().StringVar(&governingService, "governing-service", "k8sdb", "Governing service for database statefulset")
 
 	return cmd
 }

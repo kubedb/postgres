@@ -140,11 +140,15 @@ func (c *DeletedDatabaseController) watch() {
 
 func (c *DeletedDatabaseController) create(deletedDb *tapi.DeletedDatabase) error {
 
+	var err error
+	if deletedDb, err = c.extClient.DeletedDatabases(deletedDb.Namespace).Get(deletedDb.Name); err != nil {
+		return err
+	}
+
 	// Set DeletedDatabase Phase: Deleting
 	t := unversioned.Now()
 	deletedDb.Status.CreationTime = &t
-	_deletedDb, err := c.extClient.DeletedDatabases(deletedDb.Namespace).Update(deletedDb)
-	if err != nil {
+	if _, err := c.extClient.DeletedDatabases(deletedDb.Namespace).Update(deletedDb); err != nil {
 		c.eventRecorder.Eventf(
 			deletedDb,
 			kapi.EventTypeWarning,
@@ -154,7 +158,6 @@ func (c *DeletedDatabaseController) create(deletedDb *tapi.DeletedDatabase) erro
 		)
 		return err
 	}
-	deletedDb = _deletedDb
 
 	// Check if DB TPR object exists
 	found, err := c.deleter.Exists(&deletedDb.ObjectMeta)
@@ -192,11 +195,14 @@ func (c *DeletedDatabaseController) create(deletedDb *tapi.DeletedDatabase) erro
 		return errors.New(message)
 	}
 
+	if deletedDb, err = c.extClient.DeletedDatabases(deletedDb.Namespace).Get(deletedDb.Name); err != nil {
+		return err
+	}
+
 	// Set DeletedDatabase Phase: Deleting
 	t = unversioned.Now()
 	deletedDb.Status.Phase = tapi.DeletedDatabasePhaseDeleting
-	_deletedDb, err = c.extClient.DeletedDatabases(deletedDb.Namespace).Update(deletedDb)
-	if err != nil {
+	if _, err = c.extClient.DeletedDatabases(deletedDb.Namespace).Update(deletedDb); err != nil {
 		c.eventRecorder.Eventf(
 			deletedDb,
 			kapi.EventTypeWarning,
@@ -206,7 +212,6 @@ func (c *DeletedDatabaseController) create(deletedDb *tapi.DeletedDatabase) erro
 		)
 		return err
 	}
-	deletedDb = _deletedDb
 
 	c.eventRecorder.Event(deletedDb, kapi.EventTypeNormal, eventer.EventReasonDeleting, "Deleting Database")
 
@@ -229,12 +234,15 @@ func (c *DeletedDatabaseController) create(deletedDb *tapi.DeletedDatabase) erro
 		"Successfully deleted Database workload",
 	)
 
+	if deletedDb, err = c.extClient.DeletedDatabases(deletedDb.Namespace).Get(deletedDb.Name); err != nil {
+		return err
+	}
+
 	// Set DeletedDatabase Phase: Deleted
 	t = unversioned.Now()
 	deletedDb.Status.DeletionTime = &t
 	deletedDb.Status.Phase = tapi.DeletedDatabasePhaseDeleted
-	_, err = c.extClient.DeletedDatabases(deletedDb.Namespace).Update(deletedDb)
-	if err != nil {
+	if _, err = c.extClient.DeletedDatabases(deletedDb.Namespace).Update(deletedDb); err != nil {
 		c.eventRecorder.Eventf(
 			deletedDb,
 			kapi.EventTypeWarning,
@@ -307,11 +315,15 @@ func (c *DeletedDatabaseController) wipeOut(deletedDb *tapi.DeletedDatabase) err
 		return errors.New(message)
 	}
 
+	if deletedDb, err = c.extClient.DeletedDatabases(deletedDb.Namespace).Get(deletedDb.Name); err != nil {
+		return err
+	}
+
 	// Set DeletedDatabase Phase: Wiping out
 	t := unversioned.Now()
 	deletedDb.Status.Phase = tapi.DeletedDatabasePhaseWipingOut
-	_deletedDb, err := c.extClient.DeletedDatabases(deletedDb.Namespace).Update(deletedDb)
-	if err != nil {
+
+	if _, err := c.extClient.DeletedDatabases(deletedDb.Namespace).Update(deletedDb); err != nil {
 		c.eventRecorder.Eventf(
 			deletedDb,
 			kapi.EventTypeWarning,
@@ -321,7 +333,6 @@ func (c *DeletedDatabaseController) wipeOut(deletedDb *tapi.DeletedDatabase) err
 		)
 		return err
 	}
-	deletedDb = _deletedDb
 
 	// Wipe out Database workload
 	c.eventRecorder.Event(deletedDb, kapi.EventTypeNormal, eventer.EventReasonWipingOut, "Wiping out Database")
@@ -343,12 +354,15 @@ func (c *DeletedDatabaseController) wipeOut(deletedDb *tapi.DeletedDatabase) err
 		"Successfully wiped out Database workload",
 	)
 
+	if deletedDb, err = c.extClient.DeletedDatabases(deletedDb.Namespace).Get(deletedDb.Name); err != nil {
+		return err
+	}
+
 	// Set DeletedDatabase Phase: Deleted
 	t = unversioned.Now()
 	deletedDb.Status.WipeOutTime = &t
 	deletedDb.Status.Phase = tapi.DeletedDatabasePhaseWipedOut
-	_, err = c.extClient.DeletedDatabases(deletedDb.Namespace).Update(deletedDb)
-	if err != nil {
+	if _, err = c.extClient.DeletedDatabases(deletedDb.Namespace).Update(deletedDb); err != nil {
 		c.eventRecorder.Eventf(
 			deletedDb,
 			kapi.EventTypeWarning,
@@ -387,8 +401,12 @@ func (c *DeletedDatabaseController) recover(deletedDb *tapi.DeletedDatabase) err
 		return errors.New(message)
 	}
 
+	if deletedDb, err = c.extClient.DeletedDatabases(deletedDb.Namespace).Get(deletedDb.Name); err != nil {
+		return err
+	}
+
 	deletedDb.Status.Phase = tapi.DeletedDatabasePhaseRecovering
-	if deletedDb, err = c.extClient.DeletedDatabases(deletedDb.Namespace).Update(deletedDb); err != nil {
+	if _, err = c.extClient.DeletedDatabases(deletedDb.Namespace).Update(deletedDb); err != nil {
 		c.eventRecorder.Eventf(
 			deletedDb,
 			kapi.EventTypeWarning,
@@ -408,8 +426,12 @@ func (c *DeletedDatabaseController) recover(deletedDb *tapi.DeletedDatabase) err
 			err,
 		)
 
+		if deletedDb, err = c.extClient.DeletedDatabases(deletedDb.Namespace).Get(deletedDb.Name); err != nil {
+			return err
+		}
+
 		deletedDb.Status.Phase = tapi.DeletedDatabasePhaseDeleted
-		if deletedDb, err = c.extClient.DeletedDatabases(deletedDb.Namespace).Update(deletedDb); err != nil {
+		if _, err = c.extClient.DeletedDatabases(deletedDb.Namespace).Update(deletedDb); err != nil {
 			c.eventRecorder.Eventf(
 				deletedDb,
 				kapi.EventTypeWarning,

@@ -17,7 +17,7 @@ import (
 const (
 	annotationDatabaseVersion = "postgres.k8sdb.com/version"
 	GoverningPostgres         = "governing-postgres"
-	imagePostgres             = "k8sdb/postgres"
+	ImagePostgres             = "k8sdb/postgres"
 	modeBasic                 = "basic"
 	// Duration in Minute
 	// Check whether pod under StatefulSet is running or not
@@ -127,7 +127,7 @@ func (c *Controller) createStatefulSet(postgres *tapi.Postgres) (*kapps.Stateful
 	}
 	podLabels[amc.LabelDatabaseName] = postgres.Name
 
-	dockerImage := fmt.Sprintf("%v:%v", imagePostgres, postgres.Spec.Version)
+	dockerImage := fmt.Sprintf("%v:%v", ImagePostgres, postgres.Spec.Version)
 
 	// SatatefulSet for Postgres database
 	statefulSetName := fmt.Sprintf("%v-%v", amc.DatabaseNamePrefix, postgres.Name)
@@ -142,7 +142,7 @@ func (c *Controller) createStatefulSet(postgres *tapi.Postgres) (*kapps.Stateful
 		},
 		Spec: kapps.StatefulSetSpec{
 			Replicas:    replicas,
-			ServiceName: postgres.Spec.ServiceAccountName,
+			ServiceName: c.governingService,
 			Template: kapi.PodTemplateSpec{
 				ObjectMeta: kapi.ObjectMeta{
 					Labels:      podLabels,
@@ -160,6 +160,16 @@ func (c *Controller) createStatefulSet(postgres *tapi.Postgres) (*kapps.Stateful
 									ContainerPort: 5432,
 								},
 							},
+							VolumeMounts: []kapi.VolumeMount{
+								{
+									Name:      "secret",
+									MountPath: "/srv/" + tapi.ResourceNamePostgres + "/secrets",
+								},
+								{
+									Name:      "data",
+									MountPath: "/var/pv",
+								},
+							},
 							Args: []string{modeBasic},
 						},
 					},
@@ -174,7 +184,15 @@ func (c *Controller) createStatefulSet(postgres *tapi.Postgres) (*kapps.Stateful
 		if err != nil {
 			return nil, err
 		}
+		if postgres, err = c.ExtClient.Postgreses(postgres.Namespace).Get(postgres.Name); err != nil {
+			return nil, err
+		}
+
 		postgres.Spec.DatabaseSecret = secretVolumeSource
+
+		if _, err := c.ExtClient.Postgreses(postgres.Namespace).Update(postgres); err != nil {
+			return nil, err
+		}
 	}
 
 	// Add secretVolume for authentication
@@ -245,13 +263,6 @@ func (c *Controller) createDatabaseSecret(postgres *tapi.Postgres) (*kapi.Secret
 }
 
 func addSecretVolume(statefulSet *kapps.StatefulSet, secretVolume *kapi.SecretVolumeSource) error {
-	statefulSet.Spec.Template.Spec.Containers[0].VolumeMounts = append(statefulSet.Spec.Template.Spec.Containers[0].VolumeMounts,
-		kapi.VolumeMount{
-			Name:      "secret",
-			MountPath: "/srv/" + tapi.ResourceNamePostgres + "/secrets",
-		},
-	)
-
 	statefulSet.Spec.Template.Spec.Volumes = append(statefulSet.Spec.Template.Spec.Volumes,
 		kapi.Volume{
 			Name: "secret",
@@ -271,7 +282,7 @@ func addDataVolume(statefulSet *kapps.StatefulSet, storage *tapi.StorageSpec) {
 		statefulSet.Spec.VolumeClaimTemplates = []kapi.PersistentVolumeClaim{
 			{
 				ObjectMeta: kapi.ObjectMeta{
-					Name: "volume",
+					Name: "data",
 					Annotations: map[string]string{
 						"volume.beta.kubernetes.io/storage-class": storageClassName,
 					},
@@ -284,7 +295,7 @@ func addDataVolume(statefulSet *kapps.StatefulSet, storage *tapi.StorageSpec) {
 		statefulSet.Spec.Template.Spec.Volumes = append(
 			statefulSet.Spec.Template.Spec.Volumes,
 			kapi.Volume{
-				Name: "volume",
+				Name: "data",
 				VolumeSource: kapi.VolumeSource{
 					EmptyDir: &kapi.EmptyDirVolumeSource{},
 				},
@@ -396,7 +407,7 @@ func (w *Controller) createRestoreJob(postgres *tapi.Postgres, dbSnapshot *tapi.
 					Containers: []kapi.Container{
 						{
 							Name:  SnapshotProcess_Restore,
-							Image: imagePostgres + ":" + w.postgresUtilTag,
+							Image: ImagePostgres + ":" + w.postgresUtilTag,
 							Args: []string{
 								fmt.Sprintf(`--process=%s`, SnapshotProcess_Restore),
 								fmt.Sprintf(`--host=%s`, databaseName),

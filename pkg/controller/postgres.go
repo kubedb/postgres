@@ -19,9 +19,8 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 	t := unversioned.Now()
 	postgres.Status.CreationTime = &t
 	postgres.Status.Phase = tapi.DatabasePhaseCreating
-	var _postgres *tapi.Postgres
 	var err error
-	if _postgres, err = c.ExtClient.Postgreses(postgres.Namespace).Update(postgres); err != nil {
+	if _, err = c.ExtClient.Postgreses(postgres.Namespace).Update(postgres); err != nil {
 		c.eventRecorder.Eventf(
 			postgres,
 			kapi.EventTypeWarning,
@@ -32,10 +31,13 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 		)
 		return err
 	}
-	postgres = _postgres
 
 	if err := c.validatePostgres(postgres); err != nil {
 		c.eventRecorder.Event(postgres, kapi.EventTypeWarning, eventer.EventReasonInvalid, err.Error())
+
+		if postgres, err = c.ExtClient.Postgreses(postgres.Namespace).Get(postgres.Name); err != nil {
+			return err
+		}
 
 		postgres.Status.Phase = tapi.DatabasePhaseFailed
 		postgres.Status.Reason = err.Error()
@@ -89,6 +91,9 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 			}
 		}
 		if !recovering {
+			if postgres, err = c.ExtClient.Postgreses(postgres.Namespace).Get(postgres.Name); err != nil {
+				return err
+			}
 			// Set status to Failed
 			postgres.Status.Phase = tapi.DatabasePhaseFailed
 			postgres.Status.Reason = message
@@ -110,12 +115,8 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 	c.eventRecorder.Event(postgres, kapi.EventTypeNormal, eventer.EventReasonCreating, "Creating Kubernetes objects")
 
 	// create Governing Service
-	governingService := GoverningPostgres
-	if postgres.Spec.ServiceAccountName != "" {
-		governingService = postgres.Spec.ServiceAccountName
-	}
-
-	if err := c.CreateGoverningServiceAccount(governingService, postgres.Namespace); err != nil {
+	governingService := c.governingService
+	if err := c.CreateGoverningService(governingService, postgres.Namespace); err != nil {
 		c.eventRecorder.Eventf(
 			postgres,
 			kapi.EventTypeWarning,
@@ -126,7 +127,6 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 		)
 		return err
 	}
-	postgres.Spec.ServiceAccountName = governingService
 
 	// create database Service
 	if err := c.createService(postgres.Name, postgres.Namespace); err != nil {
@@ -173,8 +173,12 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 	}
 
 	if postgres.Spec.Init != nil && postgres.Spec.Init.SnapshotSource != nil {
+		if postgres, err = c.ExtClient.Postgreses(postgres.Namespace).Get(postgres.Name); err != nil {
+			return err
+		}
+
 		postgres.Status.Phase = tapi.DatabasePhaseInitializing
-		if _postgres, err = c.ExtClient.Postgreses(postgres.Namespace).Update(postgres); err != nil {
+		if _, err = c.ExtClient.Postgreses(postgres.Namespace).Update(postgres); err != nil {
 			c.eventRecorder.Eventf(
 				postgres,
 				kapi.EventTypeWarning,
@@ -185,7 +189,6 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 			)
 			return err
 		}
-		postgres = _postgres
 
 		if err := c.initialize(postgres); err != nil {
 			c.eventRecorder.Eventf(
@@ -220,8 +223,12 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 		)
 	}
 
+	if postgres, err = c.ExtClient.Postgreses(postgres.Namespace).Get(postgres.Name); err != nil {
+		return err
+	}
+
 	postgres.Status.Phase = tapi.DatabasePhaseRunning
-	if _postgres, err = c.ExtClient.Postgreses(postgres.Namespace).Update(postgres); err != nil {
+	if _, err = c.ExtClient.Postgreses(postgres.Namespace).Update(postgres); err != nil {
 		c.eventRecorder.Eventf(
 			postgres,
 			kapi.EventTypeWarning,
@@ -232,7 +239,6 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 		)
 		log.Errorln(err)
 	}
-	postgres = _postgres
 
 	// Setup Schedule backup
 	if postgres.Spec.BackupSchedule != nil {
@@ -351,34 +357,6 @@ func (c *Controller) delete(postgres *tapi.Postgres) error {
 }
 
 func (c *Controller) update(oldPostgres, updatedPostgres *tapi.Postgres) error {
-	if (updatedPostgres.Spec.Replicas != oldPostgres.Spec.Replicas) && oldPostgres.Spec.Replicas >= 0 {
-		statefulSetName := fmt.Sprintf("%v-%v", amc.DatabaseNamePrefix, updatedPostgres.Name)
-		statefulSet, err := c.Client.Apps().StatefulSets(updatedPostgres.Namespace).Get(statefulSetName)
-		if err != nil {
-			c.eventRecorder.Eventf(
-				updatedPostgres,
-				kapi.EventTypeNormal,
-				eventer.EventReasonFailedToGet,
-				`Failed to get StatefulSet: "%v". Reason: %v`,
-				statefulSetName,
-				err,
-			)
-			return err
-		}
-		statefulSet.Spec.Replicas = oldPostgres.Spec.Replicas
-		if _, err := c.Client.Apps().StatefulSets(statefulSet.Namespace).Update(statefulSet); err != nil {
-			c.eventRecorder.Eventf(
-				updatedPostgres,
-				kapi.EventTypeNormal,
-				eventer.EventReasonFailedToUpdate,
-				`Failed to update StatefulSet: "%v". Reason: %v`,
-				statefulSetName,
-				err,
-			)
-			return err
-		}
-	}
-
 	if !reflect.DeepEqual(updatedPostgres.Spec.BackupSchedule, oldPostgres.Spec.BackupSchedule) {
 		backupScheduleSpec := updatedPostgres.Spec.BackupSchedule
 		if backupScheduleSpec != nil {
