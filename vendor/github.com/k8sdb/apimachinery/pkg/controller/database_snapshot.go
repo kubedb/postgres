@@ -148,8 +148,12 @@ func (c *DatabaseSnapshotController) create(dbSnapshot *tapi.DatabaseSnapshot) e
 		return err
 	}
 
+	if dbSnapshot, err = c.extClient.DatabaseSnapshots(dbSnapshot.Namespace).Get(dbSnapshot.Name); err != nil {
+		return err
+	}
+
 	dbSnapshot.Labels[LabelDatabaseName] = dbSnapshot.Spec.DatabaseName
-	if dbSnapshot, err = c.extClient.DatabaseSnapshots(dbSnapshot.Namespace).Update(dbSnapshot); err != nil {
+	if _, err = c.extClient.DatabaseSnapshots(dbSnapshot.Namespace).Update(dbSnapshot); err != nil {
 		c.eventRecorder.Event(dbSnapshot, kapi.EventTypeWarning, eventer.EventReasonFailedToGet, err.Error())
 		return err
 	}
@@ -231,12 +235,18 @@ func (c *DatabaseSnapshotController) delete(dbSnapshot *tapi.DatabaseSnapshot) e
 }
 
 func (c *DatabaseSnapshotController) checkDatabaseSnapshotJob(dbSnapshot *tapi.DatabaseSnapshot, jobName string, checkDuration time.Duration) error {
+
+	var err error
+	if dbSnapshot, err = c.extClient.DatabaseSnapshots(dbSnapshot.Namespace).Get(dbSnapshot.Name); err != nil {
+		return err
+	}
+
 	t := unversioned.Now()
 	dbSnapshot.Status.StartTime = &t
 	dbSnapshot.Status.Phase = tapi.SnapshotPhaseRunning
 	dbSnapshot.Labels[LabelSnapshotStatus] = string(tapi.SnapshotPhaseRunning)
-	var err error
-	if dbSnapshot, err = c.extClient.DatabaseSnapshots(dbSnapshot.Namespace).Update(dbSnapshot); err != nil {
+
+	if _, err = c.extClient.DatabaseSnapshots(dbSnapshot.Namespace).Update(dbSnapshot); err != nil {
 		c.eventRecorder.Eventf(
 			dbSnapshot,
 			kapi.EventTypeWarning,
@@ -385,8 +395,10 @@ func (c *DatabaseSnapshotController) checkDatabaseSnapshotJob(dbSnapshot *tapi.D
 		)
 	}
 
+	if dbSnapshot, err = c.extClient.DatabaseSnapshots(dbSnapshot.Namespace).Get(dbSnapshot.Name); err != nil {
+		return err
+	}
 	delete(dbSnapshot.Labels, LabelSnapshotStatus)
-
 	if _, err := c.extClient.DatabaseSnapshots(dbSnapshot.Namespace).Update(dbSnapshot); err != nil {
 		c.eventRecorder.Eventf(
 			dbSnapshot,

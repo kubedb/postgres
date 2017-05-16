@@ -4,4 +4,5 @@ metadata:
   name: postgres-demo
 spec:
   Version: 9.5-db
+
   Replicas: 1

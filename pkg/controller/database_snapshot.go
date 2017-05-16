@@ -41,6 +41,10 @@ func (c *Controller) ValidateSnapshot(dbSnapshot *tapi.DatabaseSnapshot) error {
 	}
 
 	if len(snapshotList.Items) > 0 {
+		if dbSnapshot, err = c.ExtClient.DatabaseSnapshots(dbSnapshot.Namespace).Get(dbSnapshot.Name); err != nil {
+			return err
+		}
+
 		t := unversioned.Now()
 		dbSnapshot.Status.StartTime = &t
 		dbSnapshot.Status.CompletionTime = &t

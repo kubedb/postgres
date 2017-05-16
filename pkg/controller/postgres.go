@@ -19,9 +19,8 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 	t := unversioned.Now()
 	postgres.Status.CreationTime = &t
 	postgres.Status.Phase = tapi.DatabasePhaseCreating
-	var _postgres *tapi.Postgres
 	var err error
-	if _postgres, err = c.ExtClient.Postgreses(postgres.Namespace).Update(postgres); err != nil {
+	if _, err = c.ExtClient.Postgreses(postgres.Namespace).Update(postgres); err != nil {
 		c.eventRecorder.Eventf(
 			postgres,
 			kapi.EventTypeWarning,
@@ -32,10 +31,13 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 		)
 		return err
 	}
-	postgres = _postgres
 
 	if err := c.validatePostgres(postgres); err != nil {
 		c.eventRecorder.Event(postgres, kapi.EventTypeWarning, eventer.EventReasonInvalid, err.Error())
+
+		if postgres, err = c.ExtClient.Postgreses(postgres.Namespace).Get(postgres.Name); err != nil {
+			return err
+		}
 
 		postgres.Status.Phase = tapi.DatabasePhaseFailed
 		postgres.Status.Reason = err.Error()
@@ -89,6 +91,9 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 			}
 		}
 		if !recovering {
+			if postgres, err = c.ExtClient.Postgreses(postgres.Namespace).Get(postgres.Name); err != nil {
+				return err
+			}
 			// Set status to Failed
 			postgres.Status.Phase = tapi.DatabasePhaseFailed
 			postgres.Status.Reason = message
@@ -168,8 +173,12 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 	}
 
 	if postgres.Spec.Init != nil && postgres.Spec.Init.SnapshotSource != nil {
+		if postgres, err = c.ExtClient.Postgreses(postgres.Namespace).Get(postgres.Name); err != nil {
+			return err
+		}
+
 		postgres.Status.Phase = tapi.DatabasePhaseInitializing
-		if _postgres, err = c.ExtClient.Postgreses(postgres.Namespace).Update(postgres); err != nil {
+		if _, err = c.ExtClient.Postgreses(postgres.Namespace).Update(postgres); err != nil {
 			c.eventRecorder.Eventf(
 				postgres,
 				kapi.EventTypeWarning,
@@ -180,7 +189,6 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 			)
 			return err
 		}
-		postgres = _postgres
 
 		if err := c.initialize(postgres); err != nil {
 			c.eventRecorder.Eventf(
@@ -215,8 +223,12 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 		)
 	}
 
+	if postgres, err = c.ExtClient.Postgreses(postgres.Namespace).Get(postgres.Name); err != nil {
+		return err
+	}
+
 	postgres.Status.Phase = tapi.DatabasePhaseRunning
-	if _postgres, err = c.ExtClient.Postgreses(postgres.Namespace).Update(postgres); err != nil {
+	if _, err = c.ExtClient.Postgreses(postgres.Namespace).Update(postgres); err != nil {
 		c.eventRecorder.Eventf(
 			postgres,
 			kapi.EventTypeWarning,
@@ -227,7 +239,6 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 		)
 		log.Errorln(err)
 	}
-	postgres = _postgres
 
 	// Setup Schedule backup
 	if postgres.Spec.BackupSchedule != nil {

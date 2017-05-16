@@ -184,7 +184,15 @@ func (c *Controller) createStatefulSet(postgres *tapi.Postgres) (*kapps.Stateful
 		if err != nil {
 			return nil, err
 		}
+		if postgres, err = c.ExtClient.Postgreses(postgres.Namespace).Get(postgres.Name); err != nil {
+			return nil, err
+		}
+
 		postgres.Spec.DatabaseSecret = secretVolumeSource
+
+		if _, err := c.ExtClient.Postgreses(postgres.Namespace).Update(postgres); err != nil {
+			return nil, err
+		}
 	}
 
 	// Add secretVolume for authentication
