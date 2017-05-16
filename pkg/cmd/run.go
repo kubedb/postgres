@@ -20,6 +20,7 @@ func NewCmdRun() *cobra.Command {
 		masterURL       string
 		kubeconfigPath  string
 		postgresUtilTag string
+		governingService string
 	)
 
 	cmd := &cobra.Command{
@@ -34,7 +35,7 @@ func NewCmdRun() *cobra.Command {
 			}
 			defer runtime.HandleCrash()
 
-			w := controller.New(config, postgresUtilTag)
+			w := controller.New(config, postgresUtilTag, governingService)
 			fmt.Println("Starting operator...")
 			w.RunAndHold()
 		},
@@ -42,6 +43,7 @@ func NewCmdRun() *cobra.Command {
 	cmd.Flags().StringVar(&masterURL, "master", "", "The address of the Kubernetes API server (overrides any value in kubeconfig)")
 	cmd.Flags().StringVar(&kubeconfigPath, "kubeconfig", "", "Path to kubeconfig file with authorization information (the master location is set by the master flag).")
 	cmd.Flags().StringVar(&postgresUtilTag, "postgres-util", canary, "Tag of postgres util")
+	cmd.Flags().StringVar(&governingService, "governing-service", "k8sdb", "Governing service for database statefulset")
 
 	return cmd
 }

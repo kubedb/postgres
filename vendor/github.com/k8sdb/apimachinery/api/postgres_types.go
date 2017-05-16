@@ -24,9 +24,6 @@ type PostgresSpec struct {
 	Version string `json:"version,omitempty"`
 	// Storage spec to specify how storage shall be used.
 	Storage *StorageSpec `json:"storage,omitempty"`
-	// GoverningService is the name of Headless Service which is responsible for the network identity
-	// of the Prometheus Pods.
-	GoverningService string `json:"governingService,omitempty"`
 	// Database authentication secret
 	DatabaseSecret *api.SecretVolumeSource `json:"databaseSecret,omitempty"`
 	// NodeSelector is a selector which must be true for the pod to fit on a node
