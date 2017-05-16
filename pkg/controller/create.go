@@ -25,6 +25,57 @@ const (
 	durationCheckStatefulSet = time.Minute * 30
 )
 
+func (c *Controller) checkGoverningService(name, namespace string) (bool, error) {
+	_, err := c.Client.Core().Services(namespace).Get(name)
+	if err != nil {
+		if k8serr.IsNotFound(err) {
+			return false, nil
+		} else {
+			return false, err
+		}
+	}
+
+	return true, nil
+}
+
+func (w *Controller) createGoverningService(name, namespace string) error {
+	// Check if service name exists
+	found, err := w.checkGoverningService(name, namespace)
+	if err != nil {
+		return err
+	}
+	if found {
+		return nil
+	}
+
+	label := map[string]string{
+		amc.LabelDatabaseKind: tapi.ResourceKindPostgres,
+	}
+	service := &kapi.Service{
+		ObjectMeta: kapi.ObjectMeta{
+			Name:   name,
+			Labels: label,
+		},
+		Spec: kapi.ServiceSpec{
+			Ports: []kapi.ServicePort{
+				{
+					Name:       "port",
+					Port:       5432,
+					TargetPort: intstr.FromString("port"),
+				},
+			},
+			Selector: label,
+			ClusterIP: kapi.ClusterIPNone,
+		},
+	}
+
+	if _, err := w.Client.Core().Services(namespace).Create(service); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (c *Controller) checkService(name, namespace string) (bool, error) {
 	service, err := c.Client.Core().Services(namespace).Get(name)
 	if err != nil {
@@ -142,7 +193,7 @@ func (c *Controller) createStatefulSet(postgres *tapi.Postgres) (*kapps.Stateful
 		},
 		Spec: kapps.StatefulSetSpec{
 			Replicas:    replicas,
-			ServiceName: postgres.Spec.ServiceAccountName,
+			ServiceName: postgres.Spec.GoverningService,
 			Template: kapi.PodTemplateSpec{
 				ObjectMeta: kapi.ObjectMeta{
 					Labels:      podLabels,
