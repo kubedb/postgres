@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/appscode/log"
+	amc "github.com/k8sdb/apimachinery/pkg/controller"
 	"github.com/k8sdb/postgres/pkg/controller"
 	"github.com/spf13/cobra"
 	"k8s.io/kubernetes/pkg/client/unversioned/clientcmd"
@@ -17,9 +19,9 @@ const (
 
 func NewCmdRun() *cobra.Command {
 	var (
-		masterURL       string
-		kubeconfigPath  string
-		postgresUtilTag string
+		masterURL        string
+		kubeconfigPath   string
+		postgresUtilTag  string
 		governingService string
 	)
 
@@ -34,6 +36,11 @@ func NewCmdRun() *cobra.Command {
 				panic(err)
 			}
 			defer runtime.HandleCrash()
+
+			// Check postgres docker image tag
+			if err := amc.CheckDockerImageVersion(controller.ImagePostgres, postgresUtilTag); err != nil {
+				log.Fatalf(`Image %v:%v not found.`, controller.ImagePostgres, postgresUtilTag)
+			}
 
 			w := controller.New(config, postgresUtilTag, governingService)
 			fmt.Println("Starting operator...")
