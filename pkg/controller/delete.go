@@ -27,6 +27,10 @@ func (c *Controller) deleteService(name, namespace string) error {
 	return c.Client.Core().Services(namespace).Delete(name, nil)
 }
 
+const (
+	sleepDuration      = time.Second * 10
+)
+
 func (c *Controller) deleteStatefulSet(name, namespace string) error {
 	statefulSet, err := c.Client.Apps().StatefulSets(namespace).Get(name)
 	if err != nil {
@@ -43,7 +47,7 @@ func (c *Controller) deleteStatefulSet(name, namespace string) error {
 
 	check := 1
 	for {
-		time.Sleep(time.Second * 30)
+		time.Sleep(sleepDuration)
 		podList, err := c.Client.Core().Pods(kapi.NamespaceAll).List(kapi.ListOptions{
 			LabelSelector: labelSelector,
 		})
