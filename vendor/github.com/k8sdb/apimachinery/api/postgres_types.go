@@ -6,6 +6,7 @@ import (
 )
 
 const (
+	ResourceCodePostgres = "pg"
 	ResourceKindPostgres = "Postgres"
 	ResourceNamePostgres = "postgres"
 	ResourceTypePostgres = "postgreses"

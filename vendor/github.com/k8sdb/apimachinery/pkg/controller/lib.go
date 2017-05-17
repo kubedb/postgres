@@ -152,7 +152,7 @@ func (c *Controller) CheckStatefulSetPodStatus(statefulSet *kapps.StatefulSet, c
 					break
 				}
 
-				time.Sleep(time.Second * 10)
+				time.Sleep(sleepDuration)
 				now = time.Now()
 				continue
 			} else {
@@ -167,7 +167,7 @@ func (c *Controller) CheckStatefulSetPodStatus(statefulSet *kapps.StatefulSet, c
 			break
 		}
 
-		time.Sleep(time.Minute)
+		time.Sleep(sleepDuration)
 		now = time.Now()
 	}
 	if !podReady {
@@ -298,7 +298,7 @@ func (c *Controller) CheckDatabaseRestoreJob(
 			break
 		}
 
-		time.Sleep(time.Minute)
+		time.Sleep(sleepDuration)
 		now = time.Now()
 	}
 
@@ -397,6 +397,68 @@ func (c *Controller) CreateGoverningService(name, namespace string) error {
 	}
 	_, err = c.Client.Core().Services(namespace).Create(service)
 	return err
+}
+
+func (c *Controller) DeleteService(name, namespace string) error {
+	service, err := c.Client.Core().Services(namespace).Get(name)
+	if err != nil {
+		if k8serr.IsNotFound(err) {
+			return nil
+		} else {
+			return err
+		}
+	}
+
+	if service.Spec.Selector[LabelDatabaseName] != name {
+		return nil
+	}
+
+	return c.Client.Core().Services(namespace).Delete(name, nil)
+}
+
+func (c *Controller) DeleteStatefulSet(name, namespace string) error {
+	statefulSet, err := c.Client.Apps().StatefulSets(namespace).Get(name)
+	if err != nil {
+		if k8serr.IsNotFound(err) {
+			return nil
+		} else {
+			return err
+		}
+	}
+
+	// Update StatefulSet
+	statefulSet.Spec.Replicas = 0
+	if _, err := c.Client.Apps().StatefulSets(statefulSet.Namespace).Update(statefulSet); err != nil {
+		return err
+	}
+
+	labelSelector := labels.SelectorFromSet(statefulSet.Spec.Selector.MatchLabels)
+
+	var checkSuccess bool = false
+	then := time.Now()
+	now := time.Now()
+	for now.Sub(then) < time.Minute*10 {
+		podList, err := c.Client.Core().Pods(kapi.NamespaceAll).List(kapi.ListOptions{
+			LabelSelector: labelSelector,
+		})
+		if err != nil {
+			return err
+		}
+		if len(podList.Items) == 0 {
+			checkSuccess = true
+			break
+		}
+
+		time.Sleep(sleepDuration)
+		now = time.Now()
+	}
+
+	if !checkSuccess {
+		return errors.New("Fail to delete StatefulSet Pods")
+	}
+
+	// Delete StatefulSet
+	return c.Client.Apps().StatefulSets(statefulSet.Namespace).Delete(statefulSet.Name, nil)
 }
 
 const (

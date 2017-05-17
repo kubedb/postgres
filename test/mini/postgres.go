@@ -1,14 +1,13 @@
 package mini
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
-	"errors"
 	"github.com/appscode/go/crypto/rand"
 	"github.com/appscode/log"
 	tapi "github.com/k8sdb/apimachinery/api"
-	amc "github.com/k8sdb/apimachinery/pkg/controller"
 	"github.com/k8sdb/postgres/pkg/controller"
 	kapi "k8s.io/kubernetes/pkg/api"
 )
@@ -18,7 +17,7 @@ const durationCheckPostgres = time.Minute * 30
 func NewPostgres() *tapi.Postgres {
 	postgres := &tapi.Postgres{
 		ObjectMeta: kapi.ObjectMeta{
-			Name:      rand.WithUniqSuffix("e2e-postgres"),
+			Name: rand.WithUniqSuffix("e2e-postgres"),
 		},
 		Spec: tapi.PostgresSpec{
 			Version: "canary-db",
@@ -39,7 +38,7 @@ func CheckPostgresStatus(c *controller.Controller, postgres *tapi.Postgres) (boo
 
 		log.Debugf("Pod Phase: %v", _postgres.Status.Phase)
 
-		if _postgres.Status.Phase== tapi.DatabasePhaseRunning {
+		if _postgres.Status.Phase == tapi.DatabasePhaseRunning {
 			postgresReady = true
 			break
 		}
@@ -61,7 +60,7 @@ func CheckPostgresWorkload(c *controller.Controller, postgres *tapi.Postgres) er
 	}
 
 	// SatatefulSet for Postgres database
-	statefulSetName := fmt.Sprintf("%v-pg", postgres.Name)
+	statefulSetName := fmt.Sprintf("%v-%v", postgres.Name, tapi.ResourceCodePostgres)
 	if _, err := c.Client.Apps().StatefulSets(postgres.Namespace).Get(statefulSetName); err != nil {
 		return err
 	}

@@ -285,7 +285,7 @@ func (c *DatabaseSnapshotController) checkDatabaseSnapshotJob(dbSnapshot *tapi.D
 			break
 		}
 
-		time.Sleep(time.Minute)
+		time.Sleep(sleepDuration)
 		now = time.Now()
 	}
 
@@ -347,13 +347,6 @@ func (c *DatabaseSnapshotController) checkDatabaseSnapshotJob(dbSnapshot *tapi.D
 	}
 
 	if dbSnapshot, err = c.extClient.DatabaseSnapshots(dbSnapshot.Namespace).Get(dbSnapshot.Name); err != nil {
-		c.eventRecorder.Eventf(
-			dbSnapshot,
-			kapi.EventTypeWarning,
-			eventer.EventReasonFailedToGet,
-			"Failed to get DatabaseSnapshot. Reason: %v",
-			err,
-		)
 		return err
 	}
 
@@ -395,9 +388,6 @@ func (c *DatabaseSnapshotController) checkDatabaseSnapshotJob(dbSnapshot *tapi.D
 		)
 	}
 
-	if dbSnapshot, err = c.extClient.DatabaseSnapshots(dbSnapshot.Namespace).Get(dbSnapshot.Name); err != nil {
-		return err
-	}
 	delete(dbSnapshot.Labels, LabelSnapshotStatus)
 	if _, err := c.extClient.DatabaseSnapshots(dbSnapshot.Namespace).Update(dbSnapshot); err != nil {
 		c.eventRecorder.Eventf(

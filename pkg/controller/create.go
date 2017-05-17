@@ -460,10 +460,6 @@ func (w *Controller) createRestoreJob(postgres *tapi.Postgres, dbSnapshot *tapi.
 	return w.Client.Batch().Jobs(postgres.Namespace).Create(job)
 }
 
-const (
-	ShortResourceTypePostgres = "pg"
-)
-
 func getStatefulSetName(databaseName string) string {
-	return fmt.Sprintf("%v-%v", databaseName, ShortResourceTypePostgres)
+	return fmt.Sprintf("%v-%v", databaseName, tapi.ResourceCodePostgres)
 }

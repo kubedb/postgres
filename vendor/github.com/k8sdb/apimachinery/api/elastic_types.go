@@ -6,6 +6,7 @@ import (
 )
 
 const (
+	ResourceCodeElastic = "es"
 	ResourceKindElastic = "Elastic"
 	ResourceNameElastic = "elastic"
 	ResourceTypeElastic = "elastics"

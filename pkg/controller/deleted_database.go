@@ -22,13 +22,13 @@ func (c *Controller) Exists(om *kapi.ObjectMeta) (bool, error) {
 
 func (c *Controller) DeleteDatabase(deletedDb *tapi.DeletedDatabase) error {
 	// Delete Service
-	if err := c.deleteService(deletedDb.Name, deletedDb.Namespace); err != nil {
+	if err := c.DeleteService(deletedDb.Name, deletedDb.Namespace); err != nil {
 		log.Errorln(err)
 		return err
 	}
 
 	statefulSetName := getStatefulSetName(deletedDb.Name)
-	if err := c.deleteStatefulSet(statefulSetName, deletedDb.Namespace); err != nil {
+	if err := c.DeleteStatefulSet(statefulSetName, deletedDb.Namespace); err != nil {
 		log.Errorln(err)
 		return err
 	}
