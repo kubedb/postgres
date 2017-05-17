@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -11,6 +12,7 @@ import (
 	cmap "github.com/orcaman/concurrent-map"
 	"gopkg.in/robfig/cron.v2"
 	kapi "k8s.io/kubernetes/pkg/api"
+	k8serr "k8s.io/kubernetes/pkg/api/errors"
 	clientset "k8s.io/kubernetes/pkg/client/clientset_generated/internalclientset"
 	"k8s.io/kubernetes/pkg/client/record"
 	"k8s.io/kubernetes/pkg/labels"
@@ -76,8 +78,12 @@ func (c *cronController) ScheduleBackup(
 		eventRecorder: c.eventRecorder,
 	}
 
+	if err := invoker.validateScheduler(durationCheckSnapshotJob); err != nil {
+		return err
+	}
+
 	// Set cron job
-	entryID, err := c.cron.AddFunc(spec.CronExpression, invoker.createDatabaseSnapshot)
+	entryID, err := c.cron.AddFunc(spec.CronExpression, invoker.createScheduledSnapshot)
 	if err != nil {
 		return err
 	}
@@ -108,7 +114,49 @@ type snapshotInvoker struct {
 	eventRecorder record.EventRecorder
 }
 
-func (s *snapshotInvoker) createDatabaseSnapshot() {
+func (s *snapshotInvoker) validateScheduler(checkDuration time.Duration) error {
+	utc := time.Now().UTC()
+	snapshotName := fmt.Sprintf("%v-%v", s.om.Name, utc.Format("20060102-150405"))
+	if err := s.createSnapshot(snapshotName); err != nil {
+		return err
+	}
+
+	var snapshotSuccess bool = false
+
+	then := time.Now()
+	now := time.Now()
+	for now.Sub(then) < checkDuration {
+		dbSnapshot, err := s.extClient.Snapshots(s.om.Namespace).Get(snapshotName)
+		if err != nil {
+			if k8serr.IsNotFound(err) {
+				time.Sleep(sleepDuration)
+				now = time.Now()
+				continue
+			} else {
+				return err
+			}
+		}
+
+		if dbSnapshot.Status.Phase == tapi.SnapshotPhaseSuccessed {
+			snapshotSuccess = true
+			break
+		}
+		if dbSnapshot.Status.Phase == tapi.SnapshotPhaseFailed {
+			break
+		}
+
+		time.Sleep(sleepDuration)
+		now = time.Now()
+	}
+
+	if !snapshotSuccess {
+		return errors.New("Failed to complete initial snapshot")
+	}
+
+	return nil
+}
+
+func (s *snapshotInvoker) createScheduledSnapshot() {
 	kind := s.runtimeObject.GetObjectKind().GroupVersionKind().Kind
 	name := s.om.Name
 
@@ -118,7 +166,7 @@ func (s *snapshotInvoker) createDatabaseSnapshot() {
 		LabelSnapshotStatus: string(tapi.SnapshotPhaseRunning),
 	}
 
-	snapshotList, err := s.extClient.DatabaseSnapshots(s.om.Namespace).List(kapi.ListOptions{
+	snapshotList, err := s.extClient.Snapshots(s.om.Namespace).List(kapi.ListOptions{
 		LabelSelector: labels.SelectorFromSet(labels.Set(labelMap)),
 	})
 	if err != nil {
@@ -126,7 +174,7 @@ func (s *snapshotInvoker) createDatabaseSnapshot() {
 			s.runtimeObject,
 			kapi.EventTypeWarning,
 			eventer.EventReasonFailedToList,
-			"Failed to list DatabaseSnapshots. Reason: %v",
+			"Failed to list Snapshots. Reason: %v",
 			err,
 		)
 		log.Errorln(err)
@@ -153,26 +201,39 @@ func (s *snapshotInvoker) createDatabaseSnapshot() {
 	now := time.Now().UTC()
 	snapshotName := fmt.Sprintf("%v-%v", s.om.Name, now.Format("20060102-150405"))
 
-	snapshot := &tapi.DatabaseSnapshot{
+	if err = s.createSnapshot(snapshotName); err != nil {
+		log.Errorln(err)
+	}
+}
+
+func (s *snapshotInvoker) createSnapshot(snapshotName string) error {
+	labelMap := map[string]string{
+		LabelDatabaseKind: s.runtimeObject.GetObjectKind().GroupVersionKind().Kind,
+		LabelDatabaseName: s.om.Name,
+	}
+
+	snapshot := &tapi.Snapshot{
 		ObjectMeta: kapi.ObjectMeta{
 			Name:      snapshotName,
 			Namespace: s.om.Namespace,
 			Labels:    labelMap,
 		},
-		Spec: tapi.DatabaseSnapshotSpec{
-			DatabaseName: s.om.Name,
-			SnapshotSpec: s.spec.SnapshotSpec,
+		Spec: tapi.SnapshotSpec{
+			DatabaseName:        s.om.Name,
+			SnapshotStorageSpec: s.spec.SnapshotStorageSpec,
 		},
 	}
 
-	if _, err := s.extClient.DatabaseSnapshots(snapshot.Namespace).Create(snapshot); err != nil {
+	if _, err := s.extClient.Snapshots(snapshot.Namespace).Create(snapshot); err != nil {
 		s.eventRecorder.Eventf(
 			s.runtimeObject,
 			kapi.EventTypeWarning,
 			eventer.EventReasonFailedToCreate,
-			"Failed to create DatabaseSnapshot. Reason: %v",
+			"Failed to create Snapshot. Reason: %v",
 			err,
 		)
-		log.Errorln(err)
+		return err
 	}
+
+	return nil
 }

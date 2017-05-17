@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"errors"
+
 	"github.com/appscode/log"
 	tapi "github.com/k8sdb/apimachinery/api"
 	amc "github.com/k8sdb/apimachinery/pkg/controller"
@@ -270,7 +271,7 @@ func (c *Controller) initialize(postgres *tapi.Postgres) error {
 		postgres,
 		kapi.EventTypeNormal,
 		eventer.EventReasonInitializing,
-		`Initializing from DatabaseSnapshot: "%v"`,
+		`Initializing from Snapshot: "%v"`,
 		snapshotSource.Name,
 	)
 
@@ -278,12 +279,12 @@ func (c *Controller) initialize(postgres *tapi.Postgres) error {
 	if namespace == "" {
 		namespace = postgres.Namespace
 	}
-	dbSnapshot, err := c.ExtClient.DatabaseSnapshots(namespace).Get(snapshotSource.Name)
+	snapshot, err := c.ExtClient.Snapshots(namespace).Get(snapshotSource.Name)
 	if err != nil {
 		return err
 	}
 
-	job, err := c.createRestoreJob(postgres, dbSnapshot)
+	job, err := c.createRestoreJob(postgres, snapshot)
 	if err != nil {
 		return err
 	}
@@ -371,7 +372,7 @@ func (c *Controller) update(oldPostgres, updatedPostgres *tapi.Postgres) error {
 				return err
 			}
 
-			if err := c.CheckBucketAccess(backupScheduleSpec.SnapshotSpec, oldPostgres.Namespace); err != nil {
+			if err := c.CheckBucketAccess(backupScheduleSpec.SnapshotStorageSpec, oldPostgres.Namespace); err != nil {
 				c.eventRecorder.Event(
 					updatedPostgres,
 					kapi.EventTypeNormal,

@@ -43,7 +43,7 @@ func (c *Controller) WipeOutDatabase(deletedDb *tapi.DeletedDatabase) error {
 
 	labelSelector := labels.SelectorFromSet(labelMap)
 
-	if err := c.DeleteDatabaseSnapshots(deletedDb.Namespace, labelSelector); err != nil {
+	if err := c.DeleteSnapshots(deletedDb.Namespace, labelSelector); err != nil {
 		log.Errorln(err)
 		return err
 	}

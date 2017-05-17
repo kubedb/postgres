@@ -20,11 +20,11 @@ const (
 	snapshotType_DumpBackup = "dump-backup"
 )
 
-func (c *Controller) ValidateSnapshot(dbSnapshot *tapi.DatabaseSnapshot) error {
+func (c *Controller) ValidateSnapshot(snapshot *tapi.Snapshot) error {
 	// Database name can't empty
-	databaseName := dbSnapshot.Spec.DatabaseName
+	databaseName := snapshot.Spec.DatabaseName
 	if databaseName == "" {
-		return fmt.Errorf(`Object 'DatabaseName' is missing in '%v'`, dbSnapshot.Spec)
+		return fmt.Errorf(`Object 'DatabaseName' is missing in '%v'`, snapshot.Spec)
 	}
 
 	if err := amc.CheckDockerImageVersion(ImagePostgres, c.postgresUtilTag); err != nil {
@@ -33,11 +33,11 @@ func (c *Controller) ValidateSnapshot(dbSnapshot *tapi.DatabaseSnapshot) error {
 
 	labelMap := map[string]string{
 		amc.LabelDatabaseKind:   tapi.ResourceKindPostgres,
-		amc.LabelDatabaseName:   dbSnapshot.Spec.DatabaseName,
+		amc.LabelDatabaseName:   snapshot.Spec.DatabaseName,
 		amc.LabelSnapshotStatus: string(tapi.SnapshotPhaseRunning),
 	}
 
-	snapshotList, err := c.ExtClient.DatabaseSnapshots(dbSnapshot.Namespace).List(kapi.ListOptions{
+	snapshotList, err := c.ExtClient.Snapshots(snapshot.Namespace).List(kapi.ListOptions{
 		LabelSelector: labels.SelectorFromSet(labels.Set(labelMap)),
 	})
 	if err != nil {
@@ -45,44 +45,44 @@ func (c *Controller) ValidateSnapshot(dbSnapshot *tapi.DatabaseSnapshot) error {
 	}
 
 	if len(snapshotList.Items) > 0 {
-		if dbSnapshot, err = c.ExtClient.DatabaseSnapshots(dbSnapshot.Namespace).Get(dbSnapshot.Name); err != nil {
+		if snapshot, err = c.ExtClient.Snapshots(snapshot.Namespace).Get(snapshot.Name); err != nil {
 			return err
 		}
 
 		t := unversioned.Now()
-		dbSnapshot.Status.StartTime = &t
-		dbSnapshot.Status.CompletionTime = &t
-		dbSnapshot.Status.Phase = tapi.SnapshotPhaseFailed
-		dbSnapshot.Status.Reason = "One DatabaseSnapshot is already Running"
-		if _, err := c.ExtClient.DatabaseSnapshots(dbSnapshot.Namespace).Update(dbSnapshot); err != nil {
+		snapshot.Status.StartTime = &t
+		snapshot.Status.CompletionTime = &t
+		snapshot.Status.Phase = tapi.SnapshotPhaseFailed
+		snapshot.Status.Reason = "One Snapshot is already Running"
+		if _, err := c.ExtClient.Snapshots(snapshot.Namespace).Update(snapshot); err != nil {
 			return err
 		}
-		return errors.New("One DatabaseSnapshot is already Running")
+		return errors.New("One Snapshot is already Running")
 	}
 
-	snapshotSpec := dbSnapshot.Spec.SnapshotSpec
+	snapshotSpec := snapshot.Spec.SnapshotStorageSpec
 	if err := c.ValidateSnapshotSpec(snapshotSpec); err != nil {
 		return err
 	}
 
-	if err := c.CheckBucketAccess(dbSnapshot.Spec.SnapshotSpec, dbSnapshot.Namespace); err != nil {
+	if err := c.CheckBucketAccess(snapshot.Spec.SnapshotStorageSpec, snapshot.Namespace); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (c *Controller) GetDatabase(snapshot *tapi.DatabaseSnapshot) (runtime.Object, error) {
+func (c *Controller) GetDatabase(snapshot *tapi.Snapshot) (runtime.Object, error) {
 	return c.ExtClient.Postgreses(snapshot.Namespace).Get(snapshot.Spec.DatabaseName)
 }
 
-func (c *Controller) GetSnapshotter(snapshot *tapi.DatabaseSnapshot) (*kbatch.Job, error) {
+func (c *Controller) GetSnapshotter(snapshot *tapi.Snapshot) (*kbatch.Job, error) {
 	databaseName := snapshot.Spec.DatabaseName
 	jobName := rand.WithUniqSuffix(SnapshotProcess_Backup + "-" + databaseName)
 	jobLabel := map[string]string{
 		amc.LabelDatabaseName: databaseName,
 		amc.LabelJobType:      SnapshotProcess_Backup,
 	}
-	backupSpec := snapshot.Spec.SnapshotSpec
+	backupSpec := snapshot.Spec.SnapshotStorageSpec
 
 	postgres, err := c.ExtClient.Postgreses(snapshot.Namespace).Get(databaseName)
 	if err != nil {
@@ -164,8 +164,8 @@ func (c *Controller) GetSnapshotter(snapshot *tapi.DatabaseSnapshot) (*kbatch.Jo
 	return job, nil
 }
 
-func (c *Controller) WipeOutSnapshot(dbSnapshot *tapi.DatabaseSnapshot) error {
-	return c.DeleteSnapshotData(dbSnapshot)
+func (c *Controller) WipeOutSnapshot(snapshot *tapi.Snapshot) error {
+	return c.DeleteSnapshotData(snapshot)
 }
 
 func (c *Controller) getVolumeForSnapshot(storage *tapi.StorageSpec, jobName, namespace string) (*kapi.Volume, error) {

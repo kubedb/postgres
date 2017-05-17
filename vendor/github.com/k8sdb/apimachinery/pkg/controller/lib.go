@@ -66,10 +66,10 @@ func (c *Controller) ValidateBackupSchedule(spec *tapi.BackupScheduleSpec) error
 		return errors.New("Invalid cron expression")
 	}
 
-	return c.ValidateSnapshotSpec(spec.SnapshotSpec)
+	return c.ValidateSnapshotSpec(spec.SnapshotStorageSpec)
 }
 
-func (c *Controller) ValidateSnapshotSpec(spec tapi.SnapshotSpec) error {
+func (c *Controller) ValidateSnapshotSpec(spec tapi.SnapshotStorageSpec) error {
 	// BucketName can't be empty
 	bucketName := spec.BucketName
 	if bucketName == "" {
@@ -95,7 +95,7 @@ const (
 	keyConfig   = "config"
 )
 
-func (c *Controller) CheckBucketAccess(snapshotSpec tapi.SnapshotSpec, namespace string) error {
+func (c *Controller) CheckBucketAccess(snapshotSpec tapi.SnapshotStorageSpec, namespace string) error {
 	secret, err := c.Client.Core().Secrets(namespace).Get(snapshotSpec.StorageSecret.SecretName)
 	if err != nil {
 		return err
@@ -194,7 +194,7 @@ func (c *Controller) DeletePersistentVolumeClaims(namespace string, selector lab
 	return nil
 }
 
-func (c *Controller) DeleteSnapshotData(dbSnapshot *tapi.DatabaseSnapshot) error {
+func (c *Controller) DeleteSnapshotData(dbSnapshot *tapi.Snapshot) error {
 	secret, err := c.Client.Core().Secrets(dbSnapshot.Namespace).Get(dbSnapshot.Spec.StorageSecret.SecretName)
 	if err != nil {
 		return err
@@ -245,8 +245,8 @@ func (c *Controller) DeleteSnapshotData(dbSnapshot *tapi.DatabaseSnapshot) error
 	return nil
 }
 
-func (c *Controller) DeleteDatabaseSnapshots(namespace string, selector labels.Selector) error {
-	dbSnapshotList, err := c.ExtClient.DatabaseSnapshots(namespace).List(
+func (c *Controller) DeleteSnapshots(namespace string, selector labels.Selector) error {
+	dbSnapshotList, err := c.ExtClient.Snapshots(namespace).List(
 		kapi.ListOptions{
 			LabelSelector: selector,
 		},
@@ -256,7 +256,7 @@ func (c *Controller) DeleteDatabaseSnapshots(namespace string, selector labels.S
 	}
 
 	for _, dbsnapshot := range dbSnapshotList.Items {
-		if err := c.ExtClient.DatabaseSnapshots(dbsnapshot.Namespace).Delete(dbsnapshot.Name); err != nil {
+		if err := c.ExtClient.Snapshots(dbsnapshot.Namespace).Delete(dbsnapshot.Name); err != nil {
 			return err
 		}
 	}

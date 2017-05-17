@@ -1,5 +1,5 @@
 apiVersion: k8sdb.com/v1beta1
-kind: DatabaseSnapshot
+kind: Snapshot
 metadata:
   name: snapshot-xyz
   labels:

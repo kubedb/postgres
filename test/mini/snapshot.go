@@ -16,10 +16,10 @@ import (
 	k8serr "k8s.io/kubernetes/pkg/api/errors"
 )
 
-const durationCheckDatabaseSnapshot = time.Minute * 30
+const durationCheckSnapshot = time.Minute * 30
 
-func CreateDatabaseSnapshot(c *controller.Controller, namespace string, snapshotSpec tapi.DatabaseSnapshotSpec) (*tapi.DatabaseSnapshot, error) {
-	dbSnapshot := &tapi.DatabaseSnapshot{
+func CreateSnapshot(c *controller.Controller, namespace string, snapshotSpec tapi.SnapshotSpec) (*tapi.Snapshot, error) {
+	snapshot := &tapi.Snapshot{
 		ObjectMeta: kapi.ObjectMeta{
 			Name:      rand.WithUniqSuffix("e2e-db-snapshot"),
 			Namespace: namespace,
@@ -30,16 +30,16 @@ func CreateDatabaseSnapshot(c *controller.Controller, namespace string, snapshot
 		Spec: snapshotSpec,
 	}
 
-	return c.ExtClient.DatabaseSnapshots(namespace).Create(dbSnapshot)
+	return c.ExtClient.Snapshots(namespace).Create(snapshot)
 }
 
-func CheckDatabaseSnapshot(c *controller.Controller, dbSnapshot *tapi.DatabaseSnapshot) (bool, error) {
+func CheckSnapshot(c *controller.Controller, snapshot *tapi.Snapshot) (bool, error) {
 	doneChecking := false
 	then := time.Now()
 	now := time.Now()
 
-	for now.Sub(then) < durationCheckDatabaseSnapshot {
-		dbSnapshot, err := c.ExtClient.DatabaseSnapshots(dbSnapshot.Namespace).Get(dbSnapshot.Name)
+	for now.Sub(then) < durationCheckSnapshot {
+		snapshot, err := c.ExtClient.Snapshots(snapshot.Namespace).Get(snapshot.Name)
 		if err != nil {
 			if k8serr.IsNotFound(err) {
 				time.Sleep(time.Second * 10)
@@ -50,9 +50,9 @@ func CheckDatabaseSnapshot(c *controller.Controller, dbSnapshot *tapi.DatabaseSn
 			}
 		}
 
-		log.Debugf("DatabaseSnapshot Phase: %v", dbSnapshot.Status.Phase)
+		log.Debugf("Snapshot Phase: %v", snapshot.Status.Phase)
 
-		if dbSnapshot.Status.Phase == tapi.SnapshotPhaseSuccessed {
+		if snapshot.Status.Phase == tapi.SnapshotPhaseSuccessed {
 			doneChecking = true
 			break
 		}
@@ -74,8 +74,8 @@ const (
 	keyConfig   = "config"
 )
 
-func CheckSnapshotData(c *controller.Controller, dbSnapshot *tapi.DatabaseSnapshot) (int, error) {
-	secret, err := c.Client.Core().Secrets(dbSnapshot.Namespace).Get(dbSnapshot.Spec.StorageSecret.SecretName)
+func CheckSnapshotData(c *controller.Controller, snapshot *tapi.Snapshot) (int, error) {
+	secret, err := c.Client.Core().Secrets(snapshot.Namespace).Get(snapshot.Spec.StorageSecret.SecretName)
 	if err != nil {
 		return 0, err
 	}
@@ -99,13 +99,13 @@ func CheckSnapshotData(c *controller.Controller, dbSnapshot *tapi.DatabaseSnapsh
 		return 0, err
 	}
 
-	container, err := loc.Container(dbSnapshot.Spec.BucketName)
+	container, err := loc.Container(snapshot.Spec.BucketName)
 	if err != nil {
 		return 0, err
 	}
 
-	folderName := fmt.Sprintf("%v/%v/%v", amc.DatabaseNamePrefix, dbSnapshot.Namespace, dbSnapshot.Spec.DatabaseName)
-	prefix := fmt.Sprintf("%v/%v", folderName, dbSnapshot.Name)
+	folderName := fmt.Sprintf("%v/%v/%v", amc.DatabaseNamePrefix, snapshot.Namespace, snapshot.Spec.DatabaseName)
+	prefix := fmt.Sprintf("%v/%v", folderName, snapshot.Name)
 	cursor := stow.CursorStart
 	totalItem := 0
 	for {

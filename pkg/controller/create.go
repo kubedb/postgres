@@ -374,7 +374,7 @@ const (
 	snapshotType_DumpRestore = "dump-restore"
 )
 
-func (w *Controller) createRestoreJob(postgres *tapi.Postgres, dbSnapshot *tapi.DatabaseSnapshot) (*kbatch.Job, error) {
+func (w *Controller) createRestoreJob(postgres *tapi.Postgres, snapshot *tapi.Snapshot) (*kbatch.Job, error) {
 
 	databaseName := postgres.Name
 	jobName := rand.WithUniqSuffix(SnapshotProcess_Restore + "-" + databaseName)
@@ -382,7 +382,7 @@ func (w *Controller) createRestoreJob(postgres *tapi.Postgres, dbSnapshot *tapi.
 		amc.LabelDatabaseName: databaseName,
 		amc.LabelJobType:      SnapshotProcess_Restore,
 	}
-	backupSpec := dbSnapshot.Spec.SnapshotSpec
+	backupSpec := snapshot.Spec.SnapshotStorageSpec
 
 	// Get PersistentVolume object for Backup Util pod.
 	persistentVolume, err := w.getVolumeForSnapshot(postgres.Spec.Storage, jobName, postgres.Namespace)
@@ -391,7 +391,7 @@ func (w *Controller) createRestoreJob(postgres *tapi.Postgres, dbSnapshot *tapi.
 	}
 
 	// Folder name inside Cloud bucket where backup will be uploaded
-	folderName := fmt.Sprintf("%v/%v/%v", amc.DatabaseNamePrefix, dbSnapshot.Namespace, dbSnapshot.Spec.DatabaseName)
+	folderName := fmt.Sprintf("%v/%v/%v", amc.DatabaseNamePrefix, snapshot.Namespace, snapshot.Spec.DatabaseName)
 
 	job := &kbatch.Job{
 		ObjectMeta: kapi.ObjectMeta{
@@ -413,7 +413,7 @@ func (w *Controller) createRestoreJob(postgres *tapi.Postgres, dbSnapshot *tapi.
 								fmt.Sprintf(`--host=%s`, databaseName),
 								fmt.Sprintf(`--bucket=%s`, backupSpec.BucketName),
 								fmt.Sprintf(`--folder=%s`, folderName),
-								fmt.Sprintf(`--snapshot=%s`, dbSnapshot.Name),
+								fmt.Sprintf(`--snapshot=%s`, snapshot.Name),
 							},
 							VolumeMounts: []kapi.VolumeMount{
 								{
