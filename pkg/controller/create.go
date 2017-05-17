@@ -81,7 +81,7 @@ func (w *Controller) createService(name, namespace string) error {
 
 func (c *Controller) checkStatefulSet(postgres *tapi.Postgres) (*kapps.StatefulSet, error) {
 	// SatatefulSet for Postgres database
-	statefulSetName := fmt.Sprintf("%v-%v", amc.DatabaseNamePrefix, postgres.Name)
+	statefulSetName := getStatefulSetName(postgres.Name)
 	statefulSet, err := c.Client.Apps().StatefulSets(postgres.Namespace).Get(statefulSetName)
 	if err != nil {
 		if k8serr.IsNotFound(err) {
@@ -130,7 +130,7 @@ func (c *Controller) createStatefulSet(postgres *tapi.Postgres) (*kapps.Stateful
 	dockerImage := fmt.Sprintf("%v:%v", ImagePostgres, postgres.Spec.Version)
 
 	// SatatefulSet for Postgres database
-	statefulSetName := fmt.Sprintf("%v-%v", amc.DatabaseNamePrefix, postgres.Name)
+	statefulSetName := getStatefulSetName(postgres.Name)
 
 	replicas := int32(1)
 	statefulSet := &kapps.StatefulSet{
@@ -458,4 +458,12 @@ func (w *Controller) createRestoreJob(postgres *tapi.Postgres, dbSnapshot *tapi.
 	}
 
 	return w.Client.Batch().Jobs(postgres.Namespace).Create(job)
+}
+
+const (
+	ShortResourceTypePostgres = "pg"
+)
+
+func getStatefulSetName(databaseName string) string {
+	return fmt.Sprintf("%v-%v", databaseName, ShortResourceTypePostgres)
 }

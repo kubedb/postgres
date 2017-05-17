@@ -1,8 +1,6 @@
 package controller
 
 import (
-	"fmt"
-
 	"github.com/appscode/log"
 	tapi "github.com/k8sdb/apimachinery/api"
 	amc "github.com/k8sdb/apimachinery/pkg/controller"
@@ -29,7 +27,7 @@ func (c *Controller) DeleteDatabase(deletedDb *tapi.DeletedDatabase) error {
 		return err
 	}
 
-	statefulSetName := fmt.Sprintf("%v-%v", amc.DatabaseNamePrefix, deletedDb.Name)
+	statefulSetName := getStatefulSetName(deletedDb.Name)
 	if err := c.deleteStatefulSet(statefulSetName, deletedDb.Namespace); err != nil {
 		log.Errorln(err)
 		return err

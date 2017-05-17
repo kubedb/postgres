@@ -61,7 +61,7 @@ func CheckPostgresWorkload(c *controller.Controller, postgres *tapi.Postgres) er
 	}
 
 	// SatatefulSet for Postgres database
-	statefulSetName := fmt.Sprintf("%v-%v", amc.DatabaseNamePrefix, postgres.Name)
+	statefulSetName := fmt.Sprintf("%v-pg", postgres.Name)
 	if _, err := c.Client.Apps().StatefulSets(postgres.Namespace).Get(statefulSetName); err != nil {
 		return err
 	}
