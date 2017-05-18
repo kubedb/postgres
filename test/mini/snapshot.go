@@ -14,6 +14,7 @@ import (
 	"github.com/k8sdb/postgres/pkg/controller"
 	kapi "k8s.io/kubernetes/pkg/api"
 	k8serr "k8s.io/kubernetes/pkg/api/errors"
+	"k8s.io/kubernetes/pkg/labels"
 )
 
 const durationCheckSnapshot = time.Minute * 30
@@ -123,4 +124,34 @@ func CheckSnapshotData(c *controller.Controller, snapshot *tapi.Snapshot) (int, 
 	}
 
 	return totalItem, nil
+}
+
+func CheckSnapshotScheduler(c *controller.Controller, postgres *tapi.Postgres) error {
+	labelMap := map[string]string{
+		amc.LabelDatabaseKind: tapi.ResourceKindPostgres,
+		amc.LabelDatabaseName: postgres.Name,
+	}
+
+	then := time.Now()
+	now := time.Now()
+
+	for now.Sub(then) < durationCheckSnapshot {
+
+		snapshotList, err := c.ExtClient.Snapshots(postgres.Namespace).List(kapi.ListOptions{
+			LabelSelector: labels.SelectorFromSet(labels.Set(labelMap)),
+		})
+
+		if err != nil {
+			return err
+		}
+
+		if len(snapshotList.Items) >= 2 {
+			return nil
+		}
+
+		time.Sleep(time.Second * 30)
+		now = time.Now()
+	}
+
+	return errors.New("Scheduler is not working")
 }

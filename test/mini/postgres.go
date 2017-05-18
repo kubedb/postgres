@@ -83,6 +83,6 @@ func DeletePostgres(c *controller.Controller, postgres *tapi.Postgres) error {
 	return c.ExtClient.Postgreses(postgres.Namespace).Delete(postgres.Name)
 }
 
-func UpdatePostres(c *controller.Controller, postgres *tapi.Postgres) (*tapi.Postgres, error) {
+func UpdatePostgres(c *controller.Controller, postgres *tapi.Postgres) (*tapi.Postgres, error) {
 	return c.ExtClient.Postgreses(postgres.Namespace).Update(postgres)
 }
