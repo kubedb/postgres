@@ -194,8 +194,8 @@ func (c *Controller) DeletePersistentVolumeClaims(namespace string, selector lab
 	return nil
 }
 
-func (c *Controller) DeleteSnapshotData(dbSnapshot *tapi.Snapshot) error {
-	secret, err := c.Client.Core().Secrets(dbSnapshot.Namespace).Get(dbSnapshot.Spec.StorageSecret.SecretName)
+func (c *Controller) DeleteSnapshotData(snapshot *tapi.Snapshot) error {
+	secret, err := c.Client.Core().Secrets(snapshot.Namespace).Get(snapshot.Spec.StorageSecret.SecretName)
 	if err != nil {
 		return err
 	}
@@ -219,12 +219,12 @@ func (c *Controller) DeleteSnapshotData(dbSnapshot *tapi.Snapshot) error {
 		return err
 	}
 
-	container, err := loc.Container(dbSnapshot.Spec.BucketName)
+	container, err := loc.Container(snapshot.Spec.BucketName)
 	if err != nil {
 		return err
 	}
 
-	prefix := fmt.Sprintf("%v/%v/%v/%v", DatabaseNamePrefix, dbSnapshot.Namespace, dbSnapshot.Spec.DatabaseName, dbSnapshot.Name)
+	prefix := fmt.Sprintf("%v/%v/%v/%v", DatabaseNamePrefix, snapshot.Namespace, snapshot.Spec.DatabaseName, snapshot.Name)
 	cursor := stow.CursorStart
 	for {
 		items, next, err := container.Items(prefix, cursor, 50)
@@ -246,7 +246,7 @@ func (c *Controller) DeleteSnapshotData(dbSnapshot *tapi.Snapshot) error {
 }
 
 func (c *Controller) DeleteSnapshots(namespace string, selector labels.Selector) error {
-	dbSnapshotList, err := c.ExtClient.Snapshots(namespace).List(
+	snapshotList, err := c.ExtClient.Snapshots(namespace).List(
 		kapi.ListOptions{
 			LabelSelector: selector,
 		},
@@ -255,8 +255,8 @@ func (c *Controller) DeleteSnapshots(namespace string, selector labels.Selector)
 		return err
 	}
 
-	for _, dbsnapshot := range dbSnapshotList.Items {
-		if err := c.ExtClient.Snapshots(dbsnapshot.Namespace).Delete(dbsnapshot.Name); err != nil {
+	for _, snapshot := range snapshotList.Items {
+		if err := c.ExtClient.Snapshots(snapshot.Namespace).Delete(snapshot.Name); err != nil {
 			return err
 		}
 	}
@@ -459,6 +459,18 @@ func (c *Controller) DeleteStatefulSet(name, namespace string) error {
 
 	// Delete StatefulSet
 	return c.Client.Apps().StatefulSets(statefulSet.Namespace).Delete(statefulSet.Name, nil)
+}
+
+func (c *Controller) DeleteSecret(name, namespace string) error {
+	if _, err := c.Client.Core().Secrets(namespace).Get(name); err != nil {
+		if k8serr.IsNotFound(err) {
+			return nil
+		} else {
+			return err
+		}
+	}
+
+	return c.Client.Core().Secrets(namespace).Delete(name, nil)
 }
 
 const (

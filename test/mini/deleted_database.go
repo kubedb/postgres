@@ -47,6 +47,18 @@ func CheckDeletedDatabasePhase(c *controller.Controller, postgres *tapi.Postgres
 	return true, nil
 }
 
+func WipeOutDeletedDatabase(c *controller.Controller, postgres *tapi.Postgres) error {
+	deletedDb, err := c.ExtClient.DeletedDatabases(postgres.Namespace).Get(postgres.Name)
+	if err != nil {
+		return err
+	}
+
+	deletedDb.Spec.WipeOut = true
+
+	_, err = c.ExtClient.DeletedDatabases(deletedDb.Namespace).Update(deletedDb)
+	return err
+}
+
 func DeleteDeletedDatabase(c *controller.Controller, postgres *tapi.Postgres) error {
 	return c.ExtClient.DeletedDatabases(postgres.Namespace).Delete(postgres.Name)
 }

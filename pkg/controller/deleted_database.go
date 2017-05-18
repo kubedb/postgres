@@ -52,6 +52,74 @@ func (c *Controller) WipeOutDatabase(deletedDb *tapi.DeletedDatabase) error {
 		log.Errorln(err)
 		return err
 	}
+
+	if deletedDb.Spec.Origin.Spec.Postgres.DatabaseSecret != nil {
+		if err := c.deleteSecret(deletedDb); err != nil {
+			return err
+		}
+
+	}
+
+	return nil
+}
+
+func (c *Controller) deleteSecret(deletedDb *tapi.DeletedDatabase) error {
+
+	var secretFound bool = false
+	deletedDatabaseSecret := deletedDb.Spec.Origin.Spec.Postgres.DatabaseSecret
+
+	postgresList, err := c.ExtClient.Postgreses(deletedDb.Namespace).List(kapi.ListOptions{})
+	if err != nil {
+		return err
+	}
+
+	for _, postgres := range postgresList.Items {
+		databaseSecret := postgres.Spec.DatabaseSecret
+		if databaseSecret != nil {
+			if databaseSecret.SecretName == deletedDatabaseSecret.SecretName {
+				secretFound = true
+				break
+			}
+		}
+	}
+
+	if !secretFound {
+		labelMap := map[string]string{
+			amc.LabelDatabaseKind: tapi.ResourceKindPostgres,
+		}
+
+		labelSelector := labels.SelectorFromSet(labelMap)
+
+		deletedDatabaseList, err := c.ExtClient.DeletedDatabases(deletedDb.Namespace).List(
+			kapi.ListOptions{
+				LabelSelector: labelSelector,
+			},
+		)
+		if err != nil {
+			return err
+		}
+
+		for _, ddb := range deletedDatabaseList.Items {
+			if ddb.Name == deletedDb.Name {
+				continue
+			}
+
+			databaseSecret := ddb.Spec.Origin.Spec.Postgres.DatabaseSecret
+			if databaseSecret != nil {
+				if databaseSecret.SecretName == deletedDatabaseSecret.SecretName {
+					secretFound = true
+					break
+				}
+			}
+		}
+	}
+
+	if !secretFound {
+		if err := c.DeleteSecret(deletedDatabaseSecret.SecretName, deletedDb.Namespace); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 

@@ -17,10 +17,14 @@ import (
 )
 
 func (c *Controller) create(postgres *tapi.Postgres) error {
+	var err error
+	if postgres, err = c.ExtClient.Postgreses(postgres.Namespace).Get(postgres.Name); err != nil {
+		return err
+	}
+
 	t := unversioned.Now()
 	postgres.Status.CreationTime = &t
 	postgres.Status.Phase = tapi.DatabasePhaseCreating
-	var err error
 	if _, err = c.ExtClient.Postgreses(postgres.Namespace).Update(postgres); err != nil {
 		c.eventRecorder.Eventf(
 			postgres,

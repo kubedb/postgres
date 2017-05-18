@@ -51,6 +51,21 @@ func TestCreate(t *testing.T) {
 		fmt.Println("---- >> Failed to be deleted")
 	}
 
+
+	fmt.Println("---- >> WipingOut Database")
+	err = mini.WipeOutDeletedDatabase(controller, postgres)
+	assert.Nil(t, err)
+	if !assert.True(t, done) {
+		fmt.Println("---- >> Failed to be wipedout")
+	}
+
+	fmt.Println("---- >> Checking DeletedDatabase")
+	done, err = mini.CheckDeletedDatabasePhase(controller, postgres, tapi.DeletedDatabasePhaseWipedOut)
+	assert.Nil(t, err)
+	if !assert.True(t, done) {
+		fmt.Println("---- >> Failed to be wipedout")
+	}
+
 	fmt.Println("---- >> Deleting DeletedDatabase")
 	err = mini.DeleteDeletedDatabase(controller, postgres)
 	assert.Nil(t, err)
@@ -164,7 +179,7 @@ func TestSnapshot(t *testing.T) {
 
 	snapshotSpec := tapi.SnapshotSpec{
 		DatabaseName: postgres.Name,
-		SnapshotSpec: tapi.SnapshotSpec{
+		SnapshotStorageSpec: tapi.SnapshotStorageSpec{
 			BucketName: bucket,
 			StorageSecret: &kapi.SecretVolumeSource{
 				SecretName: secretName,
@@ -172,7 +187,7 @@ func TestSnapshot(t *testing.T) {
 		},
 	}
 
-	err = controller.CheckBucketAccess(snapshotSpec.SnapshotSpec, postgres.Namespace)
+	err = controller.CheckBucketAccess(snapshotSpec.SnapshotStorageSpec, postgres.Namespace)
 	if !assert.Nil(t, err) {
 		return
 	}
@@ -350,7 +365,7 @@ func TestInitialize(t *testing.T) {
 
 	snapshotSpec := tapi.SnapshotSpec{
 		DatabaseName: postgres.Name,
-		SnapshotSpec: tapi.SnapshotSpec{
+		SnapshotStorageSpec: tapi.SnapshotStorageSpec{
 			BucketName: bucket,
 			StorageSecret: &kapi.SecretVolumeSource{
 				SecretName: secretName,
@@ -379,7 +394,6 @@ func TestInitialize(t *testing.T) {
 		return
 	}
 	assert.NotZero(t, count)
-
 
 	// postgres
 	fmt.Println()
@@ -411,7 +425,6 @@ func TestInitialize(t *testing.T) {
 			return
 		}
 	}
-
 
 	fmt.Println("---- >> Deleting Snapshot")
 	err = controller.ExtClient.Snapshots(snapshot.Namespace).Delete(snapshot.Name)

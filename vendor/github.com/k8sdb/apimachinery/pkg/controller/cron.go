@@ -126,7 +126,7 @@ func (s *snapshotInvoker) validateScheduler(checkDuration time.Duration) error {
 	then := time.Now()
 	now := time.Now()
 	for now.Sub(then) < checkDuration {
-		dbSnapshot, err := s.extClient.Snapshots(s.om.Namespace).Get(snapshotName)
+		snapshot, err := s.extClient.Snapshots(s.om.Namespace).Get(snapshotName)
 		if err != nil {
 			if k8serr.IsNotFound(err) {
 				time.Sleep(sleepDuration)
@@ -137,11 +137,11 @@ func (s *snapshotInvoker) validateScheduler(checkDuration time.Duration) error {
 			}
 		}
 
-		if dbSnapshot.Status.Phase == tapi.SnapshotPhaseSuccessed {
+		if snapshot.Status.Phase == tapi.SnapshotPhaseSuccessed {
 			snapshotSuccess = true
 			break
 		}
-		if dbSnapshot.Status.Phase == tapi.SnapshotPhaseFailed {
+		if snapshot.Status.Phase == tapi.SnapshotPhaseFailed {
 			break
 		}
 
