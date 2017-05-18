@@ -506,9 +506,9 @@ func TestUpdateScheduler(t *testing.T) {
 	postgres.Spec.BackupSchedule = &tapi.BackupScheduleSpec{
 		CronExpression: "@every 30s",
 		SnapshotStorageSpec: tapi.SnapshotStorageSpec{
-			BucketName: "database-test",
+			BucketName: "",
 			StorageSecret: &kapi.SecretVolumeSource{
-				SecretName: "google-cred",
+				SecretName: "",
 			},
 		},
 	}
