@@ -377,7 +377,7 @@ const (
 func (w *Controller) createRestoreJob(postgres *tapi.Postgres, snapshot *tapi.Snapshot) (*kbatch.Job, error) {
 
 	databaseName := postgres.Name
-	jobName := rand.WithUniqSuffix(SnapshotProcess_Restore + "-" + databaseName)
+	jobName := rand.WithUniqSuffix(databaseName)
 	jobLabel := map[string]string{
 		amc.LabelDatabaseName: databaseName,
 		amc.LabelJobType:      SnapshotProcess_Restore,

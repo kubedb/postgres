@@ -77,7 +77,7 @@ func (c *Controller) GetDatabase(snapshot *tapi.Snapshot) (runtime.Object, error
 
 func (c *Controller) GetSnapshotter(snapshot *tapi.Snapshot) (*kbatch.Job, error) {
 	databaseName := snapshot.Spec.DatabaseName
-	jobName := rand.WithUniqSuffix(SnapshotProcess_Backup + "-" + databaseName)
+	jobName := rand.WithUniqSuffix(databaseName)
 	jobLabel := map[string]string{
 		amc.LabelDatabaseName: databaseName,
 		amc.LabelJobType:      SnapshotProcess_Backup,
