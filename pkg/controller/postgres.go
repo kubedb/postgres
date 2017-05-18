@@ -376,7 +376,7 @@ func (c *Controller) update(oldPostgres, updatedPostgres *tapi.Postgres) error {
 				return err
 			}
 
-			if err := c.CheckBucketAccess(backupScheduleSpec.SnapshotStorageSpec, oldPostgres.Namespace); err != nil {
+			if err := c.CheckBucketAccess(backupScheduleSpec.SnapshotStorageSpec, updatedPostgres.Namespace); err != nil {
 				c.eventRecorder.Event(
 					updatedPostgres,
 					kapi.EventTypeNormal,
@@ -387,7 +387,7 @@ func (c *Controller) update(oldPostgres, updatedPostgres *tapi.Postgres) error {
 			}
 
 			if err := c.cronController.ScheduleBackup(
-				oldPostgres, oldPostgres.ObjectMeta, oldPostgres.Spec.BackupSchedule); err != nil {
+				updatedPostgres, updatedPostgres.ObjectMeta, updatedPostgres.Spec.BackupSchedule); err != nil {
 				c.eventRecorder.Eventf(
 					updatedPostgres,
 					kapi.EventTypeWarning,
@@ -397,7 +397,7 @@ func (c *Controller) update(oldPostgres, updatedPostgres *tapi.Postgres) error {
 				log.Errorln(err)
 			}
 		} else {
-			c.cronController.StopBackupScheduling(oldPostgres.ObjectMeta)
+			c.cronController.StopBackupScheduling(updatedPostgres.ObjectMeta)
 		}
 	}
 	return nil
