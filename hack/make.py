@@ -75,6 +75,7 @@ def version():
 
 
 def fmt():
+    libbuild.ungroup_go_imports('cmd', 'pkg', 'test')
     die(call('goimports -w cmd pkg test'))
     call('gofmt -s -w cmd pkg test')
 

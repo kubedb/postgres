@@ -1,11 +1,10 @@
 package controller
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"time"
-
-	"errors"
 
 	"github.com/appscode/log"
 	tapi "github.com/k8sdb/apimachinery/api"
