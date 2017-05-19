@@ -69,7 +69,7 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 	)
 
 	// Check if DormantDatabase exists or not
-	resumeing := false
+	resuming := false
 	dormantDb, err := c.ExtClient.DormantDatabases(postgres.Namespace).Get(postgres.Name)
 	if err != nil {
 		if !k8serr.IsNotFound(err) {
@@ -91,12 +91,12 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 				postgres.Name, dormantDb.Name)
 		} else {
 			if dormantDb.Status.Phase == tapi.DormantDatabasePhaseResuming {
-				resumeing = true
+				resuming = true
 			} else {
 				message = fmt.Sprintf(`Resume from DormantDatabase: "%v"`, dormantDb.Name)
 			}
 		}
-		if !resumeing {
+		if !resuming {
 			if postgres, err = c.ExtClient.Postgreses(postgres.Namespace).Get(postgres.Name); err != nil {
 				return err
 			}
@@ -127,7 +127,7 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 			postgres,
 			kapi.EventTypeWarning,
 			eventer.EventReasonFailedToCreate,
-			`Failed to create ServiceAccount: "%v". Reason: %v`,
+			`Failed to create Service: "%v". Reason: %v`,
 			governingService,
 			err,
 		)
@@ -207,7 +207,7 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 		}
 	}
 
-	if resumeing {
+	if resuming {
 		// Delete DormantDatabase instance
 		if err := c.ExtClient.DormantDatabases(dormantDb.Namespace).Delete(dormantDb.Name); err != nil {
 			c.eventRecorder.Eventf(
@@ -223,8 +223,8 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 		c.eventRecorder.Eventf(
 			postgres,
 			kapi.EventTypeNormal,
-			eventer.EventReasonSuccessfulDelete,
-			`Successfully deleted DormantDatabase: "%v"`,
+			eventer.EventReasonSuccessfulResume,
+			`Successfully resumed Database: "%v"`,
 			dormantDb.Name,
 		)
 	}
@@ -313,10 +313,9 @@ func (c *Controller) initialize(postgres *tapi.Postgres) error {
 }
 
 func (c *Controller) delete(postgres *tapi.Postgres) error {
+	c.eventRecorder.Event(postgres, kapi.EventTypeNormal, eventer.EventReasonPausing, "Pausing Postgres")
 
-	c.eventRecorder.Event(postgres, kapi.EventTypeNormal, eventer.EventReasonDeleting, "Deleting Postgres")
-
-	if postgres.Spec.DoNotDelete {
+	if postgres.Spec.DoNotPause {
 		c.eventRecorder.Eventf(
 			postgres,
 			kapi.EventTypeWarning,
