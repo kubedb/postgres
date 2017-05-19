@@ -16,7 +16,6 @@ import (
 
 const (
 	annotationDatabaseVersion = "postgres.k8sdb.com/version"
-	GoverningPostgres         = "governing-postgres"
 	ImagePostgres             = "k8sdb/postgres"
 	modeBasic                 = "basic"
 	// Duration in Minute
@@ -42,9 +41,9 @@ func (c *Controller) checkService(name, namespace string) (bool, error) {
 	return true, nil
 }
 
-func (w *Controller) createService(name, namespace string) error {
+func (c *Controller) createService(name, namespace string) error {
 	// Check if service name exists
-	found, err := w.checkService(name, namespace)
+	found, err := c.checkService(name, namespace)
 	if err != nil {
 		return err
 	}
@@ -72,7 +71,7 @@ func (w *Controller) createService(name, namespace string) error {
 		},
 	}
 
-	if _, err := w.Client.Core().Services(namespace).Create(service); err != nil {
+	if _, err := c.Client.Core().Services(namespace).Create(service); err != nil {
 		return err
 	}
 
@@ -213,8 +212,8 @@ func (c *Controller) createStatefulSet(postgres *tapi.Postgres) (*kapps.Stateful
 	return statefulSet, nil
 }
 
-func (w *Controller) checkSecret(namespace, secretName string) (bool, error) {
-	secret, err := w.Client.Core().Secrets(namespace).Get(secretName)
+func (c *Controller) checkSecret(namespace, secretName string) (bool, error) {
+	secret, err := c.Client.Core().Secrets(namespace).Get(secretName)
 	if err != nil {
 		if k8serr.IsNotFound(err) {
 			return false, nil
@@ -324,7 +323,7 @@ func addInitialScript(statefulSet *kapps.StatefulSet, script *tapi.ScriptSourceS
 	)
 }
 
-func (w *Controller) createDormantDatabase(postgres *tapi.Postgres) (*tapi.DormantDatabase, error) {
+func (c *Controller) createDormantDatabase(postgres *tapi.Postgres) (*tapi.DormantDatabase, error) {
 	dormantDb := &tapi.DormantDatabase{
 		ObjectMeta: kapi.ObjectMeta{
 			Name:      postgres.Name,
@@ -347,10 +346,10 @@ func (w *Controller) createDormantDatabase(postgres *tapi.Postgres) (*tapi.Dorma
 			},
 		},
 	}
-	return w.ExtClient.DormantDatabases(dormantDb.Namespace).Create(dormantDb)
+	return c.ExtClient.DormantDatabases(dormantDb.Namespace).Create(dormantDb)
 }
 
-func (w *Controller) reCreatePostgres(postgres *tapi.Postgres) error {
+func (c *Controller) reCreatePostgres(postgres *tapi.Postgres) error {
 	_postgres := &tapi.Postgres{
 		ObjectMeta: kapi.ObjectMeta{
 			Name:        postgres.Name,
@@ -362,7 +361,7 @@ func (w *Controller) reCreatePostgres(postgres *tapi.Postgres) error {
 		Status: postgres.Status,
 	}
 
-	if _, err := w.ExtClient.Postgreses(_postgres.Namespace).Create(_postgres); err != nil {
+	if _, err := c.ExtClient.Postgreses(_postgres.Namespace).Create(_postgres); err != nil {
 		return err
 	}
 
@@ -374,7 +373,7 @@ const (
 	snapshotType_DumpRestore = "dump-restore"
 )
 
-func (w *Controller) createRestoreJob(postgres *tapi.Postgres, snapshot *tapi.Snapshot) (*kbatch.Job, error) {
+func (c *Controller) createRestoreJob(postgres *tapi.Postgres, snapshot *tapi.Snapshot) (*kbatch.Job, error) {
 
 	databaseName := postgres.Name
 	jobName := rand.WithUniqSuffix(databaseName)
@@ -385,7 +384,7 @@ func (w *Controller) createRestoreJob(postgres *tapi.Postgres, snapshot *tapi.Sn
 	backupSpec := snapshot.Spec.SnapshotStorageSpec
 
 	// Get PersistentVolume object for Backup Util pod.
-	persistentVolume, err := w.getVolumeForSnapshot(postgres.Spec.Storage, jobName, postgres.Namespace)
+	persistentVolume, err := c.getVolumeForSnapshot(postgres.Spec.Storage, jobName, postgres.Namespace)
 	if err != nil {
 		return nil, err
 	}
@@ -407,7 +406,7 @@ func (w *Controller) createRestoreJob(postgres *tapi.Postgres, snapshot *tapi.Sn
 					Containers: []kapi.Container{
 						{
 							Name:  SnapshotProcess_Restore,
-							Image: ImagePostgres + ":" + w.postgresUtilTag,
+							Image: ImagePostgres + ":" + c.postgresUtilTag,
 							Args: []string{
 								fmt.Sprintf(`--process=%s`, SnapshotProcess_Restore),
 								fmt.Sprintf(`--host=%s`, databaseName),
@@ -457,7 +456,7 @@ func (w *Controller) createRestoreJob(postgres *tapi.Postgres, snapshot *tapi.Sn
 		},
 	}
 
-	return w.Client.Batch().Jobs(postgres.Namespace).Create(job)
+	return c.Client.Batch().Jobs(postgres.Namespace).Create(job)
 }
 
 func getStatefulSetName(databaseName string) string {
