@@ -324,8 +324,8 @@ func addInitialScript(statefulSet *kapps.StatefulSet, script *tapi.ScriptSourceS
 	)
 }
 
-func (w *Controller) createDeletedDatabase(postgres *tapi.Postgres) (*tapi.DeletedDatabase, error) {
-	deletedDb := &tapi.DeletedDatabase{
+func (w *Controller) createDormantDatabase(postgres *tapi.Postgres) (*tapi.DormantDatabase, error) {
+	dormantDb := &tapi.DormantDatabase{
 		ObjectMeta: kapi.ObjectMeta{
 			Name:      postgres.Name,
 			Namespace: postgres.Namespace,
@@ -333,7 +333,7 @@ func (w *Controller) createDeletedDatabase(postgres *tapi.Postgres) (*tapi.Delet
 				amc.LabelDatabaseKind: tapi.ResourceKindPostgres,
 			},
 		},
-		Spec: tapi.DeletedDatabaseSpec{
+		Spec: tapi.DormantDatabaseSpec{
 			Origin: tapi.Origin{
 				ObjectMeta: kapi.ObjectMeta{
 					Name:        postgres.Name,
@@ -347,7 +347,7 @@ func (w *Controller) createDeletedDatabase(postgres *tapi.Postgres) (*tapi.Delet
 			},
 		},
 	}
-	return w.ExtClient.DeletedDatabases(deletedDb.Namespace).Create(deletedDb)
+	return w.ExtClient.DormantDatabases(dormantDb.Namespace).Create(dormantDb)
 }
 
 func (w *Controller) reCreatePostgres(postgres *tapi.Postgres) error {

@@ -20,41 +20,41 @@ func (c *Controller) Exists(om *kapi.ObjectMeta) (bool, error) {
 	return true, nil
 }
 
-func (c *Controller) DeleteDatabase(deletedDb *tapi.DeletedDatabase) error {
+func (c *Controller) DeleteDatabase(dormantDb *tapi.DormantDatabase) error {
 	// Delete Service
-	if err := c.DeleteService(deletedDb.Name, deletedDb.Namespace); err != nil {
+	if err := c.DeleteService(dormantDb.Name, dormantDb.Namespace); err != nil {
 		log.Errorln(err)
 		return err
 	}
 
-	statefulSetName := getStatefulSetName(deletedDb.Name)
-	if err := c.DeleteStatefulSet(statefulSetName, deletedDb.Namespace); err != nil {
+	statefulSetName := getStatefulSetName(dormantDb.Name)
+	if err := c.DeleteStatefulSet(statefulSetName, dormantDb.Namespace); err != nil {
 		log.Errorln(err)
 		return err
 	}
 	return nil
 }
 
-func (c *Controller) WipeOutDatabase(deletedDb *tapi.DeletedDatabase) error {
+func (c *Controller) WipeOutDatabase(dormantDb *tapi.DormantDatabase) error {
 	labelMap := map[string]string{
-		amc.LabelDatabaseName: deletedDb.Name,
+		amc.LabelDatabaseName: dormantDb.Name,
 		amc.LabelDatabaseKind: tapi.ResourceKindPostgres,
 	}
 
 	labelSelector := labels.SelectorFromSet(labelMap)
 
-	if err := c.DeleteSnapshots(deletedDb.Namespace, labelSelector); err != nil {
+	if err := c.DeleteSnapshots(dormantDb.Namespace, labelSelector); err != nil {
 		log.Errorln(err)
 		return err
 	}
 
-	if err := c.DeletePersistentVolumeClaims(deletedDb.Namespace, labelSelector); err != nil {
+	if err := c.DeletePersistentVolumeClaims(dormantDb.Namespace, labelSelector); err != nil {
 		log.Errorln(err)
 		return err
 	}
 
-	if deletedDb.Spec.Origin.Spec.Postgres.DatabaseSecret != nil {
-		if err := c.deleteSecret(deletedDb); err != nil {
+	if dormantDb.Spec.Origin.Spec.Postgres.DatabaseSecret != nil {
+		if err := c.deleteSecret(dormantDb); err != nil {
 			return err
 		}
 
@@ -63,12 +63,12 @@ func (c *Controller) WipeOutDatabase(deletedDb *tapi.DeletedDatabase) error {
 	return nil
 }
 
-func (c *Controller) deleteSecret(deletedDb *tapi.DeletedDatabase) error {
+func (c *Controller) deleteSecret(dormantDb *tapi.DormantDatabase) error {
 
 	var secretFound bool = false
-	deletedDatabaseSecret := deletedDb.Spec.Origin.Spec.Postgres.DatabaseSecret
+	dormantDatabaseSecret := dormantDb.Spec.Origin.Spec.Postgres.DatabaseSecret
 
-	postgresList, err := c.ExtClient.Postgreses(deletedDb.Namespace).List(kapi.ListOptions{})
+	postgresList, err := c.ExtClient.Postgreses(dormantDb.Namespace).List(kapi.ListOptions{})
 	if err != nil {
 		return err
 	}
@@ -76,7 +76,7 @@ func (c *Controller) deleteSecret(deletedDb *tapi.DeletedDatabase) error {
 	for _, postgres := range postgresList.Items {
 		databaseSecret := postgres.Spec.DatabaseSecret
 		if databaseSecret != nil {
-			if databaseSecret.SecretName == deletedDatabaseSecret.SecretName {
+			if databaseSecret.SecretName == dormantDatabaseSecret.SecretName {
 				secretFound = true
 				break
 			}
@@ -90,7 +90,7 @@ func (c *Controller) deleteSecret(deletedDb *tapi.DeletedDatabase) error {
 
 		labelSelector := labels.SelectorFromSet(labelMap)
 
-		deletedDatabaseList, err := c.ExtClient.DeletedDatabases(deletedDb.Namespace).List(
+		dormantDatabaseList, err := c.ExtClient.DormantDatabases(dormantDb.Namespace).List(
 			kapi.ListOptions{
 				LabelSelector: labelSelector,
 			},
@@ -99,14 +99,14 @@ func (c *Controller) deleteSecret(deletedDb *tapi.DeletedDatabase) error {
 			return err
 		}
 
-		for _, ddb := range deletedDatabaseList.Items {
-			if ddb.Name == deletedDb.Name {
+		for _, ddb := range dormantDatabaseList.Items {
+			if ddb.Name == dormantDb.Name {
 				continue
 			}
 
 			databaseSecret := ddb.Spec.Origin.Spec.Postgres.DatabaseSecret
 			if databaseSecret != nil {
-				if databaseSecret.SecretName == deletedDatabaseSecret.SecretName {
+				if databaseSecret.SecretName == dormantDatabaseSecret.SecretName {
 					secretFound = true
 					break
 				}
@@ -115,7 +115,7 @@ func (c *Controller) deleteSecret(deletedDb *tapi.DeletedDatabase) error {
 	}
 
 	if !secretFound {
-		if err := c.DeleteSecret(deletedDatabaseSecret.SecretName, deletedDb.Namespace); err != nil {
+		if err := c.DeleteSecret(dormantDatabaseSecret.SecretName, dormantDb.Namespace); err != nil {
 			return err
 		}
 	}
@@ -123,8 +123,8 @@ func (c *Controller) deleteSecret(deletedDb *tapi.DeletedDatabase) error {
 	return nil
 }
 
-func (c *Controller) RecoverDatabase(deletedDb *tapi.DeletedDatabase) error {
-	origin := deletedDb.Spec.Origin
+func (c *Controller) ResumeDatabase(dormantDb *tapi.DormantDatabase) error {
+	origin := dormantDb.Spec.Origin
 	objectMeta := origin.ObjectMeta
 	postgres := &tapi.Postgres{
 		ObjectMeta: kapi.ObjectMeta{
