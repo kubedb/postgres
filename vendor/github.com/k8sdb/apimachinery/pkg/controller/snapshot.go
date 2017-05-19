@@ -57,7 +57,7 @@ func NewSnapshotController(
 	syncPeriod time.Duration,
 ) *SnapshotController {
 
-	// return new DeletedDatabase Controller
+	// return new DormantDatabase Controller
 	return &SnapshotController{
 		client:        client,
 		extClient:     extClient,
@@ -69,9 +69,9 @@ func NewSnapshotController(
 }
 
 func (c *SnapshotController) Run() {
-	// Ensure DeletedDatabase TPR
+	// Ensure DormantDatabase TPR
 	c.ensureThirdPartyResource()
-	// Watch DeletedDatabase with provided ListerWatcher
+	// Watch DormantDatabase with provided ListerWatcher
 	c.watch()
 }
 
