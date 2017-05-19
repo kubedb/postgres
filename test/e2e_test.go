@@ -51,7 +51,6 @@ func TestCreate(t *testing.T) {
 		fmt.Println("---- >> Failed to be deleted")
 	}
 
-
 	fmt.Println("---- >> WipingOut Database")
 	err = mini.WipeOutDormantDatabase(controller, postgres)
 	assert.Nil(t, err)
@@ -493,7 +492,7 @@ func TestUpdateScheduler(t *testing.T) {
 		return
 	} else {
 		err := mini.CheckPostgresWorkload(controller, postgres)
-		if !assert.Nil(t, err){
+		if !assert.Nil(t, err) {
 			return
 		}
 	}
@@ -533,7 +532,6 @@ func TestUpdateScheduler(t *testing.T) {
 	if !assert.True(t, done) {
 		fmt.Println("---- >> Failed to be deleted")
 	}
-
 
 	fmt.Println("---- >> WipingOut Database")
 	err = mini.WipeOutDormantDatabase(controller, postgres)

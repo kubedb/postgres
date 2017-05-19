@@ -16,10 +16,9 @@ func (c *Controller) validatePostgres(postgres *tapi.Postgres) error {
 		return fmt.Errorf(`Image %v:%v not found`, ImagePostgres, postgres.Spec.Version)
 	}
 
-	storage := postgres.Spec.Storage
-	if storage != nil {
+	if postgres.Spec.Storage != nil {
 		var err error
-		if storage, err = c.ValidateStorageSpec(storage); err != nil {
+		if _, err = c.ValidateStorageSpec(postgres.Spec.Storage); err != nil {
 			return err
 		}
 	}
