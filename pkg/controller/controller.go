@@ -95,7 +95,7 @@ func (c *Controller) watchPostgres() {
 				}
 			},
 			DeleteFunc: func(obj interface{}) {
-				if err := c.delete(obj.(*tapi.Postgres)); err != nil {
+				if err := c.pause(obj.(*tapi.Postgres)); err != nil {
 					log.Errorln(err)
 				}
 			},

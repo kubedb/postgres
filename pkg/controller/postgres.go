@@ -214,7 +214,7 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 				postgres,
 				kapi.EventTypeWarning,
 				eventer.EventReasonFailedToDelete,
-				`Failed to delete DormantDatabase: "%v". Reason: %v`,
+				`Failed to pause DormantDatabase: "%v". Reason: %v`,
 				dormantDb.Name,
 				err,
 			)
@@ -312,14 +312,14 @@ func (c *Controller) initialize(postgres *tapi.Postgres) error {
 	return nil
 }
 
-func (c *Controller) delete(postgres *tapi.Postgres) error {
+func (c *Controller) pause(postgres *tapi.Postgres) error {
 	c.eventRecorder.Event(postgres, kapi.EventTypeNormal, eventer.EventReasonPausing, "Pausing Postgres")
 
 	if postgres.Spec.DoNotPause {
 		c.eventRecorder.Eventf(
 			postgres,
 			kapi.EventTypeWarning,
-			eventer.EventReasonFailedToDelete,
+			eventer.EventReasonFailedToPause,
 			`Postgres "%v" is locked.`,
 			postgres.Name,
 		)
