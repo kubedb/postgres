@@ -48,10 +48,10 @@ type OriginSpec struct {
 type DormantDatabasePhase string
 
 const (
-	// used for Databases that are stopped
-	DormantDatabasePhaseStopped DormantDatabasePhase = "Stopped"
-	// used for Databases that are currently stopping
-	DormantDatabasePhaseStopping DormantDatabasePhase = "Stopping"
+	// used for Databases that are paused
+	DormantDatabasePhasePaused DormantDatabasePhase = "Paused"
+	// used for Databases that are currently pausing
+	DormantDatabasePhasePausing DormantDatabasePhase = "Pausing"
 	// used for Databases that are wiped out
 	DormantDatabasePhaseWipedOut DormantDatabasePhase = "WipedOut"
 	// used for Databases that are currently wiping out
@@ -62,7 +62,7 @@ const (
 
 type DormantDatabaseStatus struct {
 	CreationTime *unversioned.Time    `json:"creationTime,omitempty"`
-	DeletionTime *unversioned.Time    `json:"deletionTime,omitempty"`
+	PausingTime  *unversioned.Time    `json:"pausingTime,omitempty"`
 	WipeOutTime  *unversioned.Time    `json:"wipeOutTime,omitempty"`
 	Phase        DormantDatabasePhase `json:"phase,omitempty"`
 	Reason       string               `json:"reason,omitempty"`

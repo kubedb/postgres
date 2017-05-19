@@ -22,8 +22,8 @@ import (
 type Deleter interface {
 	// Check Database TPR
 	Exists(*kapi.ObjectMeta) (bool, error)
-	// Delete operation
-	DeleteDatabase(*tapi.DormantDatabase) error
+	// Pause operation
+	PauseDatabase(*tapi.DormantDatabase) error
 	// Wipe out operation
 	WipeOutDatabase(*tapi.DormantDatabase) error
 	// Resume operation
@@ -170,19 +170,19 @@ func (c *DormantDbController) create(dormantDb *tapi.DormantDatabase) error {
 		c.eventRecorder.Eventf(
 			dormantDb,
 			kapi.EventTypeWarning,
-			eventer.EventReasonFailedToDelete,
-			"Failed to delete Database. Reason: %v",
+			eventer.EventReasonFailedToPause,
+			"Failed to pause Database. Reason: %v",
 			err,
 		)
 		return err
 	}
 
 	if found {
-		message := "Failed to delete Database. Delete Database TPR object first"
+		message := "Failed to pause Database. Delete Database TPR object first"
 		c.eventRecorder.Event(
 			dormantDb,
 			kapi.EventTypeWarning,
-			eventer.EventReasonFailedToDelete,
+			eventer.EventReasonFailedToPause,
 			message,
 		)
 
@@ -206,7 +206,7 @@ func (c *DormantDbController) create(dormantDb *tapi.DormantDatabase) error {
 
 	// Set DormantDatabase Phase: Deleting
 	t = unversioned.Now()
-	dormantDb.Status.Phase = tapi.DormantDatabasePhaseStopping
+	dormantDb.Status.Phase = tapi.DormantDatabasePhasePausing
 	if _, err = c.extClient.DormantDatabases(dormantDb.Namespace).Update(dormantDb); err != nil {
 		c.eventRecorder.Eventf(
 			dormantDb,
@@ -218,15 +218,15 @@ func (c *DormantDbController) create(dormantDb *tapi.DormantDatabase) error {
 		return err
 	}
 
-	c.eventRecorder.Event(dormantDb, kapi.EventTypeNormal, eventer.EventReasonDeleting, "Deleting Database")
+	c.eventRecorder.Event(dormantDb, kapi.EventTypeNormal, eventer.EventReasonPausing, "Pausing Database")
 
-	// Delete Database workload
-	if err := c.deleter.DeleteDatabase(dormantDb); err != nil {
+	// Pause Database workload
+	if err := c.deleter.PauseDatabase(dormantDb); err != nil {
 		c.eventRecorder.Eventf(
 			dormantDb,
 			kapi.EventTypeWarning,
 			eventer.EventReasonFailedToDelete,
-			"Failed to delete. Reason: %v",
+			"Failed to pause. Reason: %v",
 			err,
 		)
 		return err
@@ -235,18 +235,18 @@ func (c *DormantDbController) create(dormantDb *tapi.DormantDatabase) error {
 	c.eventRecorder.Event(
 		dormantDb,
 		kapi.EventTypeNormal,
-		eventer.EventReasonSuccessfulDelete,
-		"Successfully deleted Database workload",
+		eventer.EventReasonSuccessfulPause,
+		"Successfully paused Database workload",
 	)
 
 	if dormantDb, err = c.extClient.DormantDatabases(dormantDb.Namespace).Get(dormantDb.Name); err != nil {
 		return err
 	}
 
-	// Set DormantDatabase Phase: Deleted
+	// Set DormantDatabase Phase: Paused
 	t = unversioned.Now()
-	dormantDb.Status.DeletionTime = &t
-	dormantDb.Status.Phase = tapi.DormantDatabasePhaseStopped
+	dormantDb.Status.PausingTime = &t
+	dormantDb.Status.Phase = tapi.DormantDatabasePhasePaused
 	if _, err = c.extClient.DormantDatabases(dormantDb.Namespace).Update(dormantDb); err != nil {
 		c.eventRecorder.Eventf(
 			dormantDb,
@@ -304,7 +304,7 @@ func (c *DormantDbController) update(oldDormantDb, updatedDormantDb *tapi.Dorman
 	}
 
 	if oldDormantDb.Spec.Resume != updatedDormantDb.Spec.Resume && updatedDormantDb.Spec.Resume {
-		if oldDormantDb.Status.Phase == tapi.DormantDatabasePhaseStopped {
+		if oldDormantDb.Status.Phase == tapi.DormantDatabasePhasePaused {
 			return c.resume(updatedDormantDb)
 		} else {
 			message := "Failed to resume Database. " +
@@ -472,7 +472,7 @@ func (c *DormantDbController) resume(dormantDb *tapi.DormantDatabase) error {
 			return err
 		}
 
-		dormantDb.Status.Phase = tapi.DormantDatabasePhaseStopped
+		dormantDb.Status.Phase = tapi.DormantDatabasePhasePaused
 		if _, err = c.extClient.DormantDatabases(dormantDb.Namespace).Update(dormantDb); err != nil {
 			c.eventRecorder.Eventf(
 				dormantDb,

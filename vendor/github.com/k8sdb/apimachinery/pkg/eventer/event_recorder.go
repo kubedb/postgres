@@ -9,9 +9,10 @@ import (
 
 const (
 	EventReasonCreating             string = "Creating"
-	EventReasonDeleting             string = "Deleting"
+	EventReasonPausing              string = "Pausing"
 	EventReasonWipingOut            string = "WipingOut"
 	EventReasonFailedToCreate       string = "Failed"
+	EventReasonFailedToPause        string = "Failed"
 	EventReasonFailedToDelete       string = "Failed"
 	EventReasonFailedToWipeOut      string = "Failed"
 	EventReasonFailedToGet          string = "Failed"
@@ -28,7 +29,7 @@ const (
 	EventReasonSnapshotFailed       string = "SnapshotFailed"
 	EventReasonStarting             string = "Starting"
 	EventReasonSuccessfulCreate     string = "SuccessfulCreate"
-	EventReasonSuccessfulDelete     string = "SuccessfulDelete"
+	EventReasonSuccessfulPause      string = "SuccessfulPause"
 	EventReasonSuccessfulWipeOut    string = "SuccessfulWipeOut"
 	EventReasonSuccessfulSnapshot   string = "SuccessfulSnapshot"
 	EventReasonSuccessfulValidate   string = "SuccessfulValidate"

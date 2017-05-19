@@ -20,7 +20,7 @@ func (c *Controller) Exists(om *kapi.ObjectMeta) (bool, error) {
 	return true, nil
 }
 
-func (c *Controller) DeleteDatabase(dormantDb *tapi.DormantDatabase) error {
+func (c *Controller) StopDatabase(dormantDb *tapi.DormantDatabase) error {
 	// Delete Service
 	if err := c.DeleteService(dormantDb.Name, dormantDb.Namespace); err != nil {
 		log.Errorln(err)
