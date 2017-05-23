@@ -45,7 +45,7 @@ func TestCreate(t *testing.T) {
 	assert.Nil(t, err)
 
 	fmt.Println("---- >> Checking DormantDatabase")
-	done, err := mini.CheckDormantDatabasePhase(controller, postgres, tapi.DormantDatabasePhaseStopped)
+	done, err := mini.CheckDormantDatabasePhase(controller, postgres, tapi.DormantDatabasePhasePaused)
 	assert.Nil(t, err)
 	if !assert.True(t, done) {
 		fmt.Println("---- >> Failed to be deleted")
@@ -73,7 +73,7 @@ func TestCreate(t *testing.T) {
 	}
 }
 
-func TestDoNotDelete(t *testing.T) {
+func TestDoNotPause(t *testing.T) {
 	controller, err := getController()
 	if !assert.Nil(t, err) {
 		return
@@ -86,7 +86,7 @@ func TestDoNotDelete(t *testing.T) {
 	fmt.Println("-- >> Testing postgres")
 	fmt.Println("---- >> Creating Postgres")
 	postgres := mini.NewPostgres()
-	postgres.Spec.DoNotDelete = true
+	postgres.Spec.DoNotPause = true
 	postgres, err = controller.ExtClient.Postgreses("default").Create(postgres)
 	if !assert.Nil(t, err) {
 		return
@@ -119,7 +119,7 @@ func TestDoNotDelete(t *testing.T) {
 	}
 
 	postgres, _ = controller.ExtClient.Postgreses(postgres.Namespace).Get(postgres.Name)
-	postgres.Spec.DoNotDelete = false
+	postgres.Spec.DoNotPause = false
 	postgres, err = mini.UpdatePostgres(controller, postgres)
 	if !assert.Nil(t, err) {
 		return
@@ -131,7 +131,7 @@ func TestDoNotDelete(t *testing.T) {
 	assert.Nil(t, err)
 
 	fmt.Println("---- >> Checking DormantDatabase")
-	done, err := mini.CheckDormantDatabasePhase(controller, postgres, tapi.DormantDatabasePhaseStopped)
+	done, err := mini.CheckDormantDatabasePhase(controller, postgres, tapi.DormantDatabasePhasePaused)
 	assert.Nil(t, err)
 	if !assert.True(t, done) {
 		fmt.Println("---- >> Failed to be deleted")
@@ -235,7 +235,7 @@ func TestSnapshot(t *testing.T) {
 	assert.Nil(t, err)
 
 	fmt.Println("---- >> Checking DormantDatabase")
-	done, err = mini.CheckDormantDatabasePhase(controller, postgres, tapi.DormantDatabasePhaseStopped)
+	done, err = mini.CheckDormantDatabasePhase(controller, postgres, tapi.DormantDatabasePhasePaused)
 	assert.Nil(t, err)
 	if !assert.True(t, done) {
 		fmt.Println("---- >> Failed to be deleted")
@@ -280,7 +280,7 @@ func TestDatabaseResumey(t *testing.T) {
 	assert.Nil(t, err)
 
 	fmt.Println("---- >> Checking DormantDatabase")
-	done, err := mini.CheckDormantDatabasePhase(controller, postgres, tapi.DormantDatabasePhaseStopped)
+	done, err := mini.CheckDormantDatabasePhase(controller, postgres, tapi.DormantDatabasePhasePaused)
 	assert.Nil(t, err)
 	if !assert.True(t, done) {
 		fmt.Println("---- >> Failed to be delete")
@@ -317,7 +317,7 @@ func TestDatabaseResumey(t *testing.T) {
 	assert.Nil(t, err)
 
 	fmt.Println("---- >> Checking DormantDatabase")
-	done, err = mini.CheckDormantDatabasePhase(controller, postgres, tapi.DormantDatabasePhaseStopped)
+	done, err = mini.CheckDormantDatabasePhase(controller, postgres, tapi.DormantDatabasePhasePaused)
 	assert.Nil(t, err)
 	if !assert.True(t, done) {
 		fmt.Println("---- >> Failed to be delete")
@@ -447,7 +447,7 @@ func TestInitialize(t *testing.T) {
 	assert.Nil(t, err)
 
 	fmt.Println("---- >> Checking DormantDatabase")
-	done, err = mini.CheckDormantDatabasePhase(controller, postgres, tapi.DormantDatabasePhaseStopped)
+	done, err = mini.CheckDormantDatabasePhase(controller, postgres, tapi.DormantDatabasePhasePaused)
 	assert.Nil(t, err)
 	if !assert.True(t, done) {
 		fmt.Println("---- >> Failed to be deleted")
@@ -458,7 +458,7 @@ func TestInitialize(t *testing.T) {
 	assert.Nil(t, err)
 
 	fmt.Println("---- >> Checking DormantDatabase")
-	done, err = mini.CheckDormantDatabasePhase(controller, postgres_init, tapi.DormantDatabasePhaseStopped)
+	done, err = mini.CheckDormantDatabasePhase(controller, postgres_init, tapi.DormantDatabasePhasePaused)
 	assert.Nil(t, err)
 	if !assert.True(t, done) {
 		fmt.Println("---- >> Failed to be deleted")
@@ -527,7 +527,7 @@ func TestUpdateScheduler(t *testing.T) {
 	assert.Nil(t, err)
 
 	fmt.Println("---- >> Checking DormantDatabase")
-	done, err := mini.CheckDormantDatabasePhase(controller, postgres, tapi.DormantDatabasePhaseStopped)
+	done, err := mini.CheckDormantDatabasePhase(controller, postgres, tapi.DormantDatabasePhasePaused)
 	assert.Nil(t, err)
 	if !assert.True(t, done) {
 		fmt.Println("---- >> Failed to be deleted")
