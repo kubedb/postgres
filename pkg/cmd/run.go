@@ -37,9 +37,7 @@ func NewCmdRun() *cobra.Command {
 
 			config, err := clientcmd.BuildConfigFromFlags(masterURL, kubeconfigPath)
 			if err != nil {
-				fmt.Printf("Could not get kubernetes config: %s", err)
-				time.Sleep(30 * time.Second)
-				panic(err)
+				log.Fatalf("Could not get kubernetes config: %s", err)
 			}
 
 			// Check postgres docker image tag
@@ -52,9 +50,7 @@ func NewCmdRun() *cobra.Command {
 
 			cgConfig, err := cgcmd.BuildConfigFromFlags(masterURL, kubeconfigPath)
 			if err != nil {
-				fmt.Printf("Could not get kubernetes config: %s", err)
-				time.Sleep(30 * time.Second)
-				panic(err)
+				log.Fatalf("Could not get kubernetes config: %s", err)
 			}
 
 			promClient, err := pcm.NewForConfig(cgConfig)
