@@ -33,8 +33,6 @@ func NewCmdRun() *cobra.Command {
 		Use:   "run",
 		Short: "Run Postgres in Kubernetes",
 		Run: func(cmd *cobra.Command, args []string) {
-			defer runtime.HandleCrash()
-
 			config, err := clientcmd.BuildConfigFromFlags(masterURL, kubeconfigPath)
 			if err != nil {
 				log.Fatalf("Could not get kubernetes config: %s", err)
@@ -59,6 +57,7 @@ func NewCmdRun() *cobra.Command {
 			}
 
 			w := controller.New(client, extClient, promClient, postgresUtilTag, governingService)
+			defer runtime.HandleCrash()
 			fmt.Println("Starting operator...")
 			w.RunAndHold()
 		},
