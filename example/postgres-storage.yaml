@@ -3,13 +3,7 @@ kind: Postgres
 metadata:
   name: postgres-demo
 spec:
-  Version: canary-db
-  Replicas: 1
-  BackupSchedule:
-    CronExpression: "@every 6h"
-    BucketName: ""
-    StorageSecret:
-      SecretName: ""
+  Version: 9.5-db
   Storage:
     Class: ""
     AccessModes:
