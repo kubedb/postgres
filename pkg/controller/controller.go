@@ -104,6 +104,25 @@ func (c *Controller) watchPostgres() {
 				if postgres.Status.CreationTime == nil {
 					if err := c.create(postgres); err != nil {
 						log.Errorln(err)
+
+						var _err error
+						if postgres, _err = c.ExtClient.Postgreses(postgres.Namespace).Get(postgres.Name); _err != nil {
+							log.Errorln(_err)
+						} else {
+							postgres.Status.Phase = tapi.DatabasePhaseFailed
+							postgres.Status.Reason = err.Error()
+							if _, err := c.ExtClient.Postgreses(postgres.Namespace).Update(postgres); err != nil {
+								c.eventRecorder.Eventf(
+									postgres,
+									kapi.EventTypeWarning,
+									eventer.EventReasonFailedToUpdate,
+									`Fail to update Postgres: "%v". Reason: %v`,
+									postgres.Name,
+									err,
+								)
+								log.Errorln(err)
+							}
+						}
 					}
 				}
 			},

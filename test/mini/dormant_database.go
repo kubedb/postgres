@@ -35,7 +35,7 @@ func CheckDormantDatabasePhase(c *controller.Controller, postgres *tapi.Postgres
 			break
 		}
 
-		time.Sleep(time.Minute)
+		time.Sleep(time.Second * 10)
 		now = time.Now()
 
 	}

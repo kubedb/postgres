@@ -149,7 +149,7 @@ func CheckSnapshotScheduler(c *controller.Controller, postgres *tapi.Postgres) e
 			return nil
 		}
 
-		time.Sleep(time.Second * 30)
+		time.Sleep(time.Second * 10)
 		now = time.Now()
 	}
 
