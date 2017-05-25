@@ -143,7 +143,7 @@ func (c *PrometheusController) ensureExporterPods() error {
 }
 
 func (c *PrometheusController) ensureExporterService() error {
-	if _, err := c.kubeClient.Core().Services(c.exporterNamespace).Get(exporterName); !cgerr.IsNotFound(err) {
+	if _, err := c.kubeClient.Core().Services(c.exporterNamespace).Get(exporterName); !kerr.IsNotFound(err) {
 		return err
 	}
 	svc := &kapi.Service{
@@ -165,7 +165,7 @@ func (c *PrometheusController) ensureExporterService() error {
 			Selector: exporterLabel,
 		},
 	}
-	if _, err := c.kubeClient.Core().Services(c.exporterNamespace).Create(svc); !cgerr.IsAlreadyExists(err) {
+	if _, err := c.kubeClient.Core().Services(c.exporterNamespace).Create(svc); !kerr.IsAlreadyExists(err) {
 		return err
 	}
 	return nil
@@ -216,7 +216,7 @@ func (c *PrometheusController) createServiceMonitor(meta kapi.ObjectMeta, spec *
 				{
 					Port:     portName,
 					Interval: spec.Prometheus.Interval,
-					Path:     fmt.Sprintf("/kubedb.com/v1beta1/namespaces/:%s/:%s/:%s/metrics", meta.Namespace, getTypeFromSelfLink(meta.SelfLink), meta.Name),
+					Path:     fmt.Sprintf("/kubedb.com/v1beta1/namespaces/%s/%s/%s/metrics", meta.Namespace, getTypeFromSelfLink(meta.SelfLink), meta.Name),
 				},
 			},
 			Selector: unversioned.LabelSelector{

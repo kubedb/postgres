@@ -1,7 +1,7 @@
 apiVersion: kubedb.com/v1beta1
 kind: Postgres
 metadata:
-  name: postgres-monitor-demo
+  name: postgres-monitor-demo-3
 spec:
   version: 9.5-db
   replicas: 1
