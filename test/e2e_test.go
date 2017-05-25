@@ -501,7 +501,6 @@ func TestInitialize(t *testing.T) {
 		fmt.Println("---- >> Failed to be deleted")
 	}
 
-
 	fmt.Println("---- >> WipingOut Database")
 	err = mini.WipeOutDormantDatabase(controller, postgres)
 	assert.Nil(t, err)
@@ -533,7 +532,6 @@ func TestInitialize(t *testing.T) {
 	if !assert.True(t, done) {
 		fmt.Println("---- >> Failed to be deleted")
 	}
-
 
 	fmt.Println("---- >> WipingOut Database")
 	err = mini.WipeOutDormantDatabase(controller, postgres_init)

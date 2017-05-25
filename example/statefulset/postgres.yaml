@@ -19,7 +19,7 @@ spec:
       containers:
       - args:
         - basic
-        image: k8sdb/postgres:canary-db
+        image: kubedb/postgres:canary-db
         imagePullPolicy: IfNotPresent
         name: postgres
         ports:

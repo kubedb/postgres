@@ -7,7 +7,7 @@ set -o pipefail
 GOPATH=$(go env GOPATH)
 REPO_ROOT=$GOPATH/src/github.com/k8sdb/postgres
 
-source "$REPO_ROOT/hack/libbuild/common/k8sdb_image.sh"
+source "$REPO_ROOT/hack/libbuild/common/kubedb_image.sh"
 
 IMG=postgres
 TAG=9.5
@@ -22,7 +22,7 @@ build() {
     for name in "${docker_names[@]}"
     do
         cd $name
-        docker build -t k8sdb/$IMG:$TAG-$name .
+        docker build -t kubedb/$IMG:$TAG-$name .
         cd ..
     done
 	popd
@@ -31,14 +31,14 @@ build() {
 docker_push() {
     for name in "${docker_names[@]}"
     do
-        docker push k8sdb/$IMG:$TAG-$name
+        docker push kubedb/$IMG:$TAG-$name
     done
 }
 
 docker_release() {
     for name in "${docker_names[@]}"
     do
-        docker push k8sdb/$IMG:$TAG-$name
+        docker push kubedb/$IMG:$TAG-$name
     done
 }
 
@@ -47,7 +47,7 @@ docker_check() {
     do
         echo "Chcking $IMG ..."
         name=$i-$(date +%s | sha256sum | base64 | head -c 8 ; echo)
-        docker run -d -P -it --name=$name k8sdb/$IMG:$TAG-$i
+        docker run -d -P -it --name=$name kubedb/$IMG:$TAG-$i
         docker exec -it $name ps aux
         sleep 5
         docker exec -it $name ps aux
