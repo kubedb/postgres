@@ -23,3 +23,26 @@ func (c *Controller) newMonitorController(postgres *tapi.Postgres) (monitor.Moni
 
 	return nil, fmt.Errorf("Monitoring controller not found for %v", monitorSpec)
 }
+
+const (
+	Prometheus int = 1 + iota
+)
+
+func (c *Controller) isMonitorControllerChanged(old, new *tapi.Postgres) bool {
+	oldMonitorSpec := old.Spec.Monitor
+	newMonitorSpec := new.Spec.Monitor
+
+	if oldMonitorSpec == nil || newMonitorSpec == nil {
+		return false
+	}
+
+	var oldI, newI int
+	if oldMonitorSpec.Prometheus != nil {
+		oldI = Prometheus
+	}
+	if newMonitorSpec.Prometheus != nil {
+		newI = Prometheus
+	}
+
+	return oldI != newI
+}
