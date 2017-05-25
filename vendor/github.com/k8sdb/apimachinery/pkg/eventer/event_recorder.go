@@ -21,6 +21,7 @@ const (
 	EventReasonFailedToResume       string = "Failed"
 	EventReasonFailedToSchedule     string = "Failed"
 	EventReasonFailedToStart        string = "Failed"
+	EventReasonFailedToMonitor         string = "Failed"
 	EventReasonFailedToUpdate       string = "Failed"
 	EventReasonIgnoredSnapshot      string = "IgnoredSnapshot"
 	EventReasonInitializing         string = "Initializing"

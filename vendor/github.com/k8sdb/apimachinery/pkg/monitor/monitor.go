@@ -6,7 +6,7 @@ import (
 )
 
 type Monitor interface {
-	AddMonitor(*kapi.ObjectMeta, *tapi.MonitorSpec) error
-	UpdateMonitor(*kapi.ObjectMeta, *tapi.MonitorSpec) error
-	DeleteMonitor(*kapi.ObjectMeta, *tapi.MonitorSpec) error
+	AddMonitor(meta *kapi.ObjectMeta, spec *tapi.MonitorSpec) error
+	UpdateMonitor(meta *kapi.ObjectMeta, old, new *tapi.MonitorSpec) error
+	DeleteMonitor(meta *kapi.ObjectMeta, spec *tapi.MonitorSpec) error
 }

@@ -13,6 +13,10 @@ import (
 	kapi "k8s.io/kubernetes/pkg/api"
 	k8serr "k8s.io/kubernetes/pkg/api/errors"
 	"k8s.io/kubernetes/pkg/api/unversioned"
+	amp "github.com/k8sdb/apimachinery/pkg/monitor"
+	"strings"
+	"io/ioutil"
+	"os"
 )
 
 func (c *Controller) create(postgres *tapi.Postgres) error {
@@ -202,6 +206,20 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 		}
 	}
 
+	//Check Prometheus monitoring is enable
+	if postgres.Spec.Monitor.Prometheus != nil {
+		monitor := amp.NewPrometheusController(c.Client, c.promClient, namespace(), "")
+		if err := monitor.AddMonitor(postgres.ObjectMeta, postgres.Spec.Monitor); err != nil {
+			c.eventRecorder.Eventf(
+				postgres,
+				kapi.EventTypeWarning,
+				eventer.EventReasonFailedToMonitor,
+				"Faild to monitor postgres. Reason: %v",
+				err,
+			)
+			log.Errorln(err)
+		}
+	}
 	return nil
 }
 
@@ -341,4 +359,19 @@ func (c *Controller) update(oldPostgres, updatedPostgres *tapi.Postgres) error {
 		}
 	}
 	return nil
+}
+
+func namespace() string {
+	if ns := os.Getenv("KUBEDB_OPERATOR_NAMESPACE"); ns != "" {
+		return ns
+	}
+
+	// Fall back to the namespace associated with the service account token, if available
+	if data, err := ioutil.ReadFile("/var/run/secrets/kubernetes.io/serviceaccount/namespace"); err == nil {
+		if ns := strings.TrimSpace(string(data)); len(ns) > 0 {
+			return ns
+		}
+	}
+
+	return kapi.NamespaceDefault
 }
