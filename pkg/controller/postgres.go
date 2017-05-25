@@ -13,10 +13,7 @@ import (
 	kapi "k8s.io/kubernetes/pkg/api"
 	k8serr "k8s.io/kubernetes/pkg/api/errors"
 	"k8s.io/kubernetes/pkg/api/unversioned"
-	amp "github.com/k8sdb/apimachinery/pkg/monitor"
-	"strings"
-	"io/ioutil"
-	"os"
+	"github.com/k8sdb/apimachinery/pkg/monitor"
 )
 
 func (c *Controller) create(postgres *tapi.Postgres) error {
@@ -184,7 +181,7 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 			postgres,
 			kapi.EventTypeWarning,
 			eventer.EventReasonFailedToUpdate,
-			`Fail to update Postgres: "%v". Reason: %v`,
+			`Failed to update Postgres: "%v". Reason: %v`,
 			postgres.Name,
 			err,
 		)
@@ -206,15 +203,26 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 		}
 	}
 
-	//Check Prometheus monitoring is enable
-	if postgres.Spec.Monitor.Prometheus != nil {
-		monitor := amp.NewPrometheusController(c.Client, c.promClient, namespace(), "")
+	//Check monitoring is enable
+	if postgres.Spec.Monitor != nil {
+		monitor, err := c.newMonitorController(postgres)
+		if err != nil {
+			c.eventRecorder.Eventf(
+				postgres,
+				kapi.EventTypeWarning,
+				eventer.EventReasonFailedToInitialize,
+				"Failed to initialize monitoring. Reason: %v",
+				err,
+			)
+			log.Errorln(err)
+			return nil
+		}
 		if err := monitor.AddMonitor(postgres.ObjectMeta, postgres.Spec.Monitor); err != nil {
 			c.eventRecorder.Eventf(
 				postgres,
 				kapi.EventTypeWarning,
 				eventer.EventReasonFailedToMonitor,
-				"Faild to monitor postgres. Reason: %v",
+				"Failed to monitor postgres. Reason: %v",
 				err,
 			)
 			log.Errorln(err)
@@ -357,21 +365,36 @@ func (c *Controller) update(oldPostgres, updatedPostgres *tapi.Postgres) error {
 		} else {
 			c.cronController.StopBackupScheduling(updatedPostgres.ObjectMeta)
 		}
-	}
-	return nil
-}
-
-func namespace() string {
-	if ns := os.Getenv("KUBEDB_OPERATOR_NAMESPACE"); ns != "" {
-		return ns
-	}
-
-	// Fall back to the namespace associated with the service account token, if available
-	if data, err := ioutil.ReadFile("/var/run/secrets/kubernetes.io/serviceaccount/namespace"); err == nil {
-		if ns := strings.TrimSpace(string(data)); len(ns) > 0 {
-			return ns
+		if !reflect.DeepEqual(oldPostgres.Spec.Monitor, updatedPostgres.Spec.Monitor) {
+			var err error
+			var monitor monitor.Monitor
+			if updatedPostgres.Spec.Monitor == nil {
+				monitor, err = c.newMonitorController(oldPostgres)
+			}else {
+				monitor, err = c.newMonitorController(updatedPostgres)
+			}
+			if err != nil {
+				c.eventRecorder.Eventf(
+					updatedPostgres,
+					kapi.EventTypeWarning,
+					eventer.EventReasonFailedToInitialize,
+					"Failed to initialize monitoring. Reason: %v",
+					err,
+				)
+				log.Errorln(err)
+				return nil
+			}
+			if err = monitor.UpdateMonitor(updatedPostgres.ObjectMeta, oldPostgres.Spec.Monitor, updatedPostgres.Spec.Monitor); err != nil {
+				c.eventRecorder.Eventf(
+					updatedPostgres,
+					kapi.EventTypeWarning,
+					eventer.EventReasonFailedToUpdate,
+					"Failed to update monitoring. Reason: %v",
+					err,
+				)
+				log.Errorln(err)
+			}
 		}
 	}
-
-	return kapi.NamespaceDefault
+	return nil
 }
