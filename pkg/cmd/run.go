@@ -19,18 +19,18 @@ import (
 	"k8s.io/kubernetes/pkg/util/runtime"
 )
 
-const (
-	// Default tag
-	canary = "canary-util"
-)
-
 func NewCmdRun() *cobra.Command {
 	var (
 		masterURL      string
 		kubeconfigPath string
 	)
 
-	opt := &controller.Option{}
+	opt := &controller.Option{
+		PostgresUtilTag:   "canary-util",
+		ExporterNamespace: namespace(),
+		ExporterTag:       "canary",
+		GoverningService:  "kubedb",
+	}
 
 	cmd := &cobra.Command{
 		Use:   "run",
@@ -70,12 +70,13 @@ func NewCmdRun() *cobra.Command {
 			w.RunAndHold()
 		},
 	}
+
 	cmd.Flags().StringVar(&masterURL, "master", "", "The address of the Kubernetes API server (overrides any value in kubeconfig)")
 	cmd.Flags().StringVar(&kubeconfigPath, "kubeconfig", "", "Path to kubeconfig file with authorization information (the master location is set by the master flag).")
-	cmd.Flags().StringVar(&opt.PostgresUtilTag, "postgres-util", canary, "Tag of postgres util")
-	cmd.Flags().StringVar(&opt.ExporterNamespace, "exporter-ns", namespace(), "Namespace for monitoring exporter")
-	cmd.Flags().StringVar(&opt.ExporterTag, "exporter", canary, "Tag of monitoring expoter")
-	cmd.Flags().StringVar(&opt.GoverningService, "governing-service", "kubedb", "Governing service for database statefulset")
+	cmd.Flags().StringVar(&opt.PostgresUtilTag, "postgres-util", opt.PostgresUtilTag, "Tag of postgres util")
+	cmd.Flags().StringVar(&opt.ExporterNamespace, "exporter-ns", opt.ExporterNamespace, "Namespace for monitoring exporter")
+	cmd.Flags().StringVar(&opt.ExporterTag, "exporter", opt.ExporterTag, "Tag of monitoring expoter")
+	cmd.Flags().StringVar(&opt.GoverningService, "governing-service", opt.GoverningService, "Governing service for database statefulset")
 	return cmd
 }
 
