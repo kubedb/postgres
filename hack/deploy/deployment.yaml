@@ -2,22 +2,22 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   labels:
-    run: k8spg-operator
-  name: k8spg-operator
+    run: pg-operator
+  name: pg-operator
   namespace: default
 spec:
   replicas: 1
   selector:
     matchLabels:
-      run: k8spg-operator
+      run: pg-operator
   template:
     metadata:
       labels:
-        run: k8spg-operator
+        run: pg-operator
     spec:
       containers:
-      - name: k8sdb-pg
-        image: k8sdb/k8s-pg:0.1.0
+      - name: operator
+        image: kubedb/pg-operator:canary
         args:
         - run
         - --postgres-util=0.1.0-util

@@ -45,7 +45,7 @@ func NewPrometheusController(kubeClient clientset.Interface, promClient *v1alpha
 	}
 }
 
-func (c *PrometheusController) AddMonitor(meta *kapi.ObjectMeta, spec *tapi.MonitorSpec) error {
+func (c *PrometheusController) AddMonitor(meta kapi.ObjectMeta, spec *tapi.MonitorSpec) error {
 	if !c.SupportsCoreOSOperator() {
 		return errors.New("Cluster does not support CoreOS Prometheus operator")
 	}
@@ -56,7 +56,7 @@ func (c *PrometheusController) AddMonitor(meta *kapi.ObjectMeta, spec *tapi.Moni
 	return c.ensureServiceMonitor(meta, spec, spec)
 }
 
-func (c *PrometheusController) UpdateMonitor(meta *kapi.ObjectMeta, old, new *tapi.MonitorSpec) error {
+func (c *PrometheusController) UpdateMonitor(meta kapi.ObjectMeta, old, new *tapi.MonitorSpec) error {
 	if !c.SupportsCoreOSOperator() {
 		return errors.New("Cluster does not support CoreOS Prometheus operator")
 	}
@@ -67,7 +67,7 @@ func (c *PrometheusController) UpdateMonitor(meta *kapi.ObjectMeta, old, new *ta
 	return c.ensureServiceMonitor(meta, old, new)
 }
 
-func (c *PrometheusController) DeleteMonitor(meta *kapi.ObjectMeta, spec *tapi.MonitorSpec) error {
+func (c *PrometheusController) DeleteMonitor(meta kapi.ObjectMeta, spec *tapi.MonitorSpec) error {
 	if !c.SupportsCoreOSOperator() {
 		return errors.New("Cluster does not support CoreOS Prometheus operator")
 	}
@@ -89,7 +89,7 @@ func (c *PrometheusController) SupportsCoreOSOperator() bool {
 	return true
 }
 
-func (c *PrometheusController) ensureExporter(meta *kapi.ObjectMeta) error {
+func (c *PrometheusController) ensureExporter(meta kapi.ObjectMeta) error {
 	if err := c.ensureExporterPods(); err != nil {
 		return err
 	}
@@ -169,22 +169,26 @@ func (c *PrometheusController) ensureExporterService() error {
 	return nil
 }
 
-func (c *PrometheusController) ensureServiceMonitor(meta *kapi.ObjectMeta, old, new *tapi.MonitorSpec) error {
+func (c *PrometheusController) ensureServiceMonitor(meta kapi.ObjectMeta, old, new *tapi.MonitorSpec) error {
 	name := getServiceMonitorName(meta)
-	if old.Prometheus.Namespace != new.Prometheus.Namespace {
+	if new == nil || old.Prometheus.Namespace != new.Prometheus.Namespace {
 		err := c.promClient.ServiceMonitors(old.Prometheus.Namespace).Delete(name, nil)
 		if err != nil && !kerr.IsNotFound(err) {
 			return err
 		}
+		if new == nil {
+			return nil
+		}
 	}
+
 	actual, err := c.promClient.ServiceMonitors(new.Prometheus.Namespace).Get(name)
 	if kerr.IsNotFound(err) {
 		return c.createServiceMonitor(meta, new)
 	} else if err != nil {
 		return err
 	}
-	if !reflect.DeepEqual(old.Prometheus.Labels, new.Prometheus.Labels) ||
-		old.Prometheus.Interval != new.Prometheus.Interval {
+	if old != nil &&
+		(!reflect.DeepEqual(old.Prometheus.Labels, new.Prometheus.Labels) || old.Prometheus.Interval != new.Prometheus.Interval) {
 		actual.Labels = new.Prometheus.Labels
 		for _, e := range actual.Spec.Endpoints {
 			e.Interval = new.Prometheus.Interval
@@ -195,7 +199,7 @@ func (c *PrometheusController) ensureServiceMonitor(meta *kapi.ObjectMeta, old, 
 	return nil
 }
 
-func (c *PrometheusController) createServiceMonitor(meta *kapi.ObjectMeta, spec *tapi.MonitorSpec) error {
+func (c *PrometheusController) createServiceMonitor(meta kapi.ObjectMeta, spec *tapi.MonitorSpec) error {
 	sm := &prom.ServiceMonitor{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      getServiceMonitorName(meta),
@@ -232,6 +236,6 @@ func getTypeFromSelfLink(selfLink string) string {
 	return s[len(s)-2]
 }
 
-func getServiceMonitorName(meta *kapi.ObjectMeta) string {
+func getServiceMonitorName(meta kapi.ObjectMeta) string {
 	return fmt.Sprintf("kubedb-%s-%s", meta.Namespace, meta.Name)
 }
