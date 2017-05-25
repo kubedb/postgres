@@ -57,6 +57,13 @@ func (c *PrometheusController) AddMonitor(meta *kapi.ObjectMeta, spec *tapi.Moni
 }
 
 func (c *PrometheusController) UpdateMonitor(meta *kapi.ObjectMeta, old, new *tapi.MonitorSpec) error {
+	if new == nil {
+		return c.DeleteMonitor(meta, old)
+	}
+	if old == nil {
+		old = new
+	}
+
 	if !c.SupportsCoreOSOperator() {
 		return errors.New("Cluster does not support CoreOS Prometheus operator")
 	}
@@ -210,7 +217,7 @@ func (c *PrometheusController) createServiceMonitor(meta *kapi.ObjectMeta, spec 
 				{
 					Port:     portName,
 					Interval: spec.Prometheus.Interval,
-					Path:     fmt.Sprintf("/k8sdb.com/v1beta1/namespaces/:%s/:%s/:%s/metrics", meta.Namespace, getTypeFromSelfLink(meta.SelfLink), meta.Name),
+					Path:     fmt.Sprintf("/kubedb.com/v1beta1/namespaces/:%s/:%s/:%s/metrics", meta.Namespace, getTypeFromSelfLink(meta.SelfLink), meta.Name),
 				},
 			},
 			Selector: unversioned.LabelSelector{
