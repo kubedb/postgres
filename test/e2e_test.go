@@ -172,8 +172,8 @@ func TestSnapshot(t *testing.T) {
 	}
 
 	const (
-		bucket     = "restic"
-		secretName = "google-cred"
+		bucket     = ""
+		secretName = ""
 	)
 
 	snapshotSpec := tapi.SnapshotSpec{
@@ -406,8 +406,8 @@ func TestInitialize(t *testing.T) {
 	}
 
 	const (
-		bucket     = "restic"
-		secretName = "google-cred"
+		bucket     = ""
+		secretName = ""
 	)
 
 	snapshotSpec := tapi.SnapshotSpec{
@@ -597,9 +597,9 @@ func TestUpdateScheduler(t *testing.T) {
 	postgres.Spec.BackupSchedule = &tapi.BackupScheduleSpec{
 		CronExpression: "@every 30s",
 		SnapshotStorageSpec: tapi.SnapshotStorageSpec{
-			BucketName: "restic",
+			BucketName: "",
 			StorageSecret: &kapi.SecretVolumeSource{
-				SecretName: "google-cred",
+				SecretName: "",
 			},
 		},
 	}
