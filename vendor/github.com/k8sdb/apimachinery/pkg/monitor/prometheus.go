@@ -14,6 +14,7 @@ import (
 	"k8s.io/client-go/pkg/api/v1"
 	kapi "k8s.io/kubernetes/pkg/api"
 	kerr "k8s.io/kubernetes/pkg/api/errors"
+	uv "k8s.io/kubernetes/pkg/api/unversioned"
 	kepi "k8s.io/kubernetes/pkg/apis/extensions"
 	clientset "k8s.io/kubernetes/pkg/client/clientset_generated/internalclientset"
 	"k8s.io/kubernetes/pkg/util/intstr"
@@ -110,8 +111,14 @@ func (c *PrometheusController) ensureExporterPods() error {
 			Labels:    exporterLabel,
 		},
 		Spec: kepi.DeploymentSpec{
+			Selector: &uv.LabelSelector{
+				MatchLabels: exporterLabel,
+			},
 			Replicas: 1,
 			Template: kapi.PodTemplateSpec{
+				ObjectMeta: kapi.ObjectMeta{
+					Labels: exporterLabel,
+				},
 				Spec: kapi.PodSpec{
 					Containers: []kapi.Container{
 						{
