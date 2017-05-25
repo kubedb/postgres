@@ -42,6 +42,11 @@ func NewCmdRun() *cobra.Command {
 				log.Fatalf(`Image %v:%v not found.`, controller.ImagePostgres, opt.PostgresUtilTag)
 			}
 
+			// Check exporter docker image tag
+			if err := amc.CheckDockerImageVersion(controller.ImageExporter, opt.ExporterTag); err != nil {
+				log.Fatalf(`Image %v:%v not found.`, controller.ImageExporter, opt.ExporterTag)
+			}
+
 			client := clientset.NewForConfigOrDie(config)
 			extClient := tcs.NewExtensionsForConfigOrDie(config)
 
