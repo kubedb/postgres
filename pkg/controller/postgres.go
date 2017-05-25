@@ -405,8 +405,7 @@ func (c *Controller) updateMonitor(oldPostgres, updatedPostgres *tapi.Postgres) 
 				updatedPostgres,
 				kapi.EventTypeWarning,
 				eventer.EventReasonFailedToInitialize,
-				"Failed to initialize monitoring system. Reason: %v",
-				err,
+				"Failed to initialize monitoring system. Reason: %v", err,
 			)
 			log.Errorln(err)
 		}
@@ -415,8 +414,7 @@ func (c *Controller) updateMonitor(oldPostgres, updatedPostgres *tapi.Postgres) 
 				updatedPostgres,
 				kapi.EventTypeWarning,
 				eventer.EventReasonFailedToUpdate,
-				"Failed to delete old monitoring system. Reason: %v",
-				err,
+				"Failed to delete old monitoring system. Reason: %v", err,
 			)
 			log.Errorln(err)
 			return
@@ -427,8 +425,7 @@ func (c *Controller) updateMonitor(oldPostgres, updatedPostgres *tapi.Postgres) 
 				updatedPostgres,
 				kapi.EventTypeWarning,
 				eventer.EventReasonFailedToInitialize,
-				"Failed to initialize new monitoring system. Reason: %v",
-				err,
+				"Failed to initialize new monitoring system. Reason: %v", err,
 			)
 			log.Errorln(err)
 		}
@@ -437,8 +434,7 @@ func (c *Controller) updateMonitor(oldPostgres, updatedPostgres *tapi.Postgres) 
 				updatedPostgres,
 				kapi.EventTypeWarning,
 				eventer.EventReasonFailedToUpdate,
-				"Failed to create new monitoring system. Reason: %v",
-				err,
+				"Failed to create new monitoring system. Reason: %v", err,
 			)
 			log.Errorln(err)
 			return
