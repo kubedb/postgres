@@ -124,6 +124,7 @@ func (c *PrometheusController) ensureExporterPods() error {
 						{
 							Name: "exporter",
 							Args: []string{
+								"run",
 								fmt.Sprintf("--address=:%d", portNumber),
 							},
 							Image:           c.exporterDockerImage,
