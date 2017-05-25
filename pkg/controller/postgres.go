@@ -461,7 +461,7 @@ func (c *Controller) updateMonitor(oldPostgres, updatedPostgres *tapi.Postgres) 
 			err,
 		)
 		log.Errorln(err)
-		return nil
+		return
 	}
 	if err = monitor.UpdateMonitor(&updatedPostgres.ObjectMeta, oldPostgres.Spec.Monitor, updatedPostgres.Spec.Monitor); err != nil {
 		c.eventRecorder.Eventf(
