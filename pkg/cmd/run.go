@@ -71,8 +71,6 @@ func NewCmdRun() *cobra.Command {
 	cmd.Flags().StringVar(&opt.PostgresUtilTag, "postgres-util", canary, "Tag of postgres util")
 	cmd.Flags().StringVar(&opt.ExporterNamespace, "exporter-ns", "default", "Namespace for monitoring exporter")
 	cmd.Flags().StringVar(&opt.ExporterTag, "exporter", canary, "Tag of monitoring expoter")
-
-	cmd.Flags().StringVar(&opt.GoverningService, "governing-service", "k8sdb", "Governing service for database statefulset")
-
+	cmd.Flags().StringVar(&opt.GoverningService, "governing-service", "kubedb", "Governing service for database statefulset")
 	return cmd
 }

@@ -210,7 +210,7 @@ func (c *PrometheusController) createServiceMonitor(meta *kapi.ObjectMeta, spec 
 				{
 					Port:     portName,
 					Interval: spec.Prometheus.Interval,
-					Path:     fmt.Sprintf("/k8sdb.com/v1beta1/namespaces/:%s/:%s/:%s/metrics", meta.Namespace, getTypeFromSelfLink(meta.SelfLink), meta.Name),
+					Path:     fmt.Sprintf("/kubedb.com/v1beta1/namespaces/:%s/:%s/:%s/metrics", meta.Namespace, getTypeFromSelfLink(meta.SelfLink), meta.Name),
 				},
 			},
 			Selector: unversioned.LabelSelector{

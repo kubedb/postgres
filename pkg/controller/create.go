@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	annotationDatabaseVersion = "postgres.k8sdb.com/version"
+	annotationDatabaseVersion = "postgres.kubedb.com/version"
 	ImagePostgres             = "k8sdb/postgres"
 	modeBasic                 = "basic"
 	// Duration in Minute

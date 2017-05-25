@@ -1,9 +1,9 @@
-apiVersion: k8sdb.com/v1beta1
+apiVersion: kubedb.com/v1beta1
 kind: Snapshot
 metadata:
   name: snapshot-xyz
   labels:
-    "k8sdb.com/kind": "Postgres"
+    "kubedb.com/kind": "Postgres"
 spec:
   DatabaseName: postgres-demo
   BucketName: ""
