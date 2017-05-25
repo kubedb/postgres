@@ -367,7 +367,7 @@ func (c *Controller) createMonitor(postgres *tapi.Postgres) {
 		log.Errorln(err)
 		return
 	}
-	if err := monitor.AddMonitor(&postgres.ObjectMeta, postgres.Spec.Monitor); err != nil {
+	if err := monitor.AddMonitor(postgres.ObjectMeta, postgres.Spec.Monitor); err != nil {
 		c.eventRecorder.Eventf(
 			postgres,
 			kapi.EventTypeWarning,
@@ -392,7 +392,7 @@ func (c *Controller) deleteMonitor(postgres *tapi.Postgres) {
 		log.Errorln(err)
 		return
 	}
-	if err = m.DeleteMonitor(&postgres.ObjectMeta, postgres.Spec.Monitor); err != nil {
+	if err = m.DeleteMonitor(postgres.ObjectMeta, postgres.Spec.Monitor); err != nil {
 		c.eventRecorder.Eventf(
 			postgres,
 			kapi.EventTypeWarning,
@@ -416,7 +416,7 @@ func (c *Controller) updateMonitor(oldPostgres, updatedPostgres *tapi.Postgres) 
 			)
 			log.Errorln(err)
 		}
-		if err = oldMonitor.DeleteMonitor(&oldPostgres.ObjectMeta, oldPostgres.Spec.Monitor); err != nil {
+		if err = oldMonitor.DeleteMonitor(oldPostgres.ObjectMeta, oldPostgres.Spec.Monitor); err != nil {
 			c.eventRecorder.Eventf(
 				updatedPostgres,
 				kapi.EventTypeWarning,
@@ -437,7 +437,7 @@ func (c *Controller) updateMonitor(oldPostgres, updatedPostgres *tapi.Postgres) 
 
 			log.Errorln(err)
 		}
-		if err = newMonitor.AddMonitor(&updatedPostgres.ObjectMeta, updatedPostgres.Spec.Monitor); err != nil {
+		if err = newMonitor.AddMonitor(updatedPostgres.ObjectMeta, updatedPostgres.Spec.Monitor); err != nil {
 			c.eventRecorder.Eventf(
 				updatedPostgres,
 				kapi.EventTypeWarning,
@@ -467,7 +467,7 @@ func (c *Controller) updateMonitor(oldPostgres, updatedPostgres *tapi.Postgres) 
 		log.Errorln(err)
 		return
 	}
-	if err = monitor.UpdateMonitor(&updatedPostgres.ObjectMeta, oldPostgres.Spec.Monitor, updatedPostgres.Spec.Monitor); err != nil {
+	if err = monitor.UpdateMonitor(updatedPostgres.ObjectMeta, oldPostgres.Spec.Monitor, updatedPostgres.Spec.Monitor); err != nil {
 		c.eventRecorder.Eventf(
 			updatedPostgres,
 			kapi.EventTypeWarning,

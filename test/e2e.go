@@ -60,7 +60,7 @@ func getController() (c *controller.Controller, err error) {
 				return
 			}
 
-			c = controller.New(client, extClient, promClient, "canary-util", "k8sdb")
+			c = controller.New(client, extClient, promClient, "canary-util", "kubedb")
 
 			e2eController.controller = c
 			e2eController.isControllerRunning = true

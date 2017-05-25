@@ -1,25 +1,25 @@
 apiVersion: apps/v1beta1
 kind: StatefulSet
 metadata:
-  name: k8sdb-postgres-demo
+  name: kubedb-postgres-demo
   namespace: default
 spec:
   replicas: 1
   selector:
     matchLabels:
-      k8sdb.com/kind: "Postgres"
-      postgres.k8sdb.com/name: postgres-demo
+      kubedb.com/kind: "Postgres"
+      postgres.kubedb.com/name: postgres-demo
   serviceName: governing-postgres
   template:
     metadata:
       labels:
-        k8sdb.com/kind: "Postgres"
-        postgres.k8sdb.com/name: postgres-demo
+        kubedb.com/kind: "Postgres"
+        postgres.kubedb.com/name: postgres-demo
     spec:
       containers:
       - args:
         - basic
-        image: k8sdb/postgres:canary-db
+        image: kubedb/postgres:canary-db
         imagePullPolicy: IfNotPresent
         name: postgres
         ports:
