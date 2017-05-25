@@ -203,7 +203,16 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 	}
 
 	if postgres.Spec.Monitor != nil {
-		c.createMonitor(postgres)
+		if err := c.addMonitor(postgres); err != nil {
+			c.eventRecorder.Eventf(
+				postgres,
+				kapi.EventTypeWarning,
+				eventer.EventReasonFailedToCreate,
+				"Failed to set monitoring. Reason: %v",
+				err,
+			)
+			log.Errorln(err)
+		}
 	}
 	return nil
 }
@@ -304,7 +313,16 @@ func (c *Controller) pause(postgres *tapi.Postgres) error {
 	c.cronController.StopBackupScheduling(postgres.ObjectMeta)
 
 	if postgres.Spec.Monitor != nil {
-		c.deleteMonitor(postgres)
+		if err := c.deleteMonitor(postgres); err != nil {
+			c.eventRecorder.Eventf(
+				postgres,
+				kapi.EventTypeWarning,
+				eventer.EventReasonFailedToDelete,
+				"Failed to delete monitoring system. Reason: %v",
+				err,
+			)
+			log.Errorln(err)
+		}
 	}
 	return nil
 }
@@ -347,10 +365,17 @@ func (c *Controller) update(oldPostgres, updatedPostgres *tapi.Postgres) error {
 			c.cronController.StopBackupScheduling(updatedPostgres.ObjectMeta)
 		}
 		if !reflect.DeepEqual(oldPostgres.Spec.Monitor, updatedPostgres.Spec.Monitor) {
-			c.updateMonitor(oldPostgres, updatedPostgres)
+			if err := c.updateMonitor(oldPostgres, updatedPostgres); err != nil {
+				c.eventRecorder.Eventf(
+					updatedPostgres,
+					kapi.EventTypeWarning,
+					eventer.EventReasonFailedToUpdate,
+					"Failed to update monitoring system. Reason: %v",
+					err,
+				)
+				log.Errorln(err)
+			}
 		}
 	}
 	return nil
 }
-
-
