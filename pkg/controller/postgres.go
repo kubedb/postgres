@@ -203,30 +203,8 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 		}
 	}
 
-	//Check monitoring is enable
 	if postgres.Spec.Monitor != nil {
-		monitor, err := c.newMonitorController(postgres)
-		if err != nil {
-			c.eventRecorder.Eventf(
-				postgres,
-				kapi.EventTypeWarning,
-				eventer.EventReasonFailedToInitialize,
-				"Failed to initialize monitoring system. Reason: %v",
-				err,
-			)
-			log.Errorln(err)
-			return nil
-		}
-		if err := monitor.AddMonitor(&postgres.ObjectMeta, postgres.Spec.Monitor); err != nil {
-			c.eventRecorder.Eventf(
-				postgres,
-				kapi.EventTypeWarning,
-				eventer.EventReasonFailedToMonitor,
-				"Failed to start monitoring system. Reason: %v",
-				err,
-			)
-			log.Errorln(err)
-		}
+		c.createMonitor(postgres)
 	}
 	return nil
 }
@@ -327,28 +305,7 @@ func (c *Controller) pause(postgres *tapi.Postgres) error {
 	c.cronController.StopBackupScheduling(postgres.ObjectMeta)
 
 	if postgres.Spec.Monitor != nil {
-		m, err := c.newMonitorController(postgres)
-		if err != nil {
-			c.eventRecorder.Eventf(
-				postgres,
-				kapi.EventTypeWarning,
-				eventer.EventReasonFailedToInitialize,
-				"Failed to initialize monitoring system. Reason: %v",
-				err,
-			)
-			log.Errorln(err)
-			return nil
-		}
-		if err = m.DeleteMonitor(&postgres.ObjectMeta, postgres.Spec.Monitor); err != nil {
-			c.eventRecorder.Eventf(
-				postgres,
-				kapi.EventTypeWarning,
-				eventer.EventReasonFailedToDelete,
-				"Failed to delete monitoring system. Reason: %v",
-				err,
-			)
-			log.Errorln(err)
-		}
+		c.deleteMonitor(postgres)
 	}
 	return nil
 }
@@ -397,6 +354,56 @@ func (c *Controller) update(oldPostgres, updatedPostgres *tapi.Postgres) error {
 	return nil
 }
 
+func (c *Controller) createMonitor(postgres *tapi.Postgres) {
+	monitor, err := c.newMonitorController(postgres)
+	if err != nil {
+		c.eventRecorder.Eventf(
+			postgres,
+			kapi.EventTypeWarning,
+			eventer.EventReasonFailedToInitialize,
+			"Failed to initialize monitoring system. Reason: %v",
+			err,
+		)
+		log.Errorln(err)
+		return
+	}
+	if err := monitor.AddMonitor(&postgres.ObjectMeta, postgres.Spec.Monitor); err != nil {
+		c.eventRecorder.Eventf(
+			postgres,
+			kapi.EventTypeWarning,
+			eventer.EventReasonFailedToCreate,
+			"Failed to create monitoring system. Reason: %v",
+			err,
+		)
+		log.Errorln(err)
+	}
+}
+
+func (c *Controller) deleteMonitor(postgres *tapi.Postgres) {
+	m, err := c.newMonitorController(postgres)
+	if err != nil {
+		c.eventRecorder.Eventf(
+			postgres,
+			kapi.EventTypeWarning,
+			eventer.EventReasonFailedToInitialize,
+			"Failed to initialize monitoring system. Reason: %v",
+			err,
+		)
+		log.Errorln(err)
+		return
+	}
+	if err = m.DeleteMonitor(&postgres.ObjectMeta, postgres.Spec.Monitor); err != nil {
+		c.eventRecorder.Eventf(
+			postgres,
+			kapi.EventTypeWarning,
+			eventer.EventReasonFailedToDelete,
+			"Failed to delete monitoring system. Reason: %v",
+			err,
+		)
+		log.Errorln(err)
+	}
+}
+
 func (c *Controller) updateMonitor(oldPostgres, updatedPostgres *tapi.Postgres) {
 	if c.isMonitorControllerChanged(oldPostgres, updatedPostgres) {
 		oldMonitor, err := c.newMonitorController(oldPostgres)
@@ -427,6 +434,7 @@ func (c *Controller) updateMonitor(oldPostgres, updatedPostgres *tapi.Postgres) 
 				eventer.EventReasonFailedToInitialize,
 				"Failed to initialize new monitoring system. Reason: %v", err,
 			)
+
 			log.Errorln(err)
 		}
 		if err = newMonitor.AddMonitor(&updatedPostgres.ObjectMeta, updatedPostgres.Spec.Monitor); err != nil {
