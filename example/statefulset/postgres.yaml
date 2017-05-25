@@ -7,14 +7,14 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      k8sdb.com/kind: "Postgres"
-      postgres.k8sdb.com/name: postgres-demo
+      kubedb.com/kind: "Postgres"
+      postgres.kubedb.com/name: postgres-demo
   serviceName: governing-postgres
   template:
     metadata:
       labels:
-        k8sdb.com/kind: "Postgres"
-        postgres.k8sdb.com/name: postgres-demo
+        kubedb.com/kind: "Postgres"
+        postgres.kubedb.com/name: postgres-demo
     spec:
       containers:
       - args:

@@ -10,4 +10,4 @@ spec:
     protocol: TCP
     targetPort: 5432
   selector:
-    postgres.k8sdb.com/name: postgres-demo
+    postgres.kubedb.com/name: postgres-demo
