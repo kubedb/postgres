@@ -16,8 +16,8 @@ spec:
         run: k8spg-operator
     spec:
       containers:
-      - name: k8sdb-pg
-        image: k8sdb/k8s-pg:0.1.0
+      - name: pg-operator
+        image: kubedb/pg-operator:0.1.0
         args:
         - run
         - --postgres-util=0.1.0-util
