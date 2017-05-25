@@ -6,7 +6,7 @@ import:
 - package: github.com/go-yaml/yaml
   version: v2
 - package: github.com/k8sdb/apimachinery
-  version: prom-impl
+  version: master
 - package: github.com/spf13/cobra
   version: master
 - package: github.com/spf13/pflag
