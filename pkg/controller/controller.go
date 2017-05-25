@@ -32,10 +32,8 @@ type Controller struct {
 	promClient *pcm.MonitoringV1alpha1Client
 	// Event Recorder
 	eventRecorder record.EventRecorder
-	// Tag of postgres util
-	postgresUtilTag string
-	// Governing service
-	governingService string
+	// Flag data
+	option *Option
 	// sync time to sync the list.
 	syncPeriod time.Duration
 }
@@ -43,24 +41,33 @@ type Controller struct {
 var _ amc.Snapshotter = &Controller{}
 var _ amc.Deleter = &Controller{}
 
+type Option struct {
+	// Tag of postgres util
+	PostgresUtilTag string
+	// Exporter namespace
+	ExporterNamespace string
+	// Tag of Exporter
+	ExporterTag string
+	// Governing service
+	GoverningService string
+}
+
 func New(
 	client clientset.Interface,
 	extClient tcs.ExtensionInterface,
 	promClient *pcm.MonitoringV1alpha1Client,
-	postgresUtilTag,
-	governingService string,
+	opt *Option,
 ) *Controller {
 	return &Controller{
 		Controller: &amc.Controller{
 			Client:    client,
 			ExtClient: extClient,
 		},
-		cronController:   amc.NewCronController(client, extClient),
-		promClient:       promClient,
-		eventRecorder:    eventer.NewEventRecorder(client, "Postgres Controller"),
-		postgresUtilTag:  postgresUtilTag,
-		governingService: governingService,
-		syncPeriod:       time.Minute * 2,
+		cronController: amc.NewCronController(client, extClient),
+		promClient:     promClient,
+		eventRecorder:  eventer.NewEventRecorder(client, "Postgres Controller"),
+		option:         opt,
+		syncPeriod:     time.Minute * 2,
 	}
 }
 
