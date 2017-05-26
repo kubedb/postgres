@@ -30,7 +30,7 @@ func NewCmdRun() *cobra.Command {
 		ExporterNamespace: namespace(),
 		ExporterTag:       "canary",
 		GoverningService:  "kubedb",
-		Address: ":8080",
+		Address:           ":8080",
 	}
 
 	cmd := &cobra.Command{
@@ -43,13 +43,13 @@ func NewCmdRun() *cobra.Command {
 			}
 
 			// Check postgres docker image tag
-			if err := docker.CheckDockerImageVersion(controller.ImagePostgres, opt.PostgresUtilTag); err != nil {
-				log.Fatalf(`Image %v:%v not found.`, controller.ImagePostgres, opt.PostgresUtilTag)
+			if err := docker.CheckDockerImageVersion(docker.ImagePostgres, opt.PostgresUtilTag); err != nil {
+				log.Fatalf(`Image %v:%v not found.`, docker.ImagePostgres, opt.PostgresUtilTag)
 			}
 
 			// Check exporter docker image tag
-			if err := docker.CheckDockerImageVersion(controller.ImageExporter, opt.ExporterTag); err != nil {
-				log.Fatalf(`Image %v:%v not found.`, controller.ImageExporter, opt.ExporterTag)
+			if err := docker.CheckDockerImageVersion(docker.ImageExporter, opt.ExporterTag); err != nil {
+				log.Fatalf(`Image %v:%v not found.`, docker.ImageExporter, opt.ExporterTag)
 			}
 
 			client := clientset.NewForConfigOrDie(config)

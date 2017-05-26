@@ -4,10 +4,9 @@ import (
 	"fmt"
 
 	tapi "github.com/k8sdb/apimachinery/api"
+	"github.com/k8sdb/apimachinery/pkg/docker"
 	"github.com/k8sdb/apimachinery/pkg/monitor"
 )
-
-const ImageExporter = "kubedb/exporter"
 
 func (c *Controller) newMonitorController(postgres *tapi.Postgres) (monitor.Monitor, error) {
 	monitorSpec := postgres.Spec.Monitor
@@ -17,7 +16,7 @@ func (c *Controller) newMonitorController(postgres *tapi.Postgres) (monitor.Moni
 	}
 
 	if monitorSpec.Prometheus != nil {
-		image := fmt.Sprintf("%v:%v", ImageExporter, c.option.ExporterTag)
+		image := fmt.Sprintf("%v:%v", docker.ImageExporter, c.option.ExporterTag)
 		return monitor.NewPrometheusController(c.Client, c.promClient, c.option.ExporterNamespace, image), nil
 	}
 

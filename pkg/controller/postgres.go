@@ -208,7 +208,7 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 				postgres,
 				kapi.EventTypeWarning,
 				eventer.EventReasonFailedToCreate,
-				"Failed to set monitoring system. Reason: %v",
+				"Failed to add monitoring system. Reason: %v",
 				err,
 			)
 			log.Errorln(err)
@@ -218,7 +218,7 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 			postgres,
 			kapi.EventTypeNormal,
 			eventer.EventReasonSuccessfulCreate,
-			"Successfully created monitoring system.",
+			"Successfully added monitoring system.",
 		)
 	}
 	return nil
@@ -334,7 +334,7 @@ func (c *Controller) pause(postgres *tapi.Postgres) error {
 		c.eventRecorder.Event(
 			postgres,
 			kapi.EventTypeNormal,
-			eventer.EventReasonSuccessfulDelete,
+			eventer.EventReasonSuccessfulMonitorDelete,
 			"Successfully deleted monitoring system.",
 		)
 	}
@@ -394,7 +394,7 @@ func (c *Controller) update(oldPostgres, updatedPostgres *tapi.Postgres) error {
 		c.eventRecorder.Event(
 			updatedPostgres,
 			kapi.EventTypeNormal,
-			eventer.EventReasonSuccessfulUpdate,
+			eventer.EventReasonSuccessfulMonitorUpdate,
 			"Successfully updated monitoring system.",
 		)
 
