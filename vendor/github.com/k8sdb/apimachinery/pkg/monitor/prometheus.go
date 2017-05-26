@@ -127,6 +127,7 @@ func (c *PrometheusController) ensureExporterPods() error {
 							Args: []string{
 								"run",
 								fmt.Sprintf("--address=:%d", portNumber),
+								"--v=3",
 							},
 							Image:           c.exporterDockerImage,
 							ImagePullPolicy: kapi.PullIfNotPresent,
