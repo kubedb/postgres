@@ -212,7 +212,14 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 				err,
 			)
 			log.Errorln(err)
+			return nil
 		}
+		c.eventRecorder.Eventf(
+			postgres,
+			kapi.EventTypeNormal,
+			eventer.EventReasonSuccessfulCreate,
+			"Successfully created monitoring system.",
+		)
 	}
 	return nil
 }
@@ -322,7 +329,14 @@ func (c *Controller) pause(postgres *tapi.Postgres) error {
 				err,
 			)
 			log.Errorln(err)
+			return nil
 		}
+		c.eventRecorder.Eventf(
+			postgres,
+			kapi.EventTypeNormal,
+			eventer.EventReasonSuccessfulDelete,
+			"Successfully deleted monitoring system.",
+		)
 	}
 	return nil
 }
@@ -375,7 +389,15 @@ func (c *Controller) update(oldPostgres, updatedPostgres *tapi.Postgres) error {
 				err,
 			)
 			log.Errorln(err)
+			return nil
 		}
+		c.eventRecorder.Eventf(
+			updatedPostgres,
+			kapi.EventTypeNormal,
+			eventer.EventReasonSuccessfulUpdate,
+			"Successfully updated monitoring system.",
+		)
+
 	}
 	return nil
 }
