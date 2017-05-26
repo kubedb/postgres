@@ -1,13 +1,13 @@
 apiVersion: kubedb.com/v1beta1
 kind: Postgres
 metadata:
-  name: postgres-monitor-demo-5
+  name: postgres-monitor
 spec:
   version: 9.5-db
   replicas: 1
   monitor:
     prometheus:
-      namespace: ghana
+      namespace: default
       labels:
         app: "kubedb-exporter"
       interval: 10s

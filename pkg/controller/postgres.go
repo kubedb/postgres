@@ -208,7 +208,7 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 				postgres,
 				kapi.EventTypeWarning,
 				eventer.EventReasonFailedToCreate,
-				"Failed to set monitoring. Reason: %v",
+				"Failed to set monitoring system. Reason: %v",
 				err,
 			)
 			log.Errorln(err)

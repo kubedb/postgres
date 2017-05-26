@@ -70,7 +70,6 @@ func NewCmdRun() *cobra.Command {
 			w.RunAndHold()
 		},
 	}
-
 	cmd.Flags().StringVar(&masterURL, "master", "", "The address of the Kubernetes API server (overrides any value in kubeconfig)")
 	cmd.Flags().StringVar(&kubeconfigPath, "kubeconfig", "", "Path to kubeconfig file with authorization information (the master location is set by the master flag).")
 	cmd.Flags().StringVar(&opt.PostgresUtilTag, "postgres-util", opt.PostgresUtilTag, "Tag of postgres util")
