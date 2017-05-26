@@ -24,6 +24,17 @@ import (
 	"k8s.io/kubernetes/pkg/watch"
 )
 
+type Option struct {
+	// Tag of postgres util
+	PostgresUtilTag string
+	// Exporter namespace
+	ExporterNamespace string
+	// Tag of Exporter
+	ExporterTag string
+	// Governing service
+	GoverningService string
+}
+
 type Controller struct {
 	*amc.Controller
 	// Cron Controller
@@ -40,17 +51,6 @@ type Controller struct {
 
 var _ amc.Snapshotter = &Controller{}
 var _ amc.Deleter = &Controller{}
-
-type Option struct {
-	// Tag of postgres util
-	PostgresUtilTag string
-	// Exporter namespace
-	ExporterNamespace string
-	// Tag of Exporter
-	ExporterTag string
-	// Governing service
-	GoverningService string
-}
 
 func New(
 	client clientset.Interface,
