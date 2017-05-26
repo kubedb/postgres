@@ -364,17 +364,17 @@ func (c *Controller) update(oldPostgres, updatedPostgres *tapi.Postgres) error {
 		} else {
 			c.cronController.StopBackupScheduling(updatedPostgres.ObjectMeta)
 		}
-		if !reflect.DeepEqual(oldPostgres.Spec.Monitor, updatedPostgres.Spec.Monitor) {
-			if err := c.updateMonitor(oldPostgres, updatedPostgres); err != nil {
-				c.eventRecorder.Eventf(
-					updatedPostgres,
-					kapi.EventTypeWarning,
-					eventer.EventReasonFailedToUpdate,
-					"Failed to update monitoring system. Reason: %v",
-					err,
-				)
-				log.Errorln(err)
-			}
+	}
+	if !reflect.DeepEqual(oldPostgres.Spec.Monitor, updatedPostgres.Spec.Monitor) {
+		if err := c.updateMonitor(oldPostgres, updatedPostgres); err != nil {
+			c.eventRecorder.Eventf(
+				updatedPostgres,
+				kapi.EventTypeWarning,
+				eventer.EventReasonFailedToUpdate,
+				"Failed to update monitoring system. Reason: %v",
+				err,
+			)
+			log.Errorln(err)
 		}
 	}
 	return nil

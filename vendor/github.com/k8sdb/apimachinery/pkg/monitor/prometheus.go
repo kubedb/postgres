@@ -10,6 +10,7 @@ import (
 	_ "github.com/coreos/prometheus-operator/pkg/client/monitoring/v1alpha1"
 	prom "github.com/coreos/prometheus-operator/pkg/client/monitoring/v1alpha1"
 	tapi "github.com/k8sdb/apimachinery/api"
+	cgerr "k8s.io/client-go/pkg/api/errors"
 	"k8s.io/client-go/pkg/api/unversioned"
 	"k8s.io/client-go/pkg/api/v1"
 	kapi "k8s.io/kubernetes/pkg/api"
@@ -18,7 +19,6 @@ import (
 	kepi "k8s.io/kubernetes/pkg/apis/extensions"
 	clientset "k8s.io/kubernetes/pkg/client/clientset_generated/internalclientset"
 	"k8s.io/kubernetes/pkg/util/intstr"
-	cgerr "k8s.io/client-go/pkg/api/errors"
 )
 
 const (
@@ -199,8 +199,8 @@ func (c *PrometheusController) ensureServiceMonitor(meta kapi.ObjectMeta, old, n
 	if old != nil &&
 		(!reflect.DeepEqual(old.Prometheus.Labels, new.Prometheus.Labels) || old.Prometheus.Interval != new.Prometheus.Interval) {
 		actual.Labels = new.Prometheus.Labels
-		for _, e := range actual.Spec.Endpoints {
-			e.Interval = new.Prometheus.Interval
+		for i := range actual.Spec.Endpoints {
+			actual.Spec.Endpoints[i].Interval = new.Prometheus.Interval
 		}
 		_, err := c.promClient.ServiceMonitors(new.Prometheus.Namespace).Update(actual)
 		return err
