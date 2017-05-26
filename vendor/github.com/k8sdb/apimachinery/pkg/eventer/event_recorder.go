@@ -8,6 +8,7 @@ import (
 )
 
 const (
+<<<<<<< HEAD
 	EventReasonCreating             string = "Creating"
 	EventReasonPausing              string = "Pausing"
 	EventReasonWipingOut            string = "WipingOut"
@@ -38,6 +39,42 @@ const (
 	EventReasonSuccessfulSnapshot   string = "SuccessfulSnapshot"
 	EventReasonSuccessfulValidate   string = "SuccessfulValidate"
 	EventReasonSuccessfulInitialize string = "SuccessfulInitialize"
+=======
+	EventReasonCreating                string = "Creating"
+	EventReasonPausing                 string = "Pausing"
+	EventReasonWipingOut               string = "WipingOut"
+	EventReasonFailedToCreate          string = "Failed"
+	EventReasonFailedToPause           string = "Failed"
+	EventReasonFailedToDelete          string = "Failed"
+	EventReasonFailedToWipeOut         string = "Failed"
+	EventReasonFailedToGet             string = "Failed"
+	EventReasonFailedToInitialize      string = "Failed"
+	EventReasonFailedToList            string = "Failed"
+	EventReasonFailedToResume          string = "Failed"
+	EventReasonFailedToSchedule        string = "Failed"
+	EventReasonFailedToStart           string = "Failed"
+	EventReasonFailedToUpdate          string = "Failed"
+	EventReasonFailedToAddMonitor      string = "Failed"
+	EventReasonFailedToDeleteMonitor   string = "Failed"
+	EventReasonFailedToUpdateMonitor   string = "Failed"
+	EventReasonIgnoredSnapshot         string = "IgnoredSnapshot"
+	EventReasonInitializing            string = "Initializing"
+	EventReasonInvalid                 string = "Invalid"
+	EventReasonInvalidUpdate           string = "InvalidUpdate"
+	EventReasonResuming                string = "Resuming"
+	EventReasonSnapshotFailed          string = "SnapshotFailed"
+	EventReasonStarting                string = "Starting"
+	EventReasonSuccessfulCreate        string = "SuccessfulCreate"
+	EventReasonSuccessfulPause         string = "SuccessfulPause"
+	EventReasonSuccessfulMonitorAdd    string = "SuccessfulMonitorAdd"
+	EventReasonSuccessfulMonitorDelete string = "SuccessfulMonitorDelete"
+	EventReasonSuccessfulMonitorUpdate string = "SuccessfulMonitorUpdate"
+	EventReasonSuccessfulResume        string = "SuccessfulResume"
+	EventReasonSuccessfulWipeOut       string = "SuccessfulWipeOut"
+	EventReasonSuccessfulSnapshot      string = "SuccessfulSnapshot"
+	EventReasonSuccessfulValidate      string = "SuccessfulValidate"
+	EventReasonSuccessfulInitialize    string = "SuccessfulInitialize"
+>>>>>>> a3437eb042582ab67764238c257f0c13b5ae0dab
 )
 
 func NewEventRecorder(client clientset.Interface, component string) record.EventRecorder {
