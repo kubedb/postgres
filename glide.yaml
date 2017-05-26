@@ -3,6 +3,8 @@ import:
 - package: github.com/appscode/log
 - package: github.com/ghodss/yaml
   version: master
+- package: gopkg.in/yaml.v2
+  version: v2
 - package: github.com/go-yaml/yaml
   version: v2
 - package: github.com/k8sdb/apimachinery
@@ -19,6 +21,16 @@ import:
   version: ~1.5.0
 - package: k8s.io/client-go
   version: e121606b0d09b2e1c467183ee46217fa85a6b672
+- package: github.com/appscode/pat
+- package: github.com/golang/protobuf
+  version: 8ee79997227bf9b34611aee7946ae64735e6fd93
+- package: github.com/lib/pq
+- package: github.com/prometheus/client_golang
+  version: v0.8.0
+- package: github.com/prometheus/common
 testImport:
 - package: github.com/stretchr/testify
   version: v1.1.4
+
+
+

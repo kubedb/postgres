@@ -6,7 +6,7 @@ import (
 	"github.com/appscode/log"
 	pcm "github.com/coreos/prometheus-operator/pkg/client/monitoring/v1alpha1"
 	tcs "github.com/k8sdb/apimachinery/client/clientset"
-	amc "github.com/k8sdb/apimachinery/pkg/controller"
+	"github.com/k8sdb/apimachinery/pkg/docker"
 	"github.com/k8sdb/postgres/pkg/controller"
 	"github.com/spf13/cobra"
 	cgcmd "k8s.io/client-go/tools/clientcmd"
@@ -26,6 +26,7 @@ func NewCmdRun() *cobra.Command {
 		kubeconfigPath   string
 		postgresUtilTag  string
 		governingService string
+		address          string
 	)
 
 	cmd := &cobra.Command{
@@ -38,7 +39,7 @@ func NewCmdRun() *cobra.Command {
 			}
 
 			// Check postgres docker image tag
-			if err := amc.CheckDockerImageVersion(controller.ImagePostgres, postgresUtilTag); err != nil {
+			if err := docker.CheckDockerImageVersion(controller.ImagePostgres, postgresUtilTag); err != nil {
 				log.Fatalf(`Image %v:%v not found.`, controller.ImagePostgres, postgresUtilTag)
 			}
 
@@ -55,16 +56,18 @@ func NewCmdRun() *cobra.Command {
 				log.Fatalln(err)
 			}
 
-			w := controller.New(client, extClient, promClient, postgresUtilTag, governingService)
+			w := controller.New(client, extClient, promClient, postgresUtilTag, governingService, address)
 			defer runtime.HandleCrash()
 			fmt.Println("Starting operator...")
-			w.RunAndHold()
+			go w.RunAndHold()
+
 		},
 	}
 	cmd.Flags().StringVar(&masterURL, "master", "", "The address of the Kubernetes API server (overrides any value in kubeconfig)")
 	cmd.Flags().StringVar(&kubeconfigPath, "kubeconfig", "", "Path to kubeconfig file with authorization information (the master location is set by the master flag).")
 	cmd.Flags().StringVar(&postgresUtilTag, "postgres-util", canary, "Tag of postgres util")
 	cmd.Flags().StringVar(&governingService, "governing-service", "kubedb", "Governing service for database statefulset")
+	cmd.Flags().StringVar(&address, "address", ":8080", "Address to listen on for web interface and telemetry.")
 
 	return cmd
 }
