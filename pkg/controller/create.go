@@ -141,7 +141,7 @@ func (c *Controller) createStatefulSet(postgres *tapi.Postgres) (*kapps.Stateful
 		},
 		Spec: kapps.StatefulSetSpec{
 			Replicas:    replicas,
-			ServiceName: c.option.GoverningService,
+			ServiceName: c.opt.GoverningService,
 			Template: kapi.PodTemplateSpec{
 				ObjectMeta: kapi.ObjectMeta{
 					Labels:      podLabels,
@@ -406,7 +406,7 @@ func (c *Controller) createRestoreJob(postgres *tapi.Postgres, snapshot *tapi.Sn
 					Containers: []kapi.Container{
 						{
 							Name:  SnapshotProcess_Restore,
-							Image: docker.ImagePostgres + ":" + c.option.PostgresUtilTag,
+							Image: docker.ImagePostgres + ":" + c.opt.PostgresUtilTag,
 							Args: []string{
 								fmt.Sprintf(`--process=%s`, SnapshotProcess_Restore),
 								fmt.Sprintf(`--host=%s`, databaseName),

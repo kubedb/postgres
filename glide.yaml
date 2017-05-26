@@ -31,6 +31,3 @@ import:
 testImport:
 - package: github.com/stretchr/testify
   version: v1.1.4
-
-
-

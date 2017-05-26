@@ -1,5 +1,5 @@
 hash: 2034756bb3b65623ef2b38bb42899d780dc4625832411805d3d47b17903acce9
-updated: 2017-05-26T15:51:40.727711839+06:00
+updated: 2017-05-26T06:10:19.287814161-07:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -162,7 +162,7 @@ imports:
   - pkg/eventer
   - pkg/monitor
 - name: github.com/lib/pq
-  version: 2704adc878c21e1329f46f6e56a1c387d788ff94
+  version: 50761b0867bd1d9d069276790bcd4a3bccf2324a
 - name: github.com/mailru/easyjson
   version: d5b7844b561a7bc640052f1b935f7b800330d7e0
   subpackages:
@@ -286,7 +286,7 @@ imports:
 - name: gopkg.in/robfig/cron.v2
   version: be2e0b0deed5a68ffee390b4583a13aff8321535
 - name: gopkg.in/yaml.v2
-  version: a3f3340b5840cee44f372bddb5880fcbc419b46a
+  version: cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b
 - name: k8s.io/client-go
   version: e121606b0d09b2e1c467183ee46217fa85a6b672
   subpackages:
@@ -352,7 +352,7 @@ imports:
   - tools/metrics
   - transport
 - name: k8s.io/kubernetes
-  version: f07eea23494be1e7c11a8e2cf51bd96d1ec9fdf1
+  version: 8eb75a5810cba92ccad845ca360cf924f2385881
   subpackages:
   - pkg/api
   - pkg/api/errors

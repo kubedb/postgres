@@ -84,7 +84,7 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 	c.eventRecorder.Event(postgres, kapi.EventTypeNormal, eventer.EventReasonCreating, "Creating Kubernetes objects")
 
 	// create Governing Service
-	governingService := c.option.GoverningService
+	governingService := c.opt.GoverningService
 	if err := c.CreateGoverningService(governingService, postgres.Namespace); err != nil {
 		c.eventRecorder.Eventf(
 			postgres,

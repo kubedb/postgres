@@ -25,7 +25,7 @@ func NewCmdRun() *cobra.Command {
 		kubeconfigPath string
 	)
 
-	opt := &controller.Option{
+	opt := controller.Options{
 		PostgresUtilTag:   "canary-util",
 		ExporterNamespace: namespace(),
 		ExporterTag:       "canary",
@@ -72,8 +72,8 @@ func NewCmdRun() *cobra.Command {
 
 		},
 	}
-	cmd.Flags().StringVar(&masterURL, "master", "", "The address of the Kubernetes API server (overrides any value in kubeconfig)")
-	cmd.Flags().StringVar(&kubeconfigPath, "kubeconfig", "", "Path to kubeconfig file with authorization information (the master location is set by the master flag).")
+	cmd.Flags().StringVar(&masterURL, "master", masterURL, "The address of the Kubernetes API server (overrides any value in kubeconfig)")
+	cmd.Flags().StringVar(&kubeconfigPath, "kubeconfig", kubeconfigPath, "Path to kubeconfig file with authorization information (the master location is set by the master flag).")
 	cmd.Flags().StringVar(&opt.PostgresUtilTag, "postgres-util", opt.PostgresUtilTag, "Tag of postgres util")
 	cmd.Flags().StringVar(&opt.ExporterNamespace, "exporter-ns", opt.ExporterNamespace, "Namespace for monitoring exporter")
 	cmd.Flags().StringVar(&opt.ExporterTag, "exporter", opt.ExporterTag, "Tag of monitoring expoter")

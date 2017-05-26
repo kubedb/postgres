@@ -16,8 +16,8 @@ func (c *Controller) newMonitorController(postgres *tapi.Postgres) (monitor.Moni
 	}
 
 	if monitorSpec.Prometheus != nil {
-		image := fmt.Sprintf("%v:%v", docker.ImageExporter, c.option.ExporterTag)
-		return monitor.NewPrometheusController(c.Client, c.promClient, c.option.ExporterNamespace, image), nil
+		image := fmt.Sprintf("%v:%v", docker.ImageExporter, c.opt.ExporterTag)
+		return monitor.NewPrometheusController(c.Client, c.promClient, c.opt.ExporterNamespace, image), nil
 	}
 
 	return nil, fmt.Errorf("Monitoring controller not found for %v", monitorSpec)
