@@ -67,8 +67,7 @@ func New(
 	}
 }
 
-// Blocks caller. Intended to be called as a Go routine.
-func (c *Controller) RunAndHold() {
+func (c *Controller) Run() {
 	// Ensure Postgres TPR
 	c.ensureThirdPartyResource()
 
@@ -83,6 +82,12 @@ func (c *Controller) RunAndHold() {
 	go c.watchSnapshot()
 	// Watch DormantDatabase with labelSelector only for Postgres
 	go c.watchDormantDatabase()
+}
+
+// Blocks caller. Intended to be called as a Go routine.
+func (c *Controller) RunAndHold() {
+	c.Run()
+
 	// Run HTTP server to expose metrics, audit endpoint & debug profiles.
 	go c.runHTTPServer()
 	// hold
