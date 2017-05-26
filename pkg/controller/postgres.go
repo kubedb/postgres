@@ -214,7 +214,7 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 			log.Errorln(err)
 			return nil
 		}
-		c.eventRecorder.Eventf(
+		c.eventRecorder.Event(
 			postgres,
 			kapi.EventTypeNormal,
 			eventer.EventReasonSuccessfulCreate,
@@ -331,7 +331,7 @@ func (c *Controller) pause(postgres *tapi.Postgres) error {
 			log.Errorln(err)
 			return nil
 		}
-		c.eventRecorder.Eventf(
+		c.eventRecorder.Event(
 			postgres,
 			kapi.EventTypeNormal,
 			eventer.EventReasonSuccessfulDelete,
@@ -391,7 +391,7 @@ func (c *Controller) update(oldPostgres, updatedPostgres *tapi.Postgres) error {
 			log.Errorln(err)
 			return nil
 		}
-		c.eventRecorder.Eventf(
+		c.eventRecorder.Event(
 			updatedPostgres,
 			kapi.EventTypeNormal,
 			eventer.EventReasonSuccessfulUpdate,
