@@ -26,7 +26,6 @@ func NewCmdRun() *cobra.Command {
 	)
 
 	opt := controller.Options{
-		PostgresUtilTag:   "canary-util",
 		ExporterNamespace: namespace(),
 		ExporterTag:       "canary",
 		GoverningService:  "kubedb",
@@ -40,11 +39,6 @@ func NewCmdRun() *cobra.Command {
 			config, err := clientcmd.BuildConfigFromFlags(masterURL, kubeconfigPath)
 			if err != nil {
 				log.Fatalf("Could not get kubernetes config: %s", err)
-			}
-
-			// Check postgres docker image tag
-			if err := docker.CheckDockerImageVersion(docker.ImagePostgres, opt.PostgresUtilTag); err != nil {
-				log.Fatalf(`Image %v:%v not found.`, docker.ImagePostgres, opt.PostgresUtilTag)
 			}
 
 			// Check exporter docker image tag
@@ -77,9 +71,6 @@ func NewCmdRun() *cobra.Command {
 	cmd.Flags().StringVar(&kubeconfigPath, "kubeconfig", kubeconfigPath, "Path to kubeconfig file with authorization information (the master location is set by the master flag).")
 	cmd.Flags().StringVar(&opt.GoverningService, "governing-service", opt.GoverningService, "Governing service for database statefulset")
 	cmd.Flags().StringVar(&opt.Address, "address", opt.Address, "Address to listen on for web interface and telemetry.")
-
-	// postgres flags
-	cmd.Flags().StringVar(&opt.PostgresUtilTag, "postgres.util-tag", opt.PostgresUtilTag, "Tag of postgres util")
 
 	// exporter flags
 	cmd.Flags().StringVar(&opt.ExporterNamespace, "exporter.namespace", opt.ExporterNamespace, "Namespace for monitoring exporter")
