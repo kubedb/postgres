@@ -7,7 +7,6 @@ import (
 	"github.com/appscode/go/hold"
 	"github.com/appscode/log"
 	pcm "github.com/coreos/prometheus-operator/pkg/client/monitoring/v1alpha1"
-	"github.com/jpillora/go-ogle-analytics"
 	tapi "github.com/k8sdb/apimachinery/api"
 	tcs "github.com/k8sdb/apimachinery/client/clientset"
 	"github.com/k8sdb/apimachinery/pkg/analytics"
