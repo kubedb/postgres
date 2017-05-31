@@ -63,8 +63,7 @@ func NewCmdRun() *cobra.Command {
 			w := controller.New(client, extClient, promClient, opt)
 			defer runtime.HandleCrash()
 			fmt.Println("Starting operator...")
-			go w.RunAndHold()
-
+			w.RunAndHold()
 		},
 	}
 	// operator flags
