@@ -1,7 +1,7 @@
 apiVersion: kubedb.com/v1beta1
 kind: Postgres
 metadata:
-  name: postgres-demo
+  name: postgres-demo-1
 spec:
-  Version: 9.5-db
+  Version: "9.5"
   Replicas: 1

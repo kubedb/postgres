@@ -3,7 +3,7 @@ kind: Postgres
 metadata:
   name: postgres-monitor
 spec:
-  version: 9.5-db
+  version: "9.5"
   replicas: 1
   monitor:
     prometheus:

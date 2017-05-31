@@ -20,7 +20,7 @@ func NewPostgres() *tapi.Postgres {
 			Name: rand.WithUniqSuffix("e2e-postgres"),
 		},
 		Spec: tapi.PostgresSpec{
-			Version: "canary-db",
+			Version: "canary",
 		},
 	}
 	return postgres

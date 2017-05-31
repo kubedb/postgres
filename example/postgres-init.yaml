@@ -3,7 +3,7 @@ kind: Postgres
 metadata:
   name: postgres-demo-new
 spec:
-  Version: canary-db
+  Version: canary
   Replicas: 1
   DatabaseSecret:
     SecretName: postgres-demo-admin-auth

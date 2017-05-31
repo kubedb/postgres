@@ -3,7 +3,7 @@ kind: Postgres
 metadata:
   name: postgres-demo
 spec:
-  Version: canary-db
+  Version: canary
   Replicas: 1
   BackupSchedule:
     CronExpression: "@every 6h"
