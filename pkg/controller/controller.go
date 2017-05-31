@@ -35,7 +35,7 @@ type Options struct {
 	// Address to listen on for web interface and telemetry.
 	Address string
 	// Enable analytics
-	AnalyticsEnabled bool
+	EnableAnalytics bool
 }
 
 type Controller struct {
@@ -94,7 +94,7 @@ func (c *Controller) Run() {
 // Blocks caller. Intended to be called as a Go routine.
 func (c *Controller) RunAndHold() {
 	// Enable analytics
-	if c.opt.AnalyticsEnabled {
+	if c.opt.EnableAnalytics {
 		analytics.Enable()
 	}
 
