@@ -3,11 +3,11 @@ kind: Postgres
 metadata:
   name: postgres-monitor
 spec:
-  version: "9.5"
+  version: 9.5
   replicas: 1
   monitor:
     prometheus:
       namespace: default
       labels:
-        app: "kubedb-exporter"
+        app: kubedb-exporter
       interval: 10s

@@ -48,6 +48,71 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 		"Successfully validate Postgres",
 	)
 
+	// Check DormantDatabase
+	if err := c.checkDormantDatabase(postgres); err != nil {
+		return err
+	}
+
+	// Event for notification that kubernetes objects are creating
+	c.eventRecorder.Event(postgres, kapi.EventTypeNormal, eventer.EventReasonCreating, "Creating Kubernetes objects")
+
+	// create Governing Service
+	governingService := c.opt.GoverningService
+	if err := c.CreateGoverningService(governingService, postgres.Namespace); err != nil {
+		c.eventRecorder.Eventf(
+			postgres,
+			kapi.EventTypeWarning,
+			eventer.EventReasonFailedToCreate,
+			`Failed to create Service: "%v". Reason: %v`,
+			governingService,
+			err,
+		)
+		return err
+	}
+
+	// ensure database Service
+	if err := c.ensureService(postgres); err != nil {
+		return err
+	}
+
+	// ensure database StatefulSet
+	if err := c.ensureStatefulSet(postgres); err != nil {
+		return err
+	}
+
+	c.eventRecorder.Event(
+		postgres,
+		kapi.EventTypeNormal,
+		eventer.EventReasonSuccessfulCreate,
+		"Successfully created Postgres",
+	)
+
+	// Ensure Schedule backup
+	c.ensureBackupScheduler(postgres)
+
+	if postgres.Spec.Monitor != nil {
+		if err := c.addMonitor(postgres); err != nil {
+			c.eventRecorder.Eventf(
+				postgres,
+				kapi.EventTypeWarning,
+				eventer.EventReasonFailedToCreate,
+				"Failed to add monitoring system. Reason: %v",
+				err,
+			)
+			log.Errorln(err)
+			return nil
+		}
+		c.eventRecorder.Event(
+			postgres,
+			kapi.EventTypeNormal,
+			eventer.EventReasonSuccessfulCreate,
+			"Successfully added monitoring system.",
+		)
+	}
+	return nil
+}
+
+func (c *Controller) checkDormantDatabase(postgres *tapi.Postgres) error {
 	// Check if DormantDatabase exists or not
 	dormantDb, err := c.ExtClient.DormantDatabases(postgres.Namespace).Get(postgres.Name)
 	if err != nil {
@@ -79,24 +144,10 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 		)
 		return errors.New(message)
 	}
+	return nil
+}
 
-	// Event for notification that kubernetes objects are creating
-	c.eventRecorder.Event(postgres, kapi.EventTypeNormal, eventer.EventReasonCreating, "Creating Kubernetes objects")
-
-	// create Governing Service
-	governingService := c.opt.GoverningService
-	if err := c.CreateGoverningService(governingService, postgres.Namespace); err != nil {
-		c.eventRecorder.Eventf(
-			postgres,
-			kapi.EventTypeWarning,
-			eventer.EventReasonFailedToCreate,
-			`Failed to create Service: "%v". Reason: %v`,
-			governingService,
-			err,
-		)
-		return err
-	}
-
+func (c *Controller) ensureService(postgres *tapi.Postgres) error {
 	// create database Service
 	if err := c.createService(postgres.Name, postgres.Namespace); err != nil {
 		c.eventRecorder.Eventf(
@@ -107,6 +158,17 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 			err,
 		)
 		return err
+	}
+	return nil
+}
+
+func (c *Controller) ensureStatefulSet(postgres *tapi.Postgres) error {
+	exists, err := c.checkStatefulSet(postgres)
+	if err != nil {
+		return err
+	}
+	if exists {
+		return nil
 	}
 
 	// Create statefulSet for Postgres database
@@ -137,7 +199,7 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 			postgres,
 			kapi.EventTypeNormal,
 			eventer.EventReasonSuccessfulCreate,
-			"Successfully created Postgres",
+			"Successfully created StatefulSet",
 		)
 	}
 
@@ -187,6 +249,10 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 		log.Errorln(err)
 	}
 
+	return nil
+}
+
+func (c *Controller) ensureBackupScheduler(postgres *tapi.Postgres) {
 	// Setup Schedule backup
 	if postgres.Spec.BackupSchedule != nil {
 		err := c.cronController.ScheduleBackup(postgres, postgres.ObjectMeta, postgres.Spec.BackupSchedule)
@@ -200,28 +266,9 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 			)
 			log.Errorln(err)
 		}
+	} else {
+		c.cronController.StopBackupScheduling(postgres.ObjectMeta)
 	}
-
-	if postgres.Spec.Monitor != nil {
-		if err := c.addMonitor(postgres); err != nil {
-			c.eventRecorder.Eventf(
-				postgres,
-				kapi.EventTypeWarning,
-				eventer.EventReasonFailedToCreate,
-				"Failed to add monitoring system. Reason: %v",
-				err,
-			)
-			log.Errorln(err)
-			return nil
-		}
-		c.eventRecorder.Event(
-			postgres,
-			kapi.EventTypeNormal,
-			eventer.EventReasonSuccessfulCreate,
-			"Successfully added monitoring system.",
-		)
-	}
-	return nil
 }
 
 const (
@@ -342,43 +389,35 @@ func (c *Controller) pause(postgres *tapi.Postgres) error {
 }
 
 func (c *Controller) update(oldPostgres, updatedPostgres *tapi.Postgres) error {
-	if !reflect.DeepEqual(updatedPostgres.Spec.BackupSchedule, oldPostgres.Spec.BackupSchedule) {
-		backupScheduleSpec := updatedPostgres.Spec.BackupSchedule
-		if backupScheduleSpec != nil {
-			if err := c.ValidateBackupSchedule(backupScheduleSpec); err != nil {
-				c.eventRecorder.Event(
-					updatedPostgres,
-					kapi.EventTypeNormal,
-					eventer.EventReasonInvalid,
-					err.Error(),
-				)
-				return err
-			}
 
-			if err := c.CheckBucketAccess(backupScheduleSpec.SnapshotStorageSpec, updatedPostgres.Namespace); err != nil {
-				c.eventRecorder.Event(
-					updatedPostgres,
-					kapi.EventTypeNormal,
-					eventer.EventReasonInvalid,
-					err.Error(),
-				)
-				return err
-			}
-
-			if err := c.cronController.ScheduleBackup(
-				updatedPostgres, updatedPostgres.ObjectMeta, updatedPostgres.Spec.BackupSchedule); err != nil {
-				c.eventRecorder.Eventf(
-					updatedPostgres,
-					kapi.EventTypeWarning,
-					eventer.EventReasonFailedToSchedule,
-					"Failed to schedule snapshot. Reason: %v", err,
-				)
-				log.Errorln(err)
-			}
-		} else {
-			c.cronController.StopBackupScheduling(updatedPostgres.ObjectMeta)
-		}
+	if err := c.validatePostgres(updatedPostgres); err != nil {
+		c.eventRecorder.Event(updatedPostgres, kapi.EventTypeWarning, eventer.EventReasonInvalid, err.Error())
+		return err
 	}
+	// Event for successful validation
+	c.eventRecorder.Event(
+		updatedPostgres,
+		kapi.EventTypeNormal,
+		eventer.EventReasonSuccessfulValidate,
+		"Successfully validate Postgres",
+	)
+
+	// Check DormantDatabase
+	if err := c.checkDormantDatabase(updatedPostgres); err != nil {
+		return err
+	}
+
+	if err := c.ensureService(updatedPostgres); err != nil {
+		return err
+	}
+	if err := c.ensureStatefulSet(updatedPostgres); err != nil {
+		return err
+	}
+
+	if !reflect.DeepEqual(updatedPostgres.Spec.BackupSchedule, oldPostgres.Spec.BackupSchedule) {
+		c.ensureBackupScheduler(updatedPostgres)
+	}
+
 	if !reflect.DeepEqual(oldPostgres.Spec.Monitor, updatedPostgres.Spec.Monitor) {
 		if err := c.updateMonitor(oldPostgres, updatedPostgres); err != nil {
 			c.eventRecorder.Eventf(

@@ -78,34 +78,26 @@ func (c *Controller) createService(name, namespace string) error {
 	return nil
 }
 
-func (c *Controller) checkStatefulSet(postgres *tapi.Postgres) (*kapps.StatefulSet, error) {
+func (c *Controller) checkStatefulSet(postgres *tapi.Postgres) (bool, error) {
 	// SatatefulSet for Postgres database
 	statefulSetName := getStatefulSetName(postgres.Name)
 	statefulSet, err := c.Client.Apps().StatefulSets(postgres.Namespace).Get(statefulSetName)
 	if err != nil {
 		if k8serr.IsNotFound(err) {
-			return nil, nil
+			return false, nil
 		} else {
-			return nil, err
+			return false, err
 		}
 	}
 
 	if statefulSet.Labels[amc.LabelDatabaseKind] != tapi.ResourceKindPostgres {
-		return nil, fmt.Errorf(`Intended statefulSet "%v" already exists`, statefulSetName)
+		return false, fmt.Errorf(`Intended statefulSet "%v" already exists`, statefulSetName)
 	}
 
-	return statefulSet, nil
+	return true, nil
 }
 
 func (c *Controller) createStatefulSet(postgres *tapi.Postgres) (*kapps.StatefulSet, error) {
-	_statefulSet, err := c.checkStatefulSet(postgres)
-	if err != nil {
-		return nil, err
-	}
-	if _statefulSet != nil {
-		return _statefulSet, nil
-	}
-
 	// Set labels
 	labels := make(map[string]string)
 	for key, val := range postgres.Labels {

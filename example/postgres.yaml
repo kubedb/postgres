@@ -3,5 +3,5 @@ kind: Postgres
 metadata:
   name: postgres-demo
 spec:
-  Version: "9.5"
+  Version: 9.6
   Replicas: 1
