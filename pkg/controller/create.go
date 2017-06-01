@@ -24,7 +24,7 @@ const (
 	durationCheckStatefulSet = time.Minute * 30
 )
 
-func (c *Controller) checkService(name, namespace string) (bool, error) {
+func (c *Controller) findService(name, namespace string) (bool, error) {
 	service, err := c.Client.Core().Services(namespace).Get(name)
 	if err != nil {
 		if k8serr.IsNotFound(err) {
@@ -42,15 +42,6 @@ func (c *Controller) checkService(name, namespace string) (bool, error) {
 }
 
 func (c *Controller) createService(name, namespace string) error {
-	// Check if service name exists
-	found, err := c.checkService(name, namespace)
-	if err != nil {
-		return err
-	}
-	if found {
-		return nil
-	}
-
 	label := map[string]string{
 		amc.LabelDatabaseName: name,
 	}
@@ -78,7 +69,7 @@ func (c *Controller) createService(name, namespace string) error {
 	return nil
 }
 
-func (c *Controller) checkStatefulSet(postgres *tapi.Postgres) (bool, error) {
+func (c *Controller) findStatefulSet(postgres *tapi.Postgres) (bool, error) {
 	// SatatefulSet for Postgres database
 	statefulSetName := getStatefulSetName(postgres.Name)
 	statefulSet, err := c.Client.Apps().StatefulSets(postgres.Namespace).Get(statefulSetName)
@@ -202,7 +193,7 @@ func (c *Controller) createStatefulSet(postgres *tapi.Postgres) (*kapps.Stateful
 	return statefulSet, nil
 }
 
-func (c *Controller) checkSecret(namespace, secretName string) (bool, error) {
+func (c *Controller) findSecret(namespace, secretName string) (bool, error) {
 	secret, err := c.Client.Core().Secrets(namespace).Get(secretName)
 	if err != nil {
 		if k8serr.IsNotFound(err) {
@@ -221,7 +212,7 @@ func (c *Controller) checkSecret(namespace, secretName string) (bool, error) {
 func (c *Controller) createDatabaseSecret(postgres *tapi.Postgres) (*kapi.SecretVolumeSource, error) {
 	authSecretName := postgres.Name + "-admin-auth"
 
-	found, err := c.checkSecret(postgres.Namespace, authSecretName)
+	found, err := c.findSecret(postgres.Namespace, authSecretName)
 	if err != nil {
 		return nil, err
 	}

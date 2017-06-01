@@ -49,7 +49,7 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 	)
 
 	// Check DormantDatabase
-	if err := c.checkDormantDatabase(postgres); err != nil {
+	if err := c.findDormantDatabase(postgres); err != nil {
 		return err
 	}
 
@@ -112,7 +112,7 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 	return nil
 }
 
-func (c *Controller) checkDormantDatabase(postgres *tapi.Postgres) error {
+func (c *Controller) findDormantDatabase(postgres *tapi.Postgres) error {
 	// Check if DormantDatabase exists or not
 	dormantDb, err := c.ExtClient.DormantDatabases(postgres.Namespace).Get(postgres.Name)
 	if err != nil {
@@ -148,6 +148,15 @@ func (c *Controller) checkDormantDatabase(postgres *tapi.Postgres) error {
 }
 
 func (c *Controller) ensureService(postgres *tapi.Postgres) error {
+	// Check if service name exists
+	found, err := c.findService(postgres.Name, postgres.Namespace)
+	if err != nil {
+		return err
+	}
+	if found {
+		return nil
+	}
+
 	// create database Service
 	if err := c.createService(postgres.Name, postgres.Namespace); err != nil {
 		c.eventRecorder.Eventf(
@@ -163,11 +172,11 @@ func (c *Controller) ensureService(postgres *tapi.Postgres) error {
 }
 
 func (c *Controller) ensureStatefulSet(postgres *tapi.Postgres) error {
-	exists, err := c.checkStatefulSet(postgres)
+	found, err := c.findStatefulSet(postgres)
 	if err != nil {
 		return err
 	}
-	if exists {
+	if found {
 		return nil
 	}
 
@@ -403,7 +412,7 @@ func (c *Controller) update(oldPostgres, updatedPostgres *tapi.Postgres) error {
 	)
 
 	// Check DormantDatabase
-	if err := c.checkDormantDatabase(updatedPostgres); err != nil {
+	if err := c.findDormantDatabase(updatedPostgres); err != nil {
 		return err
 	}
 
