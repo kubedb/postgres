@@ -129,7 +129,6 @@ func (c *Controller) findDormantDatabase(postgres *tapi.Postgres) error {
 		}
 	} else {
 		var message string
-
 		if dormantDb.Labels[amc.LabelDatabaseKind] != tapi.ResourceKindPostgres {
 			message = fmt.Sprintf(`Invalid Postgres: "%v". Exists DormantDatabase "%v" of different Kind`,
 				postgres.Name, dormantDb.Name)
