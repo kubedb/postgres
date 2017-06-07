@@ -27,8 +27,7 @@ func NewCmdRun() *cobra.Command {
 	)
 
 	opt := controller.Options{
-		ExporterNamespace: namespace(),
-		ExporterTag:       "canary",
+		OperatorNamespace: namespace(),
 		GoverningService:  "kubedb",
 		Address:           ":8080",
 		EnableAnalytics:   true,
@@ -41,11 +40,6 @@ func NewCmdRun() *cobra.Command {
 			config, err := clientcmd.BuildConfigFromFlags(masterURL, kubeconfigPath)
 			if err != nil {
 				log.Fatalf("Could not get kubernetes config: %s", err)
-			}
-
-			// Check exporter docker image tag
-			if err := docker.CheckDockerImageVersion(docker.ImageExporter, opt.ExporterTag); err != nil {
-				log.Fatalf(`Image %v:%v not found.`, docker.ImageExporter, opt.ExporterTag)
 			}
 
 			client := clientset.NewForConfigOrDie(config)
@@ -73,10 +67,6 @@ func NewCmdRun() *cobra.Command {
 	cmd.Flags().StringVar(&kubeconfigPath, "kubeconfig", kubeconfigPath, "Path to kubeconfig file with authorization information (the master location is set by the master flag).")
 	cmd.Flags().StringVar(&opt.GoverningService, "governing-service", opt.GoverningService, "Governing service for database statefulset")
 	cmd.Flags().StringVar(&opt.Address, "address", opt.Address, "Address to listen on for web interface and telemetry.")
-
-	// exporter flags
-	cmd.Flags().StringVar(&opt.ExporterNamespace, "exporter.namespace", opt.ExporterNamespace, "Namespace for monitoring exporter")
-	cmd.Flags().StringVar(&opt.ExporterTag, "exporter.tag", opt.ExporterTag, "Tag of monitoring exporter")
 
 	// Analytics flags
 	cmd.Flags().BoolVar(&opt.EnableAnalytics, "analytics", opt.EnableAnalytics, "Send analytical event to Google Analytics")

@@ -1,5 +1,5 @@
 hash: a4f00e0cc0c33e537e03b7c8425cb4b718081f5294d6c8e4ca9eba75c3fa294a
-updated: 2017-06-02T12:07:59.597406662-07:00
+updated: 2017-06-07T11:19:27.33844207-07:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -157,7 +157,7 @@ imports:
 - name: github.com/juju/ratelimit
   version: 77ed1c8a01217656d2080ad51981f6e99adaa177
 - name: github.com/k8sdb/apimachinery
-  version: 073e55ab24d2b0454e6eba63137a8359f5c4cc07
+  version: 401cafad3f98c6ef2cbd44785d3bcdde7eedc061
   subpackages:
   - api
   - api/install
@@ -215,7 +215,7 @@ imports:
 - name: github.com/Sirupsen/logrus
   version: 4b6ea7319e214d98c938f12692336f7ca9348d6b
 - name: github.com/spf13/cobra
-  version: 8d4ce3549a0bf0e3569df3aae7423b7743cd05a9
+  version: 99ff9334bda26384b5ef4a4aaa4d444d29bdde73
 - name: github.com/spf13/pflag
   version: e57e3eeb33f795204c1ca35f56c44f83227c6e66
 - name: github.com/ugorji/go
