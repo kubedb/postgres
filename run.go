@@ -62,7 +62,7 @@ func NewCmdRun() *cobra.Command {
 			// Stop Cron
 			defer cronController.StopCron()
 
-			w := controller.New(client, extClient, cronController, promClient, opt)
+			w := controller.New(client, extClient, promClient, cronController, opt)
 			defer runtime.HandleCrash()
 			fmt.Println("Starting operator...")
 			analytics.SendEvent(docker.ImagePostgresOperator, "started", Version)
