@@ -77,6 +77,9 @@ func (c *Controller) Run() {
 	// Ensure Postgres TPR
 	c.ensureThirdPartyResource()
 
+	// Start Cron
+	c.cronController.StartCron()
+
 	// Watch Postgres TPR objects
 	go c.watchPostgres()
 	// Watch Snapshot with labelSelector only for Postgres

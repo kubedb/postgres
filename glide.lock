@@ -1,5 +1,5 @@
 hash: a4f00e0cc0c33e537e03b7c8425cb4b718081f5294d6c8e4ca9eba75c3fa294a
-updated: 2017-06-12T14:19:27.284149726+06:00
+updated: 2017-06-13T11:48:28.343557014+06:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -134,7 +134,7 @@ imports:
 - name: github.com/gorilla/mux
   version: 8096f47503459bcc74d1f4c487b7e6e42e5746b5
 - name: github.com/graymeta/stow
-  version: 69972e9bb1d771f3641b5f9df6a9435178c49de3
+  version: d5dd9e1c978bc9a265e29b281589ebdc50276ed7
   subpackages:
   - google
   - s3
@@ -157,7 +157,7 @@ imports:
 - name: github.com/juju/ratelimit
   version: 77ed1c8a01217656d2080ad51981f6e99adaa177
 - name: github.com/k8sdb/apimachinery
-  version: 95166cf256d54c231e8f44531883ce0e86f01b5c
+  version: aea7f4da55c4e8982331952809a54e01bdca43e6
   subpackages:
   - api
   - api/install
