@@ -10,6 +10,7 @@ import (
 	pcm "github.com/coreos/prometheus-operator/pkg/client/monitoring/v1alpha1"
 	tcs "github.com/k8sdb/apimachinery/client/clientset"
 	"github.com/k8sdb/apimachinery/pkg/analytics"
+	amc "github.com/k8sdb/apimachinery/pkg/controller"
 	"github.com/k8sdb/apimachinery/pkg/docker"
 	"github.com/k8sdb/postgres/pkg/controller"
 	"github.com/spf13/cobra"
@@ -55,7 +56,13 @@ func NewCmdRun() *cobra.Command {
 				log.Fatalln(err)
 			}
 
-			w := controller.New(client, extClient, promClient, opt)
+			cronController := amc.NewCronController(client, extClient)
+			// Start Cron
+			cronController.StartCron()
+			// Stop Cron
+			defer cronController.StopCron()
+
+			w := controller.New(client, extClient, cronController, promClient, opt)
 			defer runtime.HandleCrash()
 			fmt.Println("Starting operator...")
 			analytics.SendEvent(docker.ImagePostgresOperator, "started", Version)

@@ -56,6 +56,7 @@ var _ amc.Deleter = &Controller{}
 func New(
 	client clientset.Interface,
 	extClient tcs.ExtensionInterface,
+	cronController amc.CronControllerInterface,
 	promClient *pcm.MonitoringV1alpha1Client,
 	opt Options,
 ) *Controller {
@@ -64,7 +65,7 @@ func New(
 			Client:    client,
 			ExtClient: extClient,
 		},
-		cronController: amc.NewCronController(client, extClient),
+		cronController: cronController,
 		promClient:     promClient,
 		eventRecorder:  eventer.NewEventRecorder(client, "Postgres operator"),
 		opt:            opt,
@@ -75,11 +76,6 @@ func New(
 func (c *Controller) Run() {
 	// Ensure Postgres TPR
 	c.ensureThirdPartyResource()
-
-	// Start Cron
-	c.cronController.StartCron()
-	// Stop Cron
-	defer c.cronController.StopCron()
 
 	// Watch Postgres TPR objects
 	go c.watchPostgres()
