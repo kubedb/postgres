@@ -9,6 +9,7 @@ import (
 	"github.com/k8sdb/postgres/test/mini"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	apiv1 "k8s.io/client-go/pkg/api/v1"
 )
 
 func TestCreate(t *testing.T) {
@@ -180,7 +181,7 @@ func TestSnapshot(t *testing.T) {
 		DatabaseName: postgres.Name,
 		SnapshotStorageSpec: tapi.SnapshotStorageSpec{
 			BucketName: bucket,
-			StorageSecret: &metav1.SecretVolumeSource{
+			StorageSecret: &apiv1.SecretVolumeSource{
 				SecretName: secretName,
 			},
 		},
@@ -414,7 +415,7 @@ func TestInitialize(t *testing.T) {
 		DatabaseName: postgres.Name,
 		SnapshotStorageSpec: tapi.SnapshotStorageSpec{
 			BucketName: bucket,
-			StorageSecret: &metav1.SecretVolumeSource{
+			StorageSecret: &apiv1.SecretVolumeSource{
 				SecretName: secretName,
 			},
 		},
