@@ -14,11 +14,10 @@ import (
 	"github.com/k8sdb/apimachinery/pkg/docker"
 	"github.com/k8sdb/postgres/pkg/controller"
 	"github.com/spf13/cobra"
-	cgcmd "k8s.io/client-go/tools/clientcmd"
-	kapi "k8s.io/kubernetes/pkg/api"
-	clientset "k8s.io/kubernetes/pkg/client/clientset_generated/internalclientset"
-	"k8s.io/kubernetes/pkg/client/unversioned/clientcmd"
-	"k8s.io/kubernetes/pkg/util/runtime"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/runtime"
+	clientset "k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
 )
 
 func NewCmdRun() *cobra.Command {
@@ -45,13 +44,7 @@ func NewCmdRun() *cobra.Command {
 
 			client := clientset.NewForConfigOrDie(config)
 			extClient := tcs.NewForConfigOrDie(config)
-
-			cgConfig, err := cgcmd.BuildConfigFromFlags(masterURL, kubeconfigPath)
-			if err != nil {
-				log.Fatalf("Could not get kubernetes config: %s", err)
-			}
-
-			promClient, err := pcm.NewForConfig(cgConfig)
+			promClient, err := pcm.NewForConfig(config)
 			if err != nil {
 				log.Fatalln(err)
 			}
@@ -90,5 +83,5 @@ func namespace() string {
 			return ns
 		}
 	}
-	return kapi.NamespaceDefault
+	return metav1.NamespaceDefault
 }

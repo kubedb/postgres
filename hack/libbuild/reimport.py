@@ -57,6 +57,7 @@ PKG_MAP = {
     'k8s.io/kubernetes/pkg/types': ['k8s.io/apimachinery/pkg/types'],
     'k8s.io/kubernetes/pkg/util/sets':['k8s.io/apimachinery/pkg/util/sets'],
     'k8s.io/kubernetes/pkg/watch': ['k8s.io/apimachinery/pkg/watch'],
+    'k8s.io/kubernetes/pkg/util/wait': ['k8s.io/apimachinery/pkg/util/wait'],
 }
 
 def _detect_pkg_alias(line):

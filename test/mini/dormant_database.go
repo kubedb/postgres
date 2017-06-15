@@ -6,7 +6,7 @@ import (
 	"github.com/appscode/log"
 	tapi "github.com/k8sdb/apimachinery/api"
 	"github.com/k8sdb/postgres/pkg/controller"
-	k8serr "k8s.io/kubernetes/pkg/api/errors"
+	kerr "k8s.io/apimachinery/pkg/api/errors"
 )
 
 const durationCheckDormantDatabase = time.Minute * 30
@@ -19,7 +19,7 @@ func CheckDormantDatabasePhase(c *controller.Controller, postgres *tapi.Postgres
 	for now.Sub(then) < durationCheckDormantDatabase {
 		dormantDb, err := c.ExtClient.DormantDatabases(postgres.Namespace).Get(postgres.Name)
 		if err != nil {
-			if k8serr.IsNotFound(err) {
+			if kerr.IsNotFound(err) {
 				time.Sleep(time.Second * 10)
 				now = time.Now()
 				continue

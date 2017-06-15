@@ -8,7 +8,7 @@ import (
 	tapi "github.com/k8sdb/apimachinery/api"
 	"github.com/k8sdb/postgres/test/mini"
 	"github.com/stretchr/testify/assert"
-	kapi "k8s.io/kubernetes/pkg/api"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func TestCreate(t *testing.T) {
@@ -180,7 +180,7 @@ func TestSnapshot(t *testing.T) {
 		DatabaseName: postgres.Name,
 		SnapshotStorageSpec: tapi.SnapshotStorageSpec{
 			BucketName: bucket,
-			StorageSecret: &kapi.SecretVolumeSource{
+			StorageSecret: &metav1.SecretVolumeSource{
 				SecretName: secretName,
 			},
 		},
@@ -414,7 +414,7 @@ func TestInitialize(t *testing.T) {
 		DatabaseName: postgres.Name,
 		SnapshotStorageSpec: tapi.SnapshotStorageSpec{
 			BucketName: bucket,
-			StorageSecret: &kapi.SecretVolumeSource{
+			StorageSecret: &metav1.SecretVolumeSource{
 				SecretName: secretName,
 			},
 		},
@@ -596,7 +596,7 @@ func TestUpdateScheduler(t *testing.T) {
 		CronExpression: "@every 30s",
 		SnapshotStorageSpec: tapi.SnapshotStorageSpec{
 			BucketName: "",
-			StorageSecret: &kapi.SecretVolumeSource{
+			StorageSecret: &metav1.SecretVolumeSource{
 				SecretName: "",
 			},
 		},
