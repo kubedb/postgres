@@ -1,4 +1,4 @@
-package dump
+package summary
 
 import (
 	"encoding/json"
