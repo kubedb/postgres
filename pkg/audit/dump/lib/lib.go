@@ -75,6 +75,7 @@ func getDataFromSchema(session *xorm.Session, schemaName string) (*SchemaInfo, e
 const (
 	errorUndefinedColumn  = "undefined_column"
 	errorDatatypeMismatch = "datatype_mismatch"
+	invalidData           = -1
 )
 
 func getDataFromTable(session *xorm.Session, schemaName, tableName string) (*TableInfo, error) {
@@ -95,8 +96,8 @@ func getDataFromTable(session *xorm.Session, schemaName, tableName string) (*Tab
 			if totalRow, err = strconv.ParseInt(string(dataRows[0]["total_row"]), 10, 64); err != nil {
 				return &TableInfo{}, err
 			}
-			maxID = -1
-			nextID = -1
+			maxID = invalidData
+			nextID = invalidData
 
 		} else {
 			return &TableInfo{}, err
@@ -104,9 +105,9 @@ func getDataFromTable(session *xorm.Session, schemaName, tableName string) (*Tab
 	} else {
 		if len(dataRows) == 0 {
 			log.Println("Data missing: ", err)
-			totalRow = -1
-			maxID = -1
-			nextID = -1
+			totalRow = invalidData
+			maxID = invalidData
+			nextID = invalidData
 		} else {
 			if totalRow, err = strconv.ParseInt(string(dataRows[0]["total_row"]), 10, 64); err != nil {
 				return &TableInfo{}, err
@@ -121,7 +122,7 @@ func getDataFromTable(session *xorm.Session, schemaName, tableName string) (*Tab
 				return &TableInfo{}, err
 			}
 			if len(dataRows) == 0 {
-				nextID = -1
+				nextID = invalidData
 			} else {
 				if nextID, err = strconv.ParseInt(string(dataRows[0]["next_id"]), 10, 64); err != nil {
 					return &TableInfo{}, err
