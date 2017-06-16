@@ -7,8 +7,8 @@ import (
 
 	"github.com/go-ini/ini"
 	tcs "github.com/k8sdb/apimachinery/client/clientset"
-	"github.com/k8sdb/postgres/pkg/audit/dump/client"
-	"github.com/k8sdb/postgres/pkg/audit/dump/lib"
+	"github.com/k8sdb/postgres/pkg/audit/summary/client"
+	"github.com/k8sdb/postgres/pkg/audit/summary/lib"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientset "k8s.io/client-go/kubernetes"
