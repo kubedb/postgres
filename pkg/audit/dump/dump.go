@@ -2,6 +2,7 @@ package dump
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/go-ini/ini"
@@ -11,7 +12,6 @@ import (
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientset "k8s.io/client-go/kubernetes"
-	"fmt"
 )
 
 func PostgresAudit(
