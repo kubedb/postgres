@@ -14,7 +14,7 @@ import (
 	clientset "k8s.io/client-go/kubernetes"
 )
 
-func PostgresAudit(
+func GetSummaryReport(
 	kubeClient clientset.Interface,
 	dbClient tcs.ExtensionInterface,
 	namespace string,
