@@ -137,14 +137,14 @@ func getDataFromTable(session *xorm.Session, schemaName, tableName string) (*Tab
 	}, nil
 }
 
-func GetAllDatabase(engine *xorm.Engine) []string {
+func GetAllDatabase(engine *xorm.Engine) ([]string, error) {
 	defer engine.Close()
 	engine.ShowSQL(true)
 	session := engine.NewSession()
 	session.Close()
 	rows, err := session.Query("SELECT datname FROM pg_database where datistemplate = false")
 	if err != nil {
-		log.Fatalln(err)
+		return nil, err
 	}
 
 	databases := make([]string, 0)
@@ -152,5 +152,5 @@ func GetAllDatabase(engine *xorm.Engine) []string {
 	for _, row := range rows {
 		databases = append(databases, string(row["datname"]))
 	}
-	return databases
+	return databases, nil
 }

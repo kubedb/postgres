@@ -19,7 +19,7 @@ func NewEngine(username, password, host, port, dbName string) (*xorm.Engine, err
 
 	engine.SetMaxIdleConns(0)
 	engine.DB().SetConnMaxLifetime(10 * time.Minute)
-	engine.ShowSQL(true)
-	engine.Logger().SetLevel(core.LOG_DEBUG)
-	return engine, err
+	engine.ShowSQL(false)
+	engine.Logger().SetLevel(core.LOG_ERR)
+	return engine, nil
 }
