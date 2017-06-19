@@ -28,6 +28,8 @@ import (
 type Options struct {
 	// Operator namespace
 	OperatorNamespace string
+	// Operator tag
+	OperatorTag string
 	// Governing service
 	GoverningService string
 	// Address to listen on for web interface and telemetry.

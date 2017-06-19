@@ -171,7 +171,7 @@ func (c *Controller) createStatefulSet(postgres *tapi.Postgres) (*apps.StatefulS
 				fmt.Sprintf("--address=:%d", postgres.Spec.Monitor.Prometheus.TargetPort.IntVal),
 				"--v=3",
 			},
-			Image:           "appscode/voyager:3.0.0",
+			Image:           docker.ImageOperator + ":" + c.opt.OperatorTag,
 			ImagePullPolicy: apiv1.PullIfNotPresent,
 			Ports: []apiv1.ContainerPort{
 				{
