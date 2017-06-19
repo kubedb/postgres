@@ -39,7 +39,7 @@ type Options struct {
 type Controller struct {
 	*amc.Controller
 	// Prometheus client
-	promClient *pcm.MonitoringV1alpha1Client
+	promClient pcm.MonitoringV1alpha1Interface
 	// Cron Controller
 	cronController amc.CronControllerInterface
 	// Event Recorder
@@ -56,7 +56,7 @@ var _ amc.Deleter = &Controller{}
 func New(
 	client clientset.Interface,
 	extClient tcs.ExtensionInterface,
-	promClient *pcm.MonitoringV1alpha1Client,
+	promClient pcm.MonitoringV1alpha1Interface,
 	cronController amc.CronControllerInterface,
 	opt Options,
 ) *Controller {
