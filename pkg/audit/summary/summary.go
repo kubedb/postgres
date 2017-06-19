@@ -4,11 +4,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/go-ini/ini"
+	"github.com/go-xorm/core"
+	"github.com/go-xorm/xorm"
 	tcs "github.com/k8sdb/apimachinery/client/clientset"
-	"github.com/k8sdb/postgres/pkg/audit/summary/client"
 	"github.com/k8sdb/postgres/pkg/audit/summary/lib"
+	"github.com/k8sdb/postgres/pkg/audit/type"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientset "k8s.io/client-go/kubernetes"
@@ -69,7 +72,7 @@ func GetSummaryReport(
 
 	databases := make([]string, 0)
 	if dbname == "" {
-		engine, err := client.NewEngine(username, password, host, port, "postgres")
+		engine, err := newXormEngine(username, password, host, port, "postgres")
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -83,9 +86,9 @@ func GetSummaryReport(
 		databases = append(databases, dbname)
 	}
 
-	dbs := make(map[string]*lib.DBInfo)
+	dbs := make(map[string]*types.DBInfo)
 	for _, db := range databases {
-		engine, err := client.NewEngine(username, password, host, port, db)
+		engine, err := newXormEngine(username, password, host, port, db)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -113,4 +116,20 @@ func GetSummaryReport(
 	} else {
 		http.Error(w, "audit data not found", http.StatusNotFound)
 	}
+}
+
+func newXormEngine(username, password, host, port, dbName string) (*xorm.Engine, error) {
+	cnnstr := fmt.Sprintf("user=%v password=%v host=%v port=%v dbname=%v sslmode=disable",
+		username, password, host, port, dbName)
+
+	engine, err := xorm.NewEngine("postgres", cnnstr)
+	if err != nil {
+		return nil, err
+	}
+
+	engine.SetMaxIdleConns(0)
+	engine.DB().SetConnMaxLifetime(10 * time.Minute)
+	engine.ShowSQL(false)
+	engine.Logger().SetLevel(core.LOG_ERR)
+	return engine, nil
 }
