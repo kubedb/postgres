@@ -4,13 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/go-ini/ini"
-	"github.com/go-xorm/core"
-	"github.com/go-xorm/xorm"
 	tcs "github.com/k8sdb/apimachinery/client/clientset"
-	"github.com/k8sdb/postgres/pkg/audit/summary/lib"
 	"github.com/k8sdb/postgres/pkg/audit/type"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -77,7 +73,7 @@ func GetSummaryReport(
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		databases, err = lib.GetAllDatabase(engine)
+		databases, err = getAllDatabase(engine)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -93,7 +89,7 @@ func GetSummaryReport(
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		dbInfo, err := lib.DumpDBInfo(engine)
+		dbInfo, err := dumpDBInfo(engine)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -116,20 +112,4 @@ func GetSummaryReport(
 	} else {
 		http.Error(w, "audit data not found", http.StatusNotFound)
 	}
-}
-
-func newXormEngine(username, password, host, port, dbName string) (*xorm.Engine, error) {
-	cnnstr := fmt.Sprintf("user=%v password=%v host=%v port=%v dbname=%v sslmode=disable",
-		username, password, host, port, dbName)
-
-	engine, err := xorm.NewEngine("postgres", cnnstr)
-	if err != nil {
-		return nil, err
-	}
-
-	engine.SetMaxIdleConns(0)
-	engine.DB().SetConnMaxLifetime(10 * time.Minute)
-	engine.ShowSQL(false)
-	engine.Logger().SetLevel(core.LOG_ERR)
-	return engine, nil
 }

@@ -1,16 +1,52 @@
-package lib
+package summary
 
 import (
 	"fmt"
 	"log"
 	"strconv"
+	"time"
 
+	"github.com/go-xorm/core"
 	"github.com/go-xorm/xorm"
 	"github.com/k8sdb/postgres/pkg/audit/type"
 	pg "github.com/lib/pq"
 )
 
-func DumpDBInfo(engine *xorm.Engine) (*types.DBInfo, error) {
+func newXormEngine(username, password, host, port, dbName string) (*xorm.Engine, error) {
+	cnnstr := fmt.Sprintf("user=%v password=%v host=%v port=%v dbname=%v sslmode=disable",
+		username, password, host, port, dbName)
+
+	engine, err := xorm.NewEngine("postgres", cnnstr)
+	if err != nil {
+		return nil, err
+	}
+
+	engine.SetMaxIdleConns(0)
+	engine.DB().SetConnMaxLifetime(10 * time.Minute)
+	engine.ShowSQL(false)
+	engine.Logger().SetLevel(core.LOG_ERR)
+	return engine, nil
+}
+
+func getAllDatabase(engine *xorm.Engine) ([]string, error) {
+	defer engine.Close()
+	engine.ShowSQL(true)
+	session := engine.NewSession()
+	session.Close()
+	rows, err := session.Query("SELECT datname FROM pg_database where datistemplate = false")
+	if err != nil {
+		return nil, err
+	}
+
+	databases := make([]string, 0)
+
+	for _, row := range rows {
+		databases = append(databases, string(row["datname"]))
+	}
+	return databases, nil
+}
+
+func dumpDBInfo(engine *xorm.Engine) (*types.DBInfo, error) {
 	defer engine.Close()
 	engine.ShowSQL(true)
 	session := engine.NewSession()
@@ -123,22 +159,4 @@ func getDataFromTable(session *xorm.Session, schemaName, tableName string) (*typ
 		MaxID:    maxID,
 		NextID:   nextID,
 	}, nil
-}
-
-func GetAllDatabase(engine *xorm.Engine) ([]string, error) {
-	defer engine.Close()
-	engine.ShowSQL(true)
-	session := engine.NewSession()
-	session.Close()
-	rows, err := session.Query("SELECT datname FROM pg_database where datistemplate = false")
-	if err != nil {
-		return nil, err
-	}
-
-	databases := make([]string, 0)
-
-	for _, row := range rows {
-		databases = append(databases, string(row["datname"]))
-	}
-	return databases, nil
 }
