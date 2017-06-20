@@ -32,7 +32,8 @@ func getAllDatabase(engine *xorm.Engine) ([]string, error) {
 	defer engine.Close()
 	engine.ShowSQL(true)
 	session := engine.NewSession()
-	session.Close()
+	defer session.Close()
+
 	rows, err := session.Query("SELECT datname FROM pg_database where datistemplate = false")
 	if err != nil {
 		return nil, err
@@ -50,7 +51,8 @@ func dumpDBInfo(engine *xorm.Engine) (*types.DBInfo, error) {
 	defer engine.Close()
 	engine.ShowSQL(true)
 	session := engine.NewSession()
-	session.Close()
+	defer session.Close()
+
 	schemaRowSlice, err := session.Query("select schema_name from information_schema.schemata")
 	if err != nil {
 		return nil, err
