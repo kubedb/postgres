@@ -28,7 +28,7 @@ func NewCmdRun() *cobra.Command {
 
 	opt := controller.Options{
 		OperatorNamespace: namespace(),
-		OperatorTag:       "0.2.0",
+		ExporterTag:       "0.2.0",
 		GoverningService:  "kubedb",
 		Address:           ":8080",
 		EnableAnalytics:   true,
@@ -67,7 +67,7 @@ func NewCmdRun() *cobra.Command {
 	cmd.Flags().StringVar(&masterURL, "master", masterURL, "The address of the Kubernetes API server (overrides any value in kubeconfig)")
 	cmd.Flags().StringVar(&kubeconfigPath, "kubeconfig", kubeconfigPath, "Path to kubeconfig file with authorization information (the master location is set by the master flag).")
 	cmd.Flags().StringVar(&opt.GoverningService, "governing-service", opt.GoverningService, "Governing service for database statefulset")
-	cmd.Flags().StringVar(&opt.OperatorTag, "operator-tag", opt.OperatorTag, "Tag of kubedb/operator used for exporter")
+	cmd.Flags().StringVar(&opt.ExporterTag, "exporter-tag", opt.ExporterTag, "Tag of kubedb/operator used as exporter")
 	cmd.Flags().StringVar(&opt.Address, "address", opt.Address, "Address to listen on for web interface and telemetry.")
 
 	// Analytics flags
