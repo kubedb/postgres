@@ -40,18 +40,18 @@ func toSerializeReport(report map[string]*types.DBInfo, dbname string) map[strin
 func diffSerializeReport(srData1, srData2 map[string]int64) []string {
 	keyList := make(map[string]bool)
 
-	for key, _ := range srData1 {
+	for key := range srData1 {
 		keyList[key] = true
 	}
 
-	for key, _ := range srData2 {
+	for key := range srData2 {
 		keyList[key] = true
 	}
 
 	diff := make([]string, 0)
 
 	var keys []string
-	for k, _ := range keyList {
+	for k := range keyList {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
