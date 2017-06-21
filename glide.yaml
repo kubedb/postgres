@@ -7,6 +7,12 @@ import:
   version: v0.10.1
 - package: github.com/ghodss/yaml
   version: v1.0.0
+- package: github.com/go-ini/ini
+  version: v1.28.0
+- package: github.com/go-xorm/core
+  version: v0.5.6
+- package: github.com/go-xorm/xorm
+  version: v0.6.2
 - package: github.com/graymeta/stow
   repo: https://github.com/appscode/stow.git
   version: master
@@ -22,10 +28,6 @@ import:
   version: 75b8dd260ef0469d96d578705a87cffd0e09dab8
 - package: k8s.io/client-go
   version: v3.0.0-beta.0
-- package: github.com/go-xorm/core
-  version: 87aca223378aab7a4bf31ef53f20fde4997ad793
-- package: github.com/go-xorm/xorm
-  version: 3ad0b428ae702d7d3f880c90a7f6d89805fcd2f7
 testImport:
 - package: github.com/stretchr/testify
   version: v1.1.4

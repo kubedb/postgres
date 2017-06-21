@@ -1,5 +1,5 @@
-hash: ccaa0f564dbd2cf442883685309d4f2cdb153adc8cbbffd0b0f4fba21d8be369
-updated: 2017-06-21T14:18:28.363317988+06:00
+hash: 795e83e246be0c1ce7e8130a5086a05f3ea09a2dcbd02044b3fee6cd24247eab
+updated: 2017-06-21T03:23:19.579150841-07:00
 imports:
 - name: cloud.google.com/go
   version: fe3d41e1ecb2ce36ad3a979037c9b9a2b726226f
@@ -86,7 +86,7 @@ imports:
 - name: github.com/ghodss/yaml
   version: 0ca9ea5df5451ffdf184b4428c902747c2c11cd7
 - name: github.com/go-ini/ini
-  version: 2e44421e256d82ebbf3d4d4fcabe8930b905eff3
+  version: d3de07a94d22b4a0972deb4b96d790c2c0ce8333
 - name: github.com/go-openapi/jsonpointer
   version: 46af16f9f7b149af66e5d1bd010e3574dc06de98
 - name: github.com/go-openapi/jsonreference
@@ -98,9 +98,9 @@ imports:
 - name: github.com/go-xorm/builder
   version: db75972580de4a7c6c20fff5b16a924c3de3fa12
 - name: github.com/go-xorm/core
-  version: 87aca223378aab7a4bf31ef53f20fde4997ad793
+  version: 5bf745d7d163f4380e6c2bba8c4afa60534dd087
 - name: github.com/go-xorm/xorm
-  version: 3ad0b428ae702d7d3f880c90a7f6d89805fcd2f7
+  version: 3c8314e91603f0bfa6a228c1a0fea8a9e298f6d9
 - name: github.com/gogo/protobuf
   version: e18d7aa8f8c624c915db340349aad4c49b10d173
   subpackages:
