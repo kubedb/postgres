@@ -84,20 +84,20 @@ func GetSummaryReport(
 		databases = append(databases, dbname)
 	}
 
-	pgReport := make(map[string]*tapi.PostgresSummary)
+	pgSummary := make(map[string]*tapi.PostgresSummary)
 	for _, db := range databases {
 		engine, err := newXormEngine(username, password, host, port, db)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		dbInfo, err := getDataFromDB(engine)
+		info, err := getDataFromDB(engine)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		pgReport[db] = dbInfo
+		pgSummary[db] = info
 	}
 
 	completionTime := metav1.Now()
@@ -106,7 +106,7 @@ func GetSummaryReport(
 		TypeMeta:   postgres.TypeMeta,
 		ObjectMeta: postgres.ObjectMeta,
 		Summary: tapi.ReportSummary{
-			Postgres: pgReport,
+			Postgres: pgSummary,
 		},
 		Status: tapi.ReportStatus{
 			StartTime:      &startTime,
