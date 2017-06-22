@@ -168,7 +168,7 @@ func (c *Controller) createStatefulSet(postgres *tapi.Postgres) (*apps.StatefulS
 			Name: "exporter",
 			Args: []string{
 				"exporter",
-				fmt.Sprintf("--address=:%d", postgres.Spec.Monitor.Prometheus.TargetPort.IntVal),
+				fmt.Sprintf("--address=:%d", postgres.Spec.Monitor.Prometheus.TargetPort.IntValue()),
 				"--v=3",
 			},
 			Image:           docker.ImageOperator + ":" + c.opt.ExporterTag,
@@ -177,7 +177,7 @@ func (c *Controller) createStatefulSet(postgres *tapi.Postgres) (*apps.StatefulS
 				{
 					Name:          "http",
 					Protocol:      apiv1.ProtocolTCP,
-					ContainerPort: postgres.Spec.Monitor.Prometheus.TargetPort.IntVal,
+					ContainerPort: postgres.Spec.Monitor.Prometheus.TargetPort.IntValue(),
 				},
 			},
 		}
