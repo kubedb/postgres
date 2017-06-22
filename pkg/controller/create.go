@@ -56,7 +56,7 @@ func (c *Controller) createService(postgres *tapi.Postgres) error {
 				{
 					Name:       "db",
 					Port:       5432,
-					TargetPort: intstr.FromString("port"),
+					TargetPort: intstr.FromString("db"),
 				},
 			},
 			Selector: label,
