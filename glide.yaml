@@ -18,7 +18,7 @@ import:
   version: master
   vcs: git
 - package: github.com/k8sdb/apimachinery
-  version: master
+  version: validator
 - package: github.com/prometheus/client_golang
   version: v0.8.0
 - package: github.com/prometheus/common
