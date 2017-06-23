@@ -128,3 +128,15 @@ func CheckBucketAccess(client clientset.Interface, snapshotSpec tapi.SnapshotSto
 	}
 	return nil
 }
+
+func ValidateSnapshot(client clientset.Interface, snapshot *tapi.Snapshot) error {
+	snapshotSpec := snapshot.Spec.SnapshotStorageSpec
+	if err := ValidateSnapshotSpec(snapshotSpec); err != nil {
+		return err
+	}
+
+	if err := CheckBucketAccess(client, snapshot.Spec.SnapshotStorageSpec, snapshot.Namespace); err != nil {
+		return err
+	}
+	return nil
+}

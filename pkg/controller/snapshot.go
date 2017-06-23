@@ -8,7 +8,7 @@ import (
 	tapi "github.com/k8sdb/apimachinery/api"
 	amc "github.com/k8sdb/apimachinery/pkg/controller"
 	"github.com/k8sdb/apimachinery/pkg/docker"
-	"github.com/k8sdb/postgres/pkg/validator"
+	amv "github.com/k8sdb/apimachinery/pkg/validator"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -58,7 +58,7 @@ func (c *Controller) ValidateSnapshot(snapshot *tapi.Snapshot) error {
 		return errors.New("One Snapshot is already Running")
 	}
 
-	return validator.ValidateSnapshot(c.Client, snapshot)
+	return amv.ValidateSnapshot(c.Client, snapshot)
 }
 
 func (c *Controller) GetDatabase(snapshot *tapi.Snapshot) (runtime.Object, error) {

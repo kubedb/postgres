@@ -59,15 +59,3 @@ func ValidatePostgres(client clientset.Interface, postgres *tapi.Postgres) error
 	}
 	return nil
 }
-
-func ValidateSnapshot(client clientset.Interface, snapshot *tapi.Snapshot) error {
-	snapshotSpec := snapshot.Spec.SnapshotStorageSpec
-	if err := amv.ValidateSnapshotSpec(snapshotSpec); err != nil {
-		return err
-	}
-
-	if err := amv.CheckBucketAccess(client, snapshot.Spec.SnapshotStorageSpec, snapshot.Namespace); err != nil {
-		return err
-	}
-	return nil
-}
