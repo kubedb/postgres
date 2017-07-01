@@ -1,5 +1,5 @@
 hash: 031bd196e305d93861c887575f4afbe9b098136dfa44ed6731a7fef8af38b6d2
-updated: 2017-06-24T00:34:21.296335717-07:00
+updated: 2017-07-01T13:10:11.454217924-07:00
 imports:
 - name: cloud.google.com/go
   version: fe3d41e1ecb2ce36ad3a979037c9b9a2b726226f
@@ -148,7 +148,7 @@ imports:
 - name: github.com/juju/ratelimit
   version: 77ed1c8a01217656d2080ad51981f6e99adaa177
 - name: github.com/k8sdb/apimachinery
-  version: a8c23aeb10b7b1ff19c61272c10eec668abc2dbb
+  version: 41de2e3d0be14fe10250c8197a458df1b1cb5f82
   subpackages:
   - api
   - api/install
@@ -160,7 +160,7 @@ imports:
   - pkg/monitor
   - pkg/validator
 - name: github.com/lib/pq
-  version: 50761b0867bd1d9d069276790bcd4a3bccf2324a
+  version: 69552e54d2a9d4c6a2438926a774930f7bc398ec
   subpackages:
   - oid
 - name: github.com/mailru/easyjson
@@ -208,7 +208,7 @@ imports:
 - name: github.com/Sirupsen/logrus
   version: 4b6ea7319e214d98c938f12692336f7ca9348d6b
 - name: github.com/spf13/cobra
-  version: d638dcb7c7c1c9b62f3a6297a17834980d245dc7
+  version: 8c6fa02d2225de0f9bdcb7ca912556f68d172d8c
 - name: github.com/spf13/pflag
   version: e57e3eeb33f795204c1ca35f56c44f83227c6e66
 - name: github.com/ugorji/go
@@ -256,7 +256,7 @@ imports:
   - unicode/norm
   - width
 - name: google.golang.org/api
-  version: 1ba364a3bb616587dfd46d5009edefdfd7896ed9
+  version: e6586c9293b9d514c7f5d5076731ec977cff1be6
   subpackages:
   - gensupport
   - googleapi
