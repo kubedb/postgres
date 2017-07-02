@@ -1,42 +1,9 @@
-import sys, os, subprocess, yaml, time
+import sys, os, subprocess, time
 from datetime import datetime
 
 Flag = {}
 
 secret_data_dir = "/var/credentials"
-
-
-def set_osm_config():
-    with open(secret_data_dir+"/provider") as f:
-        lines = f.readlines()
-        if len(lines) == 0:
-            print "Provider missing"
-            exit(1)
-        provider = lines[0].rstrip('\n')
-
-    with open(secret_data_dir + "/config") as f:
-        config = yaml.safe_load(f)
-
-    data = {
-        "contexts": [
-            dict(
-                config=config,
-                name="cloud",
-                provider=provider,
-            )
-        ],
-        "current-context": "cloud",
-    }
-
-    home = os.environ['HOME']
-    osm_config_path = home + '/.osm'
-    if not os.path.exists(osm_config_path):
-        os.makedirs(osm_config_path)
-
-    with open(osm_config_path+"/config", 'w') as outfile:
-        yaml.dump(data, outfile, default_flow_style=False)
-
-
 secret_Path = "/srv/postgres/secrets/.admin"
 
 

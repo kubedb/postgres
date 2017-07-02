@@ -8,7 +8,7 @@ FROM appscode/python:2.7
 ## postgres client major version
 ENV PG_MAJOR 9.5
 ## osm version
-ENV OSM_VERSION 0.3.0
+ENV OSM_VERSION 0.4.0
 
 RUN groupadd -r postgres --gid=999 && useradd -r -g postgres --uid=999 postgres
 RUN apt-key adv --keyserver ha.pool.sks-keyservers.net --recv-keys B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8

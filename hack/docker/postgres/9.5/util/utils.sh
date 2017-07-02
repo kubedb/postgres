@@ -56,7 +56,7 @@ push() {
     # 3 - snapshot-name
 
     src_path=/var/dump-backup/dumpfile.sql
-    osm push -c "$1" "$src_path" "$2/$3/dumpfile.sql"
+    osm push --osmconfig=/etc/osm/config -c "$1" "$src_path" "$2/$3/dumpfile.sql"
     retval=$?
     if [ "$retval" -ne 0 ]; then
         echo "Fail to push data to cloud"
@@ -75,7 +75,7 @@ pull() {
     mkdir -p "$dst_path"
     rm -rf "$dst_path"
 
-    osm pull -c "$1" "$2/$3" "$dst_path"
+    osm pull --osmconfig=/etc/osm/config -c "$1" "$2/$3" "$dst_path"
     retval=$?
     if [ "$retval" -ne 0 ]; then
         echo "Fail to pull data from cloud"
