@@ -24,7 +24,9 @@ import:
 - package: github.com/prometheus/common
   version: 13ba4ddd0caa9c28ca7b7bffe1dfa9ed8d5ef207
 - package: github.com/spf13/cobra
+  version: master
 - package: github.com/spf13/pflag
+  version: master
 - package: k8s.io/apimachinery
   version: 75b8dd260ef0469d96d578705a87cffd0e09dab8
 - package: k8s.io/client-go
