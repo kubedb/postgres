@@ -1,5 +1,5 @@
 hash: e3d4853285f09eea0df5c64f5d663b09685b55b1b42a41100d4cdf769cb1c711
-updated: 2017-07-03T13:11:59.740121653-07:00
+updated: 2017-07-04T06:35:34.025145859-07:00
 imports:
 - name: cloud.google.com/go
   version: fe3d41e1ecb2ce36ad3a979037c9b9a2b726226f
@@ -22,7 +22,7 @@ imports:
   subpackages:
   - golog
 - name: github.com/appscode/osm
-  version: d9808d7feb230accb4af570345b93acdcbadc0be
+  version: c5e36f4aa99900641c2b592fc41d80556fa7f195
   subpackages:
   - pkg/context
 - name: github.com/appscode/pat
@@ -155,7 +155,7 @@ imports:
 - name: github.com/juju/ratelimit
   version: 77ed1c8a01217656d2080ad51981f6e99adaa177
 - name: github.com/k8sdb/apimachinery
-  version: 6505c73c3dd75a91cc978c5b5ee66398af6bccef
+  version: c56aea3eda424defd1069a05a76757d99da08ac2
   subpackages:
   - api
   - api/install
