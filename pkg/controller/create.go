@@ -459,6 +459,9 @@ func (c *Controller) createRestoreJob(postgres *tapi.Postgres, snapshot *tapi.Sn
 			},
 		},
 	}
+	if c.opt.EnableRbac {
+		job.Spec.Template.Spec.ServiceAccountName = postgres.OffshootName()
+	}
 	if snapshot.Spec.SnapshotStorageSpec.Local != nil {
 		job.Spec.Template.Spec.Containers[0].VolumeMounts = append(job.Spec.Template.Spec.Containers[0].VolumeMounts, apiv1.VolumeMount{
 			Name:      snapshot.Spec.SnapshotStorageSpec.Local.Volume.Name,
