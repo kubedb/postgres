@@ -96,6 +96,28 @@ func (e Elastic) StatefulSetAnnotations() map[string]string {
 	return annotations
 }
 
+func (s Snapshot) SiblingName() string {
+	var kind string
+	if s.Labels != nil {
+		kind = s.Labels[LabelDatabaseKind]
+	}
+	switch kind {
+	case ResourceKindPostgres:
+		return fmt.Sprintf("%v-%v", s.Name, ResourceCodePostgres)
+	case ResourceKindElastic:
+		return fmt.Sprintf("%v-%v", s.Name, ResourceCodeElastic)
+	}
+	return ""
+}
+
+func (s Snapshot) OffshootName() string {
+	return s.Name
+}
+
+func (s Snapshot) ServiceName() string {
+	return s.Spec.DatabaseName
+}
+
 func (d DormantDatabase) OffshootName() string {
 	var kind string
 	if d.Labels != nil {

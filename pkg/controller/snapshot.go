@@ -65,7 +65,7 @@ func (c *Controller) GetDatabase(snapshot *tapi.Snapshot) (runtime.Object, error
 
 func (c *Controller) GetSnapshotter(snapshot *tapi.Snapshot) (*batch.Job, error) {
 	databaseName := snapshot.Spec.DatabaseName
-	jobName := snapshot.Name
+	jobName := snapshot.OffshootName()
 	jobLabel := map[string]string{
 		tapi.LabelDatabaseName: databaseName,
 		tapi.LabelJobType:      SnapshotProcess_Backup,
@@ -157,7 +157,7 @@ func (c *Controller) GetSnapshotter(snapshot *tapi.Snapshot) (*batch.Job, error)
 		},
 	}
 	if c.opt.EnableRbac {
-		job.Spec.Template.Spec.ServiceAccountName = databaseName
+		job.Spec.Template.Spec.ServiceAccountName = snapshot.SiblingName()
 	}
 	if snapshot.Spec.SnapshotStorageSpec.Local != nil {
 		job.Spec.Template.Spec.Containers[0].VolumeMounts = append(job.Spec.Template.Spec.Containers[0].VolumeMounts, apiv1.VolumeMount{

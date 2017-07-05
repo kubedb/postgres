@@ -372,7 +372,7 @@ const (
 
 func (c *Controller) createRestoreJob(postgres *tapi.Postgres, snapshot *tapi.Snapshot) (*batch.Job, error) {
 	databaseName := postgres.Name
-	jobName := snapshot.Name
+	jobName := snapshot.OffshootName()
 	jobLabel := map[string]string{
 		tapi.LabelDatabaseName: databaseName,
 		tapi.LabelJobType:      SnapshotProcess_Restore,
