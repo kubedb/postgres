@@ -155,7 +155,7 @@ func (c *Controller) ensureRBACStuff(namespace string) error {
 			return err
 		}
 	}
-	
+
 	return nil
 }
 
