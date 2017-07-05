@@ -15,7 +15,6 @@ import (
 	apiv1 "k8s.io/client-go/pkg/api/v1"
 	apps "k8s.io/client-go/pkg/apis/apps/v1beta1"
 	batch "k8s.io/client-go/pkg/apis/batch/v1"
-	rbac "k8s.io/client-go/pkg/apis/rbac/v1beta1"
 )
 
 const (
@@ -100,87 +99,6 @@ func (c *Controller) findStatefulSet(postgres *tapi.Postgres) (bool, error) {
 	return true, nil
 }
 
-func (c *Controller) ensureRBACStuff(postgres *tapi.Postgres) error {
-
-	// Delete existing Roles
-	if err := c.Client.RbacV1beta1().Roles(postgres.Namespace).Delete(postgres.Name, nil); err != nil {
-		if !kerr.IsNotFound(err) {
-			return err
-		}
-	}
-	// Create new Roles
-	role := &rbac.Role{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      postgres.Name,
-			Namespace: postgres.Namespace,
-		},
-		Rules: []rbac.PolicyRule{
-			{
-				APIGroups:     []string{tapi.GroupName},
-				Resources:     []string{tapi.ResourceTypePostgres},
-				ResourceNames: []string{postgres.Name},
-				Verbs:         []string{"get"},
-			},
-			{
-				APIGroups:     []string{apiv1.GroupName},
-				Resources:     []string{"secrets"},
-				ResourceNames: []string{postgres.Spec.DatabaseSecret.SecretName},
-				Verbs:         []string{"get"},
-			},
-		},
-	}
-	if _, err := c.Client.RbacV1beta1().Roles(role.Namespace).Create(role); err != nil {
-		return err
-	}
-
-	// Delete existing ServiceAccount
-	if err := c.Client.CoreV1().ServiceAccounts(postgres.Namespace).Delete(postgres.Name, nil); err != nil {
-		if !kerr.IsNotFound(err) {
-			return err
-		}
-	}
-	// Create new ServiceAccount
-	sa := &apiv1.ServiceAccount{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      postgres.Name,
-			Namespace: postgres.Namespace,
-		},
-	}
-	if _, err := c.Client.CoreV1().ServiceAccounts(sa.Namespace).Create(sa); err != nil {
-		return err
-	}
-
-	// Delete existing RoleBindings
-	if err := c.Client.RbacV1beta1().RoleBindings(postgres.Namespace).Delete(postgres.Name, nil); err != nil {
-		if !kerr.IsNotFound(err) {
-			return err
-		}
-	}
-	// Create new RoleBindings
-	roleBinding := &rbac.RoleBinding{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      postgres.Name,
-			Namespace: postgres.Namespace,
-		},
-		RoleRef: rbac.RoleRef{
-			APIGroup: rbac.GroupName,
-			Kind:     "ClusterRole",
-			Name:     role.Name,
-		},
-		Subjects: []rbac.Subject{
-			{
-				Kind:      rbac.ServiceAccountKind,
-				Name:      sa.Name,
-				Namespace: sa.Namespace,
-			},
-		},
-	}
-	if _, err := c.Client.RbacV1beta1().RoleBindings(roleBinding.Namespace).Create(roleBinding); err != nil {
-		return err
-	}
-	return nil
-}
-
 func (c *Controller) createStatefulSet(postgres *tapi.Postgres) (*apps.StatefulSet, error) {
 	// Set labels
 	labels := make(map[string]string)
@@ -255,7 +173,7 @@ func (c *Controller) createStatefulSet(postgres *tapi.Postgres) (*apps.StatefulS
 
 	if c.opt.EnableRbac {
 		// Ensure ClusterRoles for database statefulsets
-		if err := c.ensureRBACStuff(postgres); err != nil {
+		if err := c.createRBACStuff(postgres); err != nil {
 			return nil, err
 		}
 
