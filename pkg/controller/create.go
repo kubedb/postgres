@@ -96,41 +96,20 @@ func (c *Controller) findStatefulSet(postgres *tapi.Postgres) (bool, error) {
 }
 
 func (c *Controller) createStatefulSet(postgres *tapi.Postgres) (*apps.StatefulSet, error) {
-	// Set labels
-	labels := make(map[string]string)
-	for key, val := range postgres.Labels {
-		labels[key] = val
-	}
-	labels[tapi.LabelDatabaseKind] = tapi.ResourceKindPostgres
-
-	// Set Annotations
-	annotations := make(map[string]string)
-	for key, val := range postgres.Annotations {
-		annotations[key] = val
-	}
-	annotations[annotationDatabaseVersion] = string(postgres.Spec.Version)
-
-	//podLabels := make(map[string]string)
-	//for key, val := range labels {
-	//	podLabels[key] = val
-	//}
-	//podLabels[tapi.LabelDatabaseName] = postgres.Name
-
 	// SatatefulSet for Postgres database
 	statefulSet := &apps.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        postgres.OffshootName(),
 			Namespace:   postgres.Namespace,
-			Labels:      labels,
-			Annotations: annotations,
+			Labels:      postgres.StatefulSetLabels(),
+			Annotations: postgres.StatefulSetAnnotations(),
 		},
 		Spec: apps.StatefulSetSpec{
 			Replicas:    types.Int32P(1),
 			ServiceName: c.opt.GoverningService,
 			Template: apiv1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels:      postgres.OffshootLabels(),
-					Annotations: annotations,
+					Labels: postgres.OffshootLabels(),
 				},
 				Spec: apiv1.PodSpec{
 					Containers: []apiv1.Container{
