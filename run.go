@@ -32,7 +32,7 @@ func NewCmdRun() *cobra.Command {
 		GoverningService:  "kubedb",
 		Address:           ":8080",
 		EnableAnalytics:   true,
-		ClusterRole:       "default",
+		EnableRbac:        false,
 	}
 
 	cmd := &cobra.Command{
@@ -70,7 +70,7 @@ func NewCmdRun() *cobra.Command {
 	cmd.Flags().StringVar(&opt.GoverningService, "governing-service", opt.GoverningService, "Governing service for database statefulset")
 	cmd.Flags().StringVar(&opt.ExporterTag, "exporter-tag", opt.ExporterTag, "Tag of kubedb/operator used as exporter")
 	cmd.Flags().StringVar(&opt.Address, "address", opt.Address, "Address to listen on for web interface and telemetry.")
-	cmd.Flags().StringVar(&opt.ClusterRole, "cluster-role", opt.ClusterRole, "ClusterRole for RBAC used in database workloads")
+	cmd.Flags().BoolVar(&opt.EnableRbac, "rbac", opt.EnableRbac, "Enable RBAC for database workloads")
 	// Analytics flags
 	cmd.Flags().BoolVar(&opt.EnableAnalytics, "analytics", opt.EnableAnalytics, "Send analytical event to Google Analytics")
 
