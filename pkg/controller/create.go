@@ -171,15 +171,6 @@ func (c *Controller) createStatefulSet(postgres *tapi.Postgres) (*apps.StatefulS
 		},
 	}
 
-	if c.opt.EnableRbac {
-		// Ensure ClusterRoles for database statefulsets
-		if err := c.createRBACStuff(postgres); err != nil {
-			return nil, err
-		}
-
-		statefulSet.Spec.Template.Spec.ServiceAccountName = postgres.Name
-	}
-
 	if postgres.Spec.Monitor != nil &&
 		postgres.Spec.Monitor.Agent == tapi.AgentCoreosPrometheus &&
 		postgres.Spec.Monitor.Prometheus != nil {
@@ -228,6 +219,15 @@ func (c *Controller) createStatefulSet(postgres *tapi.Postgres) (*apps.StatefulS
 	// Add InitialScript to run at startup
 	if postgres.Spec.Init != nil && postgres.Spec.Init.ScriptSource != nil {
 		addInitialScript(statefulSet, postgres.Spec.Init.ScriptSource)
+	}
+
+	if c.opt.EnableRbac {
+		// Ensure ClusterRoles for database statefulsets
+		if err := c.createRBACStuff(postgres); err != nil {
+			return nil, err
+		}
+
+		statefulSet.Spec.Template.Spec.ServiceAccountName = postgres.Name
 	}
 
 	if _, err := c.Client.AppsV1beta1().StatefulSets(statefulSet.Namespace).Create(statefulSet); err != nil {
