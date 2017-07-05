@@ -53,7 +53,6 @@ def main(argv):
             exit(1)
             return
 
-    set_osm_config()
     get_auth()
 
     if Flag["process"] == "backup":
