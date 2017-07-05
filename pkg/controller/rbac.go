@@ -91,7 +91,7 @@ func (c *Controller) createRoleBinding(postgres *tapi.Postgres) error {
 		},
 		RoleRef: rbac.RoleRef{
 			APIGroup: rbac.GroupName,
-			Kind:     "ClusterRole",
+			Kind:     "Role",
 			Name:     postgres.Name,
 		},
 		Subjects: []rbac.Subject{
