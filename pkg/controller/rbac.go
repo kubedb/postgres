@@ -34,11 +34,6 @@ func (c *Controller) createRole(postgres *tapi.Postgres) error {
 			},
 			{
 				APIGroups:     []string{apiv1.GroupName},
-				Resources:     []string{"pods"},
-				Verbs:         []string{"create"},
-			},
-			{
-				APIGroups:     []string{apiv1.GroupName},
 				Resources:     []string{"secrets"},
 				ResourceNames: []string{postgres.Spec.DatabaseSecret.SecretName},
 				Verbs:         []string{"get"},

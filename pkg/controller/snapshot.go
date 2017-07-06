@@ -156,9 +156,6 @@ func (c *Controller) GetSnapshotter(snapshot *tapi.Snapshot) (*batch.Job, error)
 			},
 		},
 	}
-	if c.opt.EnableRbac {
-		job.Spec.Template.Spec.ServiceAccountName = snapshot.SiblingName()
-	}
 	if snapshot.Spec.SnapshotStorageSpec.Local != nil {
 		job.Spec.Template.Spec.Containers[0].VolumeMounts = append(job.Spec.Template.Spec.Containers[0].VolumeMounts, apiv1.VolumeMount{
 			Name:      snapshot.Spec.SnapshotStorageSpec.Local.Volume.Name,
