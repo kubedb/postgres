@@ -61,10 +61,6 @@ func (e Elastic) OffshootName() string {
 	return e.Name
 }
 
-func (e Elastic) ServiceName() string {
-	return e.Name
-}
-
 func (e Elastic) OffshootLabels() map[string]string {
 	return map[string]string{
 		LabelDatabaseKind: ResourceKindElastic,
@@ -98,10 +94,6 @@ func (s Snapshot) OffshootName() string {
 }
 
 func (d DormantDatabase) OffshootName() string {
-	return d.Name
-}
-
-func (d DormantDatabase) ServiceName() string {
 	return d.Name
 }
 
