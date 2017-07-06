@@ -25,8 +25,9 @@ const (
 	durationCheckStatefulSet = time.Minute * 30
 )
 
-func (c *Controller) findService(name, namespace string) (bool, error) {
-	service, err := c.Client.CoreV1().Services(namespace).Get(name, metav1.GetOptions{})
+func (c *Controller) findService(postgres *tapi.Postgres) (bool, error) {
+	name := postgres.OffshootName()
+	service, err := c.Client.CoreV1().Services(postgres.Namespace).Get(name, metav1.GetOptions{})
 	if err != nil {
 		if kerr.IsNotFound(err) {
 			return false, nil
@@ -208,7 +209,7 @@ func (c *Controller) createStatefulSet(postgres *tapi.Postgres) (*apps.StatefulS
 	return statefulSet, nil
 }
 
-func (c *Controller) findSecret(namespace, secretName string) (bool, error) {
+func (c *Controller) findSecret(secretName, namespace string) (bool, error) {
 	secret, err := c.Client.CoreV1().Secrets(namespace).Get(secretName, metav1.GetOptions{})
 	if err != nil {
 		if kerr.IsNotFound(err) {
@@ -227,7 +228,7 @@ func (c *Controller) findSecret(namespace, secretName string) (bool, error) {
 func (c *Controller) createDatabaseSecret(postgres *tapi.Postgres) (*apiv1.SecretVolumeSource, error) {
 	authSecretName := postgres.Name + "-admin-auth"
 
-	found, err := c.findSecret(postgres.Namespace, authSecretName)
+	found, err := c.findSecret(authSecretName, postgres.Namespace)
 	if err != nil {
 		return nil, err
 	}

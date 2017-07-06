@@ -149,7 +149,7 @@ func (c *Controller) findDormantDatabase(postgres *tapi.Postgres) error {
 
 func (c *Controller) ensureService(postgres *tapi.Postgres) error {
 	// Check if service name exists
-	found, err := c.findService(postgres.Name, postgres.Namespace)
+	found, err := c.findService(postgres)
 	if err != nil {
 		return err
 	}
