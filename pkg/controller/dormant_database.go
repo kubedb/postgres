@@ -32,6 +32,11 @@ func (c *Controller) PauseDatabase(dormantDb *tapi.DormantDatabase) error {
 		log.Errorln(err)
 		return err
 	}
+
+	if err := c.deleteRBACStuff(dormantDb.Name, dormantDb.Namespace); err != nil {
+		log.Errorln(err)
+		return err
+	}
 	return nil
 }
 

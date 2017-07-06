@@ -8,9 +8,9 @@ import (
 	rbac "k8s.io/client-go/pkg/apis/rbac/v1beta1"
 )
 
-func (c *Controller) deleteRole(postgres *tapi.Postgres) error {
+func (c *Controller) deleteRole(name, namespace string) error {
 	// Delete existing Roles
-	if err := c.Client.RbacV1beta1().Roles(postgres.Namespace).Delete(postgres.Name, nil); err != nil {
+	if err := c.Client.RbacV1beta1().Roles(namespace).Delete(name, nil); err != nil {
 		if !kerr.IsNotFound(err) {
 			return err
 		}
@@ -47,9 +47,9 @@ func (c *Controller) createRole(postgres *tapi.Postgres) error {
 	return nil
 }
 
-func (c *Controller) deleteServiceAccount(postgres *tapi.Postgres) error {
+func (c *Controller) deleteServiceAccount(name, namespace string) error {
 	// Delete existing ServiceAccount
-	if err := c.Client.CoreV1().ServiceAccounts(postgres.Namespace).Delete(postgres.Name, nil); err != nil {
+	if err := c.Client.CoreV1().ServiceAccounts(namespace).Delete(name, nil); err != nil {
 		if !kerr.IsNotFound(err) {
 			return err
 		}
@@ -72,9 +72,9 @@ func (c *Controller) createServiceAccount(postgres *tapi.Postgres) error {
 	return nil
 }
 
-func (c *Controller) deleteRoleBinding(postgres *tapi.Postgres) error {
+func (c *Controller) deleteRoleBinding(name, namespace string) error {
 	// Delete existing RoleBindings
-	if err := c.Client.RbacV1beta1().RoleBindings(postgres.Namespace).Delete(postgres.Name, nil); err != nil {
+	if err := c.Client.RbacV1beta1().RoleBindings(namespace).Delete(name, nil); err != nil {
 		if !kerr.IsNotFound(err) {
 			return err
 		}
@@ -111,7 +111,7 @@ func (c *Controller) createRoleBinding(postgres *tapi.Postgres) error {
 
 func (c *Controller) createRBACStuff(postgres *tapi.Postgres) error {
 	// Delete Existing Role
-	if err := c.deleteRole(postgres); err != nil {
+	if err := c.deleteRole(postgres.Name, postgres.Namespace); err != nil {
 		return err
 	}
 	// Create New Role
@@ -131,6 +131,25 @@ func (c *Controller) createRBACStuff(postgres *tapi.Postgres) error {
 		if !kerr.IsAlreadyExists(err) {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (c *Controller) deleteRBACStuff(name, namespace string) error {
+	// Delete Existing Role
+	if err := c.deleteRole(name, namespace); err != nil {
+		return err
+	}
+
+	// Delete ServiceAccount
+	if err := c.deleteServiceAccount(name, namespace); err != nil {
+		return err
+	}
+
+	// Delete New RoleBinding
+	if err := c.deleteRoleBinding(name, namespace); err != nil {
+		return err
 	}
 
 	return nil
