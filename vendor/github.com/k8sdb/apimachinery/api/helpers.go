@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"strings"
 )
 
@@ -25,7 +24,7 @@ const (
 )
 
 func (p Postgres) OffshootName() string {
-	return fmt.Sprintf("%v-%v", p.Name, ResourceCodePostgres)
+	return p.Name
 }
 
 func (p Postgres) ServiceName() string {
@@ -61,7 +60,7 @@ func (p Postgres) StatefulSetAnnotations() map[string]string {
 }
 
 func (e Elastic) OffshootName() string {
-	return fmt.Sprintf("%v-%v", e.Name, ResourceCodeElastic)
+	return e.Name
 }
 
 func (e Elastic) ServiceName() string {
@@ -96,40 +95,12 @@ func (e Elastic) StatefulSetAnnotations() map[string]string {
 	return annotations
 }
 
-func (s Snapshot) SiblingName() string {
-	var kind string
-	if s.Labels != nil {
-		kind = s.Labels[LabelDatabaseKind]
-	}
-	switch kind {
-	case ResourceKindPostgres:
-		return fmt.Sprintf("%v-%v", s.Name, ResourceCodePostgres)
-	case ResourceKindElastic:
-		return fmt.Sprintf("%v-%v", s.Name, ResourceCodeElastic)
-	}
-	return ""
-}
-
 func (s Snapshot) OffshootName() string {
 	return s.Name
 }
 
-func (s Snapshot) ServiceName() string {
-	return s.Spec.DatabaseName
-}
-
 func (d DormantDatabase) OffshootName() string {
-	var kind string
-	if d.Labels != nil {
-		kind = d.Labels[LabelDatabaseKind]
-	}
-	switch kind {
-	case ResourceKindPostgres:
-		return fmt.Sprintf("%v-%v", d.Name, ResourceCodePostgres)
-	case ResourceKindElastic:
-		return fmt.Sprintf("%v-%v", d.Name, ResourceCodeElastic)
-	}
-	return ""
+	return d.Name
 }
 
 func (d DormantDatabase) ServiceName() string {
