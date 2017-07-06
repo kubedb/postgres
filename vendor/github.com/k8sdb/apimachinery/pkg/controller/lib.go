@@ -99,7 +99,7 @@ func (c *Controller) DeleteSnapshotData(snapshot *tapi.Snapshot) error {
 		return err
 	}
 
-	prefix := fmt.Sprintf("%v/%v/%v/%v", DatabaseNamePrefix, snapshot.Namespace, snapshot.Spec.DatabaseName, snapshot.Name)
+	prefix := fmt.Sprintf("%v/%v/%v/%v", tapi.DatabaseNamePrefix, snapshot.Namespace, snapshot.Spec.DatabaseName, snapshot.Name)
 	cursor := stow.CursorStart
 	for {
 		items, next, err := container.Items(prefix, cursor, 50)
@@ -287,7 +287,7 @@ func (c *Controller) DeleteService(name, namespace string) error {
 		}
 	}
 
-	if service.Spec.Selector[LabelDatabaseName] != name {
+	if service.Spec.Selector[tapi.LabelDatabaseName] != name {
 		return nil
 	}
 

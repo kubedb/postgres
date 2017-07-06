@@ -165,7 +165,7 @@ func (c *Controller) watchPostgres() {
 
 func (c *Controller) watchSnapshot() {
 	labelMap := map[string]string{
-		amc.LabelDatabaseKind: tapi.ResourceKindPostgres,
+		tapi.LabelDatabaseKind: tapi.ResourceKindPostgres,
 	}
 	// Watch with label selector
 	lw := &cache.ListWatch{
@@ -188,7 +188,7 @@ func (c *Controller) watchSnapshot() {
 
 func (c *Controller) watchDormantDatabase() {
 	labelMap := map[string]string{
-		amc.LabelDatabaseKind: tapi.ResourceKindPostgres,
+		tapi.LabelDatabaseKind: tapi.ResourceKindPostgres,
 	}
 	// Watch with label selector
 	lw := &cache.ListWatch{
