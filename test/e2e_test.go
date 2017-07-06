@@ -6,10 +6,9 @@ import (
 	"time"
 
 	tapi "github.com/k8sdb/apimachinery/api"
+	"github.com/k8sdb/apimachinery/pkg/storage"
 	"github.com/k8sdb/postgres/test/mini"
 	"github.com/stretchr/testify/assert"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	apiv1 "k8s.io/client-go/pkg/api/v1"
 )
 
 func TestCreate(t *testing.T) {
@@ -137,6 +136,27 @@ func TestDoNotPause(t *testing.T) {
 	if !assert.True(t, done) {
 		fmt.Println("---- >> Failed to be deleted")
 	}
+
+	fmt.Println("---- >> WipingOut Database")
+	err = mini.WipeOutDormantDatabase(controller, postgres)
+	assert.Nil(t, err)
+	if !assert.True(t, done) {
+		fmt.Println("---- >> Failed to be wipedout")
+	}
+
+	fmt.Println("---- >> Checking DormantDatabase")
+	done, err = mini.CheckDormantDatabasePhase(controller, postgres, tapi.DormantDatabasePhaseWipedOut)
+	assert.Nil(t, err)
+	if !assert.True(t, done) {
+		fmt.Println("---- >> Failed to be wipedout")
+	}
+
+	fmt.Println("---- >> Deleting DormantDatabase")
+	err = mini.DeleteDormantDatabase(controller, postgres)
+	assert.Nil(t, err)
+	if !assert.True(t, done) {
+		fmt.Println("---- >> Failed to be deleted")
+	}
 }
 
 func TestSnapshot(t *testing.T) {
@@ -180,14 +200,14 @@ func TestSnapshot(t *testing.T) {
 	snapshotSpec := tapi.SnapshotSpec{
 		DatabaseName: postgres.Name,
 		SnapshotStorageSpec: tapi.SnapshotStorageSpec{
-			BucketName: bucket,
-			StorageSecret: &apiv1.SecretVolumeSource{
-				SecretName: secretName,
+			StorageSecretName: secretName,
+			GCS: &tapi.GCSSpec{
+				Bucket: bucket,
 			},
 		},
 	}
 
-	err = controller.CheckBucketAccess(snapshotSpec.SnapshotStorageSpec, postgres.Namespace)
+	err = storage.CheckBucketAccess(controller.Client, snapshotSpec.SnapshotStorageSpec, postgres.Namespace)
 	if !assert.Nil(t, err) {
 		return
 	}
@@ -414,9 +434,9 @@ func TestInitialize(t *testing.T) {
 	snapshotSpec := tapi.SnapshotSpec{
 		DatabaseName: postgres.Name,
 		SnapshotStorageSpec: tapi.SnapshotStorageSpec{
-			BucketName: bucket,
-			StorageSecret: &apiv1.SecretVolumeSource{
-				SecretName: secretName,
+			StorageSecretName: secretName,
+			GCS: &tapi.GCSSpec{
+				Bucket: bucket,
 			},
 		},
 	}
@@ -593,12 +613,17 @@ func TestUpdateScheduler(t *testing.T) {
 		return
 	}
 
+	const (
+		bucket     = ""
+		secretName = ""
+	)
+
 	postgres.Spec.BackupSchedule = &tapi.BackupScheduleSpec{
 		CronExpression: "@every 30s",
 		SnapshotStorageSpec: tapi.SnapshotStorageSpec{
-			BucketName: "",
-			StorageSecret: &metav1.SecretVolumeSource{
-				SecretName: "",
+			StorageSecretName: secretName,
+			GCS: &tapi.GCSSpec{
+				Bucket: bucket,
 			},
 		},
 	}

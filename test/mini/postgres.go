@@ -21,7 +21,7 @@ func NewPostgres() *tapi.Postgres {
 			Name: rand.WithUniqSuffix("e2e-postgres"),
 		},
 		Spec: tapi.PostgresSpec{
-			Version: "canary",
+			Version: "9.5",
 		},
 	}
 	return postgres
@@ -56,12 +56,12 @@ func CheckPostgresStatus(c *controller.Controller, postgres *tapi.Postgres) (boo
 }
 
 func CheckPostgresWorkload(c *controller.Controller, postgres *tapi.Postgres) error {
-	if _, err := c.Client.CoreV1().Services(postgres.Namespace).Get(postgres.Name, metav1.GetOptions{}); err != nil {
+	if _, err := c.Client.CoreV1().Services(postgres.Namespace).Get(postgres.OffshootName(), metav1.GetOptions{}); err != nil {
 		return err
 	}
 
 	// SatatefulSet for Postgres database
-	statefulSetName := fmt.Sprintf("%v-%v", postgres.Name, tapi.ResourceCodePostgres)
+	statefulSetName := postgres.OffshootName()
 	if _, err := c.Client.AppsV1beta1().StatefulSets(postgres.Namespace).Get(statefulSetName, metav1.GetOptions{}); err != nil {
 		return err
 	}

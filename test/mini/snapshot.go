@@ -7,14 +7,13 @@ import (
 
 	"github.com/appscode/go/crypto/rand"
 	"github.com/appscode/log"
-	"github.com/ghodss/yaml"
 	"github.com/graymeta/stow"
 	tapi "github.com/k8sdb/apimachinery/api"
-	amc "github.com/k8sdb/apimachinery/pkg/controller"
 	"github.com/k8sdb/postgres/pkg/controller"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
+	"github.com/k8sdb/apimachinery/pkg/storage"
 )
 
 const durationCheckSnapshot = time.Minute * 30
@@ -25,7 +24,7 @@ func CreateSnapshot(c *controller.Controller, namespace string, snapshotSpec tap
 			Name:      rand.WithUniqSuffix("e2e-db-snapshot"),
 			Namespace: namespace,
 			Labels: map[string]string{
-				amc.LabelDatabaseKind: tapi.ResourceKindPostgres,
+				tapi.LabelDatabaseKind: tapi.ResourceKindPostgres,
 			},
 		},
 		Spec: snapshotSpec,
@@ -76,36 +75,27 @@ const (
 )
 
 func CheckSnapshotData(c *controller.Controller, snapshot *tapi.Snapshot) (int, error) {
-	secret, err := c.Client.Core().Secrets(snapshot.Namespace).Get(snapshot.Spec.StorageSecret.SecretName)
+	storageSpec := snapshot.Spec.SnapshotStorageSpec
+	cfg, err := storage.NewOSMContext(c.Client, storageSpec, snapshot.Namespace)
 	if err != nil {
 		return 0, err
 	}
 
-	provider := secret.Data[keyProvider]
-	if provider == nil {
-		return 0, errors.New("Missing provider key")
-	}
-	configData := secret.Data[keyConfig]
-	if configData == nil {
-		return 0, errors.New("Missing config key")
-	}
-
-	var config stow.ConfigMap
-	if err := yaml.Unmarshal(configData, &config); err != nil {
+	loc, err := stow.Dial(cfg.Provider, cfg.Config)
+	if err != nil {
 		return 0, err
 	}
-
-	loc, err := stow.Dial(string(provider), config)
+	containerID, err := storageSpec.Container()
+	if err != nil {
+		return 0, err
+	}
+	container, err := loc.Container(containerID)
 	if err != nil {
 		return 0, err
 	}
 
-	container, err := loc.Container(snapshot.Spec.BucketName)
-	if err != nil {
-		return 0, err
-	}
 
-	folderName := fmt.Sprintf("%v/%v/%v", amc.DatabaseNamePrefix, snapshot.Namespace, snapshot.Spec.DatabaseName)
+	folderName, _ := snapshot.Location()
 	prefix := fmt.Sprintf("%v/%v", folderName, snapshot.Name)
 	cursor := stow.CursorStart
 	totalItem := 0
@@ -128,8 +118,8 @@ func CheckSnapshotData(c *controller.Controller, snapshot *tapi.Snapshot) (int, 
 
 func CheckSnapshotScheduler(c *controller.Controller, postgres *tapi.Postgres) error {
 	labelMap := map[string]string{
-		amc.LabelDatabaseKind: tapi.ResourceKindPostgres,
-		amc.LabelDatabaseName: postgres.Name,
+		tapi.LabelDatabaseKind: tapi.ResourceKindPostgres,
+		tapi.LabelDatabaseName: postgres.Name,
 	}
 
 	then := time.Now()

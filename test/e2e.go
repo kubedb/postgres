@@ -12,6 +12,8 @@ import (
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+	"net"
+	"strconv"
 )
 
 type postgresController struct {
@@ -24,6 +26,7 @@ var e2eController = postgresController{isControllerRunning: false}
 
 const (
 	configPath = ""
+	enableRbac = true
 )
 
 func getController() (c *controller.Controller, err error) {
@@ -56,15 +59,37 @@ func getController() (c *controller.Controller, err error) {
 			cronController := amc.NewCronController(client, extClient)
 			// Start Cron
 			cronController.StartCron()
-			// Stop Cron
+			port, _ := getAvailablePort()
 			e2eController.controller = controller.New(client, extClient, promClient, cronController, controller.Options{
 				GoverningService: "kubedb",
+				EnableRbac:       enableRbac,
+				EnableAnalytics:  false,
+				Address:          fmt.Sprintf("127.0.0.1:%v", port),
 			})
 			e2eController.isControllerRunning = true
+			c = e2eController.controller
 			go c.RunAndHold()
 
 			time.Sleep(time.Second * 30)
 		},
 	)
 	return
+}
+
+func getAvailablePort() (int, error) {
+	l, err := net.Listen("tcp", ":0")
+	if err != nil {
+		return 0, err
+	}
+	defer l.Close()
+
+	_, p, err := net.SplitHostPort(l.Addr().String())
+	if err != nil {
+		return 0, err
+	}
+	port, err := strconv.Atoi(p)
+	if err != nil {
+		return 0, err
+	}
+	return port, err
 }
