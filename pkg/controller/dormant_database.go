@@ -33,7 +33,7 @@ func (c *Controller) PauseDatabase(dormantDb *tapi.DormantDatabase) error {
 
 	postgres := &tapi.Postgres{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      dormantDb.Name,
+			Name:      dormantDb.OffshootName(),
 			Namespace: dormantDb.Namespace,
 		},
 	}
