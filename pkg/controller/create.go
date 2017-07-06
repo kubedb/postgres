@@ -18,8 +18,7 @@ import (
 )
 
 const (
-	annotationDatabaseVersion = "postgres.kubedb.com/version"
-	modeBasic                 = "basic"
+	modeBasic = "basic"
 	// Duration in Minute
 	// Check whether pod under StatefulSet is running or not
 	// Continue checking for this duration until failure

@@ -229,7 +229,7 @@ func (c *Controller) ensureThirdPartyResource() {
 		ObjectMeta: metav1.ObjectMeta{
 			Name: resourceName,
 			Labels: map[string]string{
-				"app": "kubedb",
+				"app": tapi.DatabaseNamePrefix,
 			},
 		},
 		Description: "Postgres Database by KubeDB",
