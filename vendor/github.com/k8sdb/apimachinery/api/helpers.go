@@ -1,6 +1,8 @@
 package api
 
 import (
+	"errors"
+	"path/filepath"
 	"strings"
 )
 
@@ -24,10 +26,6 @@ const (
 )
 
 func (p Postgres) OffshootName() string {
-	return p.Name
-}
-
-func (p Postgres) ServiceName() string {
 	return p.Name
 }
 
@@ -105,4 +103,50 @@ func (d DormantDatabase) OffshootName() string {
 
 func (d DormantDatabase) ServiceName() string {
 	return d.Name
+}
+
+func (s Snapshot) Location() (string, error) {
+	spec := s.Spec.SnapshotStorageSpec
+	if spec.S3 != nil {
+		return filepath.Join(spec.S3.Prefix, DatabaseNamePrefix, s.Namespace, s.Spec.DatabaseName), nil
+	} else if spec.GCS != nil {
+		return filepath.Join(spec.GCS.Prefix, DatabaseNamePrefix, s.Namespace, s.Spec.DatabaseName), nil
+	} else if spec.Azure != nil {
+		return filepath.Join(spec.Azure.Prefix, DatabaseNamePrefix, s.Namespace, s.Spec.DatabaseName), nil
+	} else if spec.Local != nil {
+		return filepath.Join(spec.Local.Path, DatabaseNamePrefix, s.Namespace, s.Spec.DatabaseName), nil
+	} else if spec.Swift != nil {
+		return filepath.Join(spec.Swift.Prefix, DatabaseNamePrefix, s.Namespace, s.Spec.DatabaseName), nil
+	}
+	return "", errors.New("No storage provider is configured.")
+}
+
+func (s SnapshotStorageSpec) Container() (string, error) {
+	if s.S3 != nil {
+		return s.S3.Bucket, nil
+	} else if s.GCS != nil {
+		return s.GCS.Bucket, nil
+	} else if s.Azure != nil {
+		return s.Azure.Container, nil
+	} else if s.Local != nil {
+		return "kubedb", nil
+	} else if s.Swift != nil {
+		return s.Swift.Container, nil
+	}
+	return "", errors.New("No storage provider is configured.")
+}
+
+func (s SnapshotStorageSpec) Location() (string, error) {
+	if s.S3 != nil {
+		return "s3://" + s.S3.Bucket, nil
+	} else if s.GCS != nil {
+		return "gs://" + s.GCS.Bucket, nil
+	} else if s.Azure != nil {
+		return "azure://" + s.Azure.Container, nil
+	} else if s.Local != nil {
+		return "local://kubedb", nil
+	} else if s.Swift != nil {
+		return "swift://" + s.Swift.Container, nil
+	}
+	return "", errors.New("No storage provider is configured.")
 }

@@ -46,7 +46,7 @@ func (c *Controller) findService(name, namespace string) (bool, error) {
 func (c *Controller) createService(postgres *tapi.Postgres) error {
 	svc := &apiv1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:   postgres.ServiceName(),
+			Name:   postgres.OffshootName(),
 			Labels: postgres.OffshootLabels(),
 		},
 		Spec: apiv1.ServiceSpec{
@@ -378,7 +378,7 @@ func (c *Controller) createRestoreJob(postgres *tapi.Postgres, snapshot *tapi.Sn
 		tapi.LabelJobType:      SnapshotProcess_Restore,
 	}
 	backupSpec := snapshot.Spec.SnapshotStorageSpec
-	bucket, err := storage.GetContainer(backupSpec)
+	bucket, err := backupSpec.Container()
 	if err != nil {
 		return nil, err
 	}
@@ -390,7 +390,7 @@ func (c *Controller) createRestoreJob(postgres *tapi.Postgres, snapshot *tapi.Sn
 	}
 
 	// Folder name inside Cloud bucket where backup will be uploaded
-	folderName := fmt.Sprintf("%v/%v/%v", tapi.DatabaseNamePrefix, snapshot.Namespace, snapshot.Spec.DatabaseName)
+	folderName, _ := snapshot.Location()
 
 	job := &batch.Job{
 		ObjectMeta: metav1.ObjectMeta{

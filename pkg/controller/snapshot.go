@@ -71,7 +71,7 @@ func (c *Controller) GetSnapshotter(snapshot *tapi.Snapshot) (*batch.Job, error)
 		tapi.LabelJobType:      SnapshotProcess_Backup,
 	}
 	backupSpec := snapshot.Spec.SnapshotStorageSpec
-	bucket, err := storage.GetContainer(backupSpec)
+	bucket, err := backupSpec.Container()
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +87,7 @@ func (c *Controller) GetSnapshotter(snapshot *tapi.Snapshot) (*batch.Job, error)
 	}
 
 	// Folder name inside Cloud bucket where backup will be uploaded
-	folderName := fmt.Sprintf("%v/%v/%v", tapi.DatabaseNamePrefix, snapshot.Namespace, snapshot.Spec.DatabaseName)
+	folderName, _ := snapshot.Location()
 
 	job := &batch.Job{
 		ObjectMeta: metav1.ObjectMeta{
