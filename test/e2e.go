@@ -25,8 +25,8 @@ type postgresController struct {
 var e2eController = postgresController{isControllerRunning: false}
 
 const (
-	configPath = "/home/shahriar/.kube/config"
-	enableRbac = false
+	configPath = ""
+	enableRbac = true
 )
 
 func getController() (c *controller.Controller, err error) {
