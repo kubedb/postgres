@@ -9,11 +9,11 @@ import (
 	"github.com/appscode/log"
 	"github.com/graymeta/stow"
 	tapi "github.com/k8sdb/apimachinery/api"
+	"github.com/k8sdb/apimachinery/pkg/storage"
 	"github.com/k8sdb/postgres/pkg/controller"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
-	"github.com/k8sdb/apimachinery/pkg/storage"
 )
 
 const durationCheckSnapshot = time.Minute * 30
@@ -93,7 +93,6 @@ func CheckSnapshotData(c *controller.Controller, snapshot *tapi.Snapshot) (int, 
 	if err != nil {
 		return 0, err
 	}
-
 
 	folderName, _ := snapshot.Location()
 	prefix := fmt.Sprintf("%v/%v", folderName, snapshot.Name)

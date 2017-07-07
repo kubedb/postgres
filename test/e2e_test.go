@@ -9,6 +9,7 @@ import (
 	"github.com/k8sdb/apimachinery/pkg/storage"
 	"github.com/k8sdb/postgres/test/mini"
 	"github.com/stretchr/testify/assert"
+	apiv1 "k8s.io/client-go/pkg/api/v1"
 )
 
 func TestCreate(t *testing.T) {
@@ -250,6 +251,105 @@ func TestSnapshot(t *testing.T) {
 		return
 	}
 	assert.Zero(t, count)
+
+	fmt.Println("---- >> Deleted Postgres")
+	err = mini.DeletePostgres(controller, postgres)
+	assert.Nil(t, err)
+
+	fmt.Println("---- >> Checking DormantDatabase")
+	done, err = mini.CheckDormantDatabasePhase(controller, postgres, tapi.DormantDatabasePhasePaused)
+	assert.Nil(t, err)
+	if !assert.True(t, done) {
+		fmt.Println("---- >> Failed to be deleted")
+	}
+
+	fmt.Println("---- >> WipingOut Database")
+	err = mini.WipeOutDormantDatabase(controller, postgres)
+	assert.Nil(t, err)
+	if !assert.True(t, done) {
+		fmt.Println("---- >> Failed to be wipedout")
+	}
+
+	fmt.Println("---- >> Checking DormantDatabase")
+	done, err = mini.CheckDormantDatabasePhase(controller, postgres, tapi.DormantDatabasePhaseWipedOut)
+	assert.Nil(t, err)
+	if !assert.True(t, done) {
+		fmt.Println("---- >> Failed to be wipedout")
+	}
+
+	fmt.Println("---- >> Deleting DormantDatabase")
+	err = mini.DeleteDormantDatabase(controller, postgres)
+	assert.Nil(t, err)
+	if !assert.True(t, done) {
+		fmt.Println("---- >> Failed to be deleted")
+	}
+}
+
+func TestSnapshotInLocalDir(t *testing.T) {
+	controller, err := getController()
+	if !assert.Nil(t, err) {
+		return
+	}
+
+	fmt.Println("--> Running Postgres Controller")
+
+	// Postgres
+	fmt.Println()
+	fmt.Println("-- >> Testing postgres")
+	fmt.Println("---- >> Creating Postgres")
+	postgres := mini.NewPostgres()
+	postgres, err = controller.ExtClient.Postgreses("default").Create(postgres)
+	if !assert.Nil(t, err) {
+		return
+	}
+
+	time.Sleep(time.Second * 30)
+	fmt.Println("---- >> Checking Postgres")
+	running, err := mini.CheckPostgresStatus(controller, postgres)
+	assert.Nil(t, err)
+	if !assert.True(t, running) {
+		fmt.Println("---- >> Postgres fails to be Ready")
+		return
+	} else {
+		err := mini.CheckPostgresWorkload(controller, postgres)
+		if !assert.Nil(t, err) {
+			fmt.Println("---- >> Failed to check PostgresWorkload")
+			return
+		}
+	}
+
+	snapshotSpec := tapi.SnapshotSpec{
+		DatabaseName: postgres.Name,
+		SnapshotStorageSpec: tapi.SnapshotStorageSpec{
+			Local: &tapi.LocalSpec{
+				VolumeSource: apiv1.VolumeSource{
+					EmptyDir: &apiv1.EmptyDirVolumeSource{},
+				},
+				Path: "/test",
+			},
+		},
+	}
+
+	fmt.Println("---- >> Creating Snapshot")
+	snapshot, err := mini.CreateSnapshot(controller, postgres.Namespace, snapshotSpec)
+	if !assert.Nil(t, err) {
+		return
+	}
+
+	fmt.Println("---- >> Checking Snapshot")
+	done, err := mini.CheckSnapshot(controller, snapshot)
+	assert.Nil(t, err)
+	if !assert.True(t, done) {
+		fmt.Println("---- >> Failed to take snapshot")
+		return
+	}
+
+	fmt.Println("---- >> Deleting Snapshot")
+	err = controller.ExtClient.Snapshots(snapshot.Namespace).Delete(snapshot.Name)
+	if !assert.Nil(t, err) {
+		fmt.Println("---- >> Failed to delete Snapshot")
+		return
+	}
 
 	fmt.Println("---- >> Deleted Postgres")
 	err = mini.DeletePostgres(controller, postgres)

@@ -2,6 +2,8 @@ package test
 
 import (
 	"fmt"
+	"net"
+	"strconv"
 	"sync"
 	"time"
 
@@ -12,8 +14,6 @@ import (
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
-	"net"
-	"strconv"
 )
 
 type postgresController struct {
@@ -25,8 +25,8 @@ type postgresController struct {
 var e2eController = postgresController{isControllerRunning: false}
 
 const (
-	configPath = ""
-	enableRbac = true
+	configPath = "/home/shahriar/.kube/config"
+	enableRbac = false
 )
 
 func getController() (c *controller.Controller, err error) {
