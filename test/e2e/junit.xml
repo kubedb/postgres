@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+  <testsuite tests="1" failures="0" time="65.158031719">
+      <testcase name="Postgres Test General should running successfully" classname="e2e Suite" time="0">
+          <skipped></skipped>
+      </testcase>
+      <testcase name="Postgres Test General With PVC should running successfully" classname="e2e Suite" time="65.113536009"></testcase>
+  </testsuite>

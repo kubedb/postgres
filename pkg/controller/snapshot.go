@@ -13,6 +13,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	apiv1 "k8s.io/client-go/pkg/api/v1"
 	batch "k8s.io/client-go/pkg/apis/batch/v1"
+	"github.com/k8sdb/apimachinery/pkg/eventer"
 )
 
 const (
@@ -41,18 +42,19 @@ func (c *Controller) ValidateSnapshot(snapshot *tapi.Snapshot) error {
 	}
 
 	if len(snapshotList.Items) > 0 {
-		if snapshot, err = c.ExtClient.Snapshots(snapshot.Namespace).Get(snapshot.Name); err != nil {
+		err := c.UpdateSnapshot(snapshot.ObjectMeta, func(in tapi.Snapshot) tapi.Snapshot {
+			t := metav1.Now()
+			in.Status.StartTime = &t
+			in.Status.CompletionTime = &t
+			in.Status.Phase = tapi.SnapshotPhaseFailed
+			in.Status.Reason = "One Snapshot is already Running"
+			return in
+		})
+		if err != nil {
+			c.eventRecorder.Eventf(snapshot, apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
 			return err
 		}
 
-		t := metav1.Now()
-		snapshot.Status.StartTime = &t
-		snapshot.Status.CompletionTime = &t
-		snapshot.Status.Phase = tapi.SnapshotPhaseFailed
-		snapshot.Status.Reason = "One Snapshot is already Running"
-		if _, err := c.ExtClient.Snapshots(snapshot.Namespace).Update(snapshot); err != nil {
-			return err
-		}
 		return errors.New("One Snapshot is already Running")
 	}
 
@@ -173,20 +175,20 @@ func (c *Controller) WipeOutSnapshot(snapshot *tapi.Snapshot) error {
 	return c.DeleteSnapshotData(snapshot)
 }
 
-func (c *Controller) getVolumeForSnapshot(storage *tapi.StorageSpec, jobName, namespace string) (*apiv1.Volume, error) {
+func (c *Controller) getVolumeForSnapshot(pvcSpec *apiv1.PersistentVolumeClaimSpec, jobName, namespace string) (*apiv1.Volume, error) {
 	volume := &apiv1.Volume{
 		Name: "util-volume",
 	}
-	if storage != nil {
+	if pvcSpec != nil {
 		claim := &apiv1.PersistentVolumeClaim{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      jobName,
 				Namespace: namespace,
 				Annotations: map[string]string{
-					"volume.beta.kubernetes.io/storage-class": storage.Class,
+					"volume.beta.kubernetes.io/pvcSpec-class": *pvcSpec.StorageClassName,
 				},
 			},
-			Spec: storage.PersistentVolumeClaimSpec,
+			Spec: *pvcSpec,
 		}
 
 		if _, err := c.Client.CoreV1().PersistentVolumeClaims(claim.Namespace).Create(claim); err != nil {

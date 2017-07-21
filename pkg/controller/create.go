@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -8,6 +9,7 @@ import (
 	"github.com/appscode/go/types"
 	tapi "github.com/k8sdb/apimachinery/api"
 	"github.com/k8sdb/apimachinery/pkg/docker"
+	"github.com/k8sdb/apimachinery/pkg/eventer"
 	"github.com/k8sdb/apimachinery/pkg/storage"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -15,6 +17,7 @@ import (
 	apiv1 "k8s.io/client-go/pkg/api/v1"
 	apps "k8s.io/client-go/pkg/apis/apps/v1beta1"
 	batch "k8s.io/client-go/pkg/apis/batch/v1"
+	"github.com/appscode/log"
 )
 
 const (
@@ -171,13 +174,13 @@ func (c *Controller) createStatefulSet(postgres *tapi.Postgres) (*apps.StatefulS
 		if err != nil {
 			return nil, err
 		}
-		if postgres, err = c.ExtClient.Postgreses(postgres.Namespace).Get(postgres.Name); err != nil {
-			return nil, err
-		}
 
-		postgres.Spec.DatabaseSecret = secretVolumeSource
-
-		if _, err := c.ExtClient.Postgreses(postgres.Namespace).Update(postgres); err != nil {
+		err = c.UpdatePostgres(postgres.ObjectMeta, func(in tapi.Postgres) tapi.Postgres {
+			in.Spec.DatabaseSecret = secretVolumeSource
+			return in
+		})
+		if err != nil {
+			c.eventRecorder.Eventf(postgres, apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
 			return nil, err
 		}
 	}
@@ -270,20 +273,22 @@ func addSecretVolume(statefulSet *apps.StatefulSet, secretVolume *apiv1.SecretVo
 	return nil
 }
 
-func addDataVolume(statefulSet *apps.StatefulSet, storage *tapi.StorageSpec) {
-	if storage != nil {
+func addDataVolume(statefulSet *apps.StatefulSet, pvcSpec *apiv1.PersistentVolumeClaimSpec) {
+	if pvcSpec != nil {
+		if len(pvcSpec.AccessModes) == 0 {
+			pvcSpec.AccessModes = []apiv1.PersistentVolumeAccessMode{
+				apiv1.ReadWriteOnce,
+			}
+			log.Infof(`Using "%v" as AccessModes in "%v"`, apiv1.ReadWriteOnce, *pvcSpec)
+		}
 		// volume claim templates
 		// Dynamically attach volume
-		storageClassName := storage.Class
 		statefulSet.Spec.VolumeClaimTemplates = []apiv1.PersistentVolumeClaim{
 			{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "data",
-					Annotations: map[string]string{
-						"volume.beta.kubernetes.io/storage-class": storageClassName,
-					},
 				},
-				Spec: storage.PersistentVolumeClaimSpec,
+				Spec: *pvcSpec,
 			},
 		}
 	} else {
@@ -343,6 +348,15 @@ func (c *Controller) createDormantDatabase(postgres *tapi.Postgres) (*tapi.Dorma
 			},
 		},
 	}
+
+	initSpec, _ := json.Marshal(postgres.Spec.Init)
+	if initSpec != nil {
+		dormantDb.Annotations = map[string]string{
+			tapi.PostgresInitSpec: string(initSpec),
+		}
+	}
+	dormantDb.Spec.Origin.Spec.Postgres.Init = nil
+
 	return c.ExtClient.DormantDatabases(dormantDb.Namespace).Create(dormantDb)
 }
 
