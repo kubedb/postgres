@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/appscode/log"
 	tapi "github.com/k8sdb/apimachinery/api"
 	"github.com/k8sdb/apimachinery/pkg/docker"
 	"github.com/k8sdb/apimachinery/pkg/storage"
@@ -178,6 +179,13 @@ func (c *Controller) getVolumeForSnapshot(pvcSpec *apiv1.PersistentVolumeClaimSp
 		Name: "util-volume",
 	}
 	if pvcSpec != nil {
+		if len(pvcSpec.AccessModes) == 0 {
+			pvcSpec.AccessModes = []apiv1.PersistentVolumeAccessMode{
+				apiv1.ReadWriteOnce,
+			}
+			log.Infof(`Using "%v" as AccessModes in "%v"`, apiv1.ReadWriteOnce, *pvcSpec)
+		}
+
 		claim := &apiv1.PersistentVolumeClaim{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      jobName,
