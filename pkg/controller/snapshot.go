@@ -173,20 +173,20 @@ func (c *Controller) WipeOutSnapshot(snapshot *tapi.Snapshot) error {
 	return c.DeleteSnapshotData(snapshot)
 }
 
-func (c *Controller) getVolumeForSnapshot(storage *tapi.StorageSpec, jobName, namespace string) (*apiv1.Volume, error) {
+func (c *Controller) getVolumeForSnapshot(pvcSpec *apiv1.PersistentVolumeClaimSpec, jobName, namespace string) (*apiv1.Volume, error) {
 	volume := &apiv1.Volume{
 		Name: "util-volume",
 	}
-	if storage != nil {
+	if pvcSpec != nil {
 		claim := &apiv1.PersistentVolumeClaim{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      jobName,
 				Namespace: namespace,
 				Annotations: map[string]string{
-					"volume.beta.kubernetes.io/storage-class": storage.Class,
+					"volume.beta.kubernetes.io/storage-class": *pvcSpec.StorageClassName,
 				},
 			},
-			Spec: storage.PersistentVolumeClaimSpec,
+			Spec: *pvcSpec,
 		}
 
 		if _, err := c.Client.CoreV1().PersistentVolumeClaims(claim.Namespace).Create(claim); err != nil {
