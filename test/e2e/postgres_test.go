@@ -2,13 +2,14 @@ package e2e_test
 
 import (
 	//"github.com/appscode/go/types"
+	"github.com/appscode/go/types"
 	tapi "github.com/k8sdb/apimachinery/api"
 	"github.com/k8sdb/postgres/test/e2e/framework"
 	"github.com/k8sdb/postgres/test/e2e/matcher"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	apiv1 "k8s.io/client-go/pkg/api/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	apiv1 "k8s.io/client-go/pkg/api/v1"
 )
 
 var _ = Describe("Postgres", func() {
@@ -66,10 +67,17 @@ var _ = Describe("Postgres", func() {
 								apiv1.ResourceStorage: resource.MustParse("5Gi"),
 							},
 						},
-						//StorageClassName: types.StringP(f.StorageClass),
 					}
 				})
-				FIt("should running successfully", shouldSuccessfullyRunning)
+				It("should running successfully", shouldSuccessfullyRunning)
+
+				Context("With PVC with StorageClassName", func() {
+					BeforeEach(func() {
+						postgres.Spec.Storage.StorageClassName = types.StringP(f.StorageClass)
+					})
+					It("should running successfully", shouldSuccessfullyRunning)
+
+				})
 			})
 		})
 	})
