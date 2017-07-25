@@ -1,5 +1,5 @@
 hash: e3d4853285f09eea0df5c64f5d663b09685b55b1b42a41100d4cdf769cb1c711
-updated: 2017-07-25T15:54:05.844528653+06:00
+updated: 2017-07-25T16:00:29.569035196+06:00
 imports:
 - name: cloud.google.com/go
   version: fe3d41e1ecb2ce36ad3a979037c9b9a2b726226f
@@ -27,10 +27,6 @@ imports:
   - pkg/context
 - name: github.com/appscode/pat
   version: 48ff78925b7955367d8a048fc2b5cec8efadf8d3
-- name: github.com/appscode/searchlight
-  version: c5303726cf72600823c84aadc0c26fa4d41eb14d
-  subpackages:
-  - test/e2e
 - name: github.com/aws/aws-sdk-go
   version: 63ce630574a5ec05ecd8e8de5cea16332a5a684d
   subpackages:
