@@ -7,6 +7,7 @@ import (
 
 	"github.com/appscode/go/crypto/rand"
 	"github.com/appscode/go/types"
+	"github.com/appscode/log"
 	tapi "github.com/k8sdb/apimachinery/api"
 	"github.com/k8sdb/apimachinery/pkg/docker"
 	"github.com/k8sdb/apimachinery/pkg/eventer"
@@ -287,6 +288,9 @@ func addDataVolume(statefulSet *apps.StatefulSet, pvcSpec *apiv1.PersistentVolum
 			{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "data",
+					Annotations: map[string]string{
+						"volume.beta.kubernetes.io/storage-class": *pvcSpec.StorageClassName,
+					},
 				},
 				Spec: *pvcSpec,
 			},

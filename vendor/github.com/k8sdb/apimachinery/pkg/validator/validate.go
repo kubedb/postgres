@@ -13,7 +13,15 @@ import (
 	apiv1 "k8s.io/client-go/pkg/api/v1"
 )
 
+<<<<<<< HEAD
 func ValidatePersistentVolumeClaimSpec(client clientset.Interface, spec apiv1.PersistentVolumeClaimSpec) error {
+=======
+func ValidateStorage(client clientset.Interface, spec *apiv1.PersistentVolumeClaimSpec) error {
+	if spec == nil {
+		return nil
+	}
+
+>>>>>>> 784ce2d580c71874ca8577ece1d04758253f2123
 	if spec.StorageClassName != nil {
 		if _, err := client.StorageV1beta1().StorageClasses().Get(*spec.StorageClassName, metav1.GetOptions{}); err != nil {
 			if kerr.IsNotFound(err) {
