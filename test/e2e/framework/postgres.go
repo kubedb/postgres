@@ -9,6 +9,7 @@ import (
 	"github.com/appscode/log"
 	tapi "github.com/k8sdb/apimachinery/api"
 	. "github.com/onsi/gomega"
+	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -59,6 +60,19 @@ func (f *Framework) UpdatePostgres(meta metav1.ObjectMeta, transformer func(tapi
 
 func (f *Framework) DeletePostgres(meta metav1.ObjectMeta) error {
 	return f.extClient.Postgreses(meta.Namespace).Delete(meta.Name)
+}
+
+func (f *Framework) EventuallyPostgres(meta metav1.ObjectMeta) GomegaAsyncAssertion {
+	return Eventually(
+		func() bool {
+			if _, err := f.extClient.Postgreses(meta.Namespace).Get(meta.Name); kerr.IsNotFound(err) {
+				return false
+			}
+			return true
+		},
+		time.Minute*5,
+		time.Second*5,
+	)
 }
 
 func (f *Framework) EventuallyPostgresRunning(meta metav1.ObjectMeta) GomegaAsyncAssertion {

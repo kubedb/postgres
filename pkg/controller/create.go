@@ -287,9 +287,6 @@ func addDataVolume(statefulSet *apps.StatefulSet, pvcSpec *apiv1.PersistentVolum
 			{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "data",
-					Annotations: map[string]string{
-						"volume.beta.kubernetes.io/storage-class": *pvcSpec.StorageClassName,
-					},
 				},
 				Spec: *pvcSpec,
 			},

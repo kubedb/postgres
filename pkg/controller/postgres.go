@@ -32,7 +32,6 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 		c.eventRecorder.Event(postgres, apiv1.EventTypeWarning, eventer.EventReasonInvalid, err.Error())
 		return err
 	}
-
 	// Event for successful validation
 	c.eventRecorder.Event(
 		postgres,

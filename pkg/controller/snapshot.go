@@ -192,9 +192,6 @@ func (c *Controller) getVolumeForSnapshot(pvcSpec *apiv1.PersistentVolumeClaimSp
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      jobName,
 				Namespace: namespace,
-				Annotations: map[string]string{
-					"volume.beta.kubernetes.io/storage-class": *pvcSpec.StorageClassName,
-				},
 			},
 			Spec: *pvcSpec,
 		}

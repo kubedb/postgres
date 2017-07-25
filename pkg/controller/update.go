@@ -9,6 +9,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+const (
+	updateRetryInterval = 10 * 1000 * 1000 * time.Nanosecond
+	maxAttempts         = 5
+)
+
 func (c *Controller) UpdatePostgres(meta metav1.ObjectMeta, transformer func(postgres tapi.Postgres) tapi.Postgres) error {
 	attempt := 0
 	for ; attempt < maxAttempts; attempt = attempt + 1 {

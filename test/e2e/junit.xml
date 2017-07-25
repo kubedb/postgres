@@ -1,7 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-  <testsuite tests="1" failures="0" time="65.158031719">
+  <testsuite tests="1" failures="1" time="315.067277615">
       <testcase name="Postgres Test General should running successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="Postgres Test General With PVC should running successfully" classname="e2e Suite" time="65.113536009"></testcase>
+      <testcase name="Postgres Test General With PVC should running successfully" classname="e2e Suite" time="0">
+          <skipped></skipped>
+      </testcase>
+      <testcase name="Postgres Test General With PVC With StorageClassName should running successfully" classname="e2e Suite" time="0">
+          <skipped></skipped>
+      </testcase>
+      <testcase name="Postgres Test DoNotPause should work successfully" classname="e2e Suite" time="0">
+          <skipped></skipped>
+      </testcase>
+      <testcase name="Postgres Test Snapshot In Local should take Snapshot successfully" classname="e2e Suite" time="315.02353627">
+          <failure type="Failure">/home/shahriar/go/src/github.com/k8sdb/postgres/test/e2e/postgres_test.go:172&#xA;Timed out after 300.000s.&#xA;Expected&#xA;    &lt;bool&gt;: false&#xA;to be true&#xA;/home/shahriar/go/src/github.com/k8sdb/postgres/test/e2e/postgres_test.go:154</failure>
+          <system-out>�[1mSTEP�[0m: Create Postgres: postgres-ljas24&#xA;�[1mSTEP�[0m: Wait for Running postgres&#xA;�[1mSTEP�[0m: Create Secret&#xA;�[1mSTEP�[0m: Create Snapshot&#xA;�[1mSTEP�[0m: Check for Successed snapshot&#xA;</system-out>
+      </testcase>
   </testsuite>

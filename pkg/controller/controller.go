@@ -54,11 +54,6 @@ type Controller struct {
 	syncPeriod time.Duration
 }
 
-const (
-	updateRetryInterval = 10 * 1000 * 1000 * time.Nanosecond
-	maxAttempts         = 5
-)
-
 var _ amc.Snapshotter = &Controller{}
 var _ amc.Deleter = &Controller{}
 
