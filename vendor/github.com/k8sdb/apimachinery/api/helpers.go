@@ -23,9 +23,6 @@ const (
 
 	SnapshotKey         = ResourceNameSnapshot + "s.kubedb.com"
 	LabelSnapshotStatus = SnapshotKey + "/status"
-
-	PostgresInitSpec      = PostgresKey + "/init"
-	ElasticsearchInitSpec = ElasticsearchKey + "/init"
 )
 
 func (p Postgres) OffshootName() string {

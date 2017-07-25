@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"strings"
 	"time"
-
-	"github.com/appscode/searchlight/test/e2e"
 	shell "github.com/codeskyblue/go-sh"
 	. "github.com/onsi/gomega"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	apiv1 "k8s.io/client-go/pkg/api/v1"
+	"github.com/k8sdb/postgres/test/e2e"
 )
 
 const (

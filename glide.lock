@@ -1,5 +1,5 @@
-hash: 2815d006ba6e72b1e1ce961977b2463b510f188e417cc52b329a3d4f1922d411
-updated: 2017-07-24T00:27:52.075051583-07:00
+hash: e3d4853285f09eea0df5c64f5d663b09685b55b1b42a41100d4cdf769cb1c711
+updated: 2017-07-25T15:54:05.844528653+06:00
 imports:
 - name: cloud.google.com/go
   version: fe3d41e1ecb2ce36ad3a979037c9b9a2b726226f
@@ -27,6 +27,10 @@ imports:
   - pkg/context
 - name: github.com/appscode/pat
   version: 48ff78925b7955367d8a048fc2b5cec8efadf8d3
+- name: github.com/appscode/searchlight
+  version: c5303726cf72600823c84aadc0c26fa4d41eb14d
+  subpackages:
+  - test/e2e
 - name: github.com/aws/aws-sdk-go
   version: 63ce630574a5ec05ecd8e8de5cea16332a5a684d
   subpackages:
@@ -64,6 +68,10 @@ imports:
   version: 3ac7bf7a47d159a033b107610db8a1b6575507a4
   subpackages:
   - quantile
+- name: github.com/codegangsta/inject
+  version: 33e0aa1cb7c019ccc3fbe049a8262a6403d30504
+- name: github.com/codeskyblue/go-sh
+  version: 3d593d477915b4d2f2e74b2e041495345647a46b
 - name: github.com/coreos/prometheus-operator
   version: 0d446f3052e47b5ad95989d9a8ffe4f6675e69b5
   subpackages:
@@ -168,7 +176,7 @@ imports:
   - pkg/storage
   - pkg/validator
 - name: github.com/lib/pq
-  version: 69552e54d2a9d4c6a2438926a774930f7bc398ec
+  version: 50761b0867bd1d9d069276790bcd4a3bccf2324a
   subpackages:
   - oid
 - name: github.com/mailru/easyjson
@@ -189,6 +197,20 @@ imports:
   - signal
 - name: github.com/ncw/swift
   version: 5068c3506cf003c630c94b92a64e978115394f26
+- name: github.com/onsi/gomega
+  version: d59fa0ac68bb5dd932ee8d24eed631cdd519efc3
+  subpackages:
+  - format
+  - internal/assertion
+  - internal/asyncassertion
+  - internal/oraclematcher
+  - internal/testingtsupport
+  - matchers
+  - matchers/support/goraph/bipartitegraph
+  - matchers/support/goraph/edge
+  - matchers/support/goraph/node
+  - matchers/support/goraph/util
+  - types
 - name: github.com/orcaman/concurrent-map
   version: 2ae17bc4c860c83513ee50feb9746f3e50d7515d
 - name: github.com/pkg/errors
@@ -427,6 +449,27 @@ imports:
   - util/homedir
   - util/integer
 testImports:
+- name: github.com/mitchellh/go-homedir
+  version: d682a8f0cf139663a984ff12528da460ca963de9
+- name: github.com/onsi/ginkgo
+  version: bb93381d543b0e5725244abe752214a110791d01
+  subpackages:
+  - config
+  - internal/codelocation
+  - internal/containernode
+  - internal/failer
+  - internal/leafnodes
+  - internal/remote
+  - internal/spec
+  - internal/specrunner
+  - internal/suite
+  - internal/testingtproxy
+  - internal/writer
+  - reporters
+  - reporters/stenographer
+  - reporters/stenographer/support/go-colorable
+  - reporters/stenographer/support/go-isatty
+  - types
 - name: github.com/pmezard/go-difflib
   version: d8ed2627bdf02c080bf22230dbb337003b7aba2d
   subpackages:
