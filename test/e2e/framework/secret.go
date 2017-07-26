@@ -8,6 +8,7 @@ import (
 	"github.com/appscode/go/crypto/rand"
 	"github.com/appscode/log"
 	tapi "github.com/k8sdb/apimachinery/api"
+	"io/ioutil"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	apiv1 "k8s.io/client-go/pkg/api/v1"
@@ -42,8 +43,16 @@ func (fi *Invocation) SecretForS3Backend() *apiv1.Secret {
 }
 
 func (fi *Invocation) SecretForGCSBackend() *apiv1.Secret {
-	if os.Getenv(tapi.GOOGLE_PROJECT_ID) == "" || os.Getenv(tapi.GOOGLE_SERVICE_ACCOUNT_JSON_KEY) == "" {
+	if os.Getenv(tapi.GOOGLE_PROJECT_ID) == "" ||
+		(os.Getenv("GOOGLE_APPLICATION_CREDENTIALS") == "" && os.Getenv(tapi.GOOGLE_SERVICE_ACCOUNT_JSON_KEY) == "") {
 		return &apiv1.Secret{}
+	}
+
+	jsonKey := os.Getenv(tapi.GOOGLE_SERVICE_ACCOUNT_JSON_KEY)
+	if jsonKey == "" {
+		if keyBytes, err := ioutil.ReadFile(os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")); err == nil {
+			jsonKey = string(keyBytes)
+		}
 	}
 
 	return &apiv1.Secret{
@@ -53,7 +62,7 @@ func (fi *Invocation) SecretForGCSBackend() *apiv1.Secret {
 		},
 		Data: map[string][]byte{
 			tapi.GOOGLE_PROJECT_ID:               []byte(os.Getenv(tapi.GOOGLE_PROJECT_ID)),
-			tapi.GOOGLE_SERVICE_ACCOUNT_JSON_KEY: []byte(os.Getenv(tapi.GOOGLE_SERVICE_ACCOUNT_JSON_KEY)),
+			tapi.GOOGLE_SERVICE_ACCOUNT_JSON_KEY: []byte(jsonKey),
 		},
 	}
 }

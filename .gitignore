@@ -26,3 +26,5 @@ dist/
 *.pyc
 *.DS_Store
 .vscode/
+
+**/.env

@@ -141,6 +141,15 @@ func (c *Controller) ResumeDatabase(dormantDb *tapi.DormantDatabase) error {
 		},
 		Spec: *origin.Spec.Postgres,
 	}
+
+	if postgres.Annotations == nil {
+		postgres.Annotations = make(map[string]string)
+	}
+
+	for key, val := range dormantDb.Annotations {
+		postgres.Annotations[key] = val
+	}
+
 	_, err := c.ExtClient.Postgreses(postgres.Namespace).Create(postgres)
 	return err
 }

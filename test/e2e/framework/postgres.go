@@ -65,8 +65,13 @@ func (f *Framework) DeletePostgres(meta metav1.ObjectMeta) error {
 func (f *Framework) EventuallyPostgres(meta metav1.ObjectMeta) GomegaAsyncAssertion {
 	return Eventually(
 		func() bool {
-			if _, err := f.extClient.Postgreses(meta.Namespace).Get(meta.Name); kerr.IsNotFound(err) {
-				return false
+			_, err := f.extClient.Postgreses(meta.Namespace).Get(meta.Name)
+			if err != nil {
+				if kerr.IsNotFound(err) {
+					return false
+				} else {
+					Expect(err).NotTo(HaveOccurred())
+				}
 			}
 			return true
 		},

@@ -1,7 +1,8 @@
 package e2e_test
 
 import (
-	//"github.com/appscode/go/types"
+	"os"
+
 	"github.com/appscode/go/types"
 	tapi "github.com/k8sdb/apimachinery/api"
 	"github.com/k8sdb/postgres/test/e2e/framework"
@@ -10,6 +11,13 @@ import (
 	. "github.com/onsi/gomega"
 	"k8s.io/apimachinery/pkg/api/resource"
 	apiv1 "k8s.io/client-go/pkg/api/v1"
+)
+
+const (
+	S3_BUCKET_NAME       = "S3_BUCKET_NAME"
+	GCS_BUCKET_NAME      = "GCS_BUCKET_NAME"
+	AZURE_CONTAINER_NAME = "AZURE_CONTAINER_NAME"
+	SWIFT_CONTAINER_NAME = "SWIFT_CONTAINER_NAME"
 )
 
 var _ = Describe("Postgres", func() {
@@ -136,7 +144,10 @@ var _ = Describe("Postgres", func() {
 		})
 
 		Context("Snapshot", func() {
+			var skipDataCheck bool
+
 			BeforeEach(func() {
+				skipDataCheck = false
 				snapshot.Spec.DatabaseName = postgres.Name
 			})
 
@@ -153,18 +164,31 @@ var _ = Describe("Postgres", func() {
 				By("Check for Successed snapshot")
 				f.EventuallySnapshotSuccessed(snapshot.ObjectMeta).Should(BeTrue())
 
+				if !skipDataCheck {
+					By("Check for snapshot data")
+					f.EventuallySnapshotDataFound(snapshot).Should(BeTrue())
+				}
+
 				// Delete test resource
 				deleteTestResouce()
+
+				if !skipDataCheck {
+					By("Check for snapshot data")
+					f.EventuallySnapshotDataFound(snapshot).Should(BeFalse())
+				}
 			}
 
 			Context("In Local", func() {
 				BeforeEach(func() {
+					skipDataCheck = true
 					secret = f.SecretForLocalBackend()
 					snapshot.Spec.StorageSecretName = secret.Name
 					snapshot.Spec.Local = &tapi.LocalSpec{
 						Path: "/repo",
 						VolumeSource: apiv1.VolumeSource{
-							EmptyDir: &apiv1.EmptyDirVolumeSource{},
+							HostPath: &apiv1.HostPathVolumeSource{
+								Path: "/repo",
+							},
 						},
 					}
 				})
@@ -177,12 +201,183 @@ var _ = Describe("Postgres", func() {
 					secret = f.SecretForS3Backend()
 					snapshot.Spec.StorageSecretName = secret.Name
 					snapshot.Spec.S3 = &tapi.S3Spec{
-						Bucket: "kubedb-qa",
+						Bucket: os.Getenv(S3_BUCKET_NAME),
 					}
 				})
 
-				FIt("should take Snapshot successfully", shouldTakeSnapshot)
+				It("should take Snapshot successfully", shouldTakeSnapshot)
+			})
+
+			Context("In GCS", func() {
+				BeforeEach(func() {
+					secret = f.SecretForGCSBackend()
+					snapshot.Spec.StorageSecretName = secret.Name
+					snapshot.Spec.GCS = &tapi.GCSSpec{
+						Bucket: os.Getenv(GCS_BUCKET_NAME),
+					}
+				})
+
+				It("should take Snapshot successfully", shouldTakeSnapshot)
+			})
+
+			Context("In Azure", func() {
+				BeforeEach(func() {
+					secret = f.SecretForAzureBackend()
+					snapshot.Spec.StorageSecretName = secret.Name
+					snapshot.Spec.Azure = &tapi.AzureSpec{
+						Container: os.Getenv(AZURE_CONTAINER_NAME),
+					}
+				})
+
+				It("should take Snapshot successfully", shouldTakeSnapshot)
+			})
+
+			Context("In Swift", func() {
+				BeforeEach(func() {
+					secret = f.SecretForSwiftBackend()
+					snapshot.Spec.StorageSecretName = secret.Name
+					snapshot.Spec.Swift = &tapi.SwiftSpec{
+						Container: os.Getenv(SWIFT_CONTAINER_NAME),
+					}
+				})
+
+				It("should take Snapshot successfully", shouldTakeSnapshot)
 			})
 		})
+
+		Context("Initialize", func() {
+			Context("With Script", func() {
+				BeforeEach(func() {
+					postgres.Spec.Init = &tapi.InitSpec{
+						ScriptSource: &tapi.ScriptSourceSpec{
+							ScriptPath: "postgres-init-scripts/run.sh",
+							VolumeSource: apiv1.VolumeSource{
+								GitRepo: &apiv1.GitRepoVolumeSource{
+									Repository: "https://github.com/k8sdb/postgres-init-scripts.git",
+								},
+							},
+						},
+					}
+				})
+
+				It("should running successfully", shouldSuccessfullyRunning)
+
+			})
+
+			Context("With Snapshot", func() {
+
+				BeforeEach(func() {
+					secret = f.SecretForS3Backend()
+					snapshot.Spec.StorageSecretName = secret.Name
+					snapshot.Spec.S3 = &tapi.S3Spec{
+						Bucket: os.Getenv(S3_BUCKET_NAME),
+					}
+					snapshot.Spec.DatabaseName = postgres.Name
+				})
+
+				var shouldInitializeSuccessfully = func() {
+					// Create and wait for running Postgres
+					createAndWaitForRunning()
+
+					By("Create Secret")
+					f.CreateSecret(secret)
+
+					By("Create Snapshot")
+					f.CreateSnapshot(snapshot)
+
+					By("Check for Successed snapshot")
+					f.EventuallySnapshotSuccessed(snapshot.ObjectMeta).Should(BeTrue())
+
+					By("Check for snapshot data")
+					f.EventuallySnapshotDataFound(snapshot).Should(BeTrue())
+
+					oldPostgres, err := f.GetPostgres(postgres.ObjectMeta)
+					Expect(err).NotTo(HaveOccurred())
+
+					By("Create postgres from snapshot")
+					postgres = f.Postgres()
+					postgres.Spec.DatabaseSecret = oldPostgres.Spec.DatabaseSecret
+					postgres.Spec.Init = &tapi.InitSpec{
+						SnapshotSource: &tapi.SnapshotSourceSpec{
+							Namespace: snapshot.Namespace,
+							Name:      snapshot.Name,
+						},
+					}
+
+					// Create and wait for running Postgres
+					createAndWaitForRunning()
+
+					// Delete test resource
+					deleteTestResouce()
+					postgres = oldPostgres
+					// Delete test resource
+					deleteTestResouce()
+				}
+
+				It("should running successfully", shouldInitializeSuccessfully)
+			})
+		})
+
+		Context("Resume", func() {
+			var usedInitSpec bool
+			BeforeEach(func() {
+				usedInitSpec = false
+			})
+
+			var shouldResumeSuccessfully = func() {
+				// Create and wait for running Postgres
+				createAndWaitForRunning()
+
+				By("Delete postgres")
+				f.DeletePostgres(postgres.ObjectMeta)
+
+				By("Wait for postgres to be paused")
+				f.EventuallyDormantDatabaseStatus(postgres.ObjectMeta).Should(matcher.HavePaused())
+
+				_, err = f.UpdateDormantDatabase(postgres.ObjectMeta, func(in tapi.DormantDatabase) tapi.DormantDatabase {
+					in.Spec.Resume = true
+					return in
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				By("Wait for DormantDatabase to be deleted")
+				f.EventuallyDormantDatabase(postgres.ObjectMeta).Should(BeFalse())
+
+				By("Wait for Running postgres")
+				f.EventuallyPostgresRunning(postgres.ObjectMeta).Should(BeTrue())
+
+				postgres, err = f.GetPostgres(postgres.ObjectMeta)
+				Expect(err).NotTo(HaveOccurred())
+
+				if usedInitSpec {
+					Expect(postgres.Spec.Init).Should(BeNil())
+					Expect(postgres.Annotations[tapi.PostgresInitSpec]).ShouldNot(BeEmpty())
+				}
+
+				// Delete test resource
+				deleteTestResouce()
+			}
+
+			It("should resume DormantDatabase successfully", shouldResumeSuccessfully)
+
+			Context("With Init", func() {
+				BeforeEach(func() {
+					usedInitSpec = true
+					postgres.Spec.Init = &tapi.InitSpec{
+						ScriptSource: &tapi.ScriptSourceSpec{
+							ScriptPath: "postgres-init-scripts/run.sh",
+							VolumeSource: apiv1.VolumeSource{
+								GitRepo: &apiv1.GitRepoVolumeSource{
+									Repository: "https://github.com/k8sdb/postgres-init-scripts.git",
+								},
+							},
+						},
+					}
+				})
+
+				It("should resume DormantDatabase successfully", shouldResumeSuccessfully)
+			})
+		})
+
 	})
 })

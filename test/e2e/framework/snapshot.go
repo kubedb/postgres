@@ -3,8 +3,11 @@ package framework
 import (
 	"time"
 
+	"fmt"
 	"github.com/appscode/go/crypto/rand"
+	"github.com/graymeta/stow"
 	tapi "github.com/k8sdb/apimachinery/api"
+	"github.com/k8sdb/apimachinery/pkg/storage"
 	. "github.com/onsi/gomega"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -45,4 +48,57 @@ func (f *Framework) EventuallySnapshotSuccessed(meta metav1.ObjectMeta) GomegaAs
 		time.Minute*5,
 		time.Second*5,
 	)
+}
+
+func (f *Framework) EventuallySnapshotDataFound(snapshot *tapi.Snapshot) GomegaAsyncAssertion {
+	return Eventually(
+		func() bool {
+			found, err := f.checkSnapshotData(snapshot)
+			Expect(err).NotTo(HaveOccurred())
+			return found
+		},
+		time.Minute*5,
+		time.Second*5,
+	)
+}
+
+func (f *Framework) checkSnapshotData(snapshot *tapi.Snapshot) (bool, error) {
+	storageSpec := snapshot.Spec.SnapshotStorageSpec
+	cfg, err := storage.NewOSMContext(f.kubeClient, storageSpec, snapshot.Namespace)
+	if err != nil {
+		return false, err
+	}
+
+	loc, err := stow.Dial(cfg.Provider, cfg.Config)
+	if err != nil {
+		return false, err
+	}
+	containerID, err := storageSpec.Container()
+	if err != nil {
+		return false, err
+	}
+	container, err := loc.Container(containerID)
+	if err != nil {
+		return false, err
+	}
+
+	folderName, _ := snapshot.Location()
+	prefix := fmt.Sprintf("%v/%v", folderName, snapshot.Name)
+	cursor := stow.CursorStart
+	totalItem := 0
+	for {
+		items, next, err := container.Items(prefix, cursor, 50)
+		if err != nil {
+			return false, err
+		}
+
+		totalItem = totalItem + len(items)
+
+		cursor = next
+		if stow.IsCursorEnd(cursor) {
+			break
+		}
+	}
+
+	return totalItem != 0, nil
 }
