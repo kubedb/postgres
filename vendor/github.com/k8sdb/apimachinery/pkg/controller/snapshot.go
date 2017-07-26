@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -11,8 +12,9 @@ import (
 	"github.com/k8sdb/apimachinery/pkg/analytics"
 	"github.com/k8sdb/apimachinery/pkg/eventer"
 	"github.com/k8sdb/apimachinery/pkg/storage"
-	"k8s.io/apimachinery/pkg/api/errors"
+	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientset "k8s.io/client-go/kubernetes"
 	apiv1 "k8s.io/client-go/pkg/api/v1"
@@ -80,7 +82,7 @@ func (c *SnapshotController) ensureThirdPartyResource() {
 	if _, err = c.client.ExtensionsV1beta1().ThirdPartyResources().Get(resourceName, metav1.GetOptions{}); err == nil {
 		return
 	}
-	if !errors.IsNotFound(err) {
+	if !kerr.IsNotFound(err) {
 		log.Fatalln(err)
 	}
 
@@ -147,23 +149,25 @@ func (c *SnapshotController) create(snapshot *tapi.Snapshot) error {
 		return err
 	}
 
-	t := metav1.Now()
-	snapshot.Status.StartTime = &t
-	if _, err = c.extClient.Snapshots(snapshot.Namespace).Update(snapshot); err != nil {
-		c.eventRecorder.Eventf(
-			snapshot,
-			apiv1.EventTypeWarning,
-			eventer.EventReasonFailedToUpdate,
-			`Fail to update Elasticsearch: "%v". Reason: %v`,
-			snapshot.Name,
-			err,
-		)
-		log.Errorln(err)
+	err = c.UpdateSnapshot(snapshot.ObjectMeta, func(in tapi.Snapshot) tapi.Snapshot {
+		t := metav1.Now()
+		in.Status.StartTime = &t
+		return in
+	})
+	if err != nil {
+		c.eventRecorder.Eventf(snapshot, apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
+		return err
 	}
 
 	// Validate DatabaseSnapshot spec
 	if err := c.snapshoter.ValidateSnapshot(snapshot); err != nil {
 		c.eventRecorder.Event(snapshot, apiv1.EventTypeWarning, eventer.EventReasonInvalid, err.Error())
+		return err
+	}
+
+	// Check running snapshot
+	if err := c.checkRunningSnapshot(snapshot); err != nil {
+		c.eventRecorder.Event(snapshot, apiv1.EventTypeWarning, eventer.EventReasonSnapshotFailed, err.Error())
 		return err
 	}
 
@@ -177,18 +181,15 @@ func (c *SnapshotController) create(snapshot *tapi.Snapshot) error {
 		return err
 	}
 
-	snapshot.Labels[tapi.LabelDatabaseName] = snapshot.Spec.DatabaseName
-	snapshot.Labels[tapi.LabelSnapshotStatus] = string(tapi.SnapshotPhaseRunning)
-	snapshot.Status.Phase = tapi.SnapshotPhaseRunning
-	if _, err = c.extClient.Snapshots(snapshot.Namespace).Update(snapshot); err != nil {
-		c.eventRecorder.Eventf(
-			snapshot,
-			apiv1.EventTypeWarning,
-			eventer.EventReasonFailedToUpdate,
-			"Failed to update Snapshot. Reason: %v",
-			err,
-		)
-		log.Errorln(err)
+	err = c.UpdateSnapshot(snapshot.ObjectMeta, func(in tapi.Snapshot) tapi.Snapshot {
+		in.Labels[tapi.LabelDatabaseName] = snapshot.Spec.DatabaseName
+		in.Labels[tapi.LabelSnapshotStatus] = string(tapi.SnapshotPhaseRunning)
+		in.Status.Phase = tapi.SnapshotPhaseRunning
+		return in
+	})
+	if err != nil {
+		c.eventRecorder.Eventf(snapshot, apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
+		return err
 	}
 
 	c.eventRecorder.Event(runtimeObj, apiv1.EventTypeNormal, eventer.EventReasonStarting, "Backup running")
@@ -235,7 +236,7 @@ func (c *SnapshotController) create(snapshot *tapi.Snapshot) error {
 func (c *SnapshotController) delete(snapshot *tapi.Snapshot) error {
 	runtimeObj, err := c.snapshoter.GetDatabase(snapshot)
 	if err != nil {
-		if !errors.IsNotFound(err) {
+		if !kerr.IsNotFound(err) {
 			c.eventRecorder.Event(
 				snapshot,
 				apiv1.EventTypeWarning,
@@ -281,6 +282,40 @@ func (c *SnapshotController) delete(snapshot *tapi.Snapshot) error {
 	return nil
 }
 
+func (c *SnapshotController) checkRunningSnapshot(snapshot *tapi.Snapshot) error {
+	labelMap := map[string]string{
+		tapi.LabelDatabaseKind:   snapshot.Labels[tapi.LabelDatabaseKind],
+		tapi.LabelDatabaseName:   snapshot.Spec.DatabaseName,
+		tapi.LabelSnapshotStatus: string(tapi.SnapshotPhaseRunning),
+	}
+
+	snapshotList, err := c.extClient.Snapshots(snapshot.Namespace).List(metav1.ListOptions{
+		LabelSelector: labels.SelectorFromSet(labelMap).String(),
+	})
+	if err != nil {
+		return err
+	}
+
+	if len(snapshotList.Items) > 0 {
+		err := c.UpdateSnapshot(snapshot.ObjectMeta, func(in tapi.Snapshot) tapi.Snapshot {
+			t := metav1.Now()
+			in.Status.StartTime = &t
+			in.Status.CompletionTime = &t
+			in.Status.Phase = tapi.SnapshotPhaseFailed
+			in.Status.Reason = "One Snapshot is already Running"
+			return in
+		})
+		if err != nil {
+			c.eventRecorder.Eventf(snapshot, apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
+			return err
+		}
+
+		return errors.New("One Snapshot is already Running")
+	}
+
+	return nil
+}
+
 func (c *SnapshotController) checkSnapshotJob(snapshot *tapi.Snapshot, jobName string, checkDuration time.Duration) error {
 
 	var jobSuccess bool = false
@@ -292,7 +327,7 @@ func (c *SnapshotController) checkSnapshotJob(snapshot *tapi.Snapshot, jobName s
 		log.Debugln("Checking for Job ", jobName)
 		job, err = c.client.BatchV1().Jobs(snapshot.Namespace).Get(jobName, metav1.GetOptions{})
 		if err != nil {
-			if errors.IsNotFound(err) {
+			if kerr.IsNotFound(err) {
 				time.Sleep(sleepDuration)
 				now = time.Now()
 				continue
@@ -392,8 +427,6 @@ func (c *SnapshotController) checkSnapshotJob(snapshot *tapi.Snapshot, jobName s
 		return err
 	}
 
-	t := metav1.Now()
-	snapshot.Status.CompletionTime = &t
 	if jobSuccess {
 		snapshot.Status.Phase = tapi.SnapshotPhaseSuccessed
 		c.eventRecorder.Event(
@@ -424,17 +457,18 @@ func (c *SnapshotController) checkSnapshotJob(snapshot *tapi.Snapshot, jobName s
 		)
 	}
 
-	delete(snapshot.Labels, tapi.LabelSnapshotStatus)
-	if _, err := c.extClient.Snapshots(snapshot.Namespace).Update(snapshot); err != nil {
-		c.eventRecorder.Eventf(
-			snapshot,
-			apiv1.EventTypeWarning,
-			eventer.EventReasonFailedToUpdate,
-			"Failed to update Snapshot. Reason: %v",
-			err,
-		)
-		log.Errorln(err)
+	err = c.UpdateSnapshot(snapshot.ObjectMeta, func(in tapi.Snapshot) tapi.Snapshot {
+		t := metav1.Now()
+		in.Status.CompletionTime = &t
+		delete(in.Labels, tapi.LabelSnapshotStatus)
+		in.Status.Phase = snapshot.Status.Phase
+		return in
+	})
+	if err != nil {
+		c.eventRecorder.Eventf(snapshot, apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
+		return err
 	}
+
 	return nil
 }
 

@@ -1,17 +1,14 @@
 package controller
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/appscode/log"
 	tapi "github.com/k8sdb/apimachinery/api"
 	"github.com/k8sdb/apimachinery/pkg/docker"
-	"github.com/k8sdb/apimachinery/pkg/eventer"
 	"github.com/k8sdb/apimachinery/pkg/storage"
 	amv "github.com/k8sdb/apimachinery/pkg/validator"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	apiv1 "k8s.io/client-go/pkg/api/v1"
 	batch "k8s.io/client-go/pkg/apis/batch/v1"
@@ -29,41 +26,20 @@ func (c *Controller) ValidateSnapshot(snapshot *tapi.Snapshot) error {
 		return fmt.Errorf(`Object 'DatabaseName' is missing in '%v'`, snapshot.Spec)
 	}
 
-	labelMap := map[string]string{
-		tapi.LabelDatabaseKind:   tapi.ResourceKindPostgres,
-		tapi.LabelDatabaseName:   snapshot.Spec.DatabaseName,
-		tapi.LabelSnapshotStatus: string(tapi.SnapshotPhaseRunning),
-	}
-
-	snapshotList, err := c.ExtClient.Snapshots(snapshot.Namespace).List(metav1.ListOptions{
-		LabelSelector: labels.SelectorFromSet(labelMap).String(),
-	})
-	if err != nil {
+	if _, err := c.ExtClient.Postgreses(snapshot.Namespace).Get(databaseName); err != nil {
 		return err
-	}
-
-	if len(snapshotList.Items) > 0 {
-		err := c.UpdateSnapshot(snapshot.ObjectMeta, func(in tapi.Snapshot) tapi.Snapshot {
-			t := metav1.Now()
-			in.Status.StartTime = &t
-			in.Status.CompletionTime = &t
-			in.Status.Phase = tapi.SnapshotPhaseFailed
-			in.Status.Reason = "One Snapshot is already Running"
-			return in
-		})
-		if err != nil {
-			c.eventRecorder.Eventf(snapshot, apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
-			return err
-		}
-
-		return errors.New("One Snapshot is already Running")
 	}
 
 	return amv.ValidateSnapshotSpec(c.Client, snapshot.Spec.SnapshotStorageSpec, snapshot.Namespace)
 }
 
 func (c *Controller) GetDatabase(snapshot *tapi.Snapshot) (runtime.Object, error) {
-	return c.ExtClient.Postgreses(snapshot.Namespace).Get(snapshot.Spec.DatabaseName)
+	postgres, err := c.ExtClient.Postgreses(snapshot.Namespace).Get(snapshot.Spec.DatabaseName)
+	if err != nil {
+		return nil, err
+	}
+
+	return postgres, nil
 }
 
 func (c *Controller) GetSnapshotter(snapshot *tapi.Snapshot) (*batch.Job, error) {

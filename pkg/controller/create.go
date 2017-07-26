@@ -175,7 +175,7 @@ func (c *Controller) createStatefulSet(postgres *tapi.Postgres) (*apps.StatefulS
 			return nil, err
 		}
 
-		err = c.UpdatePostgres(postgres.ObjectMeta, func(in tapi.Postgres) tapi.Postgres {
+		postgres, err = c.UpdatePostgres(postgres.ObjectMeta, func(in tapi.Postgres) tapi.Postgres {
 			in.Spec.DatabaseSecret = secretVolumeSource
 			return in
 		})

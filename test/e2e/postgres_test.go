@@ -169,6 +169,18 @@ var _ = Describe("Postgres", func() {
 					}
 				})
 
+				It("should take Snapshot successfully", shouldTakeSnapshot)
+			})
+
+			Context("In S3", func() {
+				BeforeEach(func() {
+					secret = f.SecretForS3Backend()
+					snapshot.Spec.StorageSecretName = secret.Name
+					snapshot.Spec.S3 = &tapi.S3Spec{
+						Bucket: "kubedb-qa",
+					}
+				})
+
 				FIt("should take Snapshot successfully", shouldTakeSnapshot)
 			})
 		})

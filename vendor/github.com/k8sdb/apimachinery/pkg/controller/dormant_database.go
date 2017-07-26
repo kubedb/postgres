@@ -161,17 +161,13 @@ func (c *DormantDbController) create(dormantDb *tapi.DormantDatabase) error {
 		return err
 	}
 
-	// Set DormantDatabase Phase: Deleting
-	t := metav1.Now()
-	dormantDb.Status.CreationTime = &t
-	if _, err := c.extClient.DormantDatabases(dormantDb.Namespace).Update(dormantDb); err != nil {
-		c.eventRecorder.Eventf(
-			dormantDb,
-			apiv1.EventTypeWarning,
-			eventer.EventReasonFailedToUpdate,
-			"Failed to update DormantDatabase. Reason: %v",
-			err,
-		)
+	err = c.UpdateDormantDatabase(dormantDb.ObjectMeta, func(in tapi.DormantDatabase) tapi.DormantDatabase {
+		t := metav1.Now()
+		in.Status.CreationTime = &t
+		return in
+	})
+	if err != nil {
+		c.eventRecorder.Eventf(dormantDb, apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
 		return err
 	}
 
@@ -215,17 +211,12 @@ func (c *DormantDbController) create(dormantDb *tapi.DormantDatabase) error {
 		return err
 	}
 
-	// Set DormantDatabase Phase: Deleting
-	t = metav1.Now()
-	dormantDb.Status.Phase = tapi.DormantDatabasePhasePausing
-	if _, err = c.extClient.DormantDatabases(dormantDb.Namespace).Update(dormantDb); err != nil {
-		c.eventRecorder.Eventf(
-			dormantDb,
-			apiv1.EventTypeWarning,
-			eventer.EventReasonFailedToUpdate,
-			"Failed to update DormantDatabase. Reason: %v",
-			err,
-		)
+	err = c.UpdateDormantDatabase(dormantDb.ObjectMeta, func(in tapi.DormantDatabase) tapi.DormantDatabase {
+		in.Status.Phase = tapi.DormantDatabasePhasePausing
+		return in
+	})
+	if err != nil {
+		c.eventRecorder.Eventf(dormantDb, apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
 		return err
 	}
 
@@ -254,18 +245,14 @@ func (c *DormantDbController) create(dormantDb *tapi.DormantDatabase) error {
 		return err
 	}
 
-	// Set DormantDatabase Phase: Paused
-	t = metav1.Now()
-	dormantDb.Status.PausingTime = &t
-	dormantDb.Status.Phase = tapi.DormantDatabasePhasePaused
-	if _, err = c.extClient.DormantDatabases(dormantDb.Namespace).Update(dormantDb); err != nil {
-		c.eventRecorder.Eventf(
-			dormantDb,
-			apiv1.EventTypeWarning,
-			eventer.EventReasonFailedToUpdate,
-			"Failed to update DormantDatabase. Reason: %v",
-			err,
-		)
+	err = c.UpdateDormantDatabase(dormantDb.ObjectMeta, func(in tapi.DormantDatabase) tapi.DormantDatabase {
+		t := metav1.Now()
+		in.Status.PausingTime = &t
+		in.Status.Phase = tapi.DormantDatabasePhasePaused
+		return in
+	})
+	if err != nil {
+		c.eventRecorder.Eventf(dormantDb, apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
 		return err
 	}
 
@@ -362,18 +349,12 @@ func (c *DormantDbController) wipeOut(dormantDb *tapi.DormantDatabase) error {
 		return err
 	}
 
-	// Set DormantDatabase Phase: Wiping out
-	t := metav1.Now()
-	dormantDb.Status.Phase = tapi.DormantDatabasePhaseWipingOut
-
-	if _, err := c.extClient.DormantDatabases(dormantDb.Namespace).Update(dormantDb); err != nil {
-		c.eventRecorder.Eventf(
-			dormantDb,
-			apiv1.EventTypeWarning,
-			eventer.EventReasonFailedToUpdate,
-			"Failed to update DormantDatabase. Reason: %v",
-			err,
-		)
+	err = c.UpdateDormantDatabase(dormantDb.ObjectMeta, func(in tapi.DormantDatabase) tapi.DormantDatabase {
+		in.Status.Phase = tapi.DormantDatabasePhaseWipingOut
+		return in
+	})
+	if err != nil {
+		c.eventRecorder.Eventf(dormantDb, apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
 		return err
 	}
 
@@ -401,18 +382,14 @@ func (c *DormantDbController) wipeOut(dormantDb *tapi.DormantDatabase) error {
 		return err
 	}
 
-	// Set DormantDatabase Phase: Deleted
-	t = metav1.Now()
-	dormantDb.Status.WipeOutTime = &t
-	dormantDb.Status.Phase = tapi.DormantDatabasePhaseWipedOut
-	if _, err = c.extClient.DormantDatabases(dormantDb.Namespace).Update(dormantDb); err != nil {
-		c.eventRecorder.Eventf(
-			dormantDb,
-			apiv1.EventTypeWarning,
-			eventer.EventReasonFailedToUpdate,
-			"Failed to update DormantDatabase. Reason: %v",
-			err,
-		)
+	err = c.UpdateDormantDatabase(dormantDb.ObjectMeta, func(in tapi.DormantDatabase) tapi.DormantDatabase {
+		t := metav1.Now()
+		in.Status.WipeOutTime = &t
+		in.Status.Phase = tapi.DormantDatabasePhaseWipedOut
+		return in
+	})
+	if err != nil {
+		c.eventRecorder.Eventf(dormantDb, apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
 		return err
 	}
 
@@ -455,16 +432,12 @@ func (c *DormantDbController) resume(dormantDb *tapi.DormantDatabase) error {
 		return err
 	}
 
-	_dormantDb := dormantDb
-	_dormantDb.Status.Phase = tapi.DormantDatabasePhaseResuming
-	if _, err = c.extClient.DormantDatabases(_dormantDb.Namespace).Update(_dormantDb); err != nil {
-		c.eventRecorder.Eventf(
-			dormantDb,
-			apiv1.EventTypeWarning,
-			eventer.EventReasonFailedToUpdate,
-			"Failed to update DormantDatabase. Reason: %v",
-			err,
-		)
+	err = c.UpdateDormantDatabase(dormantDb.ObjectMeta, func(in tapi.DormantDatabase) tapi.DormantDatabase {
+		in.Status.Phase = tapi.DormantDatabasePhaseResuming
+		return in
+	})
+	if err != nil {
+		c.eventRecorder.Eventf(dormantDb, apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
 		return err
 	}
 
