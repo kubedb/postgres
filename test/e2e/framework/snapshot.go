@@ -1,9 +1,9 @@
 package framework
 
 import (
+	"fmt"
 	"time"
 
-	"fmt"
 	"github.com/appscode/go/crypto/rand"
 	"github.com/graymeta/stow"
 	tapi "github.com/k8sdb/apimachinery/api"
@@ -83,7 +83,6 @@ func (f *Framework) EventuallyCountSnapshot(meta metav1.ObjectMeta) GomegaAsyncA
 		time.Second*5,
 	)
 }
-
 
 func (f *Framework) checkSnapshotData(snapshot *tapi.Snapshot) (bool, error) {
 	storageSpec := snapshot.Spec.SnapshotStorageSpec

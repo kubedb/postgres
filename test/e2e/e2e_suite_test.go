@@ -10,7 +10,6 @@ import (
 	tcs "github.com/k8sdb/apimachinery/client/clientset"
 	amc "github.com/k8sdb/apimachinery/pkg/controller"
 	"github.com/k8sdb/postgres/pkg/controller"
-	"github.com/k8sdb/postgres/test/e2e"
 	"github.com/k8sdb/postgres/test/e2e/framework"
 	"github.com/mitchellh/go-homedir"
 	. "github.com/onsi/ginkgo"
