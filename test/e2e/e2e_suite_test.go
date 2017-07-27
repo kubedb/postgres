@@ -61,7 +61,7 @@ var _ = BeforeSuite(func() {
 	// Framework
 	root = framework.New(kubeClient, extClient, provider, storageClass)
 
-	e2e.PrintSeparately("Using namespace " + root.Namespace())
+	By("Using namespace " + root.Namespace())
 
 	// Create namespace
 	err = root.CreateNamespace()
