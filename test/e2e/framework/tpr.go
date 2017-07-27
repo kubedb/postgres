@@ -1,59 +1,35 @@
 package framework
 
 import (
+	"errors"
 	"time"
 
-	tapi "github.com/k8sdb/apimachinery/api"
 	. "github.com/onsi/gomega"
-	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	apiv1 "k8s.io/client-go/pkg/api/v1"
 )
 
 func (f *Framework) EventuallyTPR() GomegaAsyncAssertion {
 	return Eventually(
 		func() error {
 			// Check Postgres TPR
-			_, err := f.kubeClient.ExtensionsV1beta1().ThirdPartyResources().Get(
-				tapi.ResourceNamePostgres+"."+tapi.V1alpha1SchemeGroupVersion.Group,
-				metav1.GetOptions{},
-			)
-			if err != nil {
-				if kerr.IsNotFound(err) {
-					return err
-				} else {
-					Expect(err).NotTo(HaveOccurred())
-				}
+			if _, err := f.extClient.Postgreses(apiv1.NamespaceAll).List(metav1.ListOptions{}); err != nil {
+				return errors.New("thirdpartyresources are not ready")
 			}
 
-			// Check DormantDatabase TPR
-			_, err = f.kubeClient.ExtensionsV1beta1().ThirdPartyResources().Get(
-				tapi.ResourceNameDormantDatabase+"."+tapi.V1alpha1SchemeGroupVersion.Group,
-				metav1.GetOptions{},
-			)
-			if err != nil {
-				if kerr.IsNotFound(err) {
-					return err
-				} else {
-					Expect(err).NotTo(HaveOccurred())
-				}
+			// Check Postgres TPR
+			if _, err := f.extClient.Snapshots(apiv1.NamespaceAll).List(metav1.ListOptions{}); err != nil {
+				return errors.New("thirdpartyresources are not ready")
 			}
 
-			// Check Snapshot TPR
-			_, err = f.kubeClient.ExtensionsV1beta1().ThirdPartyResources().Get(
-				tapi.ResourceNameSnapshot+"."+tapi.V1alpha1SchemeGroupVersion.Group,
-				metav1.GetOptions{},
-			)
-			if err != nil {
-				if kerr.IsNotFound(err) {
-					return err
-				} else {
-					Expect(err).NotTo(HaveOccurred())
-				}
+			// Check Postgres TPR
+			if _, err := f.extClient.DormantDatabases(apiv1.NamespaceAll).List(metav1.ListOptions{}); err != nil {
+				return errors.New("thirdpartyresources are not ready")
 			}
 
 			return nil
 		},
 		time.Minute*2,
-		time.Second*5,
+		time.Second*10,
 	)
 }

@@ -90,19 +90,9 @@ var _ = Describe("Postgres", func() {
 
 			Context("With PVC", func() {
 				BeforeEach(func() {
-					postgres.Spec.Storage = &apiv1.PersistentVolumeClaimSpec{
-						Resources: apiv1.ResourceRequirements{
-							Requests: apiv1.ResourceList{
-								apiv1.ResourceStorage: resource.MustParse("5Gi"),
-							},
-						},
+					if f.StorageClass == "" {
+						skipMessage = "Missing StorageClassName. Provide as flag to test this."
 					}
-				})
-				It("should run successfully", shouldSuccessfullyRunning)
-			})
-
-			Context("With PVC & StorageClassName", func() {
-				BeforeEach(func() {
 					postgres.Spec.Storage = &apiv1.PersistentVolumeClaimSpec{
 						Resources: apiv1.ResourceRequirements{
 							Requests: apiv1.ResourceList{
@@ -358,7 +348,9 @@ var _ = Describe("Postgres", func() {
 				deleteTestResouce()
 			}
 
-			It("should resume DormantDatabase successfully", shouldResumeSuccessfully)
+			Context("-", func() {
+				It("should resume DormantDatabase successfully", shouldResumeSuccessfully)
+			})
 
 			Context("With Init", func() {
 				BeforeEach(func() {
