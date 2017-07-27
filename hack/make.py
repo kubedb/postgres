@@ -157,7 +157,7 @@ def default():
 def test(type, *args):
     pydotenv.load_dotenv(join(libbuild.REPO_ROOT, 'hack/config/.env'))
     if type == 'e2e':
-        die(call('ginkgo -r -v -progress -trace test/e2e -- ', *args))
+        die(call('ginkgo -r -v -progress -trace test/e2e -- ' + " ".join(args)))
     else:
         print '{test e2e}'
 

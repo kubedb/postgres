@@ -260,7 +260,7 @@ var _ = Describe("Postgres", func() {
 					}
 				})
 
-				It("should running successfully", shouldSuccessfullyRunning)
+				It("should run successfully", shouldSuccessfullyRunning)
 
 			})
 
@@ -314,7 +314,7 @@ var _ = Describe("Postgres", func() {
 					deleteTestResouce()
 				}
 
-				It("should running successfully", shouldInitializeSuccessfully)
+				It("should run successfully", shouldInitializeSuccessfully)
 			})
 		})
 
@@ -377,6 +377,87 @@ var _ = Describe("Postgres", func() {
 
 				It("should resume DormantDatabase successfully", shouldResumeSuccessfully)
 			})
+		})
+
+		Context("SnapshotScheduler", func() {
+
+			BeforeEach(func() {
+				secret = f.SecretForLocalBackend()
+			})
+
+			Context("With Startup", func() {
+				BeforeEach(func() {
+					postgres.Spec.BackupSchedule = &tapi.BackupScheduleSpec{
+						CronExpression: "@every 1m",
+						SnapshotStorageSpec: tapi.SnapshotStorageSpec{
+							StorageSecretName: secret.Name,
+							Local: &tapi.LocalSpec{
+								Path: "/repo",
+								VolumeSource: apiv1.VolumeSource{
+									HostPath: &apiv1.HostPathVolumeSource{
+										Path: "/repo",
+									},
+								},
+							},
+						},
+					}
+				})
+
+				var successfullyScheduled = func() {
+
+					By("Create Secret")
+					f.CreateSecret(secret)
+
+					// Create and wait for running Postgres
+					createAndWaitForRunning()
+
+					By("Count multiple Snapshot")
+					f.EventuallyCountSnapshot(postgres.ObjectMeta).Should(matcher.MoreThan(3))
+
+					deleteTestResouce()
+				}
+
+				It("should run schedular successfully", successfullyScheduled)
+			})
+
+			Context("With Update", func() {
+				var successfullyScheduled = func() {
+					// Create and wait for running Postgres
+					createAndWaitForRunning()
+
+					By("Create Secret")
+					f.CreateSecret(secret)
+
+					By("Update postgres")
+					_, err = f.UpdatePostgres(postgres.ObjectMeta, func(in tapi.Postgres) tapi.Postgres {
+						in.Spec.BackupSchedule = &tapi.BackupScheduleSpec{
+							CronExpression: "@every 1m",
+							SnapshotStorageSpec: tapi.SnapshotStorageSpec{
+								StorageSecretName: secret.Name,
+								Local: &tapi.LocalSpec{
+									Path: "/repo",
+									VolumeSource: apiv1.VolumeSource{
+										HostPath: &apiv1.HostPathVolumeSource{
+											Path: "/repo",
+										},
+									},
+								},
+							},
+						}
+
+						return in
+					})
+					Expect(err).NotTo(HaveOccurred())
+
+					By("Count multiple Snapshot")
+					f.EventuallyCountSnapshot(postgres.ObjectMeta).Should(matcher.MoreThan(3))
+
+					deleteTestResouce()
+				}
+
+				It("should run schedular successfully", successfullyScheduled)
+			})
+
 		})
 
 	})

@@ -18,7 +18,6 @@ import (
 	. "github.com/onsi/gomega"
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
-	"fmt"
 )
 
 var provider string
@@ -47,8 +46,6 @@ func TestE2e(t *testing.T) {
 }
 
 var _ = BeforeSuite(func() {
-
-	fmt.Println("--- ", provider)
 
 	userHome, err := homedir.Dir()
 	Expect(err).NotTo(HaveOccurred())

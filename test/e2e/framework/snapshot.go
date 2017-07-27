@@ -10,6 +10,7 @@ import (
 	"github.com/k8sdb/apimachinery/pkg/storage"
 	. "github.com/onsi/gomega"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 )
 
 func (f *Invocation) Snapshot() *tapi.Snapshot {
@@ -61,6 +62,28 @@ func (f *Framework) EventuallySnapshotDataFound(snapshot *tapi.Snapshot) GomegaA
 		time.Second*5,
 	)
 }
+
+func (f *Framework) EventuallyCountSnapshot(meta metav1.ObjectMeta) GomegaAsyncAssertion {
+
+	labelMap := map[string]string{
+		tapi.LabelDatabaseKind: tapi.ResourceKindPostgres,
+		tapi.LabelDatabaseName: meta.Name,
+	}
+
+	return Eventually(
+		func() int {
+			snapshotList, err := f.extClient.Snapshots(meta.Namespace).List(metav1.ListOptions{
+				LabelSelector: labels.SelectorFromSet(labelMap).String(),
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			return len(snapshotList.Items)
+		},
+		time.Minute*10,
+		time.Second*5,
+	)
+}
+
 
 func (f *Framework) checkSnapshotData(snapshot *tapi.Snapshot) (bool, error) {
 	storageSpec := snapshot.Spec.SnapshotStorageSpec
