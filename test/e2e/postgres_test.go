@@ -84,7 +84,9 @@ var _ = Describe("Postgres", func() {
 
 		Context("General", func() {
 
-			It("should running successfully", shouldSuccessfullyRunning)
+			Context("-", func() {
+				It("should run successfully", shouldSuccessfullyRunning)
+			})
 
 			Context("With PVC", func() {
 				BeforeEach(func() {
@@ -96,18 +98,21 @@ var _ = Describe("Postgres", func() {
 						},
 					}
 				})
-				It("should running successfully", shouldSuccessfullyRunning)
+				It("should run successfully", shouldSuccessfullyRunning)
+			})
 
-				Context("With StorageClassName", func() {
-					BeforeEach(func() {
-						if f.StorageClass == "" {
-							skipMessage = "StorageClass is not provided"
-						}
-						postgres.Spec.Storage.StorageClassName = types.StringP(f.StorageClass)
-					})
-					It("should running successfully", shouldSuccessfullyRunning)
-
+			Context("With PVC & StorageClassName", func() {
+				BeforeEach(func() {
+					postgres.Spec.Storage = &apiv1.PersistentVolumeClaimSpec{
+						Resources: apiv1.ResourceRequirements{
+							Requests: apiv1.ResourceList{
+								apiv1.ResourceStorage: resource.MustParse("5Gi"),
+							},
+						},
+						StorageClassName: types.StringP(f.StorageClass),
+					}
 				})
+				It("should run successfully", shouldSuccessfullyRunning)
 			})
 		})
 
@@ -116,7 +121,7 @@ var _ = Describe("Postgres", func() {
 				postgres.Spec.DoNotPause = true
 			})
 
-			var shouldNotPause = func() {
+			It("should work successfully", func() {
 				// Create and wait for running Postgres
 				createAndWaitForRunning()
 
@@ -138,9 +143,7 @@ var _ = Describe("Postgres", func() {
 
 				// Delete test resource
 				deleteTestResouce()
-			}
-
-			It("should work successfully", shouldNotPause)
+			})
 		})
 
 		Context("Snapshot", func() {
@@ -265,7 +268,6 @@ var _ = Describe("Postgres", func() {
 			})
 
 			Context("With Snapshot", func() {
-
 				BeforeEach(func() {
 					secret = f.SecretForS3Backend()
 					snapshot.Spec.StorageSecretName = secret.Name
@@ -275,7 +277,7 @@ var _ = Describe("Postgres", func() {
 					snapshot.Spec.DatabaseName = postgres.Name
 				})
 
-				var shouldInitializeSuccessfully = func() {
+				It("should run successfully", func() {
 					// Create and wait for running Postgres
 					createAndWaitForRunning()
 
@@ -312,9 +314,7 @@ var _ = Describe("Postgres", func() {
 					postgres = oldPostgres
 					// Delete test resource
 					deleteTestResouce()
-				}
-
-				It("should run successfully", shouldInitializeSuccessfully)
+				})
 			})
 		})
 
@@ -403,8 +403,7 @@ var _ = Describe("Postgres", func() {
 					}
 				})
 
-				var successfullyScheduled = func() {
-
+				It("should run schedular successfully", func() {
 					By("Create Secret")
 					f.CreateSecret(secret)
 
@@ -415,13 +414,11 @@ var _ = Describe("Postgres", func() {
 					f.EventuallySnapshotCount(postgres.ObjectMeta).Should(matcher.MoreThan(3))
 
 					deleteTestResouce()
-				}
-
-				It("should run schedular successfully", successfullyScheduled)
+				})
 			})
 
 			Context("With Update", func() {
-				var successfullyScheduled = func() {
+				It("should run schedular successfully", func() {
 					// Create and wait for running Postgres
 					createAndWaitForRunning()
 
@@ -453,11 +450,8 @@ var _ = Describe("Postgres", func() {
 					f.EventuallySnapshotCount(postgres.ObjectMeta).Should(matcher.MoreThan(3))
 
 					deleteTestResouce()
-				}
-
-				It("should run schedular successfully", successfullyScheduled)
+				})
 			})
-
 		})
 
 	})
