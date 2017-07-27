@@ -139,6 +139,10 @@ var _ = Describe("Postgres", func() {
 		Context("Snapshot", func() {
 			var skipDataCheck bool
 
+			AfterEach(func() {
+				f.DeleteSecret(secret.ObjectMeta)
+			})
+
 			BeforeEach(func() {
 				skipDataCheck = false
 				snapshot.Spec.DatabaseName = postgres.Name
@@ -258,6 +262,10 @@ var _ = Describe("Postgres", func() {
 			})
 
 			Context("With Snapshot", func() {
+				AfterEach(func() {
+					f.DeleteSecret(secret.ObjectMeta)
+				})
+
 				BeforeEach(func() {
 					secret = f.SecretForS3Backend()
 					snapshot.Spec.StorageSecretName = secret.Name
@@ -372,6 +380,9 @@ var _ = Describe("Postgres", func() {
 		})
 
 		Context("SnapshotScheduler", func() {
+			AfterEach(func() {
+				f.DeleteSecret(secret.ObjectMeta)
+			})
 
 			BeforeEach(func() {
 				secret = f.SecretForLocalBackend()

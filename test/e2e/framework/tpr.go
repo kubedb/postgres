@@ -17,12 +17,12 @@ func (f *Framework) EventuallyTPR() GomegaAsyncAssertion {
 				return errors.New("thirdpartyresources are not ready")
 			}
 
-			// Check Postgres TPR
+			// Check Snapshots TPR
 			if _, err := f.extClient.Snapshots(apiv1.NamespaceAll).List(metav1.ListOptions{}); err != nil {
 				return errors.New("thirdpartyresources are not ready")
 			}
 
-			// Check Postgres TPR
+			// Check DormantDatabases TPR
 			if _, err := f.extClient.DormantDatabases(apiv1.NamespaceAll).List(metav1.ListOptions{}); err != nil {
 				return errors.New("thirdpartyresources are not ready")
 			}
