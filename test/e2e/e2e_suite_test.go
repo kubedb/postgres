@@ -19,11 +19,9 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-var provider string
 var storageClass string
 
 func init() {
-	flag.StringVar(&provider, "provider", "minikube", "Kubernetes cloud provider")
 	flag.StringVar(&storageClass, "storageclass", "", "Kubernetes StorageClass name")
 }
 
@@ -58,7 +56,7 @@ var _ = BeforeSuite(func() {
 	kubeClient := clientset.NewForConfigOrDie(config)
 	extClient := tcs.NewForConfigOrDie(config)
 	// Framework
-	root = framework.New(kubeClient, extClient, provider, storageClass)
+	root = framework.New(kubeClient, extClient, storageClass)
 
 	By("Using namespace " + root.Namespace())
 

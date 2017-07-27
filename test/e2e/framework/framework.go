@@ -11,17 +11,15 @@ type Framework struct {
 	extClient    tcs.ExtensionInterface
 	namespace    string
 	name         string
-	Provider     string
 	StorageClass string
 }
 
-func New(kubeClient clientset.Interface, extClient tcs.ExtensionInterface, provider, storageClass string) *Framework {
+func New(kubeClient clientset.Interface, extClient tcs.ExtensionInterface, storageClass string) *Framework {
 	return &Framework{
 		kubeClient:   kubeClient,
 		extClient:    extClient,
 		name:         "postgres-operator",
 		namespace:    rand.WithUniqSuffix("postgres"),
-		Provider:     provider,
 		StorageClass: storageClass,
 	}
 }
@@ -37,3 +35,4 @@ type Invocation struct {
 	*Framework
 	app string
 }
+
