@@ -14,8 +14,10 @@ const (
 	maxAttempts         = 5
 )
 
-func (c *Controller) UpdatePostgres(meta metav1.ObjectMeta, transformer func(postgres tapi.Postgres) tapi.Postgres) (*tapi.Postgres, error) {
-	var postgres *tapi.Postgres
+func (c *Controller) UpdatePostgres(
+	meta metav1.ObjectMeta,
+	transformer func(tapi.Postgres) tapi.Postgres,
+) (*tapi.Postgres, error) {
 	attempt := 0
 	for ; attempt < maxAttempts; attempt = attempt + 1 {
 		cur, err := c.ExtClient.Postgreses(meta.Namespace).Get(meta.Name)
@@ -24,7 +26,7 @@ func (c *Controller) UpdatePostgres(meta metav1.ObjectMeta, transformer func(pos
 		}
 
 		modified := transformer(*cur)
-		if postgres, err = c.ExtClient.Postgreses(cur.Namespace).Update(&modified); err == nil {
+		if postgres, err := c.ExtClient.Postgreses(cur.Namespace).Update(&modified); err == nil {
 			return postgres, nil
 		}
 
