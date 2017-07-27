@@ -1,34 +1,56 @@
 package framework
 
 import (
-	"errors"
 	"time"
 
 	tapi "github.com/k8sdb/apimachinery/api"
 	. "github.com/onsi/gomega"
+	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/labels"
 )
 
 func (f *Framework) EventuallyTPR() GomegaAsyncAssertion {
-	label := map[string]string{
-		"app": tapi.DatabaseNamePrefix,
-	}
-
 	return Eventually(
 		func() error {
-			tprList, err := f.kubeClient.ExtensionsV1beta1().ThirdPartyResources().List(
-				metav1.ListOptions{
-					LabelSelector: labels.SelectorFromSet(label).String(),
-				},
+			// Check Postgres TPR
+			_, err := f.kubeClient.ExtensionsV1beta1().ThirdPartyResources().Get(
+				tapi.ResourceNamePostgres+"."+tapi.V1alpha1SchemeGroupVersion.Group,
+				metav1.GetOptions{},
 			)
 			if err != nil {
-				return err
+				if kerr.IsNotFound(err) {
+					return err
+				} else {
+					Expect(err).NotTo(HaveOccurred())
+				}
 			}
 
-			if len(tprList.Items) != 3 {
-				return errors.New("All ThirdPartyResources are not ready")
+			// Check DormantDatabase TPR
+			_, err = f.kubeClient.ExtensionsV1beta1().ThirdPartyResources().Get(
+				tapi.ResourceNameDormantDatabase+"."+tapi.V1alpha1SchemeGroupVersion.Group,
+				metav1.GetOptions{},
+			)
+			if err != nil {
+				if kerr.IsNotFound(err) {
+					return err
+				} else {
+					Expect(err).NotTo(HaveOccurred())
+				}
 			}
+
+			// Check Snapshot TPR
+			_, err = f.kubeClient.ExtensionsV1beta1().ThirdPartyResources().Get(
+				tapi.ResourceNameSnapshot+"."+tapi.V1alpha1SchemeGroupVersion.Group,
+				metav1.GetOptions{},
+			)
+			if err != nil {
+				if kerr.IsNotFound(err) {
+					return err
+				} else {
+					Expect(err).NotTo(HaveOccurred())
+				}
+			}
+
 			return nil
 		},
 		time.Minute*2,
