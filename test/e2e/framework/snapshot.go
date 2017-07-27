@@ -63,7 +63,7 @@ func (f *Framework) EventuallySnapshotDataFound(snapshot *tapi.Snapshot) GomegaA
 	)
 }
 
-func (f *Framework) EventuallyCountSnapshot(meta metav1.ObjectMeta) GomegaAsyncAssertion {
+func (f *Framework) EventuallySnapshotCount(meta metav1.ObjectMeta) GomegaAsyncAssertion {
 
 	labelMap := map[string]string{
 		tapi.LabelDatabaseKind: tapi.ResourceKindPostgres,

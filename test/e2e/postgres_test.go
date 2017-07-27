@@ -412,7 +412,7 @@ var _ = Describe("Postgres", func() {
 					createAndWaitForRunning()
 
 					By("Count multiple Snapshot")
-					f.EventuallyCountSnapshot(postgres.ObjectMeta).Should(matcher.MoreThan(3))
+					f.EventuallySnapshotCount(postgres.ObjectMeta).Should(matcher.MoreThan(3))
 
 					deleteTestResouce()
 				}
@@ -450,7 +450,7 @@ var _ = Describe("Postgres", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					By("Count multiple Snapshot")
-					f.EventuallyCountSnapshot(postgres.ObjectMeta).Should(matcher.MoreThan(3))
+					f.EventuallySnapshotCount(postgres.ObjectMeta).Should(matcher.MoreThan(3))
 
 					deleteTestResouce()
 				}
