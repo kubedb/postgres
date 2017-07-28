@@ -39,12 +39,13 @@ func (f *Framework) DeleteSnapshot(meta metav1.ObjectMeta) error {
 	return f.extClient.Snapshots(meta.Namespace).Delete(meta.Name)
 }
 
-func (f *Framework) EventuallySnapshotSuccessed(meta metav1.ObjectMeta) GomegaAsyncAssertion {
+func (f *Framework) EventuallySnapshotPhase(meta metav1.ObjectMeta) GomegaAsyncAssertion {
 	return Eventually(
-		func() bool {
+		func() tapi.SnapshotPhase {
 			snapshot, err := f.extClient.Snapshots(meta.Namespace).Get(meta.Name)
 			Expect(err).NotTo(HaveOccurred())
-			return snapshot.Status.Phase == tapi.SnapshotPhaseSuccessed
+			Expect(snapshot.Status.Phase).ToNot(Equal(tapi.SnapshotPhaseFailed))
+			return snapshot.Status.Phase
 		},
 		time.Minute*5,
 		time.Second*5,

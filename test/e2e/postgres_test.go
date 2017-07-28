@@ -159,7 +159,7 @@ var _ = Describe("Postgres", func() {
 				f.CreateSnapshot(snapshot)
 
 				By("Check for Successed snapshot")
-				f.EventuallySnapshotSuccessed(snapshot.ObjectMeta).Should(BeTrue())
+				f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(tapi.SnapshotPhaseSuccessed))
 
 				if !skipDataCheck {
 					By("Check for snapshot data")
@@ -286,7 +286,7 @@ var _ = Describe("Postgres", func() {
 					f.CreateSnapshot(snapshot)
 
 					By("Check for Successed snapshot")
-					f.EventuallySnapshotSuccessed(snapshot.ObjectMeta).Should(BeTrue())
+					f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(tapi.SnapshotPhaseSuccessed))
 
 					By("Check for snapshot data")
 					f.EventuallySnapshotDataFound(snapshot).Should(BeTrue())
