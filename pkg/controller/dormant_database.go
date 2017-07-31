@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"errors"
+
 	"github.com/appscode/log"
 	tapi "github.com/k8sdb/apimachinery/api"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
@@ -132,6 +134,11 @@ func (c *Controller) deleteSecret(dormantDb *tapi.DormantDatabase) error {
 func (c *Controller) ResumeDatabase(dormantDb *tapi.DormantDatabase) error {
 	origin := dormantDb.Spec.Origin
 	objectMeta := origin.ObjectMeta
+
+	if origin.Spec.Postgres.Init != nil {
+		return errors.New("Do not support InitSpec in spec.origin.postgres")
+	}
+
 	postgres := &tapi.Postgres{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        objectMeta.Name,
