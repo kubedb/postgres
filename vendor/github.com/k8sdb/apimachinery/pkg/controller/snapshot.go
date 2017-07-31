@@ -144,12 +144,7 @@ const (
 )
 
 func (c *SnapshotController) create(snapshot *tapi.Snapshot) error {
-	var err error
-	if snapshot, err = c.extClient.Snapshots(snapshot.Namespace).Get(snapshot.Name); err != nil {
-		return err
-	}
-
-	err = c.UpdateSnapshot(snapshot.ObjectMeta, func(in tapi.Snapshot) tapi.Snapshot {
+	err := c.UpdateSnapshot(snapshot.ObjectMeta, func(in tapi.Snapshot) tapi.Snapshot {
 		t := metav1.Now()
 		in.Status.StartTime = &t
 		return in
@@ -174,10 +169,6 @@ func (c *SnapshotController) create(snapshot *tapi.Snapshot) error {
 	runtimeObj, err := c.snapshoter.GetDatabase(snapshot)
 	if err != nil {
 		c.eventRecorder.Event(snapshot, apiv1.EventTypeWarning, eventer.EventReasonFailedToGet, err.Error())
-		return err
-	}
-
-	if snapshot, err = c.extClient.Snapshots(snapshot.Namespace).Get(snapshot.Name); err != nil {
 		return err
 	}
 
@@ -371,10 +362,6 @@ func (c *SnapshotController) checkSnapshotJob(snapshot *tapi.Snapshot, jobName s
 			err,
 		)
 		log.Errorln(err)
-	}
-
-	if snapshot, err = c.extClient.Snapshots(snapshot.Namespace).Get(snapshot.Name); err != nil {
-		return err
 	}
 
 	runtimeObj, err := c.snapshoter.GetDatabase(snapshot)

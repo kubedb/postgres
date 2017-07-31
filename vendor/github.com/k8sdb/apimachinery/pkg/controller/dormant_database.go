@@ -155,13 +155,7 @@ func (c *DormantDbController) watch() {
 }
 
 func (c *DormantDbController) create(dormantDb *tapi.DormantDatabase) error {
-
-	var err error
-	if dormantDb, err = c.extClient.DormantDatabases(dormantDb.Namespace).Get(dormantDb.Name); err != nil {
-		return err
-	}
-
-	err = c.UpdateDormantDatabase(dormantDb.ObjectMeta, func(in tapi.DormantDatabase) tapi.DormantDatabase {
+	err := c.UpdateDormantDatabase(dormantDb.ObjectMeta, func(in tapi.DormantDatabase) tapi.DormantDatabase {
 		t := metav1.Now()
 		in.Status.CreationTime = &t
 		return in
@@ -207,10 +201,6 @@ func (c *DormantDbController) create(dormantDb *tapi.DormantDatabase) error {
 		return errors.New(message)
 	}
 
-	if dormantDb, err = c.extClient.DormantDatabases(dormantDb.Namespace).Get(dormantDb.Name); err != nil {
-		return err
-	}
-
 	err = c.UpdateDormantDatabase(dormantDb.ObjectMeta, func(in tapi.DormantDatabase) tapi.DormantDatabase {
 		in.Status.Phase = tapi.DormantDatabasePhasePausing
 		return in
@@ -240,10 +230,6 @@ func (c *DormantDbController) create(dormantDb *tapi.DormantDatabase) error {
 		eventer.EventReasonSuccessfulPause,
 		"Successfully paused Database workload",
 	)
-
-	if dormantDb, err = c.extClient.DormantDatabases(dormantDb.Namespace).Get(dormantDb.Name); err != nil {
-		return err
-	}
 
 	err = c.UpdateDormantDatabase(dormantDb.ObjectMeta, func(in tapi.DormantDatabase) tapi.DormantDatabase {
 		t := metav1.Now()
@@ -345,10 +331,6 @@ func (c *DormantDbController) wipeOut(dormantDb *tapi.DormantDatabase) error {
 		return errors.New(message)
 	}
 
-	if dormantDb, err = c.extClient.DormantDatabases(dormantDb.Namespace).Get(dormantDb.Name); err != nil {
-		return err
-	}
-
 	err = c.UpdateDormantDatabase(dormantDb.ObjectMeta, func(in tapi.DormantDatabase) tapi.DormantDatabase {
 		in.Status.Phase = tapi.DormantDatabasePhaseWipingOut
 		return in
@@ -377,10 +359,6 @@ func (c *DormantDbController) wipeOut(dormantDb *tapi.DormantDatabase) error {
 		eventer.EventReasonSuccessfulWipeOut,
 		"Successfully wiped out Database workload",
 	)
-
-	if dormantDb, err = c.extClient.DormantDatabases(dormantDb.Namespace).Get(dormantDb.Name); err != nil {
-		return err
-	}
 
 	err = c.UpdateDormantDatabase(dormantDb.ObjectMeta, func(in tapi.DormantDatabase) tapi.DormantDatabase {
 		t := metav1.Now()
@@ -426,10 +404,6 @@ func (c *DormantDbController) resume(dormantDb *tapi.DormantDatabase) error {
 			message,
 		)
 		return errors.New(message)
-	}
-
-	if dormantDb, err = c.extClient.DormantDatabases(dormantDb.Namespace).Get(dormantDb.Name); err != nil {
-		return err
 	}
 
 	err = c.UpdateDormantDatabase(dormantDb.ObjectMeta, func(in tapi.DormantDatabase) tapi.DormantDatabase {
