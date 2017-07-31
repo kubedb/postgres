@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	updateRetryInterval = 10 * 1000 * 1000 * time.Nanosecond
+	updateRetryInterval = 10 * time.Second
 	maxAttempts         = 5
 )
 

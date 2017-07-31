@@ -359,59 +359,15 @@ func (c *SnapshotController) checkSnapshotJob(snapshot *tapi.Snapshot, jobName s
 		return err
 	}
 
-	r, err := metav1.LabelSelectorAsSelector(job.Spec.Selector)
-	if err != nil {
-		return err
-	}
-	err = c.client.CoreV1().Pods(job.Namespace).DeleteCollection(&metav1.DeleteOptions{}, metav1.ListOptions{
-		LabelSelector: r.String(),
-	})
-	if err != nil {
-		c.eventRecorder.Eventf(
-			snapshot,
-			apiv1.EventTypeWarning,
-			eventer.EventReasonFailedToDelete,
-			"Failed to delete Pods. Reason: %v",
-			err,
-		)
-		log.Errorln(err)
-	}
+	deleteJobResources(c.client, c.eventRecorder, snapshot, job)
 
 	err = c.client.CoreV1().Secrets(snapshot.Namespace).Delete(snapshot.Name, &metav1.DeleteOptions{})
-	if err != nil {
+	if err != nil && !kerr.IsNotFound(err) {
 		c.eventRecorder.Eventf(
 			snapshot,
 			apiv1.EventTypeWarning,
 			eventer.EventReasonFailedToDelete,
 			"Failed to delete Secret. Reason: %v",
-			err,
-		)
-		log.Errorln(err)
-	}
-
-	for _, volume := range job.Spec.Template.Spec.Volumes {
-		claim := volume.PersistentVolumeClaim
-		if claim != nil {
-			err := c.client.CoreV1().PersistentVolumeClaims(job.Namespace).Delete(claim.ClaimName, nil)
-			if err != nil {
-				c.eventRecorder.Eventf(
-					snapshot,
-					apiv1.EventTypeWarning,
-					eventer.EventReasonFailedToDelete,
-					"Failed to delete PersistentVolumeClaim. Reason: %v",
-					err,
-				)
-				log.Errorln(err)
-			}
-		}
-	}
-
-	if err := c.client.BatchV1().Jobs(job.Namespace).Delete(job.Name, nil); err != nil {
-		c.eventRecorder.Eventf(
-			snapshot,
-			apiv1.EventTypeWarning,
-			eventer.EventReasonFailedToDelete,
-			"Failed to delete Job. Reason: %v",
 			err,
 		)
 		log.Errorln(err)

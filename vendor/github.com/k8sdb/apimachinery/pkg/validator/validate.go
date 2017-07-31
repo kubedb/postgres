@@ -18,15 +18,13 @@ func ValidateStorage(client clientset.Interface, spec *apiv1.PersistentVolumeCla
 		return nil
 	}
 
-	if spec.StorageClassName == nil {
-		return fmt.Errorf(`Object 'StorageClassName' is missing in '%v'`, *spec)
-	}
-
-	if _, err := client.StorageV1beta1().StorageClasses().Get(*spec.StorageClassName, metav1.GetOptions{}); err != nil {
-		if kerr.IsNotFound(err) {
-			return fmt.Errorf(`Spec.Storage.StorageClassName "%v" not found`, *spec.StorageClassName)
+	if spec.StorageClassName != nil {
+		if _, err := client.StorageV1beta1().StorageClasses().Get(*spec.StorageClassName, metav1.GetOptions{}); err != nil {
+			if kerr.IsNotFound(err) {
+				return fmt.Errorf(`Spec.Storage.StorageClassName "%v" not found`, *spec.StorageClassName)
+			}
+			return err
 		}
-		return err
 	}
 
 	if val, found := spec.Resources.Requests[apiv1.ResourceStorage]; found {
