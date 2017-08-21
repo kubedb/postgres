@@ -377,6 +377,36 @@ var _ = Describe("Postgres", func() {
 
 				It("should resume DormantDatabase successfully", shouldResumeSuccessfully)
 			})
+
+			Context("With original Postgres", func() {
+				It("should resume DormantDatabase successfully", func() {
+					// Create and wait for running Postgres
+					createAndWaitForRunning()
+
+					By("Delete postgres")
+					f.DeletePostgres(postgres.ObjectMeta)
+
+					By("Wait for postgres to be paused")
+					f.EventuallyDormantDatabaseStatus(postgres.ObjectMeta).Should(matcher.HavePaused())
+
+					// Create Postgres object again to resume it
+					By("Create Postgres: " + postgres.Name)
+					err = f.CreatePostgres(postgres)
+					Expect(err).NotTo(HaveOccurred())
+
+					By("Wait for DormantDatabase to be deleted")
+					f.EventuallyDormantDatabase(postgres.ObjectMeta).Should(BeFalse())
+
+					By("Wait for Running postgres")
+					f.EventuallyPostgresRunning(postgres.ObjectMeta).Should(BeTrue())
+
+					postgres, err = f.GetPostgres(postgres.ObjectMeta)
+					Expect(err).NotTo(HaveOccurred())
+
+					// Delete test resource
+					deleteTestResouce()
+				})
+			})
 		})
 
 		Context("SnapshotScheduler", func() {
