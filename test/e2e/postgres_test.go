@@ -55,7 +55,7 @@ var _ = Describe("Postgres", func() {
 		f.EventuallyDormantDatabaseStatus(postgres.ObjectMeta).Should(matcher.HavePaused())
 
 		By("WipeOut postgres")
-		_, err := f.UpdateDormantDatabase(postgres.ObjectMeta, func(in tapi.DormantDatabase) tapi.DormantDatabase {
+		_, err := f.TryPatchDormantDatabase(postgres.ObjectMeta, func(in *tapi.DormantDatabase) *tapi.DormantDatabase {
 			in.Spec.WipeOut = true
 			return in
 		})
@@ -106,7 +106,7 @@ var _ = Describe("Postgres", func() {
 			})
 		})
 
-		Context("DoNotPause", func() {
+		FContext("DoNotPause", func() {
 			BeforeEach(func() {
 				postgres.Spec.DoNotPause = true
 			})
@@ -126,7 +126,7 @@ var _ = Describe("Postgres", func() {
 				f.EventuallyPostgresRunning(postgres.ObjectMeta).Should(BeTrue())
 
 				By("Update postgres to set DoNotPause=false")
-				f.UpdatePostgres(postgres.ObjectMeta, func(in tapi.Postgres) tapi.Postgres {
+				f.TryPatchPostgres(postgres.ObjectMeta, func(in *tapi.Postgres) *tapi.Postgres {
 					in.Spec.DoNotPause = false
 					return in
 				})
@@ -332,7 +332,7 @@ var _ = Describe("Postgres", func() {
 				By("Wait for postgres to be paused")
 				f.EventuallyDormantDatabaseStatus(postgres.ObjectMeta).Should(matcher.HavePaused())
 
-				_, err = f.UpdateDormantDatabase(postgres.ObjectMeta, func(in tapi.DormantDatabase) tapi.DormantDatabase {
+				_, err = f.TryPatchDormantDatabase(postgres.ObjectMeta, func(in *tapi.DormantDatabase) *tapi.DormantDatabase {
 					in.Spec.Resume = true
 					return in
 				})
@@ -429,7 +429,7 @@ var _ = Describe("Postgres", func() {
 					f.CreateSecret(secret)
 
 					By("Update postgres")
-					_, err = f.UpdatePostgres(postgres.ObjectMeta, func(in tapi.Postgres) tapi.Postgres {
+					_, err = f.TryPatchPostgres(postgres.ObjectMeta, func(in *tapi.Postgres) *tapi.Postgres {
 						in.Spec.BackupSchedule = &tapi.BackupScheduleSpec{
 							CronExpression: "@every 1m",
 							SnapshotStorageSpec: tapi.SnapshotStorageSpec{

@@ -1,10 +1,9 @@
 package framework
 
 import (
-	"fmt"
 	"time"
 
-	"github.com/appscode/log"
+	kutildb "github.com/appscode/kutil/kubedb/v1alpha1"
 	tapi "github.com/k8sdb/apimachinery/api"
 	. "github.com/onsi/gomega"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
@@ -15,25 +14,8 @@ func (f *Framework) GetDormantDatabase(meta metav1.ObjectMeta) (*tapi.DormantDat
 	return f.extClient.DormantDatabases(meta.Namespace).Get(meta.Name)
 }
 
-func (f *Framework) UpdateDormantDatabase(meta metav1.ObjectMeta, transformer func(tapi.DormantDatabase) tapi.DormantDatabase) (*tapi.DormantDatabase, error) {
-	attempt := 0
-	for ; attempt < maxAttempts; attempt = attempt + 1 {
-		cur, err := f.extClient.DormantDatabases(meta.Namespace).Get(meta.Name)
-		if err != nil {
-			return nil, err
-		}
-
-		modified := transformer(*cur)
-		updated, err := f.extClient.DormantDatabases(cur.Namespace).Update(&modified)
-		if err == nil {
-			return updated, nil
-		}
-
-		log.Errorf("Attempt %d failed to update DormantDatabase %s@%s due to %s.", attempt, cur.Name, cur.Namespace, err)
-		time.Sleep(updateRetryInterval)
-	}
-
-	return nil, fmt.Errorf("Failed to update DormantDatabase %s@%s after %d attempts.", meta.Name, meta.Namespace, attempt)
+func (f *Framework) TryPatchDormantDatabase(meta metav1.ObjectMeta, transform func(*tapi.DormantDatabase) *tapi.DormantDatabase) (*tapi.DormantDatabase, error) {
+	return kutildb.TryPatchDormantDatabase(f.extClient, meta, transform)
 }
 
 func (f *Framework) DeleteDormantDatabase(meta metav1.ObjectMeta) error {
