@@ -106,7 +106,7 @@ var _ = Describe("Postgres", func() {
 			})
 		})
 
-		FContext("DoNotPause", func() {
+		Context("DoNotPause", func() {
 			BeforeEach(func() {
 				postgres.Spec.DoNotPause = true
 			})
