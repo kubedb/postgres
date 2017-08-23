@@ -6,15 +6,19 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/appscode/jsonpatch"
 	"github.com/appscode/kutil"
 	"github.com/golang/glog"
 	aci "github.com/k8sdb/apimachinery/api"
 	tcs "github.com/k8sdb/apimachinery/client/clientset"
-	"github.com/appscode/jsonpatch"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
+
+func EnsureSnapshot(c tcs.ExtensionInterface, meta metav1.ObjectMeta, transform func(alert *aci.Snapshot) *aci.Snapshot) (*aci.Snapshot, error) {
+	return CreateOrPatchSnapshot(c, meta, transform)
+}
 
 func CreateOrPatchSnapshot(c tcs.ExtensionInterface, meta metav1.ObjectMeta, transform func(alert *aci.Snapshot) *aci.Snapshot) (*aci.Snapshot, error) {
 	cur, err := c.Snapshots(meta.Namespace).Get(meta.Name)

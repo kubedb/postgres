@@ -6,15 +6,19 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/appscode/jsonpatch"
 	"github.com/appscode/kutil"
 	"github.com/golang/glog"
 	aci "github.com/k8sdb/apimachinery/api"
 	tcs "github.com/k8sdb/apimachinery/client/clientset"
-	"github.com/appscode/jsonpatch"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
+
+func EnsureElasticsearch(c tcs.ExtensionInterface, meta metav1.ObjectMeta, transform func(alert *aci.Elasticsearch) *aci.Elasticsearch) (*aci.Elasticsearch, error) {
+	return CreateOrPatchElasticsearch(c, meta, transform)
+}
 
 func CreateOrPatchElasticsearch(c tcs.ExtensionInterface, meta metav1.ObjectMeta, transform func(alert *aci.Elasticsearch) *aci.Elasticsearch) (*aci.Elasticsearch, error) {
 	cur, err := c.Elasticsearches(meta.Namespace).Get(meta.Name)

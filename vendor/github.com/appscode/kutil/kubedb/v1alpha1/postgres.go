@@ -6,15 +6,19 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/appscode/jsonpatch"
 	"github.com/appscode/kutil"
 	"github.com/golang/glog"
 	aci "github.com/k8sdb/apimachinery/api"
 	tcs "github.com/k8sdb/apimachinery/client/clientset"
-	"github.com/appscode/jsonpatch"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
+
+func EnsurePostgres(c tcs.ExtensionInterface, meta metav1.ObjectMeta, transform func(alert *aci.Postgres) *aci.Postgres) (*aci.Postgres, error) {
+	return CreateOrPatchPostgres(c, meta, transform)
+}
 
 func CreateOrPatchPostgres(c tcs.ExtensionInterface, meta metav1.ObjectMeta, transform func(alert *aci.Postgres) *aci.Postgres) (*aci.Postgres, error) {
 	cur, err := c.Postgreses(meta.Namespace).Get(meta.Name)
