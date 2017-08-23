@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/appscode/go/hold"
+	kutildb "github.com/appscode/kutil/kubedb/v1alpha1"
 	"github.com/appscode/log"
 	pcm "github.com/coreos/prometheus-operator/pkg/client/monitoring/v1alpha1"
 	tapi "github.com/k8sdb/apimachinery/api"
@@ -255,12 +256,11 @@ func (c *Controller) pushFailureEvent(postgres *tapi.Postgres, reason string) {
 		reason,
 	)
 
-	_, err := c.UpdatePostgres(postgres.ObjectMeta, func(in tapi.Postgres) tapi.Postgres {
+	_, err := kutildb.TryPatchPostgres(c.ExtClient, postgres.ObjectMeta, func(in *tapi.Postgres) *tapi.Postgres {
 		in.Status.Phase = tapi.DatabasePhaseFailed
 		in.Status.Reason = reason
 		return in
 	})
-
 	if err != nil {
 		c.eventRecorder.Eventf(postgres, apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
 	}

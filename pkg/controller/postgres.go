@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"time"
 
+	kutildb "github.com/appscode/kutil/kubedb/v1alpha1"
 	"github.com/appscode/log"
 	tapi "github.com/k8sdb/apimachinery/api"
 	"github.com/k8sdb/apimachinery/pkg/eventer"
@@ -17,7 +18,7 @@ import (
 )
 
 func (c *Controller) create(postgres *tapi.Postgres) error {
-	_, err := c.UpdatePostgres(postgres.ObjectMeta, func(in tapi.Postgres) tapi.Postgres {
+	_, err := kutildb.TryPatchPostgres(c.ExtClient, postgres.ObjectMeta, func(in *tapi.Postgres) *tapi.Postgres {
 		t := metav1.Now()
 		in.Status.CreationTime = &t
 		in.Status.Phase = tapi.DatabasePhaseCreating
@@ -204,7 +205,7 @@ func (c *Controller) ensureStatefulSet(postgres *tapi.Postgres) error {
 	}
 
 	if postgres.Spec.Init != nil && postgres.Spec.Init.SnapshotSource != nil {
-		_, err := c.UpdatePostgres(postgres.ObjectMeta, func(in tapi.Postgres) tapi.Postgres {
+		_, err := kutildb.TryPatchPostgres(c.ExtClient, postgres.ObjectMeta, func(in *tapi.Postgres) *tapi.Postgres {
 			in.Status.Phase = tapi.DatabasePhaseInitializing
 			return in
 		})
@@ -224,7 +225,7 @@ func (c *Controller) ensureStatefulSet(postgres *tapi.Postgres) error {
 		}
 	}
 
-	_, err = c.UpdatePostgres(postgres.ObjectMeta, func(in tapi.Postgres) tapi.Postgres {
+	_, err = kutildb.TryPatchPostgres(c.ExtClient, postgres.ObjectMeta, func(in *tapi.Postgres) *tapi.Postgres {
 		in.Status.Phase = tapi.DatabasePhaseRunning
 		return in
 	})

@@ -7,6 +7,7 @@ import (
 
 	"github.com/appscode/go/crypto/rand"
 	"github.com/appscode/go/types"
+	kutildb "github.com/appscode/kutil/kubedb/v1alpha1"
 	"github.com/appscode/log"
 	tapi "github.com/k8sdb/apimachinery/api"
 	"github.com/k8sdb/apimachinery/pkg/docker"
@@ -175,7 +176,7 @@ func (c *Controller) createStatefulSet(postgres *tapi.Postgres) (*apps.StatefulS
 			return nil, err
 		}
 
-		postgres, err = c.UpdatePostgres(postgres.ObjectMeta, func(in tapi.Postgres) tapi.Postgres {
+		_postgres, err := kutildb.TryPatchPostgres(c.ExtClient, postgres.ObjectMeta, func(in *tapi.Postgres) *tapi.Postgres {
 			in.Spec.DatabaseSecret = secretVolumeSource
 			return in
 		})
@@ -183,6 +184,7 @@ func (c *Controller) createStatefulSet(postgres *tapi.Postgres) (*apps.StatefulS
 			c.eventRecorder.Eventf(postgres, apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
 			return nil, err
 		}
+		postgres = _postgres
 	}
 
 	// Add secretVolume for authentication
