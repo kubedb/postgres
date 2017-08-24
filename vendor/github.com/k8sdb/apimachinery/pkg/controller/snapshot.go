@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/appscode/go/wait"
+	kutildb "github.com/appscode/kutil/kubedb/v1alpha1"
 	"github.com/appscode/log"
 	tapi "github.com/k8sdb/apimachinery/api"
 	tcs "github.com/k8sdb/apimachinery/client/clientset"
@@ -144,7 +145,7 @@ const (
 )
 
 func (c *SnapshotController) create(snapshot *tapi.Snapshot) error {
-	err := c.UpdateSnapshot(snapshot.ObjectMeta, func(in tapi.Snapshot) tapi.Snapshot {
+	_, err := kutildb.TryPatchSnapshot(c.extClient, snapshot.ObjectMeta, func(in *tapi.Snapshot) *tapi.Snapshot {
 		t := metav1.Now()
 		in.Status.StartTime = &t
 		return in
@@ -172,7 +173,7 @@ func (c *SnapshotController) create(snapshot *tapi.Snapshot) error {
 		return err
 	}
 
-	err = c.UpdateSnapshot(snapshot.ObjectMeta, func(in tapi.Snapshot) tapi.Snapshot {
+	_, err = kutildb.TryPatchSnapshot(c.extClient, snapshot.ObjectMeta, func(in *tapi.Snapshot) *tapi.Snapshot {
 		in.Labels[tapi.LabelDatabaseName] = snapshot.Spec.DatabaseName
 		in.Labels[tapi.LabelSnapshotStatus] = string(tapi.SnapshotPhaseRunning)
 		in.Status.Phase = tapi.SnapshotPhaseRunning
@@ -288,7 +289,7 @@ func (c *SnapshotController) checkRunningSnapshot(snapshot *tapi.Snapshot) error
 	}
 
 	if len(snapshotList.Items) > 0 {
-		err := c.UpdateSnapshot(snapshot.ObjectMeta, func(in tapi.Snapshot) tapi.Snapshot {
+		_, err = kutildb.TryPatchSnapshot(c.extClient, snapshot.ObjectMeta, func(in *tapi.Snapshot) *tapi.Snapshot {
 			t := metav1.Now()
 			in.Status.StartTime = &t
 			in.Status.CompletionTime = &t
@@ -400,7 +401,7 @@ func (c *SnapshotController) checkSnapshotJob(snapshot *tapi.Snapshot, jobName s
 		)
 	}
 
-	err = c.UpdateSnapshot(snapshot.ObjectMeta, func(in tapi.Snapshot) tapi.Snapshot {
+	_, err = kutildb.TryPatchSnapshot(c.extClient, snapshot.ObjectMeta, func(in *tapi.Snapshot) *tapi.Snapshot {
 		t := metav1.Now()
 		in.Status.CompletionTime = &t
 		delete(in.Labels, tapi.LabelSnapshotStatus)
