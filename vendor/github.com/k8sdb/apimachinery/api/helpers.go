@@ -136,15 +136,15 @@ func (d DormantDatabase) OffshootName() string {
 }
 
 func (p DormantDatabase) ResourceCode() string {
-	return ResourceTypeDormantDatabase
+	return ResourceCodeDormantDatabase
 }
 
 func (p DormantDatabase) ResourceKind() string {
-	return ResourceTypeDormantDatabase
+	return ResourceKindDormantDatabase
 }
 
 func (p DormantDatabase) ResourceName() string {
-	return ResourceTypeDormantDatabase
+	return ResourceNameDormantDatabase
 }
 
 func (p DormantDatabase) ResourceType() string {
@@ -172,15 +172,15 @@ func (s Snapshot) Location() (string, error) {
 }
 
 func (p Snapshot) ResourceCode() string {
-	return ResourceTypeSnapshot
+	return ResourceCodeSnapshot
 }
 
 func (p Snapshot) ResourceKind() string {
-	return ResourceTypeSnapshot
+	return ResourceKindSnapshot
 }
 
 func (p Snapshot) ResourceName() string {
-	return ResourceTypeSnapshot
+	return ResourceNameSnapshot
 }
 
 func (p Snapshot) ResourceType() string {

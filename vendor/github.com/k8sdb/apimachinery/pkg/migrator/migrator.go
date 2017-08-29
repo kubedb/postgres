@@ -1,12 +1,10 @@
 package migrator
 
-/*
-
-
 import (
 	"errors"
 	"fmt"
 	"time"
+
 	"github.com/appscode/log"
 	"github.com/hashicorp/go-version"
 	aci "github.com/k8sdb/apimachinery/api"
@@ -94,21 +92,21 @@ func (m *migrator) migrateTPR2CRD(runtimeObjs ...aci.RuntimeObject) error {
 
 	log.Debugln("Deleting TPRs.")
 	if err := m.deleteTPRs(runtimeObjs...); err != nil {
-		return errors.New("Failed to Delete TPRs")
+		return err
 	}
 
 	m.migrationState.tprRegDeleted = true
 
 	log.Debugln("Creating CRDs.")
 	if err := m.createCRDs(runtimeObjs...); err != nil {
-		return errors.New("Failed to create CRDs")
+		return err
 	}
 
 	m.migrationState.crdCreated = true
 
 	log.Debugln("Waiting for CRDs to be ready.")
 	if err := m.waitForCRDsReady(len(runtimeObjs)); err != nil {
-		return errors.New("Failed to be ready CRDs")
+		return err
 	}
 
 	return nil
@@ -119,8 +117,8 @@ func (m *migrator) deleteTPRs(runtimeObjs ...aci.RuntimeObject) error {
 
 	deleteTPR := func(runtime aci.RuntimeObject) error {
 		name := runtime.ResourceName() + "." + aci.V1alpha1SchemeGroupVersion.Group
-		if err := tprClient.Delete(name, &metav1.DeleteOptions{}); err != nil {
-			return fmt.Errorf("failed to remove %s TPR", name)
+		if err := tprClient.Delete(name, &metav1.DeleteOptions{}); err != nil && !kerr.IsNotFound(err) {
+			return fmt.Errorf(`Failed to delete TPR "%s"`, name)
 		}
 		return nil
 	}
@@ -163,12 +161,12 @@ func (m *migrator) createCRD(runtime aci.RuntimeObject) error {
 	}
 
 	crdClient := m.apiExtKubeClient.ApiextensionsV1beta1().CustomResourceDefinitions()
-	_, err := crdClient.Create(crd)
-	if err != nil && !kerr.IsAlreadyExists(err) {
+
+	if _, err := crdClient.Create(crd); err != nil && !kerr.IsAlreadyExists(err) {
 		return fmt.Errorf(`Failed to create CRD "%v"`, crd.Spec.Names.Kind)
 	}
 
-	err = wait.Poll(500*time.Millisecond, 60*time.Second, func() (bool, error) {
+	err := wait.Poll(500*time.Millisecond, 60*time.Second, func() (bool, error) {
 		crdEst, err := crdClient.Get(crd.ObjectMeta.Name, metav1.GetOptions{})
 		if err != nil {
 			return false, err
@@ -177,7 +175,7 @@ func (m *migrator) createCRD(runtime aci.RuntimeObject) error {
 			switch cond.Type {
 			case extensionsobj.Established:
 				if cond.Status == extensionsobj.ConditionTrue {
-					return true, err
+					return true, nil
 				}
 			case extensionsobj.NamesAccepted:
 				if cond.Status == extensionsobj.ConditionFalse {
@@ -185,10 +183,10 @@ func (m *migrator) createCRD(runtime aci.RuntimeObject) error {
 				}
 			}
 		}
-		return false, err
+		return false, fmt.Errorf(`Failed to get CustomResourceDefinition "%v"`, runtime.ResourceKind())
 	})
 
-	return nil
+	return err
 }
 
 func (m *migrator) waitForCRDsReady(expectedCRD int) error {
@@ -208,7 +206,7 @@ func (m *migrator) waitForCRDsReady(expectedCRD int) error {
 			return true, nil
 		}
 
-		return false, nil
+		return false, errors.New("Failed to get all CustomResourceDefinitions")
 	})
 }
 
@@ -221,7 +219,7 @@ func (m *migrator) rollback(runtimeObjs ...aci.RuntimeObject) error {
 		log.Debugln("Deleting CRDs.")
 		err := m.deleteCRDs()
 		if err != nil {
-			return errors.New("Failed to delete CRDs")
+			return err
 		}
 	}
 
@@ -229,12 +227,12 @@ func (m *migrator) rollback(runtimeObjs ...aci.RuntimeObject) error {
 		log.Debugln("Creating TPRs.")
 		err := m.CreateTPRs()
 		if err != nil {
-			return errors.New("Failed to recreate TPRs")
+			return fmt.Errorf("Failed to recreate TPR. Error: %v", err.Error())
 		}
 
 		err = m.WaitForTPRsReady(len(runtimeObjs))
 		if err != nil {
-			return errors.New("Failed to be ready TPRs")
+			return err
 		}
 	}
 
@@ -246,8 +244,7 @@ func (m *migrator) deleteCRDs(runtimeObjs ...aci.RuntimeObject) error {
 
 	deleteCRD := func(runtime aci.RuntimeObject) error {
 		name := runtime.ResourceType() + "." + aci.V1alpha1SchemeGroupVersion.Group
-		err := crdClient.Delete(name, &metav1.DeleteOptions{})
-		if err != nil {
+		if err := crdClient.Delete(name, &metav1.DeleteOptions{}); err != nil && !kerr.IsNotFound(err) {
 			return fmt.Errorf(`Failed to delete CRD "%s""`, name)
 		}
 		return nil
@@ -297,7 +294,11 @@ func (m *migrator) createTPR(runtime aci.RuntimeObject) error {
 	}
 
 	_, err = m.kubeClient.ExtensionsV1beta1().ThirdPartyResources().Create(thirdPartyResource)
-	return err
+	if err != nil && !kerr.IsAlreadyExists(err) {
+		return err
+	}
+
+	return nil
 }
 
 func (m *migrator) WaitForTPRsReady(expectedTPR int) error {
@@ -317,7 +318,6 @@ func (m *migrator) WaitForTPRsReady(expectedTPR int) error {
 			return true, nil
 		}
 
-		return false, nil
+		return false, errors.New("Failed to get all ThirdPartyResources")
 	})
 }
-*/

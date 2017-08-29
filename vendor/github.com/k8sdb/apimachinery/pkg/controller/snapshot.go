@@ -12,6 +12,8 @@ import (
 	"github.com/k8sdb/apimachinery/pkg/analytics"
 	"github.com/k8sdb/apimachinery/pkg/eventer"
 	"github.com/k8sdb/apimachinery/pkg/storage"
+	extensionsobj "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	apiextensionsclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -19,7 +21,6 @@ import (
 	clientset "k8s.io/client-go/kubernetes"
 	apiv1 "k8s.io/client-go/pkg/api/v1"
 	batch "k8s.io/client-go/pkg/apis/batch/v1"
-	extensions "k8s.io/client-go/pkg/apis/extensions/v1beta1"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/record"
 )
@@ -34,6 +35,8 @@ type Snapshotter interface {
 type SnapshotController struct {
 	// Kubernetes client
 	client clientset.Interface
+	// Api Extension Client
+	apiExtKubeClient apiextensionsclient.Interface
 	// ThirdPartyExtension client
 	extClient tcs.ExtensionInterface
 	// Snapshotter interface
@@ -49,6 +52,7 @@ type SnapshotController struct {
 // NewSnapshotController creates a new SnapshotController
 func NewSnapshotController(
 	client clientset.Interface,
+	apiExtKubeClient apiextensionsclient.Interface,
 	extClient tcs.ExtensionInterface,
 	snapshoter Snapshotter,
 	lw *cache.ListWatch,
@@ -57,54 +61,55 @@ func NewSnapshotController(
 
 	// return new DormantDatabase Controller
 	return &SnapshotController{
-		client:        client,
-		extClient:     extClient,
-		snapshoter:    snapshoter,
-		lw:            lw,
-		eventRecorder: eventer.NewEventRecorder(client, "Snapshot Controller"),
-		syncPeriod:    syncPeriod,
+		client:           client,
+		apiExtKubeClient: apiExtKubeClient,
+		extClient:        extClient,
+		snapshoter:       snapshoter,
+		lw:               lw,
+		eventRecorder:    eventer.NewEventRecorder(client, "Snapshot Controller"),
+		syncPeriod:       syncPeriod,
 	}
 }
 
 func (c *SnapshotController) Run() {
 	// Ensure DormantDatabase TPR
-	c.ensureThirdPartyResource()
+	c.ensureCustomResourceDefinition()
 	// Watch DormantDatabase with provided ListerWatcher
 	c.watch()
 }
 
-// Ensure Snapshot ThirdPartyResource
-func (c *SnapshotController) ensureThirdPartyResource() {
-	log.Infoln("Ensuring Snapshot ThirdPartyResource")
+// Ensure Snapshot CustomResourceDefinition
+func (c *SnapshotController) ensureCustomResourceDefinition() {
+	log.Infoln("Ensuring DormantDatabase CustomResourceDefinition")
 
-	resourceName := tapi.ResourceNameSnapshot + "." + tapi.V1alpha1SchemeGroupVersion.Group
+	resourceName := tapi.ResourceTypeSnapshot + "." + tapi.V1alpha1SchemeGroupVersion.Group
 	var err error
-	if _, err = c.client.ExtensionsV1beta1().ThirdPartyResources().Get(resourceName, metav1.GetOptions{}); err == nil {
+	if _, err = c.apiExtKubeClient.ApiextensionsV1beta1().CustomResourceDefinitions().Get(resourceName, metav1.GetOptions{}); err == nil {
 		return
 	}
 	if !kerr.IsNotFound(err) {
 		log.Fatalln(err)
 	}
 
-	thirdPartyResource := &extensions.ThirdPartyResource{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: "extensions/v1beta1",
-			Kind:       "ThirdPartyResource",
-		},
+	crd := &extensionsobj.CustomResourceDefinition{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: resourceName,
 			Labels: map[string]string{
 				"app": "kubedb",
 			},
 		},
-		Description: "Snapshot of KubeDB databases",
-		Versions: []extensions.APIVersion{
-			{
-				Name: tapi.V1alpha1SchemeGroupVersion.Version,
+		Spec: extensionsobj.CustomResourceDefinitionSpec{
+			Group:   tapi.V1alpha1SchemeGroupVersion.Group,
+			Version: tapi.V1alpha1SchemeGroupVersion.Version,
+			Scope:   extensionsobj.NamespaceScoped,
+			Names: extensionsobj.CustomResourceDefinitionNames{
+				Plural: tapi.ResourceTypeSnapshot,
+				Kind:   tapi.ResourceKindSnapshot,
 			},
 		},
 	}
-	if _, err := c.client.ExtensionsV1beta1().ThirdPartyResources().Create(thirdPartyResource); err != nil {
+
+	if _, err = c.apiExtKubeClient.ApiextensionsV1beta1().CustomResourceDefinitions().Create(crd); err != nil {
 		log.Fatalln(err)
 	}
 }
