@@ -10,7 +10,7 @@ const (
 	ResourceCodeElasticsearch = "es"
 	ResourceKindElasticsearch = "Elasticsearch"
 	ResourceNameElasticsearch = "elasticsearch"
-	ResourceTypeElasticsearch = "elasticsearchs"
+	ResourceTypeElasticsearch = "elasticsearches"
 )
 
 // Elasticsearch defines a Elasticsearch database.

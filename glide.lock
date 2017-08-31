@@ -1,5 +1,5 @@
 hash: 4a5785a33a8127b81ede34824bb444a63c3b23bf13cdae104a4b948b2aedf929
-updated: 2017-08-29T15:41:57.455502144+06:00
+updated: 2017-08-31T10:09:35.75316605+06:00
 imports:
 - name: cloud.google.com/go
   version: fe3d41e1ecb2ce36ad3a979037c9b9a2b726226f
@@ -7,7 +7,7 @@ imports:
   - compute/metadata
   - internal
 - name: github.com/appscode/go
-  version: a6256fcfa308eb6aa22fe292930fec3dba84ba6a
+  version: d1fbd14e5c6e78557c12f6d2c9c282b3c0d0c612
   subpackages:
   - crypto/rand
   - encoding/json/types
@@ -181,7 +181,7 @@ imports:
 - name: github.com/juju/ratelimit
   version: 5b9ff866471762aa2ab2dced63c9fb6f53921342
 - name: github.com/k8sdb/apimachinery
-  version: f71f33bc1c6749c3a584b6a57229df31ad1583c1
+  version: 5c6c7ad12dbb22a058d58edc99fd567b45666e4d
   subpackages:
   - api
   - api/install
@@ -215,7 +215,7 @@ imports:
   - idgen
   - signal
 - name: github.com/ncw/swift
-  version: af59a5adcdb59d343cc10d09804a9cbfbc32d385
+  version: 9d3f812e23d270d1c66a9a01e20af1005061cdc4
 - name: github.com/onsi/gomega
   version: c893efa28eb45626cdaa76c9f653b62488858837
   subpackages:
@@ -328,7 +328,7 @@ imports:
   - unicode/norm
   - width
 - name: google.golang.org/api
-  version: e0e0e6e500066ff47335c7717e2a090ad127adec
+  version: 4c6d21ebe7d908cb32717e14783f80ffee6cdcb0
   subpackages:
   - gensupport
   - googleapi
