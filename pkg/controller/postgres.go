@@ -48,6 +48,10 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 		return err
 	}
 	if matched {
+		//TODO: Use Annotation Key
+		postgres.Annotations = map[string]string{
+			"postgreses.kubedb.com/ignore": "Resuming from DormantDatabase",
+		}
 		if err := c.ExtClient.Postgreses(postgres.Namespace).Delete(postgres.Name); err != nil {
 			return fmt.Errorf(
 				`Failed to resume Postgres "%v" from DormantDatabase "%v". Error: %v`,
@@ -371,6 +375,14 @@ func (c *Controller) initialize(postgres *tapi.Postgres) error {
 }
 
 func (c *Controller) pause(postgres *tapi.Postgres) error {
+	if postgres.Annotations != nil {
+		if val, found := postgres.Annotations["postgreses.kubedb.com/ignore"]; found {
+			//TODO: Add Event Reason "Ignored"
+			c.eventRecorder.Event(postgres, apiv1.EventTypeNormal, "Ignored", val)
+			return nil
+		}
+	}
+
 	c.eventRecorder.Event(postgres, apiv1.EventTypeNormal, eventer.EventReasonPausing, "Pausing Postgres")
 
 	if postgres.Spec.DoNotPause {
