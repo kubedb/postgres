@@ -50,7 +50,7 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 	if matched {
 		//TODO: Use Annotation Key
 		postgres.Annotations = map[string]string{
-			"postgreses.kubedb.com/ignore": "Resuming from DormantDatabase",
+			"kubedb.com/ignore": "",
 		}
 		if err := c.ExtClient.Postgreses(postgres.Namespace).Delete(postgres.Name); err != nil {
 			return fmt.Errorf(
@@ -376,7 +376,7 @@ func (c *Controller) initialize(postgres *tapi.Postgres) error {
 
 func (c *Controller) pause(postgres *tapi.Postgres) error {
 	if postgres.Annotations != nil {
-		if val, found := postgres.Annotations["postgreses.kubedb.com/ignore"]; found {
+		if val, found := postgres.Annotations["kubedb.com/ignore"]; found {
 			//TODO: Add Event Reason "Ignored"
 			c.eventRecorder.Event(postgres, apiv1.EventTypeNormal, "Ignored", val)
 			return nil
