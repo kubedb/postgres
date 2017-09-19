@@ -1,6 +1,7 @@
 package v1alpha1
 
 import (
+	"k8s.io/apimachinery/pkg/runtime"
 	apiv1 "k8s.io/client-go/pkg/api/v1"
 )
 
@@ -46,4 +47,18 @@ func (s Snapshot) ObjectReference() *apiv1.ObjectReference {
 		UID:             s.UID,
 		ResourceVersion: s.ResourceVersion,
 	}
+}
+
+func ObjectReferenceFor(obj runtime.Object) *apiv1.ObjectReference {
+	switch u := obj.(type) {
+	case *DormantDatabase:
+		return u.ObjectReference()
+	case *Postgres:
+		return u.ObjectReference()
+	case *Elasticsearch:
+		return u.ObjectReference()
+	case *Snapshot:
+		return u.ObjectReference()
+	}
+	return &apiv1.ObjectReference{}
 }

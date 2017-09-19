@@ -177,7 +177,7 @@ func (s *snapshotInvoker) createScheduledSnapshot() {
 	})
 	if err != nil {
 		s.eventRecorder.Eventf(
-			s.runtimeObject,
+			tapi.ObjectReferenceFor(s.runtimeObject),
 			apiv1.EventTypeWarning,
 			eventer.EventReasonFailedToList,
 			"Failed to list Snapshots. Reason: %v",
@@ -189,7 +189,7 @@ func (s *snapshotInvoker) createScheduledSnapshot() {
 
 	if len(snapshotList.Items) > 0 {
 		s.eventRecorder.Event(
-			s.runtimeObject,
+			tapi.ObjectReferenceFor(s.runtimeObject),
 			apiv1.EventTypeNormal,
 			eventer.EventReasonIgnoredSnapshot,
 			"Skipping scheduled Backup. One is still active.",

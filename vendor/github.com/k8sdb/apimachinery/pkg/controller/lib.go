@@ -162,7 +162,7 @@ func (c *Controller) CheckDatabaseRestoreJob(
 				continue
 			}
 			recorder.Eventf(
-				runtimeObj,
+				tapi.ObjectReferenceFor(runtimeObj),
 				apiv1.EventTypeWarning,
 				eventer.EventReasonFailedToList,
 				"Failed to get Job. Reason: %v",
@@ -318,7 +318,7 @@ func deleteJobResources(
 ) {
 	if err := client.BatchV1().Jobs(job.Namespace).Delete(job.Name, nil); err != nil && !kerr.IsNotFound(err) {
 		recorder.Eventf(
-			runtimeObj,
+			tapi.ObjectReferenceFor(runtimeObj),
 			apiv1.EventTypeWarning,
 			eventer.EventReasonFailedToDelete,
 			"Failed to delete Job. Reason: %v",
@@ -336,7 +336,7 @@ func deleteJobResources(
 		})
 		if err != nil {
 			recorder.Eventf(
-				runtimeObj,
+				tapi.ObjectReferenceFor(runtimeObj),
 				apiv1.EventTypeWarning,
 				eventer.EventReasonFailedToDelete,
 				"Failed to delete Pods. Reason: %v",
@@ -352,7 +352,7 @@ func deleteJobResources(
 			err := client.CoreV1().PersistentVolumeClaims(job.Namespace).Delete(claim.ClaimName, nil)
 			if err != nil && !kerr.IsNotFound(err) {
 				recorder.Eventf(
-					runtimeObj,
+					tapi.ObjectReferenceFor(runtimeObj),
 					apiv1.EventTypeWarning,
 					eventer.EventReasonFailedToDelete,
 					"Failed to delete PersistentVolumeClaim. Reason: %v",

@@ -46,7 +46,7 @@ type DormantDbController struct {
 	// ListerWatcher
 	lw *cache.ListWatch
 	// Event Recorder
-	eventRecorder record.EventRecorder
+	recorder record.EventRecorder
 	// sync time to sync the list.
 	syncPeriod time.Duration
 }
@@ -67,7 +67,7 @@ func NewDormantDbController(
 		extClient:        extClient,
 		deleter:          deleter,
 		lw:               lw,
-		eventRecorder:    eventer.NewEventRecorder(client, "DormantDatabase Controller"),
+		recorder:         eventer.NewEventRecorder(client, "DormantDatabase Controller"),
 		syncPeriod:       syncPeriod,
 	}
 }
@@ -169,14 +169,14 @@ func (c *DormantDbController) create(dormantDb *tapi.DormantDatabase) error {
 		return in
 	})
 	if err != nil {
-		c.eventRecorder.Eventf(dormantDb.ObjectReference(), apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
+		c.recorder.Eventf(dormantDb.ObjectReference(), apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
 		return err
 	}
 
 	// Check if DB TPR object exists
 	found, err := c.deleter.Exists(&dormantDb.ObjectMeta)
 	if err != nil {
-		c.eventRecorder.Eventf(
+		c.recorder.Eventf(
 			dormantDb.ObjectReference(),
 			apiv1.EventTypeWarning,
 			eventer.EventReasonFailedToPause,
@@ -188,7 +188,7 @@ func (c *DormantDbController) create(dormantDb *tapi.DormantDatabase) error {
 
 	if found {
 		message := "Failed to pause Database. Delete Database TPR object first"
-		c.eventRecorder.Event(
+		c.recorder.Event(
 			dormantDb.ObjectReference(),
 			apiv1.EventTypeWarning,
 			eventer.EventReasonFailedToPause,
@@ -197,7 +197,7 @@ func (c *DormantDbController) create(dormantDb *tapi.DormantDatabase) error {
 
 		// Delete DormantDatabase object
 		if err := c.extClient.DormantDatabases(dormantDb.Namespace).Delete(dormantDb.Name, &metav1.DeleteOptions{}); err != nil {
-			c.eventRecorder.Eventf(
+			c.recorder.Eventf(
 				dormantDb.ObjectReference(),
 				apiv1.EventTypeWarning,
 				eventer.EventReasonFailedToDelete,
@@ -214,15 +214,15 @@ func (c *DormantDbController) create(dormantDb *tapi.DormantDatabase) error {
 		return in
 	})
 	if err != nil {
-		c.eventRecorder.Eventf(dormantDb.ObjectReference(), apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
+		c.recorder.Eventf(dormantDb, apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
 		return err
 	}
 
-	c.eventRecorder.Event(dormantDb, apiv1.EventTypeNormal, eventer.EventReasonPausing, "Pausing Database")
+	c.recorder.Event(dormantDb, apiv1.EventTypeNormal, eventer.EventReasonPausing, "Pausing Database")
 
 	// Pause Database workload
 	if err := c.deleter.PauseDatabase(dormantDb); err != nil {
-		c.eventRecorder.Eventf(
+		c.recorder.Eventf(
 			dormantDb.ObjectReference(),
 			apiv1.EventTypeWarning,
 			eventer.EventReasonFailedToDelete,
@@ -232,7 +232,7 @@ func (c *DormantDbController) create(dormantDb *tapi.DormantDatabase) error {
 		return err
 	}
 
-	c.eventRecorder.Event(
+	c.recorder.Event(
 		dormantDb.ObjectReference(),
 		apiv1.EventTypeNormal,
 		eventer.EventReasonSuccessfulPause,
@@ -246,7 +246,7 @@ func (c *DormantDbController) create(dormantDb *tapi.DormantDatabase) error {
 		return in
 	})
 	if err != nil {
-		c.eventRecorder.Eventf(dormantDb, apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
+		c.recorder.Eventf(dormantDb, apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
 		return err
 	}
 
@@ -256,7 +256,7 @@ func (c *DormantDbController) create(dormantDb *tapi.DormantDatabase) error {
 func (c *DormantDbController) delete(dormantDb *tapi.DormantDatabase) error {
 	phase := dormantDb.Status.Phase
 	if phase != tapi.DormantDatabasePhaseResuming && phase != tapi.DormantDatabasePhaseWipedOut {
-		c.eventRecorder.Eventf(
+		c.recorder.Eventf(
 			dormantDb.ObjectReference(),
 			apiv1.EventTypeWarning,
 			eventer.EventReasonFailedToDelete,
@@ -266,7 +266,7 @@ func (c *DormantDbController) delete(dormantDb *tapi.DormantDatabase) error {
 		)
 
 		if err := c.reCreateDormantDatabase(dormantDb); err != nil {
-			c.eventRecorder.Eventf(
+			c.recorder.Eventf(
 				dormantDb.ObjectReference(),
 				apiv1.EventTypeWarning,
 				eventer.EventReasonFailedToCreate,
@@ -291,7 +291,7 @@ func (c *DormantDbController) update(oldDormantDb, updatedDormantDb *tapi.Dorman
 		} else {
 			message := "Failed to resume Database. " +
 				"Only DormantDatabase of \"Paused\" Phase can be resumed"
-			c.eventRecorder.Event(
+			c.recorder.Event(
 				updatedDormantDb.ObjectReference(),
 				apiv1.EventTypeWarning,
 				eventer.EventReasonFailedToUpdate,
@@ -306,7 +306,7 @@ func (c *DormantDbController) wipeOut(dormantDb *tapi.DormantDatabase) error {
 	// Check if DB TPR object exists
 	found, err := c.deleter.Exists(&dormantDb.ObjectMeta)
 	if err != nil {
-		c.eventRecorder.Eventf(
+		c.recorder.Eventf(
 			dormantDb.ObjectReference(),
 			apiv1.EventTypeWarning,
 			eventer.EventReasonFailedToDelete,
@@ -318,7 +318,7 @@ func (c *DormantDbController) wipeOut(dormantDb *tapi.DormantDatabase) error {
 
 	if found {
 		message := "Failed to wipeOut Database. Delete Database TPR object first"
-		c.eventRecorder.Event(
+		c.recorder.Event(
 			dormantDb.ObjectReference(),
 			apiv1.EventTypeWarning,
 			eventer.EventReasonFailedToWipeOut,
@@ -327,7 +327,7 @@ func (c *DormantDbController) wipeOut(dormantDb *tapi.DormantDatabase) error {
 
 		// Delete DormantDatabase object
 		if err := c.extClient.DormantDatabases(dormantDb.Namespace).Delete(dormantDb.Name, &metav1.DeleteOptions{}); err != nil {
-			c.eventRecorder.Eventf(
+			c.recorder.Eventf(
 				dormantDb.ObjectReference(),
 				apiv1.EventTypeWarning,
 				eventer.EventReasonFailedToDelete,
@@ -344,14 +344,14 @@ func (c *DormantDbController) wipeOut(dormantDb *tapi.DormantDatabase) error {
 		return in
 	})
 	if err != nil {
-		c.eventRecorder.Eventf(dormantDb, apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
+		c.recorder.Eventf(dormantDb, apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
 		return err
 	}
 
 	// Wipe out Database workload
-	c.eventRecorder.Event(dormantDb, apiv1.EventTypeNormal, eventer.EventReasonWipingOut, "Wiping out Database")
+	c.recorder.Event(dormantDb, apiv1.EventTypeNormal, eventer.EventReasonWipingOut, "Wiping out Database")
 	if err := c.deleter.WipeOutDatabase(dormantDb); err != nil {
-		c.eventRecorder.Eventf(
+		c.recorder.Eventf(
 			dormantDb.ObjectReference(),
 			apiv1.EventTypeWarning,
 			eventer.EventReasonFailedToWipeOut,
@@ -361,7 +361,7 @@ func (c *DormantDbController) wipeOut(dormantDb *tapi.DormantDatabase) error {
 		return err
 	}
 
-	c.eventRecorder.Event(
+	c.recorder.Event(
 		dormantDb.ObjectReference(),
 		apiv1.EventTypeNormal,
 		eventer.EventReasonSuccessfulWipeOut,
@@ -375,7 +375,7 @@ func (c *DormantDbController) wipeOut(dormantDb *tapi.DormantDatabase) error {
 		return in
 	})
 	if err != nil {
-		c.eventRecorder.Eventf(dormantDb, apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
+		c.recorder.Eventf(dormantDb, apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
 		return err
 	}
 
@@ -383,7 +383,7 @@ func (c *DormantDbController) wipeOut(dormantDb *tapi.DormantDatabase) error {
 }
 
 func (c *DormantDbController) resume(dormantDb *tapi.DormantDatabase) error {
-	c.eventRecorder.Event(
+	c.recorder.Event(
 		dormantDb.ObjectReference(),
 		apiv1.EventTypeNormal,
 		eventer.EventReasonResuming,
@@ -393,7 +393,7 @@ func (c *DormantDbController) resume(dormantDb *tapi.DormantDatabase) error {
 	// Check if DB TPR object exists
 	found, err := c.deleter.Exists(&dormantDb.ObjectMeta)
 	if err != nil {
-		c.eventRecorder.Eventf(
+		c.recorder.Eventf(
 			dormantDb.ObjectReference(),
 			apiv1.EventTypeWarning,
 			eventer.EventReasonFailedToResume,
@@ -405,7 +405,7 @@ func (c *DormantDbController) resume(dormantDb *tapi.DormantDatabase) error {
 
 	if found {
 		message := "Failed to resume DormantDatabase. One Database TPR object exists with same name"
-		c.eventRecorder.Event(
+		c.recorder.Event(
 			dormantDb.ObjectReference(),
 			apiv1.EventTypeWarning,
 			eventer.EventReasonFailedToResume,
@@ -419,13 +419,13 @@ func (c *DormantDbController) resume(dormantDb *tapi.DormantDatabase) error {
 		return in
 	})
 	if err != nil {
-		c.eventRecorder.Eventf(dormantDb, apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
+		c.recorder.Eventf(dormantDb, apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
 		return err
 	}
 
 	if err = c.extClient.DormantDatabases(dormantDb.Namespace).Delete(dormantDb.Name, &metav1.DeleteOptions{}); err != nil {
-		c.eventRecorder.Eventf(
-			dormantDb,
+		c.recorder.Eventf(
+			dormantDb.ObjectReference(),
 			apiv1.EventTypeWarning,
 			eventer.EventReasonFailedToDelete,
 			"Failed to delete DormantDatabase. Reason: %v",
@@ -436,7 +436,7 @@ func (c *DormantDbController) resume(dormantDb *tapi.DormantDatabase) error {
 
 	if err = c.deleter.ResumeDatabase(dormantDb); err != nil {
 		if err := c.reCreateDormantDatabase(dormantDb); err != nil {
-			c.eventRecorder.Eventf(
+			c.recorder.Eventf(
 				dormantDb.ObjectReference(),
 				apiv1.EventTypeWarning,
 				eventer.EventReasonFailedToCreate,
@@ -447,8 +447,8 @@ func (c *DormantDbController) resume(dormantDb *tapi.DormantDatabase) error {
 			return err
 		}
 
-		c.eventRecorder.Eventf(
-			dormantDb,
+		c.recorder.Eventf(
+			dormantDb.ObjectReference(),
 			apiv1.EventTypeWarning,
 			eventer.EventReasonFailedToResume,
 			"Failed to resume Database. Reason: %v",

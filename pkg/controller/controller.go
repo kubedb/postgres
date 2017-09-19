@@ -50,7 +50,7 @@ type Controller struct {
 	// Cron Controller
 	cronController amc.CronControllerInterface
 	// Event Recorder
-	eventRecorder record.EventRecorder
+	recorder record.EventRecorder
 	// Flag data
 	opt Options
 	// sync time to sync the list.
@@ -76,7 +76,7 @@ func New(
 		ApiExtKubeClient: apiExtKubeClient,
 		promClient:       promClient,
 		cronController:   cronController,
-		eventRecorder:    eventer.NewEventRecorder(client, "Postgres operator"),
+		recorder:         eventer.NewEventRecorder(client, "Postgres operator"),
 		opt:              opt,
 		syncPeriod:       time.Minute * 2,
 	}
@@ -251,7 +251,7 @@ func (c *Controller) ensureCustomResourceDefinition() {
 }
 
 func (c *Controller) pushFailureEvent(postgres *tapi.Postgres, reason string) {
-	c.eventRecorder.Eventf(
+	c.recorder.Eventf(
 		postgres.ObjectReference(),
 		apiv1.EventTypeWarning,
 		eventer.EventReasonFailedToStart,
@@ -267,7 +267,7 @@ func (c *Controller) pushFailureEvent(postgres *tapi.Postgres, reason string) {
 	})
 
 	if err != nil {
-		c.eventRecorder.Eventf(postgres.ObjectReference(), apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
+		c.recorder.Eventf(postgres.ObjectReference(), apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
 	}
 }
 
