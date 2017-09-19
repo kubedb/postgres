@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/appscode/go/hold"
-	kutildb "github.com/appscode/kutil/kubedb/v1alpha1"
 	"github.com/appscode/go/log"
+	kutildb "github.com/appscode/kutil/kubedb/v1alpha1"
 	pcm "github.com/coreos/prometheus-operator/pkg/client/monitoring/v1alpha1"
 	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
 	tcs "github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1"
@@ -124,21 +124,15 @@ func (c *Controller) watchPostgres() {
 				postgres := obj.(*tapi.Postgres)
 				if postgres.Status.CreationTime == nil {
 					if err := c.create(postgres); err != nil {
-						postgresFailedToCreate()
 						log.Errorln(err)
 						c.pushFailureEvent(postgres, err.Error())
-					} else {
-						postgresSuccessfullyCreated()
 					}
 				}
 
 			},
 			DeleteFunc: func(obj interface{}) {
 				if err := c.pause(obj.(*tapi.Postgres)); err != nil {
-					postgresFailedToDelete()
 					log.Errorln(err)
-				} else {
-					postgresSuccessfullyDeleted()
 				}
 			},
 			UpdateFunc: func(old, new interface{}) {

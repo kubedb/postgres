@@ -6,7 +6,6 @@ import (
 	"github.com/appscode/go/crypto/rand"
 	"github.com/appscode/go/encoding/json/types"
 	kutildb "github.com/appscode/kutil/kubedb/v1alpha1"
-	"github.com/appscode/go/log"
 	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
 	. "github.com/onsi/gomega"
 	kerr "k8s.io/apimachinery/pkg/api/errors"

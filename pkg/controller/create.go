@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/appscode/go/crypto/rand"
+	"github.com/appscode/go/log"
 	"github.com/appscode/go/types"
 	kutildb "github.com/appscode/kutil/kubedb/v1alpha1"
-	"github.com/appscode/go/log"
 	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/k8sdb/apimachinery/pkg/docker"
 	"github.com/k8sdb/apimachinery/pkg/eventer"

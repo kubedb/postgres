@@ -7,8 +7,8 @@ import (
 	"reflect"
 	"time"
 
-	kutildb "github.com/appscode/kutil/kubedb/v1alpha1"
 	"github.com/appscode/go/log"
+	kutildb "github.com/appscode/kutil/kubedb/v1alpha1"
 	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/k8sdb/apimachinery/pkg/eventer"
 	"github.com/k8sdb/apimachinery/pkg/storage"
