@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/appscode/log"
-	tapi "github.com/k8sdb/apimachinery/api"
+	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
 	amc "github.com/k8sdb/apimachinery/pkg/controller"
 	"github.com/k8sdb/apimachinery/pkg/eventer"
 	"github.com/k8sdb/apimachinery/pkg/storage"
@@ -52,7 +52,7 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 		postgres.Annotations = map[string]string{
 			"kubedb.com/ignore": "",
 		}
-		if err := c.ExtClient.Postgreses(postgres.Namespace).Delete(postgres.Name); err != nil {
+		if err := c.ExtClient.Postgreses(postgres.Namespace).Delete(postgres.Name, &metav1.DeleteOptions{}); err != nil {
 			return fmt.Errorf(
 				`Failed to resume Postgres "%v" from DormantDatabase "%v". Error: %v`,
 				postgres.Name,
@@ -136,7 +136,7 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 
 func (c *Controller) matchDormantDatabase(postgres *tapi.Postgres) (bool, error) {
 	// Check if DormantDatabase exists or not
-	dormantDb, err := c.ExtClient.DormantDatabases(postgres.Namespace).Get(postgres.Name)
+	dormantDb, err := c.ExtClient.DormantDatabases(postgres.Namespace).Get(postgres.Name, metav1.GetOptions{})
 	if err != nil {
 		if !kerr.IsNotFound(err) {
 			c.eventRecorder.Eventf(
@@ -336,7 +336,7 @@ func (c *Controller) initialize(postgres *tapi.Postgres) error {
 	if namespace == "" {
 		namespace = postgres.Namespace
 	}
-	snapshot, err := c.ExtClient.Snapshots(namespace).Get(snapshotSource.Name)
+	snapshot, err := c.ExtClient.Snapshots(namespace).Get(snapshotSource.Name, metav1.GetOptions{})
 	if err != nil {
 		return err
 	}

@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	tapi "github.com/k8sdb/apimachinery/api"
-	tcs "github.com/k8sdb/apimachinery/client/clientset"
+	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
+	tcs "github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1"
 	amc "github.com/k8sdb/apimachinery/pkg/controller"
 	"github.com/k8sdb/postgres/pkg/controller"
 	"github.com/k8sdb/postgres/test/e2e/framework"
@@ -76,7 +76,7 @@ var _ = BeforeSuite(func() {
 	// Controller
 	ctrl = controller.New(kubeClient, extClient, nil, cronController, opt)
 	ctrl.Run()
-	root.EventuallyTPR().Should(Succeed())
+	root.EventuallyCRD().Should(Succeed())
 })
 
 var _ = AfterSuite(func() {

@@ -6,7 +6,7 @@ import (
 
 	"github.com/appscode/go/crypto/rand"
 	"github.com/graymeta/stow"
-	tapi "github.com/k8sdb/apimachinery/api"
+	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/k8sdb/apimachinery/pkg/storage"
 	. "github.com/onsi/gomega"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -32,17 +32,17 @@ func (f *Framework) CreateSnapshot(obj *tapi.Snapshot) error {
 }
 
 func (f *Framework) GetSnapshot(meta metav1.ObjectMeta) (*tapi.Snapshot, error) {
-	return f.extClient.Snapshots(meta.Namespace).Get(meta.Name)
+	return f.extClient.Snapshots(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
 }
 
 func (f *Framework) DeleteSnapshot(meta metav1.ObjectMeta) error {
-	return f.extClient.Snapshots(meta.Namespace).Delete(meta.Name)
+	return f.extClient.Snapshots(meta.Namespace).Delete(meta.Name, &metav1.DeleteOptions{})
 }
 
 func (f *Framework) EventuallySnapshotPhase(meta metav1.ObjectMeta) GomegaAsyncAssertion {
 	return Eventually(
 		func() tapi.SnapshotPhase {
-			snapshot, err := f.extClient.Snapshots(meta.Namespace).Get(meta.Name)
+			snapshot, err := f.extClient.Snapshots(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(snapshot.Status.Phase).ToNot(Equal(tapi.SnapshotPhaseFailed))
 			return snapshot.Status.Phase

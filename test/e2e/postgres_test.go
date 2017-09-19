@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"github.com/appscode/go/types"
-	tapi "github.com/k8sdb/apimachinery/api"
+	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/k8sdb/postgres/test/e2e/framework"
 	"github.com/k8sdb/postgres/test/e2e/matcher"
 	. "github.com/onsi/ginkgo"
