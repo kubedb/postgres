@@ -6,7 +6,8 @@ import (
 	"github.com/appscode/go/crypto/rand"
 	"github.com/appscode/go/encoding/json/types"
 	kutildb "github.com/appscode/kutil/kubedb/v1alpha1"
-	tapi "github.com/k8sdb/apimachinery/api"
+	"github.com/appscode/go/log"
+	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
 	. "github.com/onsi/gomega"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -33,7 +34,7 @@ func (f *Framework) CreatePostgres(obj *tapi.Postgres) error {
 }
 
 func (f *Framework) GetPostgres(meta metav1.ObjectMeta) (*tapi.Postgres, error) {
-	return f.extClient.Postgreses(meta.Namespace).Get(meta.Name)
+	return f.extClient.Postgreses(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
 }
 
 func (f *Framework) TryPatchPostgres(meta metav1.ObjectMeta, transform func(*tapi.Postgres) *tapi.Postgres) (*tapi.Postgres, error) {
@@ -41,13 +42,13 @@ func (f *Framework) TryPatchPostgres(meta metav1.ObjectMeta, transform func(*tap
 }
 
 func (f *Framework) DeletePostgres(meta metav1.ObjectMeta) error {
-	return f.extClient.Postgreses(meta.Namespace).Delete(meta.Name)
+	return f.extClient.Postgreses(meta.Namespace).Delete(meta.Name, &metav1.DeleteOptions{})
 }
 
 func (f *Framework) EventuallyPostgres(meta metav1.ObjectMeta) GomegaAsyncAssertion {
 	return Eventually(
 		func() bool {
-			_, err := f.extClient.Postgreses(meta.Namespace).Get(meta.Name)
+			_, err := f.extClient.Postgreses(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
 			if err != nil {
 				if kerr.IsNotFound(err) {
 					return false
@@ -65,7 +66,7 @@ func (f *Framework) EventuallyPostgres(meta metav1.ObjectMeta) GomegaAsyncAssert
 func (f *Framework) EventuallyPostgresRunning(meta metav1.ObjectMeta) GomegaAsyncAssertion {
 	return Eventually(
 		func() bool {
-			postgres, err := f.extClient.Postgreses(meta.Namespace).Get(meta.Name)
+			postgres, err := f.extClient.Postgreses(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
 			Expect(err).NotTo(HaveOccurred())
 			return postgres.Status.Phase == tapi.DatabasePhaseRunning
 		},

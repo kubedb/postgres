@@ -3,7 +3,8 @@ package controller
 import (
 	kutilcore "github.com/appscode/kutil/core/v1"
 	kutilrbac "github.com/appscode/kutil/rbac/v1beta1"
-	tapi "github.com/k8sdb/apimachinery/api"
+	"github.com/k8sdb/apimachinery/apis/kubedb"
+	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	apiv1 "k8s.io/client-go/pkg/api/v1"
@@ -31,7 +32,7 @@ func (c *Controller) createRole(postgres *tapi.Postgres) error {
 		func(in *rbac.Role) *rbac.Role {
 			in.Rules = []rbac.PolicyRule{
 				{
-					APIGroups:     []string{tapi.GroupName},
+					APIGroups:     []string{kubedb.GroupName},
 					Resources:     []string{tapi.ResourceTypePostgres},
 					ResourceNames: []string{postgres.Name},
 					Verbs:         []string{"get"},

@@ -6,14 +6,16 @@ import (
 	"os"
 	"strings"
 
-	"github.com/appscode/log"
+	"github.com/appscode/go/log"
 	pcm "github.com/coreos/prometheus-operator/pkg/client/monitoring/v1alpha1"
-	tcs "github.com/k8sdb/apimachinery/client/clientset"
-	"github.com/k8sdb/apimachinery/pkg/analytics"
+	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
+	tcs "github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1"
 	amc "github.com/k8sdb/apimachinery/pkg/controller"
 	"github.com/k8sdb/apimachinery/pkg/docker"
+	"github.com/k8sdb/apimachinery/pkg/migrator"
 	"github.com/k8sdb/postgres/pkg/controller"
 	"github.com/spf13/cobra"
+	apiextensionsclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	clientset "k8s.io/client-go/kubernetes"
@@ -45,6 +47,7 @@ func NewCmdRun() *cobra.Command {
 			}
 
 			client := clientset.NewForConfigOrDie(config)
+			apiExtKubeClient := apiextensionsclient.NewForConfigOrDie(config)
 			extClient := tcs.NewForConfigOrDie(config)
 			promClient, err := pcm.NewForConfig(config)
 			if err != nil {
@@ -57,10 +60,20 @@ func NewCmdRun() *cobra.Command {
 			// Stop Cron
 			defer cronController.StopCron()
 
-			w := controller.New(client, extClient, promClient, cronController, opt)
+			w := controller.New(client, apiExtKubeClient, extClient, promClient, cronController, opt)
 			defer runtime.HandleCrash()
+
+			tprMigrator := migrator.NewMigrator(client, apiExtKubeClient, extClient)
+			err = tprMigrator.RunMigration(
+				&tapi.Postgres{},
+				&tapi.Snapshot{},
+				&tapi.DormantDatabase{},
+			)
+			if err != nil {
+				log.Fatalln(err)
+			}
+
 			fmt.Println("Starting operator...")
-			analytics.SendEvent(docker.ImagePostgresOperator, "started", Version)
 			w.RunAndHold()
 		},
 	}

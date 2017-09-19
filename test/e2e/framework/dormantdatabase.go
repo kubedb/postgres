@@ -4,14 +4,15 @@ import (
 	"time"
 
 	kutildb "github.com/appscode/kutil/kubedb/v1alpha1"
-	tapi "github.com/k8sdb/apimachinery/api"
+	"github.com/appscode/go/log"
+	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
 	. "github.com/onsi/gomega"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func (f *Framework) GetDormantDatabase(meta metav1.ObjectMeta) (*tapi.DormantDatabase, error) {
-	return f.extClient.DormantDatabases(meta.Namespace).Get(meta.Name)
+	return f.extClient.DormantDatabases(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
 }
 
 func (f *Framework) TryPatchDormantDatabase(meta metav1.ObjectMeta, transform func(*tapi.DormantDatabase) *tapi.DormantDatabase) (*tapi.DormantDatabase, error) {
@@ -19,13 +20,13 @@ func (f *Framework) TryPatchDormantDatabase(meta metav1.ObjectMeta, transform fu
 }
 
 func (f *Framework) DeleteDormantDatabase(meta metav1.ObjectMeta) error {
-	return f.extClient.DormantDatabases(meta.Namespace).Delete(meta.Name)
+	return f.extClient.DormantDatabases(meta.Namespace).Delete(meta.Name, &metav1.DeleteOptions{})
 }
 
 func (f *Framework) EventuallyDormantDatabase(meta metav1.ObjectMeta) GomegaAsyncAssertion {
 	return Eventually(
 		func() bool {
-			_, err := f.extClient.DormantDatabases(meta.Namespace).Get(meta.Name)
+			_, err := f.extClient.DormantDatabases(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
 			if err != nil {
 				if kerr.IsNotFound(err) {
 					return false
@@ -43,7 +44,7 @@ func (f *Framework) EventuallyDormantDatabase(meta metav1.ObjectMeta) GomegaAsyn
 func (f *Framework) EventuallyDormantDatabaseStatus(meta metav1.ObjectMeta) GomegaAsyncAssertion {
 	return Eventually(
 		func() tapi.DormantDatabasePhase {
-			drmn, err := f.extClient.DormantDatabases(meta.Namespace).Get(meta.Name)
+			drmn, err := f.extClient.DormantDatabases(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
 			if err != nil {
 				if !kerr.IsNotFound(err) {
 					Expect(err).NotTo(HaveOccurred())

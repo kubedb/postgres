@@ -5,14 +5,16 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/appscode/go/log"
 	"github.com/appscode/go/wait"
 	kutildb "github.com/appscode/kutil/kubedb/v1alpha1"
-	"github.com/appscode/log"
-	tapi "github.com/k8sdb/apimachinery/api"
-	tcs "github.com/k8sdb/apimachinery/client/clientset"
-	"github.com/k8sdb/apimachinery/pkg/analytics"
+	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
+	tapi_v1alpha1 "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
+	tcs "github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1"
 	"github.com/k8sdb/apimachinery/pkg/eventer"
 	"github.com/k8sdb/apimachinery/pkg/storage"
+	extensionsobj "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	apiextensionsclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -20,7 +22,6 @@ import (
 	clientset "k8s.io/client-go/kubernetes"
 	apiv1 "k8s.io/client-go/pkg/api/v1"
 	batch "k8s.io/client-go/pkg/apis/batch/v1"
-	extensions "k8s.io/client-go/pkg/apis/extensions/v1beta1"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/record"
 )
@@ -35,8 +36,10 @@ type Snapshotter interface {
 type SnapshotController struct {
 	// Kubernetes client
 	client clientset.Interface
+	// Api Extension Client
+	apiExtKubeClient apiextensionsclient.Interface
 	// ThirdPartyExtension client
-	extClient tcs.ExtensionInterface
+	extClient tcs.KubedbV1alpha1Interface
 	// Snapshotter interface
 	snapshoter Snapshotter
 	// ListerWatcher
@@ -50,7 +53,8 @@ type SnapshotController struct {
 // NewSnapshotController creates a new SnapshotController
 func NewSnapshotController(
 	client clientset.Interface,
-	extClient tcs.ExtensionInterface,
+	apiExtKubeClient apiextensionsclient.Interface,
+	extClient tcs.KubedbV1alpha1Interface,
 	snapshoter Snapshotter,
 	lw *cache.ListWatch,
 	syncPeriod time.Duration,
@@ -58,54 +62,56 @@ func NewSnapshotController(
 
 	// return new DormantDatabase Controller
 	return &SnapshotController{
-		client:        client,
-		extClient:     extClient,
-		snapshoter:    snapshoter,
-		lw:            lw,
-		eventRecorder: eventer.NewEventRecorder(client, "Snapshot Controller"),
-		syncPeriod:    syncPeriod,
+		client:           client,
+		apiExtKubeClient: apiExtKubeClient,
+		extClient:        extClient,
+		snapshoter:       snapshoter,
+		lw:               lw,
+		eventRecorder:    eventer.NewEventRecorder(client, "Snapshot Controller"),
+		syncPeriod:       syncPeriod,
 	}
 }
 
 func (c *SnapshotController) Run() {
 	// Ensure DormantDatabase TPR
-	c.ensureThirdPartyResource()
+	c.ensureCustomResourceDefinition()
 	// Watch DormantDatabase with provided ListerWatcher
 	c.watch()
 }
 
-// Ensure Snapshot ThirdPartyResource
-func (c *SnapshotController) ensureThirdPartyResource() {
-	log.Infoln("Ensuring Snapshot ThirdPartyResource")
+// Ensure Snapshot CustomResourceDefinition
+func (c *SnapshotController) ensureCustomResourceDefinition() {
+	log.Infoln("Ensuring DormantDatabase CustomResourceDefinition")
 
-	resourceName := tapi.ResourceNameSnapshot + "." + tapi.V1alpha1SchemeGroupVersion.Group
+	resourceName := tapi.ResourceTypeSnapshot + "." + tapi_v1alpha1.SchemeGroupVersion.Group
 	var err error
-	if _, err = c.client.ExtensionsV1beta1().ThirdPartyResources().Get(resourceName, metav1.GetOptions{}); err == nil {
+	if _, err = c.apiExtKubeClient.ApiextensionsV1beta1().CustomResourceDefinitions().Get(resourceName, metav1.GetOptions{}); err == nil {
 		return
 	}
 	if !kerr.IsNotFound(err) {
 		log.Fatalln(err)
 	}
 
-	thirdPartyResource := &extensions.ThirdPartyResource{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: "extensions/v1beta1",
-			Kind:       "ThirdPartyResource",
-		},
+	crd := &extensionsobj.CustomResourceDefinition{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: resourceName,
 			Labels: map[string]string{
 				"app": "kubedb",
 			},
 		},
-		Description: "Snapshot of KubeDB databases",
-		Versions: []extensions.APIVersion{
-			{
-				Name: tapi.V1alpha1SchemeGroupVersion.Version,
+		Spec: extensionsobj.CustomResourceDefinitionSpec{
+			Group:   tapi_v1alpha1.SchemeGroupVersion.Group,
+			Version: tapi_v1alpha1.SchemeGroupVersion.Version,
+			Scope:   extensionsobj.NamespaceScoped,
+			Names: extensionsobj.CustomResourceDefinitionNames{
+				Plural:     tapi.ResourceTypeSnapshot,
+				Kind:       tapi.ResourceKindSnapshot,
+				ShortNames: []string{tapi.ResourceCodeSnapshot},
 			},
 		},
 	}
-	if _, err := c.client.ExtensionsV1beta1().ThirdPartyResources().Create(thirdPartyResource); err != nil {
+
+	if _, err = c.apiExtKubeClient.ApiextensionsV1beta1().CustomResourceDefinitions().Create(crd); err != nil {
 		log.Fatalln(err)
 	}
 }
@@ -119,20 +125,14 @@ func (c *SnapshotController) watch() {
 				snapshot := obj.(*tapi.Snapshot)
 				if snapshot.Status.StartTime == nil {
 					if err := c.create(snapshot); err != nil {
-						snapshotFailedToCreate()
 						log.Errorln(err)
-					} else {
-						snapshotSuccessfullyCreated()
 					}
 				}
 			},
 			DeleteFunc: func(obj interface{}) {
 				snapshot := obj.(*tapi.Snapshot)
 				if err := c.delete(snapshot); err != nil {
-					snapshotFailedToDelete()
 					log.Errorln(err)
-				} else {
-					snapshotSuccessfullyDeleted()
 				}
 			},
 		},
@@ -151,25 +151,25 @@ func (c *SnapshotController) create(snapshot *tapi.Snapshot) error {
 		return in
 	})
 	if err != nil {
-		c.eventRecorder.Eventf(snapshot, apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
+		c.eventRecorder.Eventf(snapshot.ObjectReference(), apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
 		return err
 	}
 
 	// Validate DatabaseSnapshot spec
 	if err := c.snapshoter.ValidateSnapshot(snapshot); err != nil {
-		c.eventRecorder.Event(snapshot, apiv1.EventTypeWarning, eventer.EventReasonInvalid, err.Error())
+		c.eventRecorder.Event(snapshot.ObjectReference(), apiv1.EventTypeWarning, eventer.EventReasonInvalid, err.Error())
 		return err
 	}
 
 	// Check running snapshot
 	if err := c.checkRunningSnapshot(snapshot); err != nil {
-		c.eventRecorder.Event(snapshot, apiv1.EventTypeWarning, eventer.EventReasonSnapshotFailed, err.Error())
+		c.eventRecorder.Event(snapshot.ObjectReference(), apiv1.EventTypeWarning, eventer.EventReasonSnapshotFailed, err.Error())
 		return err
 	}
 
 	runtimeObj, err := c.snapshoter.GetDatabase(snapshot)
 	if err != nil {
-		c.eventRecorder.Event(snapshot, apiv1.EventTypeWarning, eventer.EventReasonFailedToGet, err.Error())
+		c.eventRecorder.Event(snapshot.ObjectReference(), apiv1.EventTypeWarning, eventer.EventReasonFailedToGet, err.Error())
 		return err
 	}
 
@@ -180,39 +180,39 @@ func (c *SnapshotController) create(snapshot *tapi.Snapshot) error {
 		return in
 	})
 	if err != nil {
-		c.eventRecorder.Eventf(snapshot, apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
+		c.eventRecorder.Eventf(snapshot.ObjectReference(), apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
 		return err
 	}
 
-	c.eventRecorder.Event(runtimeObj, apiv1.EventTypeNormal, eventer.EventReasonStarting, "Backup running")
-	c.eventRecorder.Event(snapshot, apiv1.EventTypeNormal, eventer.EventReasonStarting, "Backup running")
+	c.eventRecorder.Event(tapi.ObjectReferenceFor(runtimeObj), apiv1.EventTypeNormal, eventer.EventReasonStarting, "Backup running")
+	c.eventRecorder.Event(snapshot.ObjectReference(), apiv1.EventTypeNormal, eventer.EventReasonStarting, "Backup running")
 
 	secret, err := storage.NewOSMSecret(c.client, snapshot)
 	if err != nil {
 		message := fmt.Sprintf("Failed to generate osm secret. Reason: %v", err)
-		c.eventRecorder.Event(runtimeObj, apiv1.EventTypeWarning, eventer.EventReasonSnapshotFailed, message)
-		c.eventRecorder.Event(snapshot, apiv1.EventTypeWarning, eventer.EventReasonSnapshotFailed, message)
+		c.eventRecorder.Event(tapi.ObjectReferenceFor(runtimeObj), apiv1.EventTypeWarning, eventer.EventReasonSnapshotFailed, message)
+		c.eventRecorder.Event(snapshot.ObjectReference(), apiv1.EventTypeWarning, eventer.EventReasonSnapshotFailed, message)
 		return err
 	}
 	_, err = c.client.CoreV1().Secrets(secret.Namespace).Create(secret)
 	if err != nil {
 		message := fmt.Sprintf("Failed to create osm secret. Reason: %v", err)
-		c.eventRecorder.Event(runtimeObj, apiv1.EventTypeWarning, eventer.EventReasonSnapshotFailed, message)
-		c.eventRecorder.Event(snapshot, apiv1.EventTypeWarning, eventer.EventReasonSnapshotFailed, message)
+		c.eventRecorder.Event(tapi.ObjectReferenceFor(runtimeObj), apiv1.EventTypeWarning, eventer.EventReasonSnapshotFailed, message)
+		c.eventRecorder.Event(snapshot.ObjectReference(), apiv1.EventTypeWarning, eventer.EventReasonSnapshotFailed, message)
 		return err
 	}
 
 	job, err := c.snapshoter.GetSnapshotter(snapshot)
 	if err != nil {
 		message := fmt.Sprintf("Failed to take snapshot. Reason: %v", err)
-		c.eventRecorder.Event(runtimeObj, apiv1.EventTypeWarning, eventer.EventReasonSnapshotFailed, message)
-		c.eventRecorder.Event(snapshot, apiv1.EventTypeWarning, eventer.EventReasonSnapshotFailed, message)
+		c.eventRecorder.Event(tapi.ObjectReferenceFor(runtimeObj), apiv1.EventTypeWarning, eventer.EventReasonSnapshotFailed, message)
+		c.eventRecorder.Event(snapshot.ObjectReference(), apiv1.EventTypeWarning, eventer.EventReasonSnapshotFailed, message)
 		return err
 	}
 	if _, err := c.client.BatchV1().Jobs(snapshot.Namespace).Create(job); err != nil {
 		message := fmt.Sprintf("Failed to take snapshot. Reason: %v", err)
-		c.eventRecorder.Event(runtimeObj, apiv1.EventTypeWarning, eventer.EventReasonSnapshotFailed, message)
-		c.eventRecorder.Event(snapshot, apiv1.EventTypeWarning, eventer.EventReasonSnapshotFailed, message)
+		c.eventRecorder.Event(tapi.ObjectReferenceFor(runtimeObj), apiv1.EventTypeWarning, eventer.EventReasonSnapshotFailed, message)
+		c.eventRecorder.Event(snapshot.ObjectReference(), apiv1.EventTypeWarning, eventer.EventReasonSnapshotFailed, message)
 		return err
 	}
 
@@ -230,7 +230,7 @@ func (c *SnapshotController) delete(snapshot *tapi.Snapshot) error {
 	if err != nil {
 		if !kerr.IsNotFound(err) {
 			c.eventRecorder.Event(
-				snapshot,
+				snapshot.ObjectReference(),
 				apiv1.EventTypeWarning,
 				eventer.EventReasonFailedToGet,
 				err.Error(),
@@ -241,7 +241,7 @@ func (c *SnapshotController) delete(snapshot *tapi.Snapshot) error {
 
 	if runtimeObj != nil {
 		c.eventRecorder.Eventf(
-			runtimeObj,
+			tapi.ObjectReferenceFor(runtimeObj),
 			apiv1.EventTypeNormal,
 			eventer.EventReasonWipingOut,
 			"Wiping out Snapshot: %v",
@@ -252,7 +252,7 @@ func (c *SnapshotController) delete(snapshot *tapi.Snapshot) error {
 	if err := c.snapshoter.WipeOutSnapshot(snapshot); err != nil {
 		if runtimeObj != nil {
 			c.eventRecorder.Eventf(
-				runtimeObj,
+				tapi.ObjectReferenceFor(runtimeObj),
 				apiv1.EventTypeWarning,
 				eventer.EventReasonFailedToWipeOut,
 				"Failed to  wipeOut. Reason: %v",
@@ -264,7 +264,7 @@ func (c *SnapshotController) delete(snapshot *tapi.Snapshot) error {
 
 	if runtimeObj != nil {
 		c.eventRecorder.Eventf(
-			runtimeObj,
+			tapi.ObjectReferenceFor(runtimeObj),
 			apiv1.EventTypeNormal,
 			eventer.EventReasonSuccessfulWipeOut,
 			"Successfully wiped out Snapshot: %v",
@@ -298,11 +298,11 @@ func (c *SnapshotController) checkRunningSnapshot(snapshot *tapi.Snapshot) error
 			return in
 		})
 		if err != nil {
-			c.eventRecorder.Eventf(snapshot, apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
+			c.eventRecorder.Eventf(snapshot.ObjectReference(), apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
 			return err
 		}
 
-		return errors.New("One Snapshot is already Running")
+		return errors.New("one Snapshot is already Running")
 	}
 
 	return nil
@@ -325,7 +325,7 @@ func (c *SnapshotController) checkSnapshotJob(snapshot *tapi.Snapshot, jobName s
 				continue
 			}
 			c.eventRecorder.Eventf(
-				snapshot,
+				snapshot.ObjectReference(),
 				apiv1.EventTypeWarning,
 				eventer.EventReasonFailedToList,
 				"Failed to get Job. Reason: %v",
@@ -356,7 +356,7 @@ func (c *SnapshotController) checkSnapshotJob(snapshot *tapi.Snapshot, jobName s
 	err = c.client.CoreV1().Secrets(snapshot.Namespace).Delete(snapshot.Name, &metav1.DeleteOptions{})
 	if err != nil && !kerr.IsNotFound(err) {
 		c.eventRecorder.Eventf(
-			snapshot,
+			snapshot.ObjectReference(),
 			apiv1.EventTypeWarning,
 			eventer.EventReasonFailedToDelete,
 			"Failed to delete Secret. Reason: %v",
@@ -367,20 +367,20 @@ func (c *SnapshotController) checkSnapshotJob(snapshot *tapi.Snapshot, jobName s
 
 	runtimeObj, err := c.snapshoter.GetDatabase(snapshot)
 	if err != nil {
-		c.eventRecorder.Event(snapshot, apiv1.EventTypeWarning, eventer.EventReasonFailedToGet, err.Error())
+		c.eventRecorder.Event(snapshot.ObjectReference(), apiv1.EventTypeWarning, eventer.EventReasonFailedToGet, err.Error())
 		return err
 	}
 
 	if jobSuccess {
 		snapshot.Status.Phase = tapi.SnapshotPhaseSuccessed
 		c.eventRecorder.Event(
-			runtimeObj,
+			tapi.ObjectReferenceFor(runtimeObj),
 			apiv1.EventTypeNormal,
 			eventer.EventReasonSuccessfulSnapshot,
 			"Successfully completed snapshot",
 		)
 		c.eventRecorder.Event(
-			snapshot,
+			snapshot.ObjectReference(),
 			apiv1.EventTypeNormal,
 			eventer.EventReasonSuccessfulSnapshot,
 			"Successfully completed snapshot",
@@ -388,13 +388,13 @@ func (c *SnapshotController) checkSnapshotJob(snapshot *tapi.Snapshot, jobName s
 	} else {
 		snapshot.Status.Phase = tapi.SnapshotPhaseFailed
 		c.eventRecorder.Event(
-			runtimeObj,
+			tapi.ObjectReferenceFor(runtimeObj),
 			apiv1.EventTypeWarning,
 			eventer.EventReasonSnapshotFailed,
 			"Failed to complete snapshot",
 		)
 		c.eventRecorder.Event(
-			snapshot,
+			snapshot.ObjectReference(),
 			apiv1.EventTypeWarning,
 			eventer.EventReasonSnapshotFailed,
 			"Failed to complete snapshot",
@@ -409,25 +409,9 @@ func (c *SnapshotController) checkSnapshotJob(snapshot *tapi.Snapshot, jobName s
 		return in
 	})
 	if err != nil {
-		c.eventRecorder.Eventf(snapshot, apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
+		c.eventRecorder.Eventf(snapshot.ObjectReference(), apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
 		return err
 	}
 
 	return nil
-}
-
-func snapshotSuccessfullyCreated() {
-	analytics.SendEvent(tapi.ResourceNameSnapshot, "created", "success")
-}
-
-func snapshotFailedToCreate() {
-	analytics.SendEvent(tapi.ResourceNameSnapshot, "created", "failure")
-}
-
-func snapshotSuccessfullyDeleted() {
-	analytics.SendEvent(tapi.ResourceNameSnapshot, "deleted", "success")
-}
-
-func snapshotFailedToDelete() {
-	analytics.SendEvent(tapi.ResourceNameSnapshot, "deleted", "failure")
 }
