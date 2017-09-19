@@ -61,7 +61,7 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 			)
 		}
 
-		err = amc.NewDormantDbController(nil, c.ExtClient, nil, nil, 0).UpdateDormantDatabase(
+		err = amc.NewDormantDbController(nil, nil, c.ExtClient, nil, nil, 0).UpdateDormantDatabase(
 			postgres.ObjectMeta, func(in tapi.DormantDatabase) tapi.DormantDatabase {
 				in.Spec.Resume = true
 				return in

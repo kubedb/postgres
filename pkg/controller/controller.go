@@ -238,8 +238,8 @@ func (c *Controller) ensureCustomResourceDefinition() {
 			Version: tapi.V1alpha1SchemeGroupVersion.Version,
 			Scope:   extensionsobj.NamespaceScoped,
 			Names: extensionsobj.CustomResourceDefinitionNames{
-				Plural: tapi.ResourceTypePostgres,
-				Kind:   tapi.ResourceKindPostgres,
+				Plural:     tapi.ResourceTypePostgres,
+				Kind:       tapi.ResourceKindPostgres,
 				ShortNames: []string{tapi.ResourceCodePostgres},
 			},
 		},
