@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/appscode/log"
 	tapi "github.com/k8sdb/apimachinery/api"
+	amc "github.com/k8sdb/apimachinery/pkg/controller"
 	"github.com/k8sdb/apimachinery/pkg/eventer"
 	"github.com/k8sdb/apimachinery/pkg/storage"
 	"github.com/k8sdb/postgres/pkg/validator"
@@ -41,8 +43,36 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 	)
 
 	// Check DormantDatabase
-	if err := c.findDormantDatabase(postgres); err != nil {
+	matched, err := c.matchDormantDatabase(postgres)
+	if err != nil {
 		return err
+	}
+	if matched {
+		//TODO: Use Annotation Key
+		postgres.Annotations = map[string]string{
+			"kubedb.com/ignore": "",
+		}
+		if err := c.ExtClient.Postgreses(postgres.Namespace).Delete(postgres.Name); err != nil {
+			return fmt.Errorf(
+				`Failed to resume Postgres "%v" from DormantDatabase "%v". Error: %v`,
+				postgres.Name,
+				postgres.Name,
+				err,
+			)
+		}
+
+		err = amc.NewDormantDbController(nil, c.ExtClient, nil, nil, 0).UpdateDormantDatabase(
+			postgres.ObjectMeta, func(in tapi.DormantDatabase) tapi.DormantDatabase {
+				in.Spec.Resume = true
+				return in
+			},
+		)
+		if err != nil {
+			c.eventRecorder.Eventf(postgres, apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
+			return err
+		}
+
+		return nil
 	}
 
 	// Event for notification that kubernetes objects are creating
@@ -104,7 +134,7 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 	return nil
 }
 
-func (c *Controller) findDormantDatabase(postgres *tapi.Postgres) error {
+func (c *Controller) matchDormantDatabase(postgres *tapi.Postgres) (bool, error) {
 	// Check if DormantDatabase exists or not
 	dormantDb, err := c.ExtClient.DormantDatabases(postgres.Namespace).Get(postgres.Name)
 	if err != nil {
@@ -117,25 +147,58 @@ func (c *Controller) findDormantDatabase(postgres *tapi.Postgres) error {
 				postgres.Name,
 				err,
 			)
-			return err
+			return false, err
 		}
-	} else {
-		var message string
-		if dormantDb.Labels[tapi.LabelDatabaseKind] != tapi.ResourceKindPostgres {
-			message = fmt.Sprintf(`Invalid Postgres: "%v". Exists DormantDatabase "%v" of different Kind`,
-				postgres.Name, dormantDb.Name)
-		} else {
-			message = fmt.Sprintf(`Resume from DormantDatabase: "%v"`, dormantDb.Name)
-		}
+		return false, nil
+	}
+
+	var sendEvent = func(message string) (bool, error) {
 		c.eventRecorder.Event(
 			postgres,
 			apiv1.EventTypeWarning,
 			eventer.EventReasonFailedToCreate,
 			message,
 		)
-		return errors.New(message)
+		return false, errors.New(message)
 	}
-	return nil
+
+	// Check DatabaseKind
+	if dormantDb.Labels[tapi.LabelDatabaseKind] != tapi.ResourceKindPostgres {
+		return sendEvent(fmt.Sprintf(`Invalid Postgres: "%v". Exists DormantDatabase "%v" of different Kind`,
+			postgres.Name, dormantDb.Name))
+	}
+
+	// Check InitSpec
+	initSpecAnnotationStr := dormantDb.Annotations[tapi.PostgresInitSpec]
+	if initSpecAnnotationStr != "" {
+		var initSpecAnnotation *tapi.InitSpec
+		if err := json.Unmarshal([]byte(initSpecAnnotationStr), &initSpecAnnotation); err != nil {
+			return sendEvent(err.Error())
+		}
+
+		if postgres.Spec.Init != nil {
+			if !reflect.DeepEqual(initSpecAnnotation, postgres.Spec.Init) {
+				return sendEvent("InitSpec mismatches with DormantDatabase annotation")
+			}
+		}
+	}
+
+	// Check Origin Spec
+	drmnOriginSpec := dormantDb.Spec.Origin.Spec.Postgres
+	originalSpec := postgres.Spec
+	originalSpec.Init = nil
+
+	if originalSpec.DatabaseSecret == nil {
+		originalSpec.DatabaseSecret = &apiv1.SecretVolumeSource{
+			SecretName: postgres.Name + "-admin-auth",
+		}
+	}
+
+	if !reflect.DeepEqual(drmnOriginSpec, &originalSpec) {
+		return sendEvent("Postgres spec mismatches with OriginSpec in DormantDatabases")
+	}
+
+	return true, nil
 }
 
 func (c *Controller) ensureService(postgres *tapi.Postgres) error {
@@ -312,6 +375,14 @@ func (c *Controller) initialize(postgres *tapi.Postgres) error {
 }
 
 func (c *Controller) pause(postgres *tapi.Postgres) error {
+	if postgres.Annotations != nil {
+		if val, found := postgres.Annotations["kubedb.com/ignore"]; found {
+			//TODO: Add Event Reason "Ignored"
+			c.eventRecorder.Event(postgres, apiv1.EventTypeNormal, "Ignored", val)
+			return nil
+		}
+	}
+
 	c.eventRecorder.Event(postgres, apiv1.EventTypeNormal, eventer.EventReasonPausing, "Pausing Postgres")
 
 	if postgres.Spec.DoNotPause {
@@ -393,11 +464,6 @@ func (c *Controller) update(oldPostgres, updatedPostgres *tapi.Postgres) error {
 		eventer.EventReasonSuccessfulValidate,
 		"Successfully validate Postgres",
 	)
-
-	// Check DormantDatabase
-	if err := c.findDormantDatabase(updatedPostgres); err != nil {
-		return err
-	}
 
 	if err := c.ensureService(updatedPostgres); err != nil {
 		return err
