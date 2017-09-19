@@ -1,5 +1,5 @@
-hash: 4a5785a33a8127b81ede34824bb444a63c3b23bf13cdae104a4b948b2aedf929
-updated: 2017-08-31T12:08:42.515720022+06:00
+hash: 1f21f0229b697b79c52121a1a4fc6b990868983eed9ebb812609c3740ac2feb3
+updated: 2017-09-19T00:53:37.466758393-07:00
 imports:
 - name: cloud.google.com/go
   version: fe3d41e1ecb2ce36ad3a979037c9b9a2b726226f
@@ -17,12 +17,17 @@ imports:
   - types
   - version
   - wait
+- name: github.com/appscode/kutil
+  version: 1f75c33d081d0e7e1073ed9e8a5774e5c8c93e86
+  subpackages:
+  - apps/v1beta1
+  - kubedb/v1alpha1
 - name: github.com/appscode/log
   version: 68e0e42e42c01371f3950571fc87c2298a51dd8f
   subpackages:
   - golog
 - name: github.com/appscode/osm
-  version: c4eb9d9f2fa11a22cd4b5f358afa5c89245059b4
+  version: e8902e8a7b1ca8c0b7ec38579c08e74ba631a192
   subpackages:
   - context
 - name: github.com/appscode/pat
@@ -117,7 +122,7 @@ imports:
 - name: github.com/go-openapi/swag
   version: 1d0bd113de87027671077d3c71eb3ac5d7dbba72
 - name: github.com/go-xorm/builder
-  version: db75972580de4a7c6c20fff5b16a924c3de3fa12
+  version: c8871c857d2555fbfbd8524f895be5386d3d8836
 - name: github.com/go-xorm/core
   version: 5bf745d7d163f4380e6c2bba8c4afa60534dd087
 - name: github.com/go-xorm/xorm
@@ -149,7 +154,7 @@ imports:
 - name: github.com/gorilla/mux
   version: 0a192a193177452756c362c20087ddafcf6829c4
 - name: github.com/graymeta/stow
-  version: 3e5d4f8f1ce7e64da5adec4738010c679536f668
+  version: 6f2b8867a3fb15cca5507da1d552b55cfe5d07a7
   repo: https://github.com/appscode/stow.git
   vcs: git
   subpackages:
@@ -159,7 +164,9 @@ imports:
   - s3
   - swift
 - name: github.com/hashicorp/go-version
-  version: 03c5bf6be031b6dd45afec16b1cf94fc8938bc77
+  version: ac737305c16432f4c660c6fc68cdcda4b5a0b5ae
+  repo: https://github.com/appscode/go-version.git
+  vcs: git
 - name: github.com/hashicorp/golang-lru
   version: a0d98a5f288019575c6d1f4bb1573fef2d1fcdc4
   subpackages:
@@ -181,11 +188,12 @@ imports:
 - name: github.com/juju/ratelimit
   version: 5b9ff866471762aa2ab2dced63c9fb6f53921342
 - name: github.com/k8sdb/apimachinery
-  version: ee12145f287ba94e4ea5344bd387e8ca420591ab
+  version: e35c53dd130bc712bf3dd9250df706b710e0c535
   subpackages:
-  - api
-  - api/install
-  - client/clientset
+  - apis/kubedb
+  - apis/kubedb/v1alpha1
+  - client/scheme
+  - client/typed/kubedb/v1alpha1
   - pkg/analytics
   - pkg/controller
   - pkg/docker
@@ -195,7 +203,7 @@ imports:
   - pkg/storage
   - pkg/validator
 - name: github.com/lib/pq
-  version: 50761b0867bd1d9d069276790bcd4a3bccf2324a
+  version: 69552e54d2a9d4c6a2438926a774930f7bc398ec
   subpackages:
   - oid
 - name: github.com/mailru/easyjson
@@ -263,9 +271,9 @@ imports:
 - name: github.com/Sirupsen/logrus
   version: 4b6ea7319e214d98c938f12692336f7ca9348d6b
 - name: github.com/spf13/cobra
-  version: 2df9a531813370438a4d79bfc33e21f58063ed87
+  version: b78744579491c1ceeaaa3b40205e56b0591b93a3
 - name: github.com/spf13/pflag
-  version: e57e3eeb33f795204c1ca35f56c44f83227c6e66
+  version: 7aff26db30c1be810f9de5038ec5ef96ac41fd7c
 - name: github.com/ugorji/go
   version: ded73eae5db7e7a0ef6f55aace87a2873c5d2b74
   subpackages:
@@ -328,7 +336,7 @@ imports:
   - unicode/norm
   - width
 - name: google.golang.org/api
-  version: 4c6d21ebe7d908cb32717e14783f80ffee6cdcb0
+  version: f07af8828cedf46b54a535f7cd5b4d82a7d1cbbb
   subpackages:
   - gensupport
   - googleapi
@@ -499,7 +507,7 @@ imports:
   - util/integer
 testImports:
 - name: github.com/mitchellh/go-homedir
-  version: d682a8f0cf139663a984ff12528da460ca963de9
+  version: b8bc1bf767474819792c23f32d8286a45736f1c6
 - name: github.com/onsi/ginkgo
   version: 9eda700730cba42af70d53180f9dcce9266bc2bc
   subpackages:

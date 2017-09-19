@@ -7,8 +7,8 @@ import (
 	"github.com/appscode/go/hold"
 	"github.com/appscode/log"
 	pcm "github.com/coreos/prometheus-operator/pkg/client/monitoring/v1alpha1"
-	tapi "github.com/k8sdb/apimachinery/api"
-	tcs "github.com/k8sdb/apimachinery/client/clientset"
+	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
+	tcs "github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1"
 	"github.com/k8sdb/apimachinery/pkg/analytics"
 	amc "github.com/k8sdb/apimachinery/pkg/controller"
 	"github.com/k8sdb/apimachinery/pkg/eventer"
@@ -63,7 +63,7 @@ var _ amc.Deleter = &Controller{}
 func New(
 	client clientset.Interface,
 	apiExtKubeClient apiextensionsclient.Interface,
-	extClient tcs.ExtensionInterface,
+	extClient tcs.KubedbV1alpha1Interface,
 	promClient pcm.MonitoringV1alpha1Interface,
 	cronController amc.CronControllerInterface,
 	opt Options,
@@ -217,7 +217,7 @@ func (c *Controller) watchDormantDatabase() {
 func (c *Controller) ensureCustomResourceDefinition() {
 	log.Infoln("Ensuring CustomResourceDefinition...")
 
-	resourceName := tapi.ResourceTypePostgres + "." + tapi.V1alpha1SchemeGroupVersion.Group
+	resourceName := tapi.ResourceTypePostgres + "." + tapi.SchemeGroupVersion.Group
 	if _, err := c.ApiExtKubeClient.ApiextensionsV1beta1().CustomResourceDefinitions().Get(resourceName, metav1.GetOptions{}); err != nil {
 		if !kerr.IsNotFound(err) {
 			log.Fatalln(err)
@@ -234,8 +234,8 @@ func (c *Controller) ensureCustomResourceDefinition() {
 			},
 		},
 		Spec: extensionsobj.CustomResourceDefinitionSpec{
-			Group:   tapi.V1alpha1SchemeGroupVersion.Group,
-			Version: tapi.V1alpha1SchemeGroupVersion.Version,
+			Group:   tapi.SchemeGroupVersion.Group,
+			Version: tapi.SchemeGroupVersion.Version,
 			Scope:   extensionsobj.NamespaceScoped,
 			Names: extensionsobj.CustomResourceDefinitionNames{
 				Plural:     tapi.ResourceTypePostgres,

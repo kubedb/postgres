@@ -7,7 +7,7 @@ import (
 	"github.com/appscode/go/crypto/rand"
 	"github.com/appscode/go/encoding/json/types"
 	"github.com/appscode/log"
-	tapi "github.com/k8sdb/apimachinery/api"
+	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
 	. "github.com/onsi/gomega"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -34,13 +34,13 @@ func (f *Framework) CreatePostgres(obj *tapi.Postgres) error {
 }
 
 func (f *Framework) GetPostgres(meta metav1.ObjectMeta) (*tapi.Postgres, error) {
-	return f.extClient.Postgreses(meta.Namespace).Get(meta.Name)
+	return f.extClient.Postgreses(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
 }
 
 func (f *Framework) UpdatePostgres(meta metav1.ObjectMeta, transformer func(tapi.Postgres) tapi.Postgres) (*tapi.Postgres, error) {
 	attempt := 0
 	for ; attempt < maxAttempts; attempt = attempt + 1 {
-		cur, err := f.extClient.Postgreses(meta.Namespace).Get(meta.Name)
+		cur, err := f.extClient.Postgreses(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
 		if err != nil {
 			return nil, err
 		}
@@ -59,13 +59,13 @@ func (f *Framework) UpdatePostgres(meta metav1.ObjectMeta, transformer func(tapi
 }
 
 func (f *Framework) DeletePostgres(meta metav1.ObjectMeta) error {
-	return f.extClient.Postgreses(meta.Namespace).Delete(meta.Name)
+	return f.extClient.Postgreses(meta.Namespace).Delete(meta.Name, &metav1.DeleteOptions{})
 }
 
 func (f *Framework) EventuallyPostgres(meta metav1.ObjectMeta) GomegaAsyncAssertion {
 	return Eventually(
 		func() bool {
-			_, err := f.extClient.Postgreses(meta.Namespace).Get(meta.Name)
+			_, err := f.extClient.Postgreses(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
 			if err != nil {
 				if kerr.IsNotFound(err) {
 					return false
@@ -83,7 +83,7 @@ func (f *Framework) EventuallyPostgres(meta metav1.ObjectMeta) GomegaAsyncAssert
 func (f *Framework) EventuallyPostgresRunning(meta metav1.ObjectMeta) GomegaAsyncAssertion {
 	return Eventually(
 		func() bool {
-			postgres, err := f.extClient.Postgreses(meta.Namespace).Get(meta.Name)
+			postgres, err := f.extClient.Postgreses(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
 			Expect(err).NotTo(HaveOccurred())
 			return postgres.Status.Phase == tapi.DatabasePhaseRunning
 		},
