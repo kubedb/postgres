@@ -1,5 +1,5 @@
 hash: 49462aab1041f160552f0861047d7664e27f10e909eb05d643142abc7da4d77f
-updated: 2017-09-19T05:58:03.781679114-07:00
+updated: 2017-09-19T14:36:36.17928752-07:00
 imports:
 - name: cloud.google.com/go
   version: fe3d41e1ecb2ce36ad3a979037c9b9a2b726226f
@@ -191,7 +191,7 @@ imports:
 - name: github.com/juju/ratelimit
   version: 5b9ff866471762aa2ab2dced63c9fb6f53921342
 - name: github.com/k8sdb/apimachinery
-  version: 50bd8fb16dc2de3417dc72681747003fb499f983
+  version: 0ce956bc35245de2d2ac64a4abd861eeffb9a93f
   subpackages:
   - apis/kubedb
   - apis/kubedb/v1alpha1
@@ -371,7 +371,7 @@ imports:
   repo: https://github.com/appscode/cron.git
   vcs: git
 - name: gopkg.in/yaml.v2
-  version: 53feefa2559fb8dfa8d81baad31be332c97d6c77
+  version: eb3733d160e74a9c7e442f435eb3bea458e1d19f
 - name: k8s.io/apiextensions-apiserver
   version: 5fa44608f6b9b2180a2fd1ecb52e651fd0397794
   subpackages:
