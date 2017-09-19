@@ -7,9 +7,9 @@ import (
 	"reflect"
 	"time"
 
+	kutildb "github.com/appscode/kutil/kubedb/v1alpha1"
 	"github.com/appscode/log"
 	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
-	amc "github.com/k8sdb/apimachinery/pkg/controller"
 	"github.com/k8sdb/apimachinery/pkg/eventer"
 	"github.com/k8sdb/apimachinery/pkg/storage"
 	"github.com/k8sdb/postgres/pkg/validator"
@@ -61,12 +61,10 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 			)
 		}
 
-		err = amc.NewDormantDbController(nil, nil, c.ExtClient, nil, nil, 0).UpdateDormantDatabase(
-			postgres.ObjectMeta, func(in tapi.DormantDatabase) tapi.DormantDatabase {
-				in.Spec.Resume = true
-				return in
-			},
-		)
+		_, err := kutildb.TryPatchDormantDatabase(c.ExtClient, postgres.ObjectMeta, func(in *tapi.DormantDatabase) *tapi.DormantDatabase {
+			in.Spec.Resume = true
+			return in
+		})
 		if err != nil {
 			c.eventRecorder.Eventf(postgres, apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
 			return err
