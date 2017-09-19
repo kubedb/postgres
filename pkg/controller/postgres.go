@@ -26,7 +26,7 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 		return in
 	})
 	if err != nil {
-		c.eventRecorder.Eventf(postgres, apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
+		c.eventRecorder.Eventf(postgres.ObjectReference(), apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
 		return err
 	}
 
@@ -66,7 +66,7 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 			return in
 		})
 		if err != nil {
-			c.eventRecorder.Eventf(postgres, apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
+			c.eventRecorder.Eventf(postgres.ObjectReference(), apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
 			return err
 		}
 
@@ -80,7 +80,7 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 	governingService := c.opt.GoverningService
 	if err := c.CreateGoverningService(governingService, postgres.Namespace); err != nil {
 		c.eventRecorder.Eventf(
-			postgres,
+			postgres.ObjectReference(),
 			apiv1.EventTypeWarning,
 			eventer.EventReasonFailedToCreate,
 			`Failed to create Service: "%v". Reason: %v`,
@@ -113,7 +113,7 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 	if postgres.Spec.Monitor != nil {
 		if err := c.addMonitor(postgres); err != nil {
 			c.eventRecorder.Eventf(
-				postgres,
+				postgres.ObjectReference(),
 				apiv1.EventTypeWarning,
 				eventer.EventReasonFailedToCreate,
 				"Failed to add monitoring system. Reason: %v",
@@ -138,7 +138,7 @@ func (c *Controller) matchDormantDatabase(postgres *tapi.Postgres) (bool, error)
 	if err != nil {
 		if !kerr.IsNotFound(err) {
 			c.eventRecorder.Eventf(
-				postgres,
+				postgres.ObjectReference(),
 				apiv1.EventTypeWarning,
 				eventer.EventReasonFailedToGet,
 				`Fail to get DormantDatabase: "%v". Reason: %v`,
@@ -212,7 +212,7 @@ func (c *Controller) ensureService(postgres *tapi.Postgres) error {
 	// create database Service
 	if err := c.createService(postgres); err != nil {
 		c.eventRecorder.Eventf(
-			postgres,
+			postgres.ObjectReference(),
 			apiv1.EventTypeWarning,
 			eventer.EventReasonFailedToCreate,
 			"Failed to create Service. Reason: %v",
@@ -236,7 +236,7 @@ func (c *Controller) ensureStatefulSet(postgres *tapi.Postgres) error {
 	statefulSet, err := c.createStatefulSet(postgres)
 	if err != nil {
 		c.eventRecorder.Eventf(
-			postgres,
+			postgres.ObjectReference(),
 			apiv1.EventTypeWarning,
 			eventer.EventReasonFailedToCreate,
 			"Failed to create StatefulSet. Reason: %v",
@@ -248,7 +248,7 @@ func (c *Controller) ensureStatefulSet(postgres *tapi.Postgres) error {
 	// Check StatefulSet Pod status
 	if err := c.CheckStatefulSetPodStatus(statefulSet, durationCheckStatefulSet); err != nil {
 		c.eventRecorder.Eventf(
-			postgres,
+			postgres.ObjectReference(),
 			apiv1.EventTypeWarning,
 			eventer.EventReasonFailedToStart,
 			`Failed to create StatefulSet. Reason: %v`,
@@ -257,7 +257,7 @@ func (c *Controller) ensureStatefulSet(postgres *tapi.Postgres) error {
 		return err
 	} else {
 		c.eventRecorder.Event(
-			postgres,
+			postgres.ObjectReference(),
 			apiv1.EventTypeNormal,
 			eventer.EventReasonSuccessfulCreate,
 			"Successfully created StatefulSet",
@@ -276,7 +276,7 @@ func (c *Controller) ensureStatefulSet(postgres *tapi.Postgres) error {
 
 		if err := c.initialize(postgres); err != nil {
 			c.eventRecorder.Eventf(
-				postgres,
+				postgres.ObjectReference(),
 				apiv1.EventTypeWarning,
 				eventer.EventReasonFailedToInitialize,
 				"Failed to initialize. Reason: %v",
@@ -302,7 +302,7 @@ func (c *Controller) ensureBackupScheduler(postgres *tapi.Postgres) {
 		err := c.cronController.ScheduleBackup(postgres, postgres.ObjectMeta, postgres.Spec.BackupSchedule)
 		if err != nil {
 			c.eventRecorder.Eventf(
-				postgres,
+				postgres.ObjectReference(),
 				apiv1.EventTypeWarning,
 				eventer.EventReasonFailedToSchedule,
 				"Failed to schedule snapshot. Reason: %v",
@@ -323,7 +323,7 @@ func (c *Controller) initialize(postgres *tapi.Postgres) error {
 	snapshotSource := postgres.Spec.Init.SnapshotSource
 	// Event for notification that kubernetes objects are creating
 	c.eventRecorder.Eventf(
-		postgres,
+		postgres.ObjectReference(),
 		apiv1.EventTypeNormal,
 		eventer.EventReasonInitializing,
 		`Initializing from Snapshot: "%v"`,
@@ -356,14 +356,14 @@ func (c *Controller) initialize(postgres *tapi.Postgres) error {
 	jobSuccess := c.CheckDatabaseRestoreJob(job, postgres, c.eventRecorder, durationCheckRestoreJob)
 	if jobSuccess {
 		c.eventRecorder.Event(
-			postgres,
+			postgres.ObjectReference(),
 			apiv1.EventTypeNormal,
 			eventer.EventReasonSuccessfulInitialize,
 			"Successfully completed initialization",
 		)
 	} else {
 		c.eventRecorder.Event(
-			postgres,
+			postgres.ObjectReference(),
 			apiv1.EventTypeWarning,
 			eventer.EventReasonFailedToInitialize,
 			"Failed to complete initialization",
@@ -385,7 +385,7 @@ func (c *Controller) pause(postgres *tapi.Postgres) error {
 
 	if postgres.Spec.DoNotPause {
 		c.eventRecorder.Eventf(
-			postgres,
+			postgres.ObjectReference(),
 			apiv1.EventTypeWarning,
 			eventer.EventReasonFailedToPause,
 			`Postgres "%v" is locked.`,
@@ -394,7 +394,7 @@ func (c *Controller) pause(postgres *tapi.Postgres) error {
 
 		if err := c.reCreatePostgres(postgres); err != nil {
 			c.eventRecorder.Eventf(
-				postgres,
+				postgres.ObjectReference(),
 				apiv1.EventTypeWarning,
 				eventer.EventReasonFailedToCreate,
 				`Failed to recreate Postgres: "%v". Reason: %v`,
@@ -408,7 +408,7 @@ func (c *Controller) pause(postgres *tapi.Postgres) error {
 
 	if _, err := c.createDormantDatabase(postgres); err != nil {
 		c.eventRecorder.Eventf(
-			postgres,
+			postgres.ObjectReference(),
 			apiv1.EventTypeWarning,
 			eventer.EventReasonFailedToCreate,
 			`Failed to create DormantDatabase: "%v". Reason: %v`,
@@ -418,7 +418,7 @@ func (c *Controller) pause(postgres *tapi.Postgres) error {
 		return err
 	}
 	c.eventRecorder.Eventf(
-		postgres,
+		postgres.ObjectReference(),
 		apiv1.EventTypeNormal,
 		eventer.EventReasonSuccessfulCreate,
 		`Successfully created DormantDatabase: "%v"`,
@@ -430,7 +430,7 @@ func (c *Controller) pause(postgres *tapi.Postgres) error {
 	if postgres.Spec.Monitor != nil {
 		if err := c.deleteMonitor(postgres); err != nil {
 			c.eventRecorder.Eventf(
-				postgres,
+				postgres.ObjectReference(),
 				apiv1.EventTypeWarning,
 				eventer.EventReasonFailedToDelete,
 				"Failed to delete monitoring system. Reason: %v",
@@ -440,7 +440,7 @@ func (c *Controller) pause(postgres *tapi.Postgres) error {
 			return nil
 		}
 		c.eventRecorder.Event(
-			postgres,
+			postgres.ObjectReference(),
 			apiv1.EventTypeNormal,
 			eventer.EventReasonSuccessfulMonitorDelete,
 			"Successfully deleted monitoring system.",
@@ -452,12 +452,12 @@ func (c *Controller) pause(postgres *tapi.Postgres) error {
 func (c *Controller) update(oldPostgres, updatedPostgres *tapi.Postgres) error {
 
 	if err := validator.ValidatePostgres(c.Client, updatedPostgres); err != nil {
-		c.eventRecorder.Event(updatedPostgres, apiv1.EventTypeWarning, eventer.EventReasonInvalid, err.Error())
+		c.eventRecorder.Event(updatedPostgres.ObjectReference(), apiv1.EventTypeWarning, eventer.EventReasonInvalid, err.Error())
 		return err
 	}
 	// Event for successful validation
 	c.eventRecorder.Event(
-		updatedPostgres,
+		updatedPostgres.ObjectReference(),
 		apiv1.EventTypeNormal,
 		eventer.EventReasonSuccessfulValidate,
 		"Successfully validate Postgres",
@@ -477,7 +477,7 @@ func (c *Controller) update(oldPostgres, updatedPostgres *tapi.Postgres) error {
 	if !reflect.DeepEqual(oldPostgres.Spec.Monitor, updatedPostgres.Spec.Monitor) {
 		if err := c.updateMonitor(oldPostgres, updatedPostgres); err != nil {
 			c.eventRecorder.Eventf(
-				updatedPostgres,
+				updatedPostgres.ObjectReference(),
 				apiv1.EventTypeWarning,
 				eventer.EventReasonFailedToUpdate,
 				"Failed to update monitoring system. Reason: %v",
@@ -487,7 +487,7 @@ func (c *Controller) update(oldPostgres, updatedPostgres *tapi.Postgres) error {
 			return nil
 		}
 		c.eventRecorder.Event(
-			updatedPostgres,
+			updatedPostgres.ObjectReference(),
 			apiv1.EventTypeNormal,
 			eventer.EventReasonSuccessfulMonitorUpdate,
 			"Successfully updated monitoring system.",

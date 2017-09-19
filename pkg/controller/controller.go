@@ -252,7 +252,7 @@ func (c *Controller) ensureCustomResourceDefinition() {
 
 func (c *Controller) pushFailureEvent(postgres *tapi.Postgres, reason string) {
 	c.eventRecorder.Eventf(
-		postgres,
+		postgres.ObjectReference(),
 		apiv1.EventTypeWarning,
 		eventer.EventReasonFailedToStart,
 		`Fail to be ready Postgres: "%v". Reason: %v`,
@@ -267,7 +267,7 @@ func (c *Controller) pushFailureEvent(postgres *tapi.Postgres, reason string) {
 	})
 
 	if err != nil {
-		c.eventRecorder.Eventf(postgres, apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
+		c.eventRecorder.Eventf(postgres.ObjectReference(), apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
 	}
 }
 
