@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/appscode/errors"
 	"github.com/appscode/go/crypto/rand"
 	"github.com/appscode/go/log"
 	"github.com/appscode/go/types"
@@ -173,10 +174,22 @@ func (c *Controller) createStatefulSet(postgres *tapi.Postgres) (*apps.StatefulS
 		statefulSet.Spec.Template.Spec.Containers = append(statefulSet.Spec.Template.Spec.Containers, exporter)
 	}
 
+	var secretVolumeSource *apiv1.SecretVolumeSource
 	if postgres.Spec.DatabaseSecret == nil {
-		secretVolumeSource, err := c.createDatabaseSecret(postgres)
-		if err != nil {
-			return nil, err
+		// Use old db-secret to restore a snapshot
+		if postgres.Spec.Init != nil &&
+			postgres.Spec.Init.SnapshotSource != nil {
+			secretVolume, err := c.findRestoreSecret(postgres)
+			if err != nil {
+				return nil, err
+			}
+			secretVolumeSource = secretVolume
+		} else {
+			secretVolume, err := c.createDatabaseSecret(postgres)
+			if err != nil {
+				return nil, err
+			}
+			secretVolumeSource = secretVolume
 		}
 
 		_postgres, err := kutildb.TryPatchPostgres(c.ExtClient, postgres.ObjectMeta, func(in *tapi.Postgres) *tapi.Postgres {
@@ -231,6 +244,27 @@ func (c *Controller) findSecret(secretName, namespace string) (bool, error) {
 	}
 
 	return true, nil
+}
+
+func (c *Controller) findRestoreSecret(postgres *tapi.Postgres) (*apiv1.SecretVolumeSource, error) {
+	snapshot, err := c.ExtClient.Snapshots(postgres.Namespace).Get(postgres.Spec.Init.SnapshotSource.Name, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+	srcPostgres, err := c.ExtClient.Postgreses(postgres.Namespace).Get(snapshot.Spec.DatabaseName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+	exists, err := c.findSecret(srcPostgres.Spec.DatabaseSecret.SecretName, postgres.Namespace)
+	if err != nil {
+		return nil, err
+	}
+	if !exists {
+		return nil, errors.New(srcPostgres.Spec.DatabaseSecret.SecretName, "secret not found")
+	}
+	return &apiv1.SecretVolumeSource{
+		SecretName: srcPostgres.Spec.DatabaseSecret.SecretName,
+	}, nil
 }
 
 func (c *Controller) createDatabaseSecret(postgres *tapi.Postgres) (*apiv1.SecretVolumeSource, error) {

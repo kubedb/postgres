@@ -245,6 +245,12 @@ func (c *Controller) ensureStatefulSet(postgres *tapi.Postgres) error {
 		return err
 	}
 
+	_postgres, err := c.ExtClient.Postgreses(postgres.Namespace).Get(postgres.Name, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+	postgres = _postgres
+
 	// Check StatefulSet Pod status
 	if err := c.CheckStatefulSetPodStatus(statefulSet, durationCheckStatefulSet); err != nil {
 		c.recorder.Eventf(

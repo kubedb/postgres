@@ -266,16 +266,7 @@ var _ = Describe("Postgres", func() {
 					f.DeleteSecret(secret.ObjectMeta)
 				})
 
-				BeforeEach(func() {
-					secret = f.SecretForS3Backend()
-					snapshot.Spec.StorageSecretName = secret.Name
-					snapshot.Spec.S3 = &tapi.S3Spec{
-						Bucket: os.Getenv(S3_BUCKET_NAME),
-					}
-					snapshot.Spec.DatabaseName = postgres.Name
-				})
-
-				It("should run successfully", func() {
+				var shouldRestoreSnapshot = func() {
 					// Create and wait for running Postgres
 					createAndWaitForRunning()
 
@@ -296,7 +287,6 @@ var _ = Describe("Postgres", func() {
 
 					By("Create postgres from snapshot")
 					postgres = f.Postgres()
-					postgres.Spec.DatabaseSecret = oldPostgres.Spec.DatabaseSecret
 					postgres.Spec.Init = &tapi.InitSpec{
 						SnapshotSource: &tapi.SnapshotSourceSpec{
 							Namespace: snapshot.Namespace,
@@ -312,6 +302,32 @@ var _ = Describe("Postgres", func() {
 					postgres = oldPostgres
 					// Delete test resource
 					deleteTestResouce()
+				}
+
+				Context("with S3", func() {
+					BeforeEach(func() {
+						secret = f.SecretForS3Backend()
+						snapshot.Spec.StorageSecretName = secret.Name
+						snapshot.Spec.S3 = &tapi.S3Spec{
+							Bucket: os.Getenv(S3_BUCKET_NAME),
+						}
+						snapshot.Spec.DatabaseName = postgres.Name
+					})
+
+					It("should run successfully", shouldRestoreSnapshot)
+				})
+
+				Context("with GCS", func() {
+					BeforeEach(func() {
+						secret = f.SecretForGCSBackend()
+						snapshot.Spec.StorageSecretName = secret.Name
+						snapshot.Spec.GCS = &tapi.GCSSpec{
+							Bucket: os.Getenv(GCS_BUCKET_NAME),
+						}
+						snapshot.Spec.DatabaseName = postgres.Name
+					})
+
+					FIt("should run successfully", shouldRestoreSnapshot)
 				})
 			})
 		})
