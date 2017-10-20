@@ -3,7 +3,9 @@ import:
 - package: github.com/appscode/go
 - package: github.com/appscode/pat
 - package: github.com/coreos/prometheus-operator
-  version: v0.12.0
+  repo: https://github.com/appscode/prometheus-operator.git
+  vcs: git
+  version: client-go-5
 - package: github.com/ghodss/yaml
   version: v1.0.0
 - package: github.com/go-ini/ini
@@ -18,22 +20,24 @@ import:
   version: master
 - package: github.com/k8sdb/apimachinery
   version: master
-- package: github.com/prometheus/client_golang
-  version: e7e903064f5e9eb5da98208bae10b475d4db0f8c
-- package: github.com/prometheus/common
-  version: 13ba4ddd0caa9c28ca7b7bffe1dfa9ed8d5ef207
 - package: github.com/spf13/cobra
   version: master
 - package: github.com/spf13/pflag
   version: master
-- package: k8s.io/apimachinery
-  version: 1fd2e63a9a370677308a42f24fd40c86438afddf
-- package: k8s.io/client-go
-  version: v4.0.0
-- package: k8s.io/apiextensions-apiserver
-  version: 5fa44608f6b9b2180a2fd1ecb52e651fd0397794
+- package: github.com/prometheus/common
+  version: 3233b24a36715a2fe36d162260457857a56d672d
+- package: github.com/sirupsen/logrus
+  version: v1.0.3
 - package: github.com/appscode/kutil
-  version: release-4.0
+  version: release-5.0
+- package: k8s.io/api
+  version: fe29995db37613b9c5b2a647544cf627bfa8d299
+- package: k8s.io/apiextensions-apiserver
+  version: release-1.8
+- package: k8s.io/apimachinery
+  version: 019ae5ada31de202164b118aee88ee2d14075c31
+- package: k8s.io/client-go
+  version: v5.0.0
 testImport:
 - package: github.com/stretchr/testify
   version: v1.1.4
