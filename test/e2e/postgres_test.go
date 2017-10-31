@@ -430,7 +430,7 @@ var _ = Describe("Postgres", func() {
 						createAndWaitForRunning()
 
 						for i := 0; i < 3; i++ {
-							By(">>>>>>>>>>>>>> "+fmt.Sprintf("%v", i+1) + " times running <<<<<<<<<<<")
+							By(fmt.Sprintf("%v-th", i+1) + " time running.")
 							By("Delete postgres")
 							f.DeletePostgres(postgres.ObjectMeta)
 
