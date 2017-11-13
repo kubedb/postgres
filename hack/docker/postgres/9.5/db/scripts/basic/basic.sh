@@ -2,7 +2,7 @@
 
 set -e
 
-source /scripts/lib.sh
+source ../lib.sh
 user_script=${1:-}
 
 if [ ! -f "$PGDATA/.appscode" ]; then
