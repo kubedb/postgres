@@ -6,16 +6,21 @@ source /scripts/lib.sh
 
 echo "Running as Primary"
 
-# Initialize postgres
-initialize
+if [ ! -s "$PGDATA/PG_VERSION" ]; then
+    # Initialize postgres
+    initialize
 
-# Set password
-set_password
+    # Set password
+    set_password
 
-# Configure postgreSQL.conf
-configure_primary_postgres
+    # Configure postgreSQL.conf
+    configure_primary_postgres
 
-# Configure pg_hba.conf
-configure_pghba
+    # Configure pg_hba.conf
+    configure_pghba
+
+    # Initialize database
+    init_database
+fi
 
 exec postgres

@@ -13,16 +13,6 @@ initialize() {
 	initdb "$PGDATA"
 }
 
-set_password() {
-	load_password
-	pg_ctl -D $PGDATA  -w start
-
-	psql --username postgres <<-EOSQL
-ALTER USER postgres WITH SUPERUSER PASSWORD '$POSTGRES_PASSWORD';
-EOSQL
-	pg_ctl -D $PGDATA -m fast -w stop
-}
-
 load_password() {
     PASSWORD_PATH='/srv/postgres/secrets/.admin'
 	###### get postgres user password ######
@@ -34,6 +24,23 @@ load_password() {
 		echo
 		POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
 	fi
+}
+
+set_password() {
+	load_password
+	pg_ctl -D "$PGDATA"  -w start
+
+	psql --username postgres <<-EOSQL
+ALTER USER postgres WITH SUPERUSER PASSWORD '$POSTGRES_PASSWORD';
+EOSQL
+	pg_ctl -D "$PGDATA" -m fast -w stop
+}
+
+configure_pghba() {
+	{ echo; echo 'local all         all                         trust'; }   >> "$PGDATA/pg_hba.conf"
+	{       echo 'host  all         all         127.0.0.1/32    trust'; }   >> "$PGDATA/pg_hba.conf"
+	{       echo 'host  all         all         0.0.0.0/0       md5'; }     >> "$PGDATA/pg_hba.conf"
+	{       echo 'host  replication postgres    0.0.0.0/0       md5'; }     >> "$PGDATA/pg_hba.conf"
 }
 
 use_standby() {
@@ -89,13 +96,6 @@ configure_replica_postgres() {
     fi
 }
 
-configure_pghba() {
-	{ echo; echo 'local all         all                         trust'; }   >> "$PGDATA/pg_hba.conf"
-	{       echo 'host  all         all         127.0.0.1/32    trust'; }   >> "$PGDATA/pg_hba.conf"
-	{       echo 'host  all         all         0.0.0.0/0       md5'; }     >> "$PGDATA/pg_hba.conf"
-	{       echo 'host  replication postgres    0.0.0.0/0       md5'; }     >> "$PGDATA/pg_hba.conf"
-}
-
 create_pgpass_file() {
 cat >> "/tmp/.pgpass" <<-EOF
 *:*:*:*:${POSTGRES_PASSWORD}
@@ -127,4 +127,24 @@ base_backup() {
     # primary_conninfo is used for streaming replication
     echo "primary_conninfo = 'application_name=$HOSTNAME host=$PRIMARY_HOST'" >> /tmp/recovery.conf
     cp /tmp/recovery.conf "$PGDATA/recovery.conf"
+}
+
+init_database() {
+
+    create_pgpass_file
+    psql=( psql -v ON_ERROR_STOP=1 --username "postgres" --dbname "postgres" )
+
+    pg_ctl -D "$PGDATA"  -w start
+
+    for f in "$INITDB/*"; do
+        case "$f" in
+            *.sh)     echo "$0: running $f"; . "$f" ;;
+            *.sql)    echo "$0: running $f"; "${psql[@]}" -f "$f"; echo ;;
+            *.sql.gz) echo "$0: running $f"; gunzip -c "$f" | "${psql[@]}"; echo ;;
+            *)        echo "$0: ignoring $f" ;;
+        esac
+        echo
+    done
+
+    pg_ctl -D "$PGDATA" -m fast -w stop
 }
