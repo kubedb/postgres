@@ -10,4 +10,4 @@ spec:
     name: api
   selector:
     app: postgres
-    kubedb.com/role: primary
+  type: NodePort

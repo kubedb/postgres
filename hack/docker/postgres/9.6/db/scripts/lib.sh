@@ -36,40 +36,39 @@ load_password() {
 	fi
 }
 
-use_warm_standby() {
+use_standby() {
     echo "Creating wal directory at " "$PGWAL"
     mkdir -p "$PGWAL"
     chmod 0700 "$PGWAL"
 
     # Adding additional configuration in /tmp/postgresql.conf
     echo "# ====== Archiving ======" >> /tmp/postgresql.conf
-    echo "archive_mode = on" >> /tmp/postgresql.conf
+    echo "archive_mode = always" >> /tmp/postgresql.conf
     echo "archive_command = 'test ! -f $PGWAL/%f && cp %p $PGWAL/%f'" >> /tmp/postgresql.conf
     echo "archive_timeout = 0" >> /tmp/postgresql.conf
     echo "# ====== Archiving ======" >> /tmp/postgresql.conf
     echo "# ====== WRITE AHEAD LOG ======" >> /tmp/postgresql.conf
     echo "wal_level = $1" >> /tmp/postgresql.conf
-    echo "max_wal_senders = 100" >> /tmp/postgresql.conf
-    echo "# ====== WRITE AHEAD LOG ======" >> /tmp/postgresql.conf
-}
-
-use_hot_standby() {
-    use_warm_standby $1
-    # Adding additional configuration in /tmp/postgresql.conf
-    echo "# ====== WRITE AHEAD LOG ======" >> /tmp/postgresql.conf
+    echo "max_wal_senders = 99" >> /tmp/postgresql.conf
     echo "wal_keep_segments = 32" >> /tmp/postgresql.conf
-    # For Replica
+
+    if [[ -v STREAMING ]]; then
+        if [ "$STREAMING" == "synchronous" ]; then
+            echo "synchronous_commit = on" >> /tmp/postgresql.conf
+            #
+            echo "synchronous_standby_names = '3 (*)'" >> /tmp/postgresql.conf
+        fi
+    fi
+
     echo "# ====== WRITE AHEAD LOG ======" >> /tmp/postgresql.conf
 }
 
 configure_primary_postgres() {
-    if [[ -v REPLICATION ]]; then
-        if [ "$REPLICATION" == "warm_standby" ]; then
-            use_warm_standby "archive"
-        elif [ "$REPLICATION" == "hot_standby" ]; then
-            use_hot_standby "hot_standby"
-        elif [ "$REPLICATION" == "streaming_replication" ]; then
-            use_hot_standby "hot_standby"
+    if [[ -v STANDBY ]]; then
+        if [ "$STANDBY" == "warm" ]; then
+            use_standby "archive"
+        elif [ "$STANDBY" == "hot" ]; then
+            use_standby "hot_standby"
         fi
     fi
 
@@ -79,10 +78,8 @@ configure_primary_postgres() {
 }
 
 configure_replica_postgres() {
-    if [[ -v REPLICATION ]]; then
-        if [ "$REPLICATION" == "hot_standby" ]; then
-            echo "hot_standby = on" >> /tmp/postgresql.conf
-        elif [ "$REPLICATION" == "streaming_replication" ]; then
+    if [[ -v STANDBY ]]; then
+        if [ "$STANDBY" == "hot" ]; then
             echo "hot_standby = on" >> /tmp/postgresql.conf
         fi
     fi
@@ -93,11 +90,10 @@ configure_replica_postgres() {
 }
 
 configure_pghba() {
-	{ echo; echo 'host all         all      10.0.0.0/8     password'; } >> "$PGDATA/pg_hba.conf"
-	{       echo 'host all         all      172.16.0.0/12  password'; } >> "$PGDATA/pg_hba.conf"
-	{       echo 'host all         all      192.168.0.0/16 password'; } >> "$PGDATA/pg_hba.conf"
-	{       echo 'host all         all      0.0.0.0/0      md5'; }      >> "$PGDATA/pg_hba.conf"
-	{       echo 'host replication postgres 0.0.0.0/0      md5'; }      >> "$PGDATA/pg_hba.conf"
+	{ echo; echo 'local all         all                         trust'; }   >> "$PGDATA/pg_hba.conf"
+	{       echo 'host  all         all         127.0.0.1/32    trust'; }   >> "$PGDATA/pg_hba.conf"
+	{       echo 'host  all         all         0.0.0.0/0       md5'; }     >> "$PGDATA/pg_hba.conf"
+	{       echo 'host  replication postgres    0.0.0.0/0       md5'; }     >> "$PGDATA/pg_hba.conf"
 }
 
 create_pgpass_file() {
@@ -126,14 +122,9 @@ base_backup() {
     pg_basebackup -X fetch --no-password --pgdata "$PGDATA" --host="$PRIMARY_HOST"
 
     cp /scripts/replica/recovery.conf /tmp
-
     echo "restore_command = 'cp $PGWAL/%f %p'" >> /tmp/recovery.conf
-
-    if [[ -v REPLICATION ]]; then
-        if [ "$REPLICATION" == "streaming_replication" ]; then
-            echo "primary_conninfo = 'application_name=$HOSTNAME host=$PRIMARY_HOST'" >> /tmp/postgresql.conf
-        fi
-    fi
-
+    echo "archive_cleanup_command = 'pg_archivecleanup $PGWAL %r'" >> /tmp/recovery.conf
+    # primary_conninfo is used for streaming replication
+    echo "primary_conninfo = 'application_name=$HOSTNAME host=$PRIMARY_HOST'" >> /tmp/recovery.conf
     cp /tmp/recovery.conf "$PGDATA/recovery.conf"
 }

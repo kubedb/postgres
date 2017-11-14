@@ -1,7 +1,7 @@
 apiVersion: apps/v1beta1
 kind: StatefulSet
 metadata:
-  name: postgres-1
+  name: postgres
   labels:
     app: postgres
 spec:
@@ -17,12 +17,14 @@ spec:
     spec:
       containers:
       - name: postgres
-        image: aerokite/postgres:9.6.5-31
+        image: aerokite/postgres:9.6.5-40
         ports:
         - containerPort: 5432
           name: api
         env:
-        - name: "ARCHIVE_MODE"
-          value: "on"
+        - name: "STANDBY"
+          value: "hot"
+        - name: "STREAMING"
+          value: "synchronous"
         - name: "PRIMARY_HOST"
-          value: "postgres"
+          value: "postgres-primary"
