@@ -1,5 +1,5 @@
 hash: eda54fd9d303e6df5c2eef78f463b8a1d49bd9b79e2e59deaac582fb19a67e3f
-updated: 2017-10-23T16:21:19.377084597-07:00
+updated: 2017-11-14T23:15:42.077854499-08:00
 imports:
 - name: cloud.google.com/go
   version: fe3d41e1ecb2ce36ad3a979037c9b9a2b726226f
@@ -7,7 +7,7 @@ imports:
   - compute/metadata
   - internal
 - name: github.com/appscode/go
-  version: c01120782e8b487d1c86ab4299241edfe36a3ca2
+  version: 6c0d0eba230ad31f74a18b44beee6f865b01bdec
   subpackages:
   - context
   - crypto/rand
@@ -20,11 +20,16 @@ imports:
   - version
   - wait
 - name: github.com/appscode/kutil
-  version: 4d8a2fab71adaeb35394044fae59b03735ea4e39
+  version: c7547d78847930f4b48c4e3b3d6fe1d8b0309bd7
   subpackages:
   - apps/v1beta1
   - core/v1
+  - meta
   - rbac/v1beta1
+  - tools/monitoring/agents
+  - tools/monitoring/agents/coreosprometheusoperator
+  - tools/monitoring/agents/prometheusbuiltin
+  - tools/monitoring/api
 - name: github.com/appscode/log
   version: 68e0e42e42c01371f3950571fc87c2298a51dd8f
   subpackages:
@@ -131,7 +136,7 @@ imports:
 - name: github.com/go-openapi/swag
   version: 1d0bd113de87027671077d3c71eb3ac5d7dbba72
 - name: github.com/go-xorm/builder
-  version: c8871c857d2555fbfbd8524f895be5386d3d8836
+  version: a4a881a4e552fcb5473f39e8b9f7d9f3457a7fb0
 - name: github.com/go-xorm/core
   version: 5bf745d7d163f4380e6c2bba8c4afa60534dd087
 - name: github.com/go-xorm/xorm
@@ -142,7 +147,7 @@ imports:
   - proto
   - sortkeys
 - name: github.com/golang/glog
-  version: 44145f04b68cf362d9c4df2182967c2275eaefed
+  version: 23def4e6c14b4da8ac2ed8007337bc5eb5007998
 - name: github.com/golang/groupcache
   version: 02826c3e79038b59d737d3b1c0a1d937f71a4433
   subpackages:
@@ -160,7 +165,7 @@ imports:
 - name: github.com/google/gofuzz
   version: 44d81051d367757e1c7c6a5a86423ece9afcf63c
 - name: github.com/google/uuid
-  version: e367a344cbe8e08149f9951115dc299ebd42b919
+  version: 8c31c18f31ede9fc8eae72290a7e7a8064e9b3e3
 - name: github.com/googleapis/gnostic
   version: 0c5108395e2debce0d731cf0287ddf7242066aba
   subpackages:
@@ -214,7 +219,7 @@ imports:
 - name: github.com/juju/ratelimit
   version: 5b9ff866471762aa2ab2dced63c9fb6f53921342
 - name: github.com/k8sdb/apimachinery
-  version: 8b792ad591d891f6710ab49aebef47e79cc908bf
+  version: d3caf1b393a21d24bacd0cc65e678848c71a37e3
   subpackages:
   - apis/kubedb
   - apis/kubedb/v1alpha1
@@ -225,11 +230,14 @@ imports:
   - pkg/docker
   - pkg/eventer
   - pkg/migrator
-  - pkg/monitor
   - pkg/storage
   - pkg/validator
+- name: github.com/kubernetes/apimachinery
+  version: 18a564baac720819100827c16fdebcadb05b2d0d
+  subpackages:
+  - pkg/conversion
 - name: github.com/lib/pq
-  version: b609790bd85edf8e9ab7e0f8912750a786177bcf
+  version: 69552e54d2a9d4c6a2438926a774930f7bc398ec
   subpackages:
   - oid
 - name: github.com/mailru/easyjson
@@ -267,7 +275,7 @@ imports:
 - name: github.com/opencontainers/go-digest
   version: a6d0ee40d4207ea02364bd3b9e8e77b9159ba1eb
 - name: github.com/orcaman/concurrent-map
-  version: 2ae17bc4c860c83513ee50feb9746f3e50d7515d
+  version: d4c23bd0e01134806215ffe65ba3fd22ec6721f7
 - name: github.com/peterbourgon/diskv
   version: 5f041e8faa004a95c88a202771f4cc3e991971e6
 - name: github.com/pkg/errors
@@ -305,11 +313,11 @@ imports:
 - name: github.com/sirupsen/logrus
   version: f006c2ac4710855cf0f916dd6b77acf6b048dc6e
 - name: github.com/spf13/cobra
-  version: 7b2c5ac9fc04fc5efafb60700713d4fa609b777b
+  version: 2da4a54c5ceefcee7ca5dd0eea1e18a3b6366489
   subpackages:
   - doc
 - name: github.com/spf13/pflag
-  version: 97afa5e7ca8a08a383cb259e06636b5e2cc7897f
+  version: 4c012f6dcd9546820e378d0bdda4d8fc772cdfea
 - name: golang.org/x/crypto
   version: 81e90905daefcd6fd217b62423c0908922eadb30
   subpackages:
@@ -367,7 +375,7 @@ imports:
   - unicode/norm
   - width
 - name: google.golang.org/api
-  version: 1575df15c1bb8b18ad4d9bc5ca495cc85b0764fe
+  version: a0c31fb0028e0111b942a29b9fc2e9235202c48b
   subpackages:
   - gensupport
   - googleapi
@@ -426,7 +434,7 @@ imports:
   - storage/v1
   - storage/v1beta1
 - name: k8s.io/apiextensions-apiserver
-  version: 89b2a556a65053a90552eaed26f810df4a266367
+  version: 5bc0d8f05a92b3a09bcf1a9db442a29c0b7a514d
   subpackages:
   - pkg/apis/apiextensions
   - pkg/apis/apiextensions/v1beta1
