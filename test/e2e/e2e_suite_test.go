@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
-	tcs "github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1"
+	api "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
+	cs "github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1"
 	amc "github.com/k8sdb/apimachinery/pkg/controller"
 	"github.com/k8sdb/postgres/pkg/controller"
 	"github.com/k8sdb/postgres/test/e2e/framework"
@@ -15,8 +15,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/reporters"
 	. "github.com/onsi/gomega"
-	apiextensionsclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
-	clientset "k8s.io/client-go/kubernetes"
+	crd_cs "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
@@ -54,9 +54,9 @@ var _ = BeforeSuite(func() {
 	config, err := clientcmd.BuildConfigFromFlags("", kubeconfigPath)
 	Expect(err).NotTo(HaveOccurred())
 	// Clients
-	kubeClient := clientset.NewForConfigOrDie(config)
-	apiExtKubeClient := apiextensionsclient.NewForConfigOrDie(config)
-	extClient := tcs.NewForConfigOrDie(config)
+	kubeClient := kubernetes.NewForConfigOrDie(config)
+	apiExtKubeClient := crd_cs.NewForConfigOrDie(config)
+	extClient := cs.NewForConfigOrDie(config)
 	// Framework
 	root = framework.New(kubeClient, extClient, storageClass)
 
@@ -72,7 +72,7 @@ var _ = BeforeSuite(func() {
 
 	opt := controller.Options{
 		OperatorNamespace: root.Namespace(),
-		GoverningService:  tapi.DatabaseNamePrefix,
+		GoverningService:  api.DatabaseNamePrefix,
 	}
 
 	// Controller

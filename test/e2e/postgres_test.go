@@ -1,6 +1,7 @@
 package e2e_test
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/appscode/go/types"
@@ -9,8 +10,8 @@ import (
 	"github.com/k8sdb/postgres/test/e2e/matcher"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
-	apiv1 "k8s.io/client-go/pkg/api/v1"
 )
 
 const (
@@ -26,7 +27,7 @@ var _ = Describe("Postgres", func() {
 		f           *framework.Invocation
 		postgres    *tapi.Postgres
 		snapshot    *tapi.Snapshot
-		secret      *apiv1.Secret
+		secret      *core.Secret
 		skipMessage string
 	)
 
@@ -46,7 +47,7 @@ var _ = Describe("Postgres", func() {
 		f.EventuallyPostgresRunning(postgres.ObjectMeta).Should(BeTrue())
 	}
 
-	var deleteTestResouce = func() {
+	var deleteTestResource = func() {
 		By("Delete postgres")
 		err = f.DeletePostgres(postgres.ObjectMeta)
 		Expect(err).NotTo(HaveOccurred())
@@ -77,7 +78,7 @@ var _ = Describe("Postgres", func() {
 		createAndWaitForRunning()
 
 		// Delete test resource
-		deleteTestResouce()
+		deleteTestResource()
 	}
 
 	Describe("Test", func() {
@@ -93,10 +94,10 @@ var _ = Describe("Postgres", func() {
 					if f.StorageClass == "" {
 						skipMessage = "Missing StorageClassName. Provide as flag to test this."
 					}
-					postgres.Spec.Storage = &apiv1.PersistentVolumeClaimSpec{
-						Resources: apiv1.ResourceRequirements{
-							Requests: apiv1.ResourceList{
-								apiv1.ResourceStorage: resource.MustParse("5Gi"),
+					postgres.Spec.Storage = &core.PersistentVolumeClaimSpec{
+						Resources: core.ResourceRequirements{
+							Requests: core.ResourceList{
+								core.ResourceStorage: resource.MustParse("5Gi"),
 							},
 						},
 						StorageClassName: types.StringP(f.StorageClass),
@@ -132,7 +133,7 @@ var _ = Describe("Postgres", func() {
 				})
 
 				// Delete test resource
-				deleteTestResouce()
+				deleteTestResource()
 			})
 		})
 
@@ -167,7 +168,7 @@ var _ = Describe("Postgres", func() {
 				}
 
 				// Delete test resource
-				deleteTestResouce()
+				deleteTestResource()
 
 				if !skipDataCheck {
 					By("Check for snapshot data")
@@ -182,8 +183,8 @@ var _ = Describe("Postgres", func() {
 					snapshot.Spec.StorageSecretName = secret.Name
 					snapshot.Spec.Local = &tapi.LocalSpec{
 						Path: "/repo",
-						VolumeSource: apiv1.VolumeSource{
-							HostPath: &apiv1.HostPathVolumeSource{
+						VolumeSource: core.VolumeSource{
+							HostPath: &core.HostPathVolumeSource{
 								Path: "/repo",
 							},
 						},
@@ -248,8 +249,8 @@ var _ = Describe("Postgres", func() {
 					postgres.Spec.Init = &tapi.InitSpec{
 						ScriptSource: &tapi.ScriptSourceSpec{
 							ScriptPath: "postgres-init-scripts/run.sh",
-							VolumeSource: apiv1.VolumeSource{
-								GitRepo: &apiv1.GitRepoVolumeSource{
+							VolumeSource: core.VolumeSource{
+								GitRepo: &core.GitRepoVolumeSource{
 									Repository: "https://github.com/k8sdb/postgres-init-scripts.git",
 								},
 							},
@@ -298,10 +299,10 @@ var _ = Describe("Postgres", func() {
 					createAndWaitForRunning()
 
 					// Delete test resource
-					deleteTestResouce()
+					deleteTestResource()
 					postgres = oldPostgres
 					// Delete test resource
-					deleteTestResouce()
+					deleteTestResource()
 				}
 
 				Context("with S3", func() {
@@ -369,7 +370,7 @@ var _ = Describe("Postgres", func() {
 				}
 
 				// Delete test resource
-				deleteTestResouce()
+				deleteTestResource()
 			}
 
 			Context("-", func() {
@@ -382,8 +383,8 @@ var _ = Describe("Postgres", func() {
 					postgres.Spec.Init = &tapi.InitSpec{
 						ScriptSource: &tapi.ScriptSourceSpec{
 							ScriptPath: "postgres-init-scripts/run.sh",
-							VolumeSource: apiv1.VolumeSource{
-								GitRepo: &apiv1.GitRepoVolumeSource{
+							VolumeSource: core.VolumeSource{
+								GitRepo: &core.GitRepoVolumeSource{
 									Repository: "https://github.com/k8sdb/postgres-init-scripts.git",
 								},
 							},
@@ -408,6 +409,9 @@ var _ = Describe("Postgres", func() {
 					// Create Postgres object again to resume it
 					By("Create Postgres: " + postgres.Name)
 					err = f.CreatePostgres(postgres)
+					if err != nil {
+						fmt.Println(err)
+					}
 					Expect(err).NotTo(HaveOccurred())
 
 					By("Wait for DormantDatabase to be deleted")
@@ -420,7 +424,53 @@ var _ = Describe("Postgres", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					// Delete test resource
-					deleteTestResouce()
+					deleteTestResource()
+				})
+				Context("with init", func() {
+					BeforeEach(func() {
+						usedInitSpec = true
+						postgres.Spec.Init = &tapi.InitSpec{
+							ScriptSource: &tapi.ScriptSourceSpec{
+								ScriptPath: "postgres-init-scripts/run.sh",
+								VolumeSource: core.VolumeSource{
+									GitRepo: &core.GitRepoVolumeSource{
+										Repository: "https://github.com/k8sdb/postgres-init-scripts.git",
+									},
+								},
+							},
+						}
+					})
+
+					It("should resume DormantDatabase successfully", func() {
+						// Create and wait for running Postgres
+						createAndWaitForRunning()
+
+						for i := 0; i < 3; i++ {
+							By(fmt.Sprintf("%v-th", i+1) + " time running.")
+							By("Delete postgres")
+							f.DeletePostgres(postgres.ObjectMeta)
+
+							By("Wait for postgres to be paused")
+							f.EventuallyDormantDatabaseStatus(postgres.ObjectMeta).Should(matcher.HavePaused())
+
+							// Create Postgres object again to resume it
+							By("Create Postgres: " + postgres.Name)
+							err = f.CreatePostgres(postgres)
+							Expect(err).NotTo(HaveOccurred())
+
+							By("Wait for DormantDatabase to be deleted")
+							f.EventuallyDormantDatabase(postgres.ObjectMeta).Should(BeFalse())
+
+							By("Wait for Running postgres")
+							f.EventuallyPostgresRunning(postgres.ObjectMeta).Should(BeTrue())
+
+							_, err := f.GetPostgres(postgres.ObjectMeta)
+							Expect(err).NotTo(HaveOccurred())
+						}
+
+						// Delete test resource
+						deleteTestResource()
+					})
 				})
 			})
 		})
@@ -442,8 +492,8 @@ var _ = Describe("Postgres", func() {
 							StorageSecretName: secret.Name,
 							Local: &tapi.LocalSpec{
 								Path: "/repo",
-								VolumeSource: apiv1.VolumeSource{
-									HostPath: &apiv1.HostPathVolumeSource{
+								VolumeSource: core.VolumeSource{
+									HostPath: &core.HostPathVolumeSource{
 										Path: "/repo",
 									},
 								},
@@ -462,7 +512,7 @@ var _ = Describe("Postgres", func() {
 					By("Count multiple Snapshot")
 					f.EventuallySnapshotCount(postgres.ObjectMeta).Should(matcher.MoreThan(3))
 
-					deleteTestResouce()
+					deleteTestResource()
 				})
 			})
 
@@ -482,8 +532,8 @@ var _ = Describe("Postgres", func() {
 								StorageSecretName: secret.Name,
 								Local: &tapi.LocalSpec{
 									Path: "/repo",
-									VolumeSource: apiv1.VolumeSource{
-										HostPath: &apiv1.HostPathVolumeSource{
+									VolumeSource: core.VolumeSource{
+										HostPath: &core.HostPathVolumeSource{
 											Path: "/repo",
 										},
 									},
@@ -498,7 +548,7 @@ var _ = Describe("Postgres", func() {
 					By("Count multiple Snapshot")
 					f.EventuallySnapshotCount(postgres.ObjectMeta).Should(matcher.MoreThan(3))
 
-					deleteTestResouce()
+					deleteTestResource()
 				})
 			})
 		})

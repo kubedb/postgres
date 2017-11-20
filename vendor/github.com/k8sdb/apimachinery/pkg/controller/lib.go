@@ -7,22 +7,22 @@ import (
 
 	"github.com/appscode/go/log"
 	"github.com/appscode/go/types"
-	kutilapps "github.com/appscode/kutil/apps/v1beta1"
+	apps_util "github.com/appscode/kutil/apps/v1beta1"
 	"github.com/graymeta/stow"
 	_ "github.com/graymeta/stow/azure"
 	_ "github.com/graymeta/stow/google"
 	_ "github.com/graymeta/stow/s3"
-	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
+	api "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/k8sdb/apimachinery/pkg/eventer"
 	"github.com/k8sdb/apimachinery/pkg/storage"
+	apps "k8s.io/api/apps/v1beta1"
+	batch "k8s.io/api/batch/v1"
+	core "k8s.io/api/core/v1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
-	clientset "k8s.io/client-go/kubernetes"
-	apiv1 "k8s.io/client-go/pkg/api/v1"
-	apps "k8s.io/client-go/pkg/apis/apps/v1beta1"
-	batch "k8s.io/client-go/pkg/apis/batch/v1"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/record"
 )
 
@@ -51,7 +51,7 @@ func (c *Controller) CheckStatefulSetPodStatus(statefulSet *apps.StatefulSet, ch
 		log.Debugf("Pod Phase: %v", pod.Status.Phase)
 
 		// If job is success
-		if pod.Status.Phase == apiv1.PodRunning {
+		if pod.Status.Phase == core.PodRunning {
 			podReady = true
 			break
 		}
@@ -83,7 +83,7 @@ func (c *Controller) DeletePersistentVolumeClaims(namespace string, selector lab
 	return nil
 }
 
-func (c *Controller) DeleteSnapshotData(snapshot *tapi.Snapshot) error {
+func (c *Controller) DeleteSnapshotData(snapshot *api.Snapshot) error {
 	cfg, err := storage.NewOSMContext(c.Client, snapshot.Spec.SnapshotStorageSpec, snapshot.Namespace)
 	if err != nil {
 		return err
@@ -162,8 +162,8 @@ func (c *Controller) CheckDatabaseRestoreJob(
 				continue
 			}
 			recorder.Eventf(
-				tapi.ObjectReferenceFor(runtimeObj),
-				apiv1.EventTypeWarning,
+				api.ObjectReferenceFor(runtimeObj),
+				core.EventTypeWarning,
 				eventer.EventReasonFailedToList,
 				"Failed to get Job. Reason: %v",
 				err,
@@ -222,13 +222,13 @@ func (c *Controller) CreateGoverningService(name, namespace string) error {
 		return nil
 	}
 
-	service := &apiv1.Service{
+	service := &core.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
 		},
-		Spec: apiv1.ServiceSpec{
-			Type:      apiv1.ServiceTypeClusterIP,
-			ClusterIP: apiv1.ClusterIPNone,
+		Spec: core.ServiceSpec{
+			Type:      core.ServiceTypeClusterIP,
+			ClusterIP: core.ClusterIPNone,
 		},
 	}
 	_, err = c.Client.CoreV1().Services(namespace).Create(service)
@@ -245,7 +245,7 @@ func (c *Controller) DeleteService(name, namespace string) error {
 		}
 	}
 
-	if service.Spec.Selector[tapi.LabelDatabaseName] != name {
+	if service.Spec.Selector[api.LabelDatabaseName] != name {
 		return nil
 	}
 
@@ -263,7 +263,7 @@ func (c *Controller) DeleteStatefulSet(name, namespace string) error {
 	}
 
 	// Update StatefulSet
-	_, err = kutilapps.TryPatchStatefulSet(c.Client, statefulSet.ObjectMeta, func(in *apps.StatefulSet) *apps.StatefulSet {
+	_, err = apps_util.TryPatchStatefulSet(c.Client, statefulSet.ObjectMeta, func(in *apps.StatefulSet) *apps.StatefulSet {
 		in.Spec.Replicas = types.Int32P(0)
 		return in
 	})
@@ -311,15 +311,15 @@ func (c *Controller) DeleteSecret(name, namespace string) error {
 }
 
 func deleteJobResources(
-	client clientset.Interface,
+	client kubernetes.Interface,
 	recorder record.EventRecorder,
 	runtimeObj runtime.Object,
 	job *batch.Job,
 ) {
 	if err := client.BatchV1().Jobs(job.Namespace).Delete(job.Name, nil); err != nil && !kerr.IsNotFound(err) {
 		recorder.Eventf(
-			tapi.ObjectReferenceFor(runtimeObj),
-			apiv1.EventTypeWarning,
+			api.ObjectReferenceFor(runtimeObj),
+			core.EventTypeWarning,
 			eventer.EventReasonFailedToDelete,
 			"Failed to delete Job. Reason: %v",
 			err,
@@ -336,8 +336,8 @@ func deleteJobResources(
 		})
 		if err != nil {
 			recorder.Eventf(
-				tapi.ObjectReferenceFor(runtimeObj),
-				apiv1.EventTypeWarning,
+				api.ObjectReferenceFor(runtimeObj),
+				core.EventTypeWarning,
 				eventer.EventReasonFailedToDelete,
 				"Failed to delete Pods. Reason: %v",
 				err,
@@ -352,8 +352,8 @@ func deleteJobResources(
 			err := client.CoreV1().PersistentVolumeClaims(job.Namespace).Delete(claim.ClaimName, nil)
 			if err != nil && !kerr.IsNotFound(err) {
 				recorder.Eventf(
-					tapi.ObjectReferenceFor(runtimeObj),
-					apiv1.EventTypeWarning,
+					api.ObjectReferenceFor(runtimeObj),
+					core.EventTypeWarning,
 					eventer.EventReasonFailedToDelete,
 					"Failed to delete PersistentVolumeClaim. Reason: %v",
 					err,
