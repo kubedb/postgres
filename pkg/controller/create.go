@@ -200,7 +200,7 @@ func (c *Controller) createStatefulSet(postgres *tapi.Postgres) (*apps.StatefulS
 			c.recorder.Eventf(postgres.ObjectReference(), apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
 			return nil, err
 		}
-		postgres = _postgres
+		*postgres = *_postgres //ref: https://stackoverflow.com/questions/34493586/why-struct-i-pass-does-not-change
 	}
 
 	// Add secretVolume for authentication
