@@ -42,7 +42,7 @@ func (c *Controller) findService(postgres *tapi.Postgres) (bool, error) {
 	}
 
 	if service.Spec.Selector[tapi.LabelDatabaseName] != name {
-		return false, fmt.Errorf(`Intended service "%v" already exists`, name)
+		return false, fmt.Errorf(`intended service "%v" already exists`, name)
 	}
 
 	return true, nil
@@ -94,7 +94,7 @@ func (c *Controller) findStatefulSet(postgres *tapi.Postgres) (bool, error) {
 	}
 
 	if statefulSet.Labels[tapi.LabelDatabaseKind] != tapi.ResourceKindPostgres {
-		return false, fmt.Errorf(`Intended statefulSet "%v" already exists`, postgres.OffshootName())
+		return false, fmt.Errorf(`intended statefulSet "%v" already exists`, postgres.OffshootName())
 	}
 
 	return true, nil

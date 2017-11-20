@@ -1,5 +1,5 @@
 hash: 3e6ad38dbd5689500b36d90bf47fab7d9652942e520c070d5b5a8930e4d2f4b4
-updated: 2017-11-20T18:26:22.060810556+06:00
+updated: 2017-11-20T18:40:05.577576173+06:00
 imports:
 - name: cloud.google.com/go
   version: fe3d41e1ecb2ce36ad3a979037c9b9a2b726226f
@@ -15,6 +15,7 @@ imports:
   - encoding/yaml
   - hold
   - log
+  - log/golog
   - runtime
   - types
   - version
@@ -30,10 +31,6 @@ imports:
   - tools/monitoring/agents/coreosprometheusoperator
   - tools/monitoring/agents/prometheusbuiltin
   - tools/monitoring/api
-- name: github.com/appscode/log
-  version: 68e0e42e42c01371f3950571fc87c2298a51dd8f
-  subpackages:
-  - golog
 - name: github.com/appscode/mergo
   version: e3000cb3d28c72b837601cac94debd91032d19fe
 - name: github.com/appscode/osm

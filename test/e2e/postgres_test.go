@@ -409,6 +409,7 @@ var _ = Describe("Postgres", func() {
 					// Create Postgres object again to resume it
 					By("Create Postgres: " + postgres.Name)
 					err = f.CreatePostgres(postgres)
+
 					if err != nil {
 						fmt.Println(err)
 					}
