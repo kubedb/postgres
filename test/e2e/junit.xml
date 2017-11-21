@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-  <testsuite tests="1" failures="0" time="267.480644032">
+  <testsuite tests="1" failures="0" time="195.97219451">
       <testcase name="Postgres Test General - should run successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
@@ -28,6 +28,25 @@
           <skipped></skipped>
       </testcase>
       <testcase name="Postgres Test Initialize With Snapshot with S3 should run successfully" classname="e2e Suite" time="0">
+          <skipped></skipped>
+      </testcase>
+      <testcase name="Postgres Test Initialize With Snapshot with GCS should run successfully" classname="e2e Suite" time="195.856128687"></testcase>
+      <testcase name="Postgres Test Resume - should resume DormantDatabase successfully" classname="e2e Suite" time="0">
+          <skipped></skipped>
+      </testcase>
+      <testcase name="Postgres Test Resume With Init should resume DormantDatabase successfully" classname="e2e Suite" time="0">
+          <skipped></skipped>
+      </testcase>
+      <testcase name="Postgres Test Resume With original Postgres should resume DormantDatabase successfully" classname="e2e Suite" time="0">
+          <skipped></skipped>
+      </testcase>
+      <testcase name="Postgres Test Resume With original Postgres with init should resume DormantDatabase successfully" classname="e2e Suite" time="0">
+          <skipped></skipped>
+      </testcase>
+      <testcase name="Postgres Test SnapshotScheduler With Startup should run schedular successfully" classname="e2e Suite" time="0">
+          <skipped></skipped>
+      </testcase>
+      <testcase name="Postgres Test SnapshotScheduler With Update should run schedular successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
   </testsuite>

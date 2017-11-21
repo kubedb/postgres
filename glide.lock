@@ -1,5 +1,5 @@
 hash: 3e6ad38dbd5689500b36d90bf47fab7d9652942e520c070d5b5a8930e4d2f4b4
-updated: 2017-11-20T18:40:05.577576173+06:00
+updated: 2017-11-21T10:51:32.5952185+06:00
 imports:
 - name: cloud.google.com/go
   version: fe3d41e1ecb2ce36ad3a979037c9b9a2b726226f
@@ -7,7 +7,7 @@ imports:
   - compute/metadata
   - internal
 - name: github.com/appscode/go
-  version: 1cd97c853ad364376f9c792106deb0bfd197bca0
+  version: 85b510edd14fe8d6beb2ad365afd3c5b3afc8c49
   subpackages:
   - context
   - crypto/rand

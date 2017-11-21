@@ -215,7 +215,7 @@ var _ = Describe("Postgres", func() {
 					}
 				})
 
-				FIt("should take Snapshot successfully", shouldTakeSnapshot)
+				It("should take Snapshot successfully", shouldTakeSnapshot)
 			})
 
 			Context("In Azure", func() {
@@ -328,7 +328,7 @@ var _ = Describe("Postgres", func() {
 						snapshot.Spec.DatabaseName = postgres.Name
 					})
 
-					FIt("should run successfully", shouldRestoreSnapshot)
+					It("should run successfully", shouldRestoreSnapshot)
 				})
 			})
 		})
