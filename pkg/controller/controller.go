@@ -180,6 +180,7 @@ func (c *Controller) watchSnapshot() {
 				})
 		},
 	}
+
 	amc.NewSnapshotController(c.Client, c.ApiExtKubeClient, c.ExtClient, c, lw, c.syncPeriod).Run()
 }
 

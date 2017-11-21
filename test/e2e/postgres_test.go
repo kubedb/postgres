@@ -476,7 +476,7 @@ var _ = Describe("Postgres", func() {
 			})
 		})
 
-		FContext("SnapshotScheduler", func() {
+		Context("SnapshotScheduler", func() {
 			AfterEach(func() {
 				f.DeleteSecret(secret.ObjectMeta)
 			})

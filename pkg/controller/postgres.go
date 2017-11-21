@@ -16,7 +16,6 @@ import (
 	core "k8s.io/api/core/v1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"github.com/the-redback/go-oneliners"
 )
 
 func (c *Controller) create(postgres *tapi.Postgres) error {
@@ -245,7 +244,6 @@ func (c *Controller) ensureStatefulSet(postgres *tapi.Postgres) error {
 		)
 		return err
 	}
-	oneliners.PrettyJson(postgres,"postgres sssssssssssssssss")
 
 	// Check StatefulSet Pod status
 	if err := c.CheckStatefulSetPodStatus(statefulSet, durationCheckStatefulSet); err != nil {

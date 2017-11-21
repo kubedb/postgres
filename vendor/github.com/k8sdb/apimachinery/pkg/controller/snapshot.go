@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/the-redback/go-oneliners"
 	"github.com/appscode/go/log"
 	"github.com/appscode/go/wait"
 	api "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
@@ -122,11 +121,9 @@ func (c *SnapshotController) watch() {
 		c.syncPeriod,
 		cache.ResourceEventHandlerFuncs{
 			AddFunc: func(obj interface{}) {
-				oneliners.FILE("################# Snapshot add func!!!")
 				snapshot := obj.(*api.Snapshot)
 				util.AssignTypeKind(snapshot)
 				if snapshot.Status.StartTime == nil {
-					oneliners.FILE(">>>>>>>>>>>>>>>>>>>>. Snapshot detedcted!!!!>>>>>>>>>>>>>>>")
 					if err := c.create(snapshot); err != nil {
 						log.Errorln(err)
 					}
@@ -149,43 +146,33 @@ const (
 )
 
 func (c *SnapshotController) create(snapshot *api.Snapshot) error {
-	oneliners.FILE(">>>>1")
 	_, err := util.TryPatchSnapshot(c.extClient, snapshot.ObjectMeta, func(in *api.Snapshot) *api.Snapshot {
 		t := metav1.Now()
 		in.Status.StartTime = &t
 		return in
 	})
-	oneliners.FILE(">>>>2")
 	if err != nil {
 		c.eventRecorder.Eventf(snapshot.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
 		return err
 	}
 
-	oneliners.FILE(">>>>3")
-
 	// Validate DatabaseSnapshot spec
 	if err := c.snapshoter.ValidateSnapshot(snapshot); err != nil {
-		oneliners.FILE(">>>>4",err)
 		c.eventRecorder.Event(snapshot.ObjectReference(), core.EventTypeWarning, eventer.EventReasonInvalid, err.Error())
 		return err
 	}
 
-	oneliners.FILE(">>>>5")
-
 	// Check running snapshot
 	if err := c.checkRunningSnapshot(snapshot); err != nil {
-		oneliners.FILE(">>>>6")
 		c.eventRecorder.Event(snapshot.ObjectReference(), core.EventTypeWarning, eventer.EventReasonSnapshotFailed, err.Error())
 		return err
 	}
 
 	runtimeObj, err := c.snapshoter.GetDatabase(snapshot)
 	if err != nil {
-		oneliners.FILE(">>>>7")
 		c.eventRecorder.Event(snapshot.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToGet, err.Error())
 		return err
 	}
-
 
 	_, err = util.TryPatchSnapshot(c.extClient, snapshot.ObjectMeta, func(in *api.Snapshot) *api.Snapshot {
 		in.Labels[api.LabelDatabaseName] = snapshot.Spec.DatabaseName

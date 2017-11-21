@@ -18,7 +18,6 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
-	"github.com/the-redback/go-oneliners"
 	"k8s.io/client-go/tools/record"
 )
 
@@ -69,17 +68,13 @@ func (c *cronController) ScheduleBackup(
 	// BackupScheduleSpec
 	spec *api.BackupScheduleSpec,
 ) error {
-	oneliners.FILE(1)
 	// cronEntry name
 	cronEntryName := fmt.Sprintf("%v@%v", om.Name, om.Namespace)
 
 	// Remove previous cron job if exist
 	if id, exists := c.cronEntryIDs.Pop(cronEntryName); exists {
-		oneliners.FILE(2)
 		c.cron.Remove(id.(cron.EntryID))
 	}
-
-	oneliners.PrettyJson(runtimeObj,"Runtime Object")
 
 	invoker := &snapshotInvoker{
 		extClient:     c.extClient,
@@ -89,27 +84,17 @@ func (c *cronController) ScheduleBackup(
 		eventRecorder: c.eventRecorder,
 	}
 
-	oneliners.FILE(invoker.runtimeObject,"Runtime Object!!!!!!!!!!!<<<<<<<<<<<<<<<<")
-	oneliners.FILE(invoker.runtimeObject.GetObjectKind(),"Groupobject kind!!!!!!!!!!!<<<<<<<<<<<<<<<<")
-	oneliners.FILE(invoker.runtimeObject.GetObjectKind().GroupVersionKind(), "groupversion<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-	oneliners.FILE(invoker.runtimeObject.GetObjectKind().GroupVersionKind().Kind, "kind<<<<<<<<<<<<<<<<<<<<<<<<<<")
-
-	oneliners.FILE(3)
-
 	if err := invoker.validateScheduler(durationCheckSnapshotJob); err != nil {
-		oneliners.FILE(4)
 		return err
 	}
 
 	// Set cron job
 	entryID, err := c.cron.AddFunc(spec.CronExpression, invoker.createScheduledSnapshot)
 	if err != nil {
-		oneliners.FILE(5)
 		return err
 	}
 
 	// Add job entryID
-	oneliners.FILE(6)
 	c.cronEntryIDs.Set(cronEntryName, entryID)
 	return nil
 }
@@ -178,7 +163,6 @@ func (s *snapshotInvoker) validateScheduler(checkDuration time.Duration) error {
 }
 
 func (s *snapshotInvoker) createScheduledSnapshot() {
-	oneliners.FILE("#1")
 	kind := s.runtimeObject.GetObjectKind().GroupVersionKind().Kind
 	name := s.om.Name
 
@@ -188,13 +172,10 @@ func (s *snapshotInvoker) createScheduledSnapshot() {
 		api.LabelSnapshotStatus: string(api.SnapshotPhaseRunning),
 	}
 
-	oneliners.PrettyJson(labelMap,"LabelMap >>>>>>>>>>>")
-
 	snapshotList, err := s.extClient.Snapshots(s.om.Namespace).List(metav1.ListOptions{
 		LabelSelector: labels.Set(labelMap).AsSelector().String(),
 	})
 	if err != nil {
-		oneliners.FILE("#2")
 		s.eventRecorder.Eventf(
 			api.ObjectReferenceFor(s.runtimeObject),
 			core.EventTypeWarning,
@@ -207,7 +188,6 @@ func (s *snapshotInvoker) createScheduledSnapshot() {
 	}
 
 	if len(snapshotList.Items) > 0 {
-		oneliners.FILE("#3")
 		s.eventRecorder.Event(
 			api.ObjectReferenceFor(s.runtimeObject),
 			core.EventTypeNormal,
@@ -226,22 +206,17 @@ func (s *snapshotInvoker) createScheduledSnapshot() {
 
 	now := time.Now().UTC()
 	snapshotName := fmt.Sprintf("%v-%v", s.om.Name, now.Format("20060102-150405"))
-	oneliners.FILE("#4")
 
 	if err = s.createSnapshot(snapshotName); err != nil {
-		oneliners.FILE("#5")
 		log.Errorln(err)
 	}
 }
 
 func (s *snapshotInvoker) createSnapshot(snapshotName string) error {
-	oneliners.FILE("@1")
 	labelMap := map[string]string{
 		api.LabelDatabaseKind: s.runtimeObject.GetObjectKind().GroupVersionKind().Kind,
 		api.LabelDatabaseName: s.om.Name,
 	}
-
-	oneliners.PrettyJson(labelMap,"LabelMap Snapshot")
 
 	snapshot := &api.Snapshot{
 		ObjectMeta: metav1.ObjectMeta{
@@ -255,10 +230,8 @@ func (s *snapshotInvoker) createSnapshot(snapshotName string) error {
 			Resources:           s.spec.Resources,
 		},
 	}
-	oneliners.FILE("@2")
-	oneliners.PrettyJson(snapshot)
+
 	if _, err := s.extClient.Snapshots(snapshot.Namespace).Create(snapshot); err != nil {
-		oneliners.FILE("@3")
 		s.eventRecorder.Eventf(
 			s.runtimeObject,
 			core.EventTypeWarning,
