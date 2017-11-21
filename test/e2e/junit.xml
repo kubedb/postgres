@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-  <testsuite tests="1" failures="0" time="176.888600817">
+  <testsuite tests="1" failures="0" time="191.107070464">
       <testcase name="Postgres Test General - should run successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
@@ -30,7 +30,7 @@
       <testcase name="Postgres Test Initialize With Snapshot with S3 should run successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="Postgres Test Initialize With Snapshot with GCS should run successfully" classname="e2e Suite" time="175.81625724"></testcase>
+      <testcase name="Postgres Test Initialize With Snapshot with GCS should run successfully" classname="e2e Suite" time="191.004722993"></testcase>
       <testcase name="Postgres Test Resume - should resume DormantDatabase successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>

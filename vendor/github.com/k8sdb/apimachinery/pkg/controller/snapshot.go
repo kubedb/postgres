@@ -354,7 +354,7 @@ func (c *SnapshotController) checkSnapshotJob(snapshot *api.Snapshot, jobName st
 
 	deleteJobResources(c.client, c.eventRecorder, snapshot, job)
 
-	err = c.client.CoreV1().Secrets(snapshot.Namespace).Delete(snapshot.Name, &metav1.DeleteOptions{})
+	err = c.client.CoreV1().Secrets(snapshot.Namespace).Delete(snapshot.OSMSecretName(), &metav1.DeleteOptions{})
 	if err != nil && !kerr.IsNotFound(err) {
 		c.eventRecorder.Eventf(
 			snapshot.ObjectReference(),
