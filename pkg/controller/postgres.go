@@ -13,6 +13,7 @@ import (
 	"github.com/k8sdb/apimachinery/pkg/eventer"
 	"github.com/k8sdb/apimachinery/pkg/storage"
 	"github.com/k8sdb/postgres/pkg/validator"
+	"github.com/the-redback/go-oneliners"
 	core "k8s.io/api/core/v1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -264,6 +265,8 @@ func (c *Controller) ensureStatefulSet(postgres *tapi.Postgres) error {
 		)
 	}
 
+	oneliners.PrettyJson(postgres)
+
 	if postgres.Spec.Init != nil && postgres.Spec.Init.SnapshotSource != nil {
 		_, err := kutildb.TryPatchPostgres(c.ExtClient, postgres.ObjectMeta, func(in *tapi.Postgres) *tapi.Postgres {
 			in.Status.Phase = tapi.DatabasePhaseInitializing
@@ -274,7 +277,10 @@ func (c *Controller) ensureStatefulSet(postgres *tapi.Postgres) error {
 			return err
 		}
 
+		oneliners.FILE(1)
+
 		if err := c.initialize(postgres); err != nil {
+			oneliners.FILE("Error 1: ",err)
 			c.recorder.Eventf(
 				postgres.ObjectReference(),
 				core.EventTypeWarning,
@@ -320,6 +326,7 @@ const (
 )
 
 func (c *Controller) initialize(postgres *tapi.Postgres) error {
+	oneliners.FILE("#1")
 	snapshotSource := postgres.Spec.Init.SnapshotSource
 	// Event for notification that kubernetes objects are creating
 	c.recorder.Eventf(
@@ -338,7 +345,7 @@ func (c *Controller) initialize(postgres *tapi.Postgres) error {
 	if err != nil {
 		return err
 	}
-
+	oneliners.FILE("#2")
 	secret, err := storage.NewOSMSecret(c.Client, snapshot)
 	if err != nil {
 		return err
@@ -348,6 +355,7 @@ func (c *Controller) initialize(postgres *tapi.Postgres) error {
 		return err
 	}
 
+	oneliners.FILE("#3")
 	job, err := c.createRestoreJob(postgres, snapshot)
 	if err != nil {
 		return err

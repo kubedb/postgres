@@ -288,6 +288,7 @@ var _ = Describe("Postgres", func() {
 
 					By("Create postgres from snapshot")
 					postgres = f.Postgres()
+					postgres.Spec.DatabaseSecret = oldPostgres.Spec.DatabaseSecret
 					postgres.Spec.Init = &tapi.InitSpec{
 						SnapshotSource: &tapi.SnapshotSourceSpec{
 							Namespace: snapshot.Namespace,
@@ -409,7 +410,6 @@ var _ = Describe("Postgres", func() {
 					// Create Postgres object again to resume it
 					By("Create Postgres: " + postgres.Name)
 					err = f.CreatePostgres(postgres)
-
 					if err != nil {
 						fmt.Println(err)
 					}
