@@ -79,6 +79,8 @@ func (c *cronController) ScheduleBackup(
 		c.cron.Remove(id.(cron.EntryID))
 	}
 
+	oneliners.PrettyJson(runtimeObj,"Runtime Object")
+
 	invoker := &snapshotInvoker{
 		extClient:     c.extClient,
 		runtimeObject: runtimeObj,
@@ -86,6 +88,11 @@ func (c *cronController) ScheduleBackup(
 		spec:          spec,
 		eventRecorder: c.eventRecorder,
 	}
+
+	oneliners.FILE(invoker.runtimeObject,"Runtime Object!!!!!!!!!!!<<<<<<<<<<<<<<<<")
+	oneliners.FILE(invoker.runtimeObject.GetObjectKind(),"Groupobject kind!!!!!!!!!!!<<<<<<<<<<<<<<<<")
+	oneliners.FILE(invoker.runtimeObject.GetObjectKind().GroupVersionKind(), "groupversion<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+	oneliners.FILE(invoker.runtimeObject.GetObjectKind().GroupVersionKind().Kind, "kind<<<<<<<<<<<<<<<<<<<<<<<<<<")
 
 	oneliners.FILE(3)
 
@@ -181,6 +188,8 @@ func (s *snapshotInvoker) createScheduledSnapshot() {
 		api.LabelSnapshotStatus: string(api.SnapshotPhaseRunning),
 	}
 
+	oneliners.PrettyJson(labelMap,"LabelMap >>>>>>>>>>>")
+
 	snapshotList, err := s.extClient.Snapshots(s.om.Namespace).List(metav1.ListOptions{
 		LabelSelector: labels.Set(labelMap).AsSelector().String(),
 	})
@@ -231,6 +240,8 @@ func (s *snapshotInvoker) createSnapshot(snapshotName string) error {
 		api.LabelDatabaseKind: s.runtimeObject.GetObjectKind().GroupVersionKind().Kind,
 		api.LabelDatabaseName: s.om.Name,
 	}
+
+	oneliners.PrettyJson(labelMap,"LabelMap Snapshot")
 
 	snapshot := &api.Snapshot{
 		ObjectMeta: metav1.ObjectMeta{
