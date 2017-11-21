@@ -14,7 +14,6 @@ import (
 	"github.com/k8sdb/apimachinery/pkg/docker"
 	"github.com/k8sdb/apimachinery/pkg/eventer"
 	"github.com/k8sdb/apimachinery/pkg/storage"
-	"github.com/the-redback/go-oneliners"
 	apps "k8s.io/api/apps/v1beta1"
 	batch "k8s.io/api/batch/v1"
 	core "k8s.io/api/core/v1"
@@ -428,7 +427,6 @@ const (
 )
 
 func (c *Controller) createRestoreJob(postgres *tapi.Postgres, snapshot *tapi.Snapshot) (*batch.Job, error) {
-	oneliners.FILE(1111111)
 	databaseName := postgres.Name
 	jobName := snapshot.OffshootName()
 	jobLabel := map[string]string{

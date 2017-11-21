@@ -1,5 +1,5 @@
-hash: 25bc36581b725f76d500bb1cb1e0da094765e11b64ce0e8a802032b0cb1dcc8d
-updated: 2017-11-21T15:58:59.925808701+06:00
+hash: 3e6ad38dbd5689500b36d90bf47fab7d9652942e520c070d5b5a8930e4d2f4b4
+updated: 2017-11-21T16:16:41.07666382+06:00
 imports:
 - name: cloud.google.com/go
   version: fe3d41e1ecb2ce36ad3a979037c9b9a2b726226f
@@ -217,7 +217,7 @@ imports:
 - name: github.com/juju/ratelimit
   version: 5b9ff866471762aa2ab2dced63c9fb6f53921342
 - name: github.com/k8sdb/apimachinery
-  version: 6b2f4d6e1390875d238a44dccc43c419c4537f9e
+  version: 2e7283a7319c811e5f4aa1fc66fccb12a4d10e72
   subpackages:
   - apis/kubedb
   - apis/kubedb/v1alpha1
@@ -316,8 +316,6 @@ imports:
   - doc
 - name: github.com/spf13/pflag
   version: 4c012f6dcd9546820e378d0bdda4d8fc772cdfea
-- name: github.com/the-redback/go-oneliners
-  version: bcec1af62911e852baddf07214f883258c2c179e
 - name: golang.org/x/crypto
   version: 81e90905daefcd6fd217b62423c0908922eadb30
   subpackages:

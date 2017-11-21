@@ -329,7 +329,7 @@ var _ = Describe("Postgres", func() {
 						snapshot.Spec.DatabaseName = postgres.Name
 					})
 
-					FIt("should run successfully", shouldRestoreSnapshot)
+					It("should run successfully", shouldRestoreSnapshot)
 				})
 			})
 		})
@@ -476,7 +476,7 @@ var _ = Describe("Postgres", func() {
 			})
 		})
 
-		Context("SnapshotScheduler", func() {
+		FContext("SnapshotScheduler", func() {
 			AfterEach(func() {
 				f.DeleteSecret(secret.ObjectMeta)
 			})
