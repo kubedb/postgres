@@ -20,6 +20,7 @@ import (
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"github.com/the-redback/go-oneliners"
 )
 
 const (
@@ -200,6 +201,8 @@ func (c *Controller) createStatefulSet(postgres *tapi.Postgres) (*apps.StatefulS
 			c.recorder.Eventf(postgres.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
 			return nil, err
 		}
+		oneliners.PrettyJson(postgres,"Postgres before assign")
+		oneliners.PrettyJson(_postgres,"Postgres after assign")
 		*postgres = *_postgres //ref: https://stackoverflow.com/questions/34493586/why-struct-i-pass-does-not-change
 	}
 
