@@ -24,7 +24,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/record"
-	_ "github.com/appscode/go/io"
 )
 
 type Options struct {

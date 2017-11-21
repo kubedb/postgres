@@ -38,7 +38,7 @@ from os.path import expandvars, join, dirname
 libbuild.REPO_ROOT = expandvars('$GOPATH') + '/src/github.com/k8sdb/postgres'
 BUILD_METADATA = libbuild.metadata(libbuild.REPO_ROOT)
 libbuild.BIN_MATRIX = {
-    'leader_election': {
+    'pg-operator': {
         'type': 'go',
         'go_version': True,
         'use_cgo': False,
@@ -100,9 +100,9 @@ def build_cmd(name):
         if 'distro' in cfg:
             for goos, archs in cfg['distro'].items():
                 for goarch in archs:
-                    libbuild.go_build(name, goos, goarch, main='pkg/cmds/leader_election/main.go')
+                    libbuild.go_build(name, goos, goarch, main='*.go')
         else:
-            libbuild.go_build(name, libbuild.GOHOSTOS, libbuild.GOHOSTARCH, main='pkg/cmds/leader_election/*.go')
+            libbuild.go_build(name, libbuild.GOHOSTOS, libbuild.GOHOSTARCH, main='*.go')
 
 
 def build_cmds():
