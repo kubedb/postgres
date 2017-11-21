@@ -6,7 +6,7 @@ metadata:
     app: postgres
 spec:
   serviceName: "kubedb"
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app: postgres
@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: postgres
-        image: aerokite/postgres:9.6.5-86
+        image: aerokite/postgres:9.6.5-106
         ports:
         - containerPort: 5432
           name: api

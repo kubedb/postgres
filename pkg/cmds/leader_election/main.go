@@ -44,7 +44,7 @@ func main() {
 	statefulsetName := strings.Join(parts[:len(parts)-1], "-")
 	configMapName := fmt.Sprintf("%v-leader-lock", statefulsetName)
 
-	fmt.Printf(`We want "%v" as our leader`, hostname)
+	fmt.Println(fmt.Sprintf(`We want "%v" as our leader`, hostname))
 
 	config, err := restclient.InClusterConfig()
 	if err != nil {

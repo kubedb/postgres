@@ -9,7 +9,7 @@ reset_owner() {
 
 initialize() {
 	mkdir -p "$PGDATA"
-	rm -rf "$PGDATA/*"
+	rm -rf "$PGDATA"/*
 	reset_owner
 	initdb "$PGDATA"
 }
@@ -88,7 +88,8 @@ use_standby() {
     if [[ -v ARCHIVE ]]; then
         if [ "$ARCHIVE" == "wal-g" ]; then
             set_walg_env
-            echo "archive_command = 'test ! -f $PGWAL/%f && wal-g wal-push %p'" >> /tmp/postgresql.conf
+            echo "archive_timeout = 60" >> /tmp/postgresql.conf
+            echo "archive_command = 'wal-g wal-push %p'" >> /tmp/postgresql.conf
         fi
     fi
 
@@ -187,6 +188,9 @@ init_database() {
 push_backup() {
     if [[ -v ARCHIVE ]]; then
         if [ "$ARCHIVE" == "wal-g" ]; then
+
+            echo "Pushing base backup"
+
             set_walg_env
             create_pgpass_file
 
@@ -195,28 +199,49 @@ push_backup() {
                 PGHOST="$PRIMARY_HOST"
             fi
 
-            ls -la "$PGDATA"
-
             pg_ctl -D "$PGDATA"  -w start
             PGPORT="5432" PGUSER="postgres" wal-g backup-push "$PGDATA" >/dev/null
             pg_ctl -D "$PGDATA" -m fast -w stop
+
+            echo "Successfully pushed backup"
         fi
     fi
 }
 
 restore_from_walg() {
     mkdir -p "$PGDATA"
-	rm -rf "$PGDATA/*"
+	rm -rf "$PGDATA"/*
 	reset_owner
+
 	set_walg_env
 
 	wal-g backup-fetch "$PGDATA" LATEST >/dev/null
 
 	configure_replica_postgres
 
-	mkdir -p "$PGDATA"/{pg_tblspc,pg_twophase,pg_stat}/
+	mkdir -p "$PGDATA"/{pg_tblspc,pg_twophase,pg_stat,pg_commit_ts}/
+	mkdir -p "$PGDATA"/pg_logical/{snapshots,mappings}/
 
 	cp /scripts/replica/recovery.conf /tmp
 	echo "restore_command = 'wal-g wal-fetch %f %p'" >> /tmp/recovery.conf
     cp /tmp/recovery.conf "$PGDATA/recovery.conf"
+
+    touch '/tmp/pg-failover-trigger'
+
+    check_recovery_done &
+}
+
+
+check_recovery_done() {
+    while [ -f "/tmp/pg-failover-trigger" ]
+    do
+        echo "Waiting for archive recovery complete"
+        sleep 2
+    done
+
+    create_pgpass_file
+
+    PGHOST="127.0.0.1" PGPORT="5432" PGUSER="postgres" wal-g backup-push "$PGDATA" >/dev/null
+
+    echo "Successfully pushed backup"
 }
