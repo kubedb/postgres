@@ -328,7 +328,7 @@ var _ = Describe("Postgres", func() {
 						snapshot.Spec.DatabaseName = postgres.Name
 					})
 
-					It("should run successfully", shouldRestoreSnapshot)
+					FIt("should run successfully", shouldRestoreSnapshot)
 				})
 			})
 		})

@@ -505,7 +505,7 @@ func (c *Controller) createRestoreJob(postgres *tapi.Postgres, snapshot *tapi.Sn
 							Name: "osmconfig",
 							VolumeSource: core.VolumeSource{
 								Secret: &core.SecretVolumeSource{
-									SecretName: snapshot.Name,
+									SecretName: snapshot.OSMSecretName(),
 								},
 							},
 						},
