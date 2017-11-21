@@ -1,5 +1,5 @@
-hash: eda54fd9d303e6df5c2eef78f463b8a1d49bd9b79e2e59deaac582fb19a67e3f
-updated: 2017-11-09T12:04:43.549311444+06:00
+hash: 33a76c57f7afc5e216e8598a46af7689b1346498d8357a2e84570f7fcb96d21b
+updated: 2017-11-21T05:51:56.996665226-08:00
 imports:
 - name: cloud.google.com/go
   version: fe3d41e1ecb2ce36ad3a979037c9b9a2b726226f
@@ -7,7 +7,7 @@ imports:
   - compute/metadata
   - internal
 - name: github.com/appscode/go
-  version: 6c0d0eba230ad31f74a18b44beee6f865b01bdec
+  version: 85b510edd14fe8d6beb2ad365afd3c5b3afc8c49
   subpackages:
   - context
   - crypto/rand
@@ -16,24 +16,26 @@ imports:
   - hold
   - io
   - log
+  - log/golog
   - runtime
   - types
   - version
   - wait
 - name: github.com/appscode/kutil
-  version: f672d520d10c210f9fadf92d31fc179ad24ef96e
+  version: c7547d78847930f4b48c4e3b3d6fe1d8b0309bd7
   subpackages:
   - apps/v1beta1
   - core/v1
+  - meta
   - rbac/v1beta1
-- name: github.com/appscode/log
-  version: 68e0e42e42c01371f3950571fc87c2298a51dd8f
-  subpackages:
-  - golog
+  - tools/monitoring/agents
+  - tools/monitoring/agents/coreosprometheusoperator
+  - tools/monitoring/agents/prometheusbuiltin
+  - tools/monitoring/api
 - name: github.com/appscode/mergo
   version: e3000cb3d28c72b837601cac94debd91032d19fe
 - name: github.com/appscode/osm
-  version: c4eb9d9f2fa11a22cd4b5f358afa5c89245059b4
+  version: 7b0b6f4f329d8d1ed786020d7e7ad865c61f8e7f
   subpackages:
   - context
 - name: github.com/appscode/pat
@@ -90,7 +92,7 @@ imports:
   subpackages:
   - pkg/client/monitoring/v1
 - name: github.com/cpuguy83/go-md2man
-  version: 71acacd42f85e5e82f70a55327789582a5200a90
+  version: 1d903dcb749992f3741d744c0f8376b4bd7eb3e1
   subpackages:
   - md2man
 - name: github.com/davecgh/go-spew
@@ -151,6 +153,7 @@ imports:
 - name: github.com/golang/protobuf
   version: 4bd1920723d7b7c925de087aa32e2187708897f7
   subpackages:
+  - jsonpb
   - proto
   - ptypes
   - ptypes/any
@@ -161,22 +164,13 @@ imports:
 - name: github.com/google/gofuzz
   version: 44d81051d367757e1c7c6a5a86423ece9afcf63c
 - name: github.com/google/uuid
-  version: e367a344cbe8e08149f9951115dc299ebd42b919
+  version: 8c31c18f31ede9fc8eae72290a7e7a8064e9b3e3
 - name: github.com/googleapis/gnostic
   version: 0c5108395e2debce0d731cf0287ddf7242066aba
   subpackages:
   - OpenAPIv2
   - compiler
   - extensions
-- name: github.com/gophercloud/gophercloud
-  version: 2bf16b94fdd9b01557c4d076e567fe5cbbe5a961
-  subpackages:
-  - openstack
-  - openstack/identity/v2/tenants
-  - openstack/identity/v2/tokens
-  - openstack/identity/v3/tokens
-  - openstack/utils
-  - pagination
 - name: github.com/gorilla/context
   version: 08b5f424b9271eedf6f9f0ce86cb9396ed337a42
 - name: github.com/gorilla/mux
@@ -216,7 +210,7 @@ imports:
 - name: github.com/inconshreveable/mousetrap
   version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
 - name: github.com/jmespath/go-jmespath
-  version: 3433f3ea46d9f8019119e7dd41274e112a2359a9
+  version: dd801d4f4ce7ac746e7e7b4489d2fa600b3b096b
 - name: github.com/jpillora/go-ogle-analytics
   version: 14b04e0594ef6a9fd943363b135656f0ec8c9d0e
 - name: github.com/json-iterator/go
@@ -224,7 +218,7 @@ imports:
 - name: github.com/juju/ratelimit
   version: 5b9ff866471762aa2ab2dced63c9fb6f53921342
 - name: github.com/k8sdb/apimachinery
-  version: 8b792ad591d891f6710ab49aebef47e79cc908bf
+  version: 2e7283a7319c811e5f4aa1fc66fccb12a4d10e72
   subpackages:
   - apis/kubedb
   - apis/kubedb/v1alpha1
@@ -235,11 +229,14 @@ imports:
   - pkg/docker
   - pkg/eventer
   - pkg/migrator
-  - pkg/monitor
   - pkg/storage
   - pkg/validator
+- name: github.com/kubernetes/apimachinery
+  version: 18a564baac720819100827c16fdebcadb05b2d0d
+  subpackages:
+  - pkg/conversion
 - name: github.com/lib/pq
-  version: b609790bd85edf8e9ab7e0f8912750a786177bcf
+  version: 8c6ee72f3e6bcb1542298dd5f76cb74af9742cec
   subpackages:
   - oid
 - name: github.com/mailru/easyjson
@@ -260,6 +257,26 @@ imports:
   - signal
 - name: github.com/ncw/swift
   version: c95c6e5c2d1a3d37fc44c8c6dc9e231c7500667d
+- name: github.com/onsi/ginkgo
+  version: 9eda700730cba42af70d53180f9dcce9266bc2bc
+  subpackages:
+  - config
+  - internal/codelocation
+  - internal/containernode
+  - internal/failer
+  - internal/leafnodes
+  - internal/remote
+  - internal/spec
+  - internal/spec_iterator
+  - internal/specrunner
+  - internal/suite
+  - internal/testingtproxy
+  - internal/writer
+  - reporters
+  - reporters/stenographer
+  - reporters/stenographer/support/go-colorable
+  - reporters/stenographer/support/go-isatty
+  - types
 - name: github.com/onsi/gomega
   version: c893efa28eb45626cdaa76c9f653b62488858837
   subpackages:
@@ -275,15 +292,15 @@ imports:
   - matchers/support/goraph/util
   - types
 - name: github.com/opencontainers/go-digest
-  version: a6d0ee40d4207ea02364bd3b9e8e77b9159ba1eb
+  version: 279bed98673dd5bef374d3b6e4b09e2af76183bf
 - name: github.com/orcaman/concurrent-map
   version: d4c23bd0e01134806215ffe65ba3fd22ec6721f7
 - name: github.com/peterbourgon/diskv
   version: 5f041e8faa004a95c88a202771f4cc3e991971e6
 - name: github.com/pkg/errors
-  version: 645ef00459ed84a119197bfb8d8205042c6df63d
+  version: a22138067af1c4942683050411a841ade67fe1eb
 - name: github.com/prometheus/client_golang
-  version: e7e903064f5e9eb5da98208bae10b475d4db0f8c
+  version: c5b7fccd204277076155f10851dad72b76a49317
   subpackages:
   - prometheus
   - prometheus/promhttp
@@ -315,7 +332,7 @@ imports:
 - name: github.com/sirupsen/logrus
   version: f006c2ac4710855cf0f916dd6b77acf6b048dc6e
 - name: github.com/spf13/cobra
-  version: f63432717259fda2ff0da668dccdfaa3de837ee6
+  version: 19e54c4a2b8a78c9d54b2bed61b1a6c5e1bfcf6f
   subpackages:
   - doc
 - name: github.com/spf13/pflag
@@ -377,14 +394,14 @@ imports:
   - unicode/norm
   - width
 - name: google.golang.org/api
-  version: 34bc9e3ce3692fb01d22f685df28518773cbdae9
+  version: 790790d1b4a7d6b0d03d3725f980eedf80dc2707
   subpackages:
   - gensupport
   - googleapi
   - googleapi/internal/uritemplates
   - storage/v1
 - name: google.golang.org/appengine
-  version: 9d8544a6b2c7df9cff240fcf92d7b2f59bc13416
+  version: 4f7eeb5305a4ba1966344836ba4af9996b7b4e05
   subpackages:
   - internal
   - internal/app_identity
@@ -409,7 +426,7 @@ imports:
 - name: gopkg.in/yaml.v2
   version: 53feefa2559fb8dfa8d81baad31be332c97d6c77
 - name: k8s.io/api
-  version: fe29995db37613b9c5b2a647544cf627bfa8d299
+  version: 4df58c811fe2e65feb879227b2b245e4dc26e7ad
   subpackages:
   - admissionregistration/v1alpha1
   - apps/v1beta1
@@ -443,7 +460,9 @@ imports:
   - pkg/client/clientset/clientset/scheme
   - pkg/client/clientset/clientset/typed/apiextensions/v1beta1
 - name: k8s.io/apimachinery
-  version: 019ae5ada31de202164b118aee88ee2d14075c31
+  version: 1ea04657e64ddf330b7b86849ca22c6fcd8d600a
+  repo: https://github.com/tamalsaha/apimachinery.git
+  vcs: git
   subpackages:
   - pkg/api/equality
   - pkg/api/errors
@@ -490,7 +509,7 @@ imports:
   - third_party/forked/golang/json
   - third_party/forked/golang/reflect
 - name: k8s.io/client-go
-  version: 35874c597fed17ca62cd197e516d7d5ff9a2958c
+  version: 60bf397d7966ab2285d3ba7701ead2cc376111d4
   subpackages:
   - discovery
   - dynamic
@@ -521,14 +540,8 @@ imports:
   - kubernetes/typed/storage/v1
   - kubernetes/typed/storage/v1beta1
   - pkg/version
-  - plugin/pkg/client/auth
-  - plugin/pkg/client/auth/azure
-  - plugin/pkg/client/auth/gcp
-  - plugin/pkg/client/auth/oidc
-  - plugin/pkg/client/auth/openstack
   - rest
   - rest/watch
-  - third_party/forked/golang/template
   - tools/auth
   - tools/cache
   - tools/clientcmd
@@ -546,33 +559,16 @@ imports:
   - util/flowcontrol
   - util/homedir
   - util/integer
-  - util/jsonpath
 - name: k8s.io/kube-openapi
   version: 868f2f29720b192240e18284659231b440f9cda5
   subpackages:
   - pkg/common
+- name: k8s.io/kubernetes
+  version: bd3f06169027dbe485a1791860b3768d54b199dd
+  repo: https://github.com/appscode/kubernetes.git
+  vcs: git
 testImports:
 - name: github.com/mitchellh/go-homedir
   version: b8bc1bf767474819792c23f32d8286a45736f1c6
-- name: github.com/onsi/ginkgo
-  version: 9eda700730cba42af70d53180f9dcce9266bc2bc
-  subpackages:
-  - config
-  - internal/codelocation
-  - internal/containernode
-  - internal/failer
-  - internal/leafnodes
-  - internal/remote
-  - internal/spec
-  - internal/spec_iterator
-  - internal/specrunner
-  - internal/suite
-  - internal/testingtproxy
-  - internal/writer
-  - reporters
-  - reporters/stenographer
-  - reporters/stenographer/support/go-colorable
-  - reporters/stenographer/support/go-isatty
-  - types
 - name: github.com/stretchr/testify
   version: 69483b4bd14f5845b5a1e55bca19e954e827f1d0

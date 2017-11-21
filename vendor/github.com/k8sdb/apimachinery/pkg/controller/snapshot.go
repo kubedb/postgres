@@ -8,8 +8,8 @@ import (
 	"github.com/appscode/go/log"
 	"github.com/appscode/go/wait"
 	api "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
-	tcs "github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1"
-	kutildb "github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1/util"
+	cs "github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1"
+	"github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1/util"
 	"github.com/k8sdb/apimachinery/pkg/eventer"
 	"github.com/k8sdb/apimachinery/pkg/storage"
 	batch "k8s.io/api/batch/v1"
@@ -38,7 +38,7 @@ type SnapshotController struct {
 	// Api Extension Client
 	apiExtKubeClient crd_cs.ApiextensionsV1beta1Interface
 	// ThirdPartyExtension client
-	extClient tcs.KubedbV1alpha1Interface
+	extClient cs.KubedbV1alpha1Interface
 	// Snapshotter interface
 	snapshoter Snapshotter
 	// ListerWatcher
@@ -53,7 +53,7 @@ type SnapshotController struct {
 func NewSnapshotController(
 	client kubernetes.Interface,
 	apiExtKubeClient crd_cs.ApiextensionsV1beta1Interface,
-	extClient tcs.KubedbV1alpha1Interface,
+	extClient cs.KubedbV1alpha1Interface,
 	snapshoter Snapshotter,
 	lw *cache.ListWatch,
 	syncPeriod time.Duration,
@@ -122,7 +122,7 @@ func (c *SnapshotController) watch() {
 		cache.ResourceEventHandlerFuncs{
 			AddFunc: func(obj interface{}) {
 				snapshot := obj.(*api.Snapshot)
-				kutildb.AssignTypeKind(snapshot)
+				util.AssignTypeKind(snapshot)
 				if snapshot.Status.StartTime == nil {
 					if err := c.create(snapshot); err != nil {
 						log.Errorln(err)
@@ -131,7 +131,7 @@ func (c *SnapshotController) watch() {
 			},
 			DeleteFunc: func(obj interface{}) {
 				snapshot := obj.(*api.Snapshot)
-				kutildb.AssignTypeKind(snapshot)
+				util.AssignTypeKind(snapshot)
 				if err := c.delete(snapshot); err != nil {
 					log.Errorln(err)
 				}
@@ -146,7 +146,7 @@ const (
 )
 
 func (c *SnapshotController) create(snapshot *api.Snapshot) error {
-	_, err := kutildb.TryPatchSnapshot(c.extClient, snapshot.ObjectMeta, func(in *api.Snapshot) *api.Snapshot {
+	_, err := util.TryPatchSnapshot(c.extClient, snapshot.ObjectMeta, func(in *api.Snapshot) *api.Snapshot {
 		t := metav1.Now()
 		in.Status.StartTime = &t
 		return in
@@ -174,7 +174,7 @@ func (c *SnapshotController) create(snapshot *api.Snapshot) error {
 		return err
 	}
 
-	_, err = kutildb.TryPatchSnapshot(c.extClient, snapshot.ObjectMeta, func(in *api.Snapshot) *api.Snapshot {
+	_, err = util.TryPatchSnapshot(c.extClient, snapshot.ObjectMeta, func(in *api.Snapshot) *api.Snapshot {
 		in.Labels[api.LabelDatabaseName] = snapshot.Spec.DatabaseName
 		in.Labels[api.LabelSnapshotStatus] = string(api.SnapshotPhaseRunning)
 		in.Status.Phase = api.SnapshotPhaseRunning
@@ -196,7 +196,7 @@ func (c *SnapshotController) create(snapshot *api.Snapshot) error {
 		return err
 	}
 	_, err = c.client.CoreV1().Secrets(secret.Namespace).Create(secret)
-	if err != nil {
+	if err != nil && !kerr.IsAlreadyExists(err) {
 		message := fmt.Sprintf("Failed to create osm secret. Reason: %v", err)
 		c.eventRecorder.Event(api.ObjectReferenceFor(runtimeObj), core.EventTypeWarning, eventer.EventReasonSnapshotFailed, message)
 		c.eventRecorder.Event(snapshot.ObjectReference(), core.EventTypeWarning, eventer.EventReasonSnapshotFailed, message)
@@ -290,7 +290,7 @@ func (c *SnapshotController) checkRunningSnapshot(snapshot *api.Snapshot) error 
 	}
 
 	if len(snapshotList.Items) > 0 {
-		_, err = kutildb.TryPatchSnapshot(c.extClient, snapshot.ObjectMeta, func(in *api.Snapshot) *api.Snapshot {
+		_, err = util.TryPatchSnapshot(c.extClient, snapshot.ObjectMeta, func(in *api.Snapshot) *api.Snapshot {
 			t := metav1.Now()
 			in.Status.StartTime = &t
 			in.Status.CompletionTime = &t
@@ -354,7 +354,7 @@ func (c *SnapshotController) checkSnapshotJob(snapshot *api.Snapshot, jobName st
 
 	deleteJobResources(c.client, c.eventRecorder, snapshot, job)
 
-	err = c.client.CoreV1().Secrets(snapshot.Namespace).Delete(snapshot.Name, &metav1.DeleteOptions{})
+	err = c.client.CoreV1().Secrets(snapshot.Namespace).Delete(snapshot.OSMSecretName(), &metav1.DeleteOptions{})
 	if err != nil && !kerr.IsNotFound(err) {
 		c.eventRecorder.Eventf(
 			snapshot.ObjectReference(),
@@ -402,7 +402,7 @@ func (c *SnapshotController) checkSnapshotJob(snapshot *api.Snapshot, jobName st
 		)
 	}
 
-	_, err = kutildb.TryPatchSnapshot(c.extClient, snapshot.ObjectMeta, func(in *api.Snapshot) *api.Snapshot {
+	_, err = util.TryPatchSnapshot(c.extClient, snapshot.ObjectMeta, func(in *api.Snapshot) *api.Snapshot {
 		t := metav1.Now()
 		in.Status.CompletionTime = &t
 		delete(in.Labels, api.LabelSnapshotStatus)

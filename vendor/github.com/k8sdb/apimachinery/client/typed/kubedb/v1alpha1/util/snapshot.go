@@ -6,8 +6,8 @@ import (
 
 	"github.com/appscode/kutil"
 	"github.com/golang/glog"
-	aci "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
-	tcs "github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1"
+	api "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
+	cs "github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -15,18 +15,18 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 )
 
-func EnsureSnapshot(c tcs.KubedbV1alpha1Interface, meta metav1.ObjectMeta, transform func(alert *aci.Snapshot) *aci.Snapshot) (*aci.Snapshot, error) {
+func EnsureSnapshot(c cs.KubedbV1alpha1Interface, meta metav1.ObjectMeta, transform func(alert *api.Snapshot) *api.Snapshot) (*api.Snapshot, error) {
 	return CreateOrPatchSnapshot(c, meta, transform)
 }
 
-func CreateOrPatchSnapshot(c tcs.KubedbV1alpha1Interface, meta metav1.ObjectMeta, transform func(alert *aci.Snapshot) *aci.Snapshot) (*aci.Snapshot, error) {
+func CreateOrPatchSnapshot(c cs.KubedbV1alpha1Interface, meta metav1.ObjectMeta, transform func(alert *api.Snapshot) *api.Snapshot) (*api.Snapshot, error) {
 	cur, err := c.Snapshots(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
 	if kerr.IsNotFound(err) {
 		glog.V(3).Infof("Creating Snapshot %s/%s.", meta.Namespace, meta.Name)
-		return c.Snapshots(meta.Namespace).Create(transform(&aci.Snapshot{
+		return c.Snapshots(meta.Namespace).Create(transform(&api.Snapshot{
 			TypeMeta: metav1.TypeMeta{
 				Kind:       "Snapshot",
-				APIVersion: aci.SchemeGroupVersion.String(),
+				APIVersion: api.SchemeGroupVersion.String(),
 			},
 			ObjectMeta: meta,
 		}))
@@ -36,13 +36,13 @@ func CreateOrPatchSnapshot(c tcs.KubedbV1alpha1Interface, meta metav1.ObjectMeta
 	return PatchSnapshot(c, cur, transform)
 }
 
-func PatchSnapshot(c tcs.KubedbV1alpha1Interface, cur *aci.Snapshot, transform func(*aci.Snapshot) *aci.Snapshot) (*aci.Snapshot, error) {
+func PatchSnapshot(c cs.KubedbV1alpha1Interface, cur *api.Snapshot, transform func(*api.Snapshot) *api.Snapshot) (*api.Snapshot, error) {
 	curJson, err := json.Marshal(cur)
 	if err != nil {
 		return nil, err
 	}
 
-	modJson, err := json.Marshal(transform(cur))
+	modJson, err := json.Marshal(transform(cur.DeepCopy()))
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +59,7 @@ func PatchSnapshot(c tcs.KubedbV1alpha1Interface, cur *aci.Snapshot, transform f
 	return result, err
 }
 
-func TryPatchSnapshot(c tcs.KubedbV1alpha1Interface, meta metav1.ObjectMeta, transform func(*aci.Snapshot) *aci.Snapshot) (result *aci.Snapshot, err error) {
+func TryPatchSnapshot(c cs.KubedbV1alpha1Interface, meta metav1.ObjectMeta, transform func(*api.Snapshot) *api.Snapshot) (result *api.Snapshot, err error) {
 	attempt := 0
 	err = wait.PollImmediate(kutil.RetryInterval, kutil.RetryTimeout, func() (bool, error) {
 		attempt++
@@ -80,7 +80,7 @@ func TryPatchSnapshot(c tcs.KubedbV1alpha1Interface, meta metav1.ObjectMeta, tra
 	return
 }
 
-func TryUpdateSnapshot(c tcs.KubedbV1alpha1Interface, meta metav1.ObjectMeta, transform func(*aci.Snapshot) *aci.Snapshot) (result *aci.Snapshot, err error) {
+func TryUpdateSnapshot(c cs.KubedbV1alpha1Interface, meta metav1.ObjectMeta, transform func(*api.Snapshot) *api.Snapshot) (result *api.Snapshot, err error) {
 	attempt := 0
 	err = wait.PollImmediate(kutil.RetryInterval, kutil.RetryTimeout, func() (bool, error) {
 		attempt++
@@ -88,7 +88,7 @@ func TryUpdateSnapshot(c tcs.KubedbV1alpha1Interface, meta metav1.ObjectMeta, tr
 		if kerr.IsNotFound(e2) {
 			return false, e2
 		} else if e2 == nil {
-			result, e2 = c.Snapshots(cur.Namespace).Update(transform(cur))
+			result, e2 = c.Snapshots(cur.Namespace).Update(transform(cur.DeepCopy()))
 			return e2 == nil, nil
 		}
 		glog.Errorf("Attempt %d failed to update Snapshot %s/%s due to %v.", attempt, cur.Namespace, cur.Name, e2)

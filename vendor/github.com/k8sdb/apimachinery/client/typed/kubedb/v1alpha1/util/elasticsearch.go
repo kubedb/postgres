@@ -6,8 +6,8 @@ import (
 
 	"github.com/appscode/kutil"
 	"github.com/golang/glog"
-	aci "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
-	tcs "github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1"
+	api "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
+	cs "github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -15,18 +15,18 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 )
 
-func EnsureElasticsearch(c tcs.KubedbV1alpha1Interface, meta metav1.ObjectMeta, transform func(alert *aci.Elasticsearch) *aci.Elasticsearch) (*aci.Elasticsearch, error) {
+func EnsureElasticsearch(c cs.KubedbV1alpha1Interface, meta metav1.ObjectMeta, transform func(alert *api.Elasticsearch) *api.Elasticsearch) (*api.Elasticsearch, error) {
 	return CreateOrPatchElasticsearch(c, meta, transform)
 }
 
-func CreateOrPatchElasticsearch(c tcs.KubedbV1alpha1Interface, meta metav1.ObjectMeta, transform func(alert *aci.Elasticsearch) *aci.Elasticsearch) (*aci.Elasticsearch, error) {
+func CreateOrPatchElasticsearch(c cs.KubedbV1alpha1Interface, meta metav1.ObjectMeta, transform func(alert *api.Elasticsearch) *api.Elasticsearch) (*api.Elasticsearch, error) {
 	cur, err := c.Elasticsearchs(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
 	if kerr.IsNotFound(err) {
 		glog.V(3).Infof("Creating Elasticsearch %s/%s.", meta.Namespace, meta.Name)
-		return c.Elasticsearchs(meta.Namespace).Create(transform(&aci.Elasticsearch{
+		return c.Elasticsearchs(meta.Namespace).Create(transform(&api.Elasticsearch{
 			TypeMeta: metav1.TypeMeta{
 				Kind:       "Elasticsearch",
-				APIVersion: aci.SchemeGroupVersion.String(),
+				APIVersion: api.SchemeGroupVersion.String(),
 			},
 			ObjectMeta: meta,
 		}))
@@ -36,13 +36,13 @@ func CreateOrPatchElasticsearch(c tcs.KubedbV1alpha1Interface, meta metav1.Objec
 	return PatchElasticsearch(c, cur, transform)
 }
 
-func PatchElasticsearch(c tcs.KubedbV1alpha1Interface, cur *aci.Elasticsearch, transform func(*aci.Elasticsearch) *aci.Elasticsearch) (*aci.Elasticsearch, error) {
+func PatchElasticsearch(c cs.KubedbV1alpha1Interface, cur *api.Elasticsearch, transform func(*api.Elasticsearch) *api.Elasticsearch) (*api.Elasticsearch, error) {
 	curJson, err := json.Marshal(cur)
 	if err != nil {
 		return nil, err
 	}
 
-	modJson, err := json.Marshal(transform(cur))
+	modJson, err := json.Marshal(transform(cur.DeepCopy()))
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +59,7 @@ func PatchElasticsearch(c tcs.KubedbV1alpha1Interface, cur *aci.Elasticsearch, t
 	return result, err
 }
 
-func TryPatchElasticsearch(c tcs.KubedbV1alpha1Interface, meta metav1.ObjectMeta, transform func(*aci.Elasticsearch) *aci.Elasticsearch) (result *aci.Elasticsearch, err error) {
+func TryPatchElasticsearch(c cs.KubedbV1alpha1Interface, meta metav1.ObjectMeta, transform func(*api.Elasticsearch) *api.Elasticsearch) (result *api.Elasticsearch, err error) {
 	attempt := 0
 	err = wait.PollImmediate(kutil.RetryInterval, kutil.RetryTimeout, func() (bool, error) {
 		attempt++
@@ -80,7 +80,7 @@ func TryPatchElasticsearch(c tcs.KubedbV1alpha1Interface, meta metav1.ObjectMeta
 	return
 }
 
-func TryUpdateElasticsearch(c tcs.KubedbV1alpha1Interface, meta metav1.ObjectMeta, transform func(*aci.Elasticsearch) *aci.Elasticsearch) (result *aci.Elasticsearch, err error) {
+func TryUpdateElasticsearch(c cs.KubedbV1alpha1Interface, meta metav1.ObjectMeta, transform func(*api.Elasticsearch) *api.Elasticsearch) (result *api.Elasticsearch, err error) {
 	attempt := 0
 	err = wait.PollImmediate(kutil.RetryInterval, kutil.RetryTimeout, func() (bool, error) {
 		attempt++
@@ -88,7 +88,7 @@ func TryUpdateElasticsearch(c tcs.KubedbV1alpha1Interface, meta metav1.ObjectMet
 		if kerr.IsNotFound(e2) {
 			return false, e2
 		} else if e2 == nil {
-			result, e2 = c.Elasticsearchs(cur.Namespace).Update(transform(cur))
+			result, e2 = c.Elasticsearchs(cur.Namespace).Update(transform(cur.DeepCopy()))
 			return e2 == nil, nil
 		}
 		glog.Errorf("Attempt %d failed to update Elasticsearch %s/%s due to %v.", attempt, cur.Namespace, cur.Name, e2)
