@@ -6,6 +6,8 @@ source /scripts/lib.sh
 
 echo "Running as Replica"
 
+export MODE="replica"
+
 rm -rf "$PGDATA/*"
 chmod 0700 "$PGDATA"
 
@@ -23,6 +25,9 @@ base_backup
 
 # Configure postgreSQL.conf
 configure_replica_postgres
+
+# Push base_backup using wal-g if possible
+push_backup
 
 postgres -D "$PGDATA"
 
