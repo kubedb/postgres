@@ -358,7 +358,7 @@ func (c *Controller) createDormantDatabase(postgres *tapi.Postgres) (*tapi.Dorma
 	}
 
 	initSpec, _ := json.Marshal(postgres.Spec.Init)
-	if initSpec != nil {
+	if postgres.Spec.Init != nil {
 		dormantDb.Annotations = map[string]string{
 			tapi.PostgresInitSpec: string(initSpec),
 		}
