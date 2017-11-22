@@ -1,6 +1,7 @@
 package cmds
 
 import (
+	le "github.com/k8sdb/postgres/pkg/leader_election"
 	"github.com/spf13/cobra"
 )
 
@@ -11,7 +12,7 @@ func NewCmdLeaderElection() *cobra.Command {
 		Short:             "Run leader election for postgres",
 		DisableAutoGenTag: true,
 		Run: func(cmd *cobra.Command, args []string) {
-
+			le.RunLeaderElection()
 		},
 	}
 

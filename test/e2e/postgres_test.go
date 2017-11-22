@@ -1,6 +1,7 @@
 package e2e_test
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/appscode/go/types"
@@ -11,7 +12,6 @@ import (
 	. "github.com/onsi/gomega"
 	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
-	"fmt"
 )
 
 const (
@@ -393,7 +393,7 @@ var _ = Describe("Postgres", func() {
 					// Create Postgres object again to resume it
 					By("Create Postgres: " + postgres.Name)
 					err = f.CreatePostgres(postgres)
-					if err!=nil {
+					if err != nil {
 						fmt.Println(err)
 					}
 					Expect(err).NotTo(HaveOccurred())
