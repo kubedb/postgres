@@ -41,7 +41,7 @@ func NewMigrator(kubeClient kubernetes.Interface, apiExtKubeClient crd_cs.Apiext
 	}
 }
 
-func (m *migrator) isMigrationNeeded(runtimeObjs ...api.RuntimeObject) (bool, error) {
+func (m *migrator) isMigrationNeeded(runtimeObjs ...api.ResourceInfo) (bool, error) {
 	v, err := m.kubeClient.Discovery().ServerVersion()
 	if err != nil {
 		return false, err
@@ -72,7 +72,7 @@ func (m *migrator) isMigrationNeeded(runtimeObjs ...api.RuntimeObject) (bool, er
 	return false, nil
 }
 
-func (m *migrator) RunMigration(runtimeObjs ...api.RuntimeObject) error {
+func (m *migrator) RunMigration(runtimeObjs ...api.ResourceInfo) error {
 	needed, err := m.isMigrationNeeded(runtimeObjs...)
 	if err != nil {
 		return err
@@ -87,7 +87,7 @@ func (m *migrator) RunMigration(runtimeObjs ...api.RuntimeObject) error {
 	return nil
 }
 
-func (m *migrator) migrateTPR2CRD(runtimeObjs ...api.RuntimeObject) error {
+func (m *migrator) migrateTPR2CRD(runtimeObjs ...api.ResourceInfo) error {
 	log.Debugln("Performing TPR to CRD migration.")
 
 	log.Debugln("Deleting TPRs.")
@@ -112,10 +112,10 @@ func (m *migrator) migrateTPR2CRD(runtimeObjs ...api.RuntimeObject) error {
 	return nil
 }
 
-func (m *migrator) deleteTPRs(runtimeObjs ...api.RuntimeObject) error {
+func (m *migrator) deleteTPRs(runtimeObjs ...api.ResourceInfo) error {
 	tprClient := m.kubeClient.ExtensionsV1beta1().ThirdPartyResources()
 
-	deleteTPR := func(runtime api.RuntimeObject) error {
+	deleteTPR := func(runtime api.ResourceInfo) error {
 		name := runtime.ResourceName() + "." + api.SchemeGroupVersion.Group
 		if err := tprClient.Delete(name, &metav1.DeleteOptions{}); err != nil && !kerr.IsNotFound(err) {
 			return fmt.Errorf(`Failed to delete TPR "%s"`, name)
@@ -131,7 +131,7 @@ func (m *migrator) deleteTPRs(runtimeObjs ...api.RuntimeObject) error {
 	return nil
 }
 
-func (m *migrator) createCRDs(runtimeObjs ...api.RuntimeObject) error {
+func (m *migrator) createCRDs(runtimeObjs ...api.ResourceInfo) error {
 	for _, runtime := range runtimeObjs {
 		if err := m.createCRD(runtime); err != nil {
 			return err
@@ -140,7 +140,7 @@ func (m *migrator) createCRDs(runtimeObjs ...api.RuntimeObject) error {
 	return nil
 }
 
-func (m *migrator) createCRD(runtime api.RuntimeObject) error {
+func (m *migrator) createCRD(runtime api.ResourceInfo) error {
 	crd := &crd_api.CustomResourceDefinition{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: runtime.ResourceType() + "." + api.SchemeGroupVersion.Group,
@@ -210,7 +210,7 @@ func (m *migrator) waitForCRDsReady(expectedCRD int) error {
 	})
 }
 
-func (m *migrator) rollback(runtimeObjs ...api.RuntimeObject) error {
+func (m *migrator) rollback(runtimeObjs ...api.ResourceInfo) error {
 	log.Debugln("Rolling back migration.")
 
 	ms := m.migrationState
@@ -239,10 +239,10 @@ func (m *migrator) rollback(runtimeObjs ...api.RuntimeObject) error {
 	return nil
 }
 
-func (m *migrator) deleteCRDs(runtimeObjs ...api.RuntimeObject) error {
+func (m *migrator) deleteCRDs(runtimeObjs ...api.ResourceInfo) error {
 	crdClient := m.apiExtKubeClient.CustomResourceDefinitions()
 
-	deleteCRD := func(runtime api.RuntimeObject) error {
+	deleteCRD := func(runtime api.ResourceInfo) error {
 		name := runtime.ResourceType() + "." + api.SchemeGroupVersion.Group
 		if err := crdClient.Delete(name, &metav1.DeleteOptions{}); err != nil && !kerr.IsNotFound(err) {
 			return fmt.Errorf(`Failed to delete CRD "%s""`, name)
@@ -258,7 +258,7 @@ func (m *migrator) deleteCRDs(runtimeObjs ...api.RuntimeObject) error {
 	return nil
 }
 
-func (m *migrator) CreateTPRs(runtimeObjs ...api.RuntimeObject) error {
+func (m *migrator) CreateTPRs(runtimeObjs ...api.ResourceInfo) error {
 	for _, runtime := range runtimeObjs {
 		if err := m.createTPR(runtime); err != nil {
 			return err
@@ -267,7 +267,7 @@ func (m *migrator) CreateTPRs(runtimeObjs ...api.RuntimeObject) error {
 	return nil
 }
 
-func (m *migrator) createTPR(runtime api.RuntimeObject) error {
+func (m *migrator) createTPR(runtime api.ResourceInfo) error {
 	name := runtime.ResourceName() + "." + api.SchemeGroupVersion.Group
 	_, err := m.kubeClient.ExtensionsV1beta1().ThirdPartyResources().Get(name, metav1.GetOptions{})
 	if !kerr.IsNotFound(err) {

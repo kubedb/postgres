@@ -2,6 +2,7 @@ package v1alpha1
 
 import (
 	"github.com/appscode/go/encoding/json/types"
+	"github.com/appscode/kutil/tools/monitoring/api"
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -30,6 +31,12 @@ type ElasticsearchSpec struct {
 	Version types.StrYo `json:"version,omitempty"`
 	// Number of instances to deploy for a Elasticsearch database.
 	Replicas int32 `json:"replicas,omitempty"`
+	// Elasticsearch topology for node specification
+	Topology *ElasticsearchClusterTopology `json:"topology,omitempty"`
+	// Secret with SSL certificates
+	CertificateSecret *core.SecretVolumeSource `json:"certificateSecret,omitempty"`
+	// Database authentication secret
+	DatabaseSecret *core.SecretVolumeSource `json:"databaseSecret,omitempty"`
 	// Storage to specify how storage shall be used.
 	Storage *core.PersistentVolumeClaimSpec `json:"storage,omitempty"`
 	// NodeSelector is a selector which must be true for the pod to fit on a node
@@ -47,7 +54,7 @@ type ElasticsearchSpec struct {
 	DoNotPause bool `json:"doNotPause,omitempty"`
 	// Monitor is used monitor database instance
 	// +optional
-	Monitor *MonitorSpec `json:"monitor,omitempty"`
+	Monitor *api.AgentSpec `json:"monitor,omitempty"`
 	// Compute Resources required by the sidecar container.
 	Resources core.ResourceRequirements `json:"resources,omitempty"`
 	// If specified, the pod's scheduling constraints
@@ -60,6 +67,17 @@ type ElasticsearchSpec struct {
 	// If specified, the pod's tolerations.
 	// +optional
 	Tolerations []core.Toleration `json:"tolerations,omitempty" protobuf:"bytes,22,opt,name=tolerations"`
+}
+
+type ElasticsearchClusterTopology struct {
+	Master ElasticsearchNode `json:"master,omitempty"`
+	Data   ElasticsearchNode `json:"data,omitempty"`
+	Client ElasticsearchNode `json:"client,omitempty"`
+}
+
+type ElasticsearchNode struct {
+	Replicas int32  `json:"replicas,omitempty"`
+	Prefix   string `json:"prefix,omitempty"`
 }
 
 type ElasticsearchStatus struct {

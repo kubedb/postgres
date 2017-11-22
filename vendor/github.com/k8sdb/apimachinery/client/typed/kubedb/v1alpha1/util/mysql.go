@@ -6,8 +6,8 @@ import (
 
 	"github.com/appscode/kutil"
 	"github.com/golang/glog"
-	aci "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
-	tcs "github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1"
+	api "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
+	cs "github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -15,14 +15,14 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 )
 
-func CreateOrPatchMySQL(c tcs.KubedbV1alpha1Interface, meta metav1.ObjectMeta, transform func(alert *aci.MySQL) *aci.MySQL) (*aci.MySQL, error) {
+func CreateOrPatchMySQL(c cs.KubedbV1alpha1Interface, meta metav1.ObjectMeta, transform func(alert *api.MySQL) *api.MySQL) (*api.MySQL, error) {
 	cur, err := c.MySQLs(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
 	if kerr.IsNotFound(err) {
 		glog.V(3).Infof("Creating MySQL %s/%s.", meta.Namespace, meta.Name)
-		return c.MySQLs(meta.Namespace).Create(transform(&aci.MySQL{
+		return c.MySQLs(meta.Namespace).Create(transform(&api.MySQL{
 			TypeMeta: metav1.TypeMeta{
 				Kind:       "MySQL",
-				APIVersion: aci.SchemeGroupVersion.String(),
+				APIVersion: api.SchemeGroupVersion.String(),
 			},
 			ObjectMeta: meta,
 		}))
@@ -32,13 +32,13 @@ func CreateOrPatchMySQL(c tcs.KubedbV1alpha1Interface, meta metav1.ObjectMeta, t
 	return PatchMySQL(c, cur, transform)
 }
 
-func PatchMySQL(c tcs.KubedbV1alpha1Interface, cur *aci.MySQL, transform func(*aci.MySQL) *aci.MySQL) (*aci.MySQL, error) {
+func PatchMySQL(c cs.KubedbV1alpha1Interface, cur *api.MySQL, transform func(*api.MySQL) *api.MySQL) (*api.MySQL, error) {
 	curJson, err := json.Marshal(cur)
 	if err != nil {
 		return nil, err
 	}
 
-	modJson, err := json.Marshal(transform(cur))
+	modJson, err := json.Marshal(transform(cur.DeepCopy()))
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +55,7 @@ func PatchMySQL(c tcs.KubedbV1alpha1Interface, cur *aci.MySQL, transform func(*a
 	return result, err
 }
 
-func TryPatchMySQL(c tcs.KubedbV1alpha1Interface, meta metav1.ObjectMeta, transform func(*aci.MySQL) *aci.MySQL) (result *aci.MySQL, err error) {
+func TryPatchMySQL(c cs.KubedbV1alpha1Interface, meta metav1.ObjectMeta, transform func(*api.MySQL) *api.MySQL) (result *api.MySQL, err error) {
 	attempt := 0
 	err = wait.PollImmediate(kutil.RetryInterval, kutil.RetryTimeout, func() (bool, error) {
 		attempt++
@@ -76,7 +76,7 @@ func TryPatchMySQL(c tcs.KubedbV1alpha1Interface, meta metav1.ObjectMeta, transf
 	return
 }
 
-func TryUpdateMySQL(c tcs.KubedbV1alpha1Interface, meta metav1.ObjectMeta, transform func(*aci.MySQL) *aci.MySQL) (result *aci.MySQL, err error) {
+func TryUpdateMySQL(c cs.KubedbV1alpha1Interface, meta metav1.ObjectMeta, transform func(*api.MySQL) *api.MySQL) (result *api.MySQL, err error) {
 	attempt := 0
 	err = wait.PollImmediate(kutil.RetryInterval, kutil.RetryTimeout, func() (bool, error) {
 		attempt++
@@ -84,7 +84,7 @@ func TryUpdateMySQL(c tcs.KubedbV1alpha1Interface, meta metav1.ObjectMeta, trans
 		if kerr.IsNotFound(e2) {
 			return false, e2
 		} else if e2 == nil {
-			result, e2 = c.MySQLs(cur.Namespace).Update(transform(cur))
+			result, e2 = c.MySQLs(cur.Namespace).Update(transform(cur.DeepCopy()))
 			return e2 == nil, nil
 		}
 		glog.Errorf("Attempt %d failed to update MySQL %s/%s due to %v.", attempt, cur.Namespace, cur.Name, e2)
