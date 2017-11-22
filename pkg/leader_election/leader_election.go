@@ -1,7 +1,6 @@
-package main
+package leader_election
 
 import (
-	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -26,8 +25,8 @@ const (
 	RoleReplica = "replica"
 )
 
-func main() {
-	flag.Parse()
+func RunLeaderElection() {
+
 	leaderElectionLease := 3 * time.Second
 
 	namespace := os.Getenv("NAMESPACE")
