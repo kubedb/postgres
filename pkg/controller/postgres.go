@@ -76,7 +76,7 @@ func (c *Controller) create(postgres *api.Postgres) error {
 		return err
 	}
 
-	pg, err := c.ExtClient.Postgreses(postgres.Namespace).Get(postgres.Name, metav1.GetOptions{})
+	pg, err = c.ExtClient.Postgreses(postgres.Namespace).Get(postgres.Name, metav1.GetOptions{})
 	if err != nil {
 		c.recorder.Eventf(postgres.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToGet, err.Error())
 		return err
