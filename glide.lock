@@ -1,5 +1,5 @@
-hash: 33a76c57f7afc5e216e8598a46af7689b1346498d8357a2e84570f7fcb96d21b
-updated: 2017-11-22T11:20:48.762980758+06:00
+hash: 073bf2fb10dc232f16845c19b923b5e7538331d4b1edd2ab53c1e3fa45665c42
+updated: 2017-11-28T10:58:54.228464449+06:00
 imports:
 - name: cloud.google.com/go
   version: fe3d41e1ecb2ce36ad3a979037c9b9a2b726226f
@@ -22,7 +22,7 @@ imports:
   - version
   - wait
 - name: github.com/appscode/kutil
-  version: c7547d78847930f4b48c4e3b3d6fe1d8b0309bd7
+  version: ac6427fbeb2fd375449725acd01d85f956446a70
   subpackages:
   - apps/v1beta1
   - core/v1
@@ -32,12 +32,10 @@ imports:
   - tools/monitoring/agents/coreosprometheusoperator
   - tools/monitoring/agents/prometheusbuiltin
   - tools/monitoring/api
-- name: github.com/appscode/log
-  version: 68e0e42e42c01371f3950571fc87c2298a51dd8f
 - name: github.com/appscode/mergo
   version: e3000cb3d28c72b837601cac94debd91032d19fe
 - name: github.com/appscode/osm
-  version: e4da3e671c1f2d3bfb6aebe2049b61d251758e17
+  version: b3ed1c7835d33f312616b260a949589cf33311ee
   subpackages:
   - context
 - name: github.com/appscode/pat
@@ -114,7 +112,7 @@ imports:
   - reference
   - uuid
 - name: github.com/docker/libtrust
-  version: aabc10ec26b754e797f9028f4589c5b7bd90dc20
+  version: 9cbd2a1374f46905c68a4eb3694a130610adc62a
 - name: github.com/emicklei/go-restful
   version: ff4f55a206334ef123e4f79bbf348980da81ca46
   subpackages:
@@ -166,7 +164,7 @@ imports:
 - name: github.com/google/gofuzz
   version: 44d81051d367757e1c7c6a5a86423ece9afcf63c
 - name: github.com/google/uuid
-  version: 8c31c18f31ede9fc8eae72290a7e7a8064e9b3e3
+  version: 4ebdd04351c754ab14fd5295c91fb901e07dfbcc
 - name: github.com/googleapis/gnostic
   version: 0c5108395e2debce0d731cf0287ddf7242066aba
   subpackages:
@@ -174,9 +172,9 @@ imports:
   - compiler
   - extensions
 - name: github.com/gorilla/context
-  version: 08b5f424b9271eedf6f9f0ce86cb9396ed337a42
+  version: 215affda49addc4c8ef7e2534915df2c8c35c6cd
 - name: github.com/gorilla/mux
-  version: 2d5fef06b891c971b14aa6f71ca5ab6c03a36e0e
+  version: 8096f47503459bcc74d1f4c487b7e6e42e5746b5
 - name: github.com/graymeta/stow
   version: 6f2b8867a3fb15cca5507da1d552b55cfe5d07a7
   repo: https://github.com/appscode/stow.git
@@ -220,7 +218,7 @@ imports:
 - name: github.com/juju/ratelimit
   version: 5b9ff866471762aa2ab2dced63c9fb6f53921342
 - name: github.com/k8sdb/apimachinery
-  version: 2e7283a7319c811e5f4aa1fc66fccb12a4d10e72
+  version: ea36019dfff7e45544fd9ad53debd47fcee0ac5c
   subpackages:
   - apis/kubedb
   - apis/kubedb/v1alpha1
@@ -238,7 +236,7 @@ imports:
   subpackages:
   - pkg/conversion
 - name: github.com/lib/pq
-  version: 8c6ee72f3e6bcb1542298dd5f76cb74af9742cec
+  version: 83612a56d3dd153a94a629cd64925371c9adad78
   subpackages:
   - oid
 - name: github.com/mailru/easyjson
@@ -300,7 +298,7 @@ imports:
 - name: github.com/peterbourgon/diskv
   version: 5f041e8faa004a95c88a202771f4cc3e991971e6
 - name: github.com/pkg/errors
-  version: 645ef00459ed84a119197bfb8d8205042c6df63d
+  version: a22138067af1c4942683050411a841ade67fe1eb
 - name: github.com/prometheus/client_golang
   version: c5b7fccd204277076155f10851dad72b76a49317
   subpackages:
@@ -334,7 +332,7 @@ imports:
 - name: github.com/sirupsen/logrus
   version: f006c2ac4710855cf0f916dd6b77acf6b048dc6e
 - name: github.com/spf13/cobra
-  version: 19e54c4a2b8a78c9d54b2bed61b1a6c5e1bfcf6f
+  version: 1be1d2841c773c01bee8289f55f7463b6e2c2539
   subpackages:
   - doc
 - name: github.com/spf13/pflag
@@ -396,7 +394,7 @@ imports:
   - unicode/norm
   - width
 - name: google.golang.org/api
-  version: 17b5f22a248d6d3913171c1a557552ace0d9c806
+  version: b804618854e387dc7fdd9e50496183ddcbb4b120
   subpackages:
   - gensupport
   - googleapi

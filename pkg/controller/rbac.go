@@ -21,7 +21,7 @@ func (c *Controller) deleteRole(postgres *tapi.Postgres) error {
 	return nil
 }
 
-func (c *Controller) createRole(postgres *tapi.Postgres) error {
+func (c *Controller) ensureRole(postgres *tapi.Postgres) error {
 	// Create new Roles
 	_, err := kutilrbac.CreateOrPatchRole(
 		c.Client,
@@ -112,13 +112,9 @@ func (c *Controller) createRoleBinding(postgres *tapi.Postgres) error {
 	return err
 }
 
-func (c *Controller) createRBACStuff(postgres *tapi.Postgres) error {
-	// Delete Existing Role
-	if err := c.deleteRole(postgres); err != nil {
-		return err
-	}
+func (c *Controller) ensureRBACStuff(postgres *tapi.Postgres) error {
 	// Create New Role
-	if err := c.createRole(postgres); err != nil {
+	if err := c.ensureRole(postgres); err != nil {
 		return err
 	}
 
@@ -131,9 +127,7 @@ func (c *Controller) createRBACStuff(postgres *tapi.Postgres) error {
 
 	// Create New RoleBinding
 	if err := c.createRoleBinding(postgres); err != nil {
-		if !kerr.IsAlreadyExists(err) {
-			return err
-		}
+		return err
 	}
 
 	return nil

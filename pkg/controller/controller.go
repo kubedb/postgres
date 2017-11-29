@@ -253,7 +253,7 @@ func (c *Controller) pushFailureEvent(postgres *api.Postgres, reason string) {
 		reason,
 	)
 
-	_, err := kutildb.TryPatchPostgres(c.ExtClient, postgres.ObjectMeta, func(in *api.Postgres) *api.Postgres {
+	pg, err := kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
 		in.Status.Phase = api.DatabasePhaseFailed
 		in.Status.Reason = reason
 		return in
@@ -261,4 +261,5 @@ func (c *Controller) pushFailureEvent(postgres *api.Postgres, reason string) {
 	if err != nil {
 		c.recorder.Eventf(postgres.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
 	}
+	*postgres = *pg
 }

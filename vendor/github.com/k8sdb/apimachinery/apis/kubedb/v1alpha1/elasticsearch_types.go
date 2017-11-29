@@ -33,6 +33,8 @@ type ElasticsearchSpec struct {
 	Replicas int32 `json:"replicas,omitempty"`
 	// Elasticsearch topology for node specification
 	Topology *ElasticsearchClusterTopology `json:"topology,omitempty"`
+	// To enable ssl in transport & http layer
+	EnableSSL bool `json:"enableSSL,omitempty"`
 	// Secret with SSL certificates
 	CertificateSecret *core.SecretVolumeSource `json:"certificateSecret,omitempty"`
 	// Database authentication secret

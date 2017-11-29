@@ -18,6 +18,8 @@ import (
 	"k8s.io/client-go/tools/leaderelection"
 	"k8s.io/client-go/tools/leaderelection/resourcelock"
 	"k8s.io/client-go/tools/record"
+	"os/user"
+	"strconv"
 )
 
 const (
@@ -32,6 +34,11 @@ func RunLeaderElection() {
 	namespace := os.Getenv("NAMESPACE")
 	if namespace == "" {
 		namespace = "default"
+	}
+
+	// Change owner of Postgres data directory
+	if err := setPermission(); err != nil {
+		log.Fatalln(err)
 	}
 
 	hostname, err := os.Hostname()
@@ -158,4 +165,24 @@ func RunLeaderElection() {
 	}()
 
 	select {}
+}
+
+func setPermission() error {
+	u, err := user.Lookup("postgres")
+	if err != nil {
+		return err
+	}
+	uid, err := strconv.Atoi(u.Uid)
+	if err != nil {
+		return err
+	}
+	gid, err := strconv.Atoi(u.Gid)
+	if err != nil {
+		return err
+	}
+	err = os.Chown("/var/pv", uid, gid)
+	if err != nil {
+		return err
+	}
+	return nil
 }

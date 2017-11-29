@@ -8,8 +8,7 @@ echo "Running as Replica"
 
 export MODE="replica"
 
-rm -rf "$PGDATA/*"
-chmod 0700 "$PGDATA"
+reset_owner
 
 # Load password
 load_password

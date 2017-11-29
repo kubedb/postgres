@@ -4,10 +4,11 @@ import (
 	"errors"
 
 	"github.com/appscode/go/log"
-	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
+	api "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
+	"encoding/json"
 )
 
 func (c *Controller) Exists(om *metav1.ObjectMeta) (bool, error) {
@@ -21,7 +22,7 @@ func (c *Controller) Exists(om *metav1.ObjectMeta) (bool, error) {
 	return true, nil
 }
 
-func (c *Controller) PauseDatabase(dormantDb *tapi.DormantDatabase) error {
+func (c *Controller) PauseDatabase(dormantDb *api.DormantDatabase) error {
 	// Delete Service
 	if err := c.DeleteService(dormantDb.Name, dormantDb.Namespace); err != nil {
 		log.Errorln(err)
@@ -33,7 +34,7 @@ func (c *Controller) PauseDatabase(dormantDb *tapi.DormantDatabase) error {
 		return err
 	}
 
-	postgres := &tapi.Postgres{
+	postgres := &api.Postgres{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      dormantDb.OffshootName(),
 			Namespace: dormantDb.Namespace,
@@ -46,10 +47,10 @@ func (c *Controller) PauseDatabase(dormantDb *tapi.DormantDatabase) error {
 	return nil
 }
 
-func (c *Controller) WipeOutDatabase(dormantDb *tapi.DormantDatabase) error {
+func (c *Controller) WipeOutDatabase(dormantDb *api.DormantDatabase) error {
 	labelMap := map[string]string{
-		tapi.LabelDatabaseName: dormantDb.Name,
-		tapi.LabelDatabaseKind: tapi.ResourceKindPostgres,
+		api.LabelDatabaseName: dormantDb.Name,
+		api.LabelDatabaseKind: api.ResourceKindPostgres,
 	}
 
 	labelSelector := labels.SelectorFromSet(labelMap)
@@ -74,7 +75,7 @@ func (c *Controller) WipeOutDatabase(dormantDb *tapi.DormantDatabase) error {
 	return nil
 }
 
-func (c *Controller) deleteSecret(dormantDb *tapi.DormantDatabase) error {
+func (c *Controller) deleteSecret(dormantDb *api.DormantDatabase) error {
 
 	var secretFound bool = false
 	dormantDatabaseSecret := dormantDb.Spec.Origin.Spec.Postgres.DatabaseSecret
@@ -96,7 +97,7 @@ func (c *Controller) deleteSecret(dormantDb *tapi.DormantDatabase) error {
 
 	if !secretFound {
 		labelMap := map[string]string{
-			tapi.LabelDatabaseKind: tapi.ResourceKindPostgres,
+			api.LabelDatabaseKind: api.ResourceKindPostgres,
 		}
 		dormantDatabaseList, err := c.ExtClient.DormantDatabases(dormantDb.Namespace).List(
 			metav1.ListOptions{
@@ -131,7 +132,7 @@ func (c *Controller) deleteSecret(dormantDb *tapi.DormantDatabase) error {
 	return nil
 }
 
-func (c *Controller) ResumeDatabase(dormantDb *tapi.DormantDatabase) error {
+func (c *Controller) ResumeDatabase(dormantDb *api.DormantDatabase) error {
 	origin := dormantDb.Spec.Origin
 	objectMeta := origin.ObjectMeta
 
@@ -139,7 +140,7 @@ func (c *Controller) ResumeDatabase(dormantDb *tapi.DormantDatabase) error {
 		return errors.New("do not support InitSpec in spec.origin.postgres")
 	}
 
-	postgres := &tapi.Postgres{
+	postgres := &api.Postgres{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        objectMeta.Name,
 			Namespace:   objectMeta.Namespace,
@@ -159,4 +160,42 @@ func (c *Controller) ResumeDatabase(dormantDb *tapi.DormantDatabase) error {
 
 	_, err := c.ExtClient.Postgreses(postgres.Namespace).Create(postgres)
 	return err
+}
+
+func (c *Controller) createDormantDatabase(postgres *api.Postgres) (*api.DormantDatabase, error) {
+	dormantDb := &api.DormantDatabase{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      postgres.Name,
+			Namespace: postgres.Namespace,
+			Labels: map[string]string{
+				api.LabelDatabaseKind: api.ResourceKindPostgres,
+			},
+		},
+		Spec: api.DormantDatabaseSpec{
+			Origin: api.Origin{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:        postgres.Name,
+					Namespace:   postgres.Namespace,
+					Labels:      postgres.Labels,
+					Annotations: postgres.Annotations,
+				},
+				Spec: api.OriginSpec{
+					Postgres: &postgres.Spec,
+				},
+			},
+		},
+	}
+
+	if postgres.Spec.Init != nil {
+		initSpec, err := json.Marshal(postgres.Spec.Init)
+		if err != nil {
+			dormantDb.Annotations = map[string]string{
+				api.PostgresInitSpec: string(initSpec),
+			}
+		}
+	}
+
+	dormantDb.Spec.Origin.Spec.Postgres.Init = nil
+
+	return c.ExtClient.DormantDatabases(dormantDb.Namespace).Create(dormantDb)
 }

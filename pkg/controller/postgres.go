@@ -2,13 +2,12 @@ package controller
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"reflect"
 	"time"
 
 	"github.com/appscode/go/log"
-	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
+	api "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
 	kutildb "github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1/util"
 	"github.com/k8sdb/apimachinery/pkg/eventer"
 	"github.com/k8sdb/apimachinery/pkg/storage"
@@ -18,17 +17,18 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (c *Controller) create(postgres *tapi.Postgres) error {
-	_, err := kutildb.TryPatchPostgres(c.ExtClient, postgres.ObjectMeta, func(in *tapi.Postgres) *tapi.Postgres {
+func (c *Controller) create(postgres *api.Postgres) error {
+	pg, err := kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
 		t := metav1.Now()
 		in.Status.CreationTime = &t
-		in.Status.Phase = tapi.DatabasePhaseCreating
+		in.Status.Phase = api.DatabasePhaseCreating
 		return in
 	})
 	if err != nil {
 		c.recorder.Eventf(postgres.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
 		return err
 	}
+	*postgres = *pg
 
 	if err := validator.ValidatePostgres(c.Client, postgres); err != nil {
 		c.recorder.Event(postgres.ObjectReference(), core.EventTypeWarning, eventer.EventReasonInvalid, err.Error())
@@ -43,34 +43,10 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 	)
 
 	// Check DormantDatabase
-	matched, err := c.matchDormantDatabase(postgres)
-	if err != nil {
+	// return True (as matched) only if Postgres matched with DormantDatabase
+	// If matched, It will be resumed
+	if matched, err := c.matchDormantDatabase(postgres); err != nil || matched {
 		return err
-	}
-	if matched {
-		//TODO: Use Annotation Key
-		postgres.Annotations = map[string]string{
-			"kubedb.com/ignore": "",
-		}
-		if err := c.ExtClient.Postgreses(postgres.Namespace).Delete(postgres.Name, &metav1.DeleteOptions{}); err != nil {
-			return fmt.Errorf(
-				`failed to resume Postgres "%v" from DormantDatabase "%v". Error: %v`,
-				postgres.Name,
-				postgres.Name,
-				err,
-			)
-		}
-
-		_, err := kutildb.TryPatchDormantDatabase(c.ExtClient, postgres.ObjectMeta, func(in *tapi.DormantDatabase) *tapi.DormantDatabase {
-			in.Spec.Resume = true
-			return in
-		})
-		if err != nil {
-			c.recorder.Eventf(postgres.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
-			return err
-		}
-
-		return nil
 	}
 
 	// Event for notification that kubernetes objects are creating
@@ -96,8 +72,50 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 	}
 
 	// ensure database StatefulSet
-	if err := c.ensureStatefulSet(postgres); err != nil {
+	if err := c.ensurePostgresNode(postgres); err != nil {
 		return err
+	}
+
+	pg, err := c.ExtClient.Postgreses(postgres.Namespace).Get(postgres.Name, metav1.GetOptions{})
+	if err != nil {
+		c.recorder.Eventf(postgres.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToGet, err.Error())
+		return err
+	}
+	*postgres = *pg
+
+	kutildb.AssignTypeKind(postgres)
+
+
+	if postgres.Spec.Init != nil && postgres.Spec.Init.SnapshotSource != nil {
+		pg, err := kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
+			in.Status.Phase = api.DatabasePhaseInitializing
+			return in
+		})
+		if err != nil {
+			c.recorder.Eventf(postgres, core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
+			return err
+		}
+		*postgres = *pg
+
+		if err := c.initialize(postgres); err != nil {
+			c.recorder.Eventf(
+				postgres.ObjectReference(),
+				core.EventTypeWarning,
+				eventer.EventReasonFailedToInitialize,
+				"Failed to initialize. Reason: %v",
+				err,
+			)
+		}
+
+		pg, err = kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
+			in.Status.Phase = api.DatabasePhaseRunning
+			return in
+		})
+		if err != nil {
+			c.recorder.Eventf(postgres, core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
+			return err
+		}
+		*postgres = *pg
 	}
 
 	c.recorder.Event(
@@ -132,7 +150,7 @@ func (c *Controller) create(postgres *tapi.Postgres) error {
 	return nil
 }
 
-func (c *Controller) matchDormantDatabase(postgres *tapi.Postgres) (bool, error) {
+func (c *Controller) matchDormantDatabase(postgres *api.Postgres) (bool, error) {
 	// Check if DormantDatabase exists or not
 	dormantDb, err := c.ExtClient.DormantDatabases(postgres.Namespace).Get(postgres.Name, metav1.GetOptions{})
 	if err != nil {
@@ -150,26 +168,27 @@ func (c *Controller) matchDormantDatabase(postgres *tapi.Postgres) (bool, error)
 		return false, nil
 	}
 
-	var sendEvent = func(message string) (bool, error) {
-		c.recorder.Event(
+	var sendEvent = func(message string, args ...interface{}) (bool, error) {
+		c.recorder.Eventf(
 			postgres.ObjectReference(),
 			core.EventTypeWarning,
 			eventer.EventReasonFailedToCreate,
 			message,
+			args,
 		)
-		return false, errors.New(message)
+		return false, fmt.Errorf(message, args)
 	}
 
 	// Check DatabaseKind
-	if dormantDb.Labels[tapi.LabelDatabaseKind] != tapi.ResourceKindPostgres {
-		return sendEvent(fmt.Sprintf(`Invalid Postgres: "%v". Exists DormantDatabase "%v" of different Kind`,
-			postgres.Name, dormantDb.Name))
+	if dormantDb.Labels[api.LabelDatabaseKind] != api.ResourceKindPostgres {
+		return sendEvent(`Invalid Postgres: "%v". Exists DormantDatabase "%v" of different Kind`,
+			postgres.Name, dormantDb.Name)
 	}
 
 	// Check InitSpec
-	initSpecAnnotationStr := dormantDb.Annotations[tapi.PostgresInitSpec]
+	initSpecAnnotationStr := dormantDb.Annotations[api.PostgresInitSpec]
 	if initSpecAnnotationStr != "" {
-		var initSpecAnnotation *tapi.InitSpec
+		var initSpecAnnotation *api.InitSpec
 		if err := json.Unmarshal([]byte(initSpecAnnotationStr), &initSpecAnnotation); err != nil {
 			return sendEvent(err.Error())
 		}
@@ -188,7 +207,7 @@ func (c *Controller) matchDormantDatabase(postgres *tapi.Postgres) (bool, error)
 
 	if originalSpec.DatabaseSecret == nil {
 		originalSpec.DatabaseSecret = &core.SecretVolumeSource{
-			SecretName: postgres.Name + "-admin-auth",
+			SecretName: postgres.Name + "-auth",
 		}
 	}
 
@@ -196,107 +215,62 @@ func (c *Controller) matchDormantDatabase(postgres *tapi.Postgres) (bool, error)
 		return sendEvent("Postgres spec mismatches with OriginSpec in DormantDatabases")
 	}
 
-	return true, nil
-}
-
-func (c *Controller) ensureService(postgres *tapi.Postgres) error {
-	// Check if service name exists
-	found, err := c.findService(postgres)
-	if err != nil {
-		return err
-	}
-	if found {
-		return nil
+	//TODO: Use Annotation Key
+	postgres.Annotations = map[string]string{
+		"kubedb.com/ignore": "",
 	}
 
-	// create database Service
-	if err := c.createService(postgres); err != nil {
-		c.recorder.Eventf(
-			postgres.ObjectReference(),
-			core.EventTypeWarning,
-			eventer.EventReasonFailedToCreate,
-			"Failed to create Service. Reason: %v",
-			err,
-		)
-		return err
-	}
-	return nil
-}
-
-func (c *Controller) ensureStatefulSet(postgres *tapi.Postgres) error {
-	found, err := c.findStatefulSet(postgres)
-	if err != nil {
-		return err
-	}
-	if found {
-		return nil
+	if err := c.ExtClient.Postgreses(postgres.Namespace).Delete(postgres.Name, &metav1.DeleteOptions{}); err != nil {
+		return sendEvent(`failed to resume Postgres "%v" from DormantDatabase "%v". Error: %v`, postgres.Name, postgres.Name, err)
 	}
 
-	// Create statefulSet for Postgres database
-	statefulSet, err := c.createStatefulSet(postgres)
-	if err != nil {
-		c.recorder.Eventf(
-			postgres.ObjectReference(),
-			core.EventTypeWarning,
-			eventer.EventReasonFailedToCreate,
-			"Failed to create StatefulSet. Reason: %v",
-			err,
-		)
-		return err
-	}
-
-	// Check StatefulSet Pod status
-	if err := c.CheckStatefulSetPodStatus(statefulSet, durationCheckStatefulSet); err != nil {
-		c.recorder.Eventf(
-			postgres.ObjectReference(),
-			core.EventTypeWarning,
-			eventer.EventReasonFailedToStart,
-			`Failed to create StatefulSet. Reason: %v`,
-			err,
-		)
-		return err
-	} else {
-		c.recorder.Event(
-			postgres.ObjectReference(),
-			core.EventTypeNormal,
-			eventer.EventReasonSuccessfulCreate,
-			"Successfully created StatefulSet",
-		)
-	}
-
-	if postgres.Spec.Init != nil && postgres.Spec.Init.SnapshotSource != nil {
-		_, err := kutildb.TryPatchPostgres(c.ExtClient, postgres.ObjectMeta, func(in *tapi.Postgres) *tapi.Postgres {
-			in.Status.Phase = tapi.DatabasePhaseInitializing
-			return in
-		})
-		if err != nil {
-			c.recorder.Eventf(postgres, core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
-			return err
-		}
-
-		if err := c.initialize(postgres); err != nil {
-			c.recorder.Eventf(
-				postgres.ObjectReference(),
-				core.EventTypeWarning,
-				eventer.EventReasonFailedToInitialize,
-				"Failed to initialize. Reason: %v",
-				err,
-			)
-		}
-	}
-
-	_, err = kutildb.TryPatchPostgres(c.ExtClient, postgres.ObjectMeta, func(in *tapi.Postgres) *tapi.Postgres {
-		in.Status.Phase = tapi.DatabasePhaseRunning
+	_, err = kutildb.PatchDormantDatabase(c.ExtClient, dormantDb, func(in *api.DormantDatabase) *api.DormantDatabase {
+		in.Spec.Resume = true
 		return in
 	})
 	if err != nil {
-		c.recorder.Eventf(postgres, core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
+		c.recorder.Eventf(postgres.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
+		return sendEvent(err.Error())
+	}
+
+	return true, nil
+}
+
+
+func (c *Controller) ensurePostgresNode(postgres *api.Postgres) error {
+	c.ensureDatabaseSecret(postgres)
+
+	if c.opt.EnableRbac {
+		// Ensure ClusterRoles for database statefulsets
+		if err := c.ensureRBACStuff(postgres); err != nil {
+			return err
+		}
+	}
+
+	pg, err := c.ExtClient.Postgreses(postgres.Namespace).Get(postgres.OffshootName(), metav1.GetOptions{})
+	if err != nil {
 		return err
 	}
+	*postgres = *pg
+
+	if err := c.ensureCombinedNode(postgres); err != nil {
+		return err
+	}
+
+	pg, err = kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
+		in.Status.Phase = api.DatabasePhaseRunning
+		return in
+	})
+	if err != nil {
+		c.recorder.Eventf(postgres.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
+		return err
+	}
+	*postgres = *pg
+
 	return nil
 }
 
-func (c *Controller) ensureBackupScheduler(postgres *tapi.Postgres) {
+func (c *Controller) ensureBackupScheduler(postgres *api.Postgres) {
 	// Setup Schedule backup
 	if postgres.Spec.BackupSchedule != nil {
 		err := c.cronController.ScheduleBackup(postgres, postgres.ObjectMeta, postgres.Spec.BackupSchedule)
@@ -319,7 +293,7 @@ const (
 	durationCheckRestoreJob = time.Minute * 30
 )
 
-func (c *Controller) initialize(postgres *tapi.Postgres) error {
+func (c *Controller) initialize(postgres *api.Postgres) error {
 	snapshotSource := postgres.Spec.Init.SnapshotSource
 	// Event for notification that kubernetes objects are creating
 	c.recorder.Eventf(
@@ -372,7 +346,7 @@ func (c *Controller) initialize(postgres *tapi.Postgres) error {
 	return nil
 }
 
-func (c *Controller) pause(postgres *tapi.Postgres) error {
+func (c *Controller) pause(postgres *api.Postgres) error {
 	if postgres.Annotations != nil {
 		if val, found := postgres.Annotations["kubedb.com/ignore"]; found {
 			//TODO: Add Event Reason "Ignored"
@@ -449,7 +423,7 @@ func (c *Controller) pause(postgres *tapi.Postgres) error {
 	return nil
 }
 
-func (c *Controller) update(oldPostgres, updatedPostgres *tapi.Postgres) error {
+func (c *Controller) update(oldPostgres, updatedPostgres *api.Postgres) error {
 
 	if err := validator.ValidatePostgres(c.Client, updatedPostgres); err != nil {
 		c.recorder.Event(updatedPostgres.ObjectReference(), core.EventTypeWarning, eventer.EventReasonInvalid, err.Error())
@@ -466,7 +440,8 @@ func (c *Controller) update(oldPostgres, updatedPostgres *tapi.Postgres) error {
 	if err := c.ensureService(updatedPostgres); err != nil {
 		return err
 	}
-	if err := c.ensureStatefulSet(updatedPostgres); err != nil {
+
+	if err := c.ensurePostgresNode(updatedPostgres); err != nil {
 		return err
 	}
 
@@ -494,5 +469,24 @@ func (c *Controller) update(oldPostgres, updatedPostgres *tapi.Postgres) error {
 		)
 
 	}
+	return nil
+}
+
+func (c *Controller) reCreatePostgres(postgres *api.Postgres) error {
+	pg := &api.Postgres{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        postgres.Name,
+			Namespace:   postgres.Namespace,
+			Labels:      postgres.Labels,
+			Annotations: postgres.Annotations,
+		},
+		Spec:   postgres.Spec,
+		Status: postgres.Status,
+	}
+
+	if _, err := c.ExtClient.Postgreses(pg.Namespace).Create(pg); err != nil {
+		return err
+	}
+
 	return nil
 }

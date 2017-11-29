@@ -1,47 +1,44 @@
 #!/usr/bin/env bash
 
 reset_owner() {
-	chown -R postgres:postgres "$PGDATA"
-	chmod 0700 -R "$PGDATA"
-	chmod g+s /var/run/postgresql
-	chown -R postgres /var/run/postgresql
+    mkdir -p "$PGDATA"
+    rm -rf "$PGDATA"/*
+    chmod 0700 "$PGDATA"
 }
 
 initialize() {
-	mkdir -p "$PGDATA"
-	rm -rf "$PGDATA"/*
-	reset_owner
-	initdb "$PGDATA"
+    reset_owner
+    initdb "$PGDATA"
 }
 
 load_password() {
     PASSWORD_PATH='/srv/postgres/secrets/.admin'
-	###### get postgres user password ######
-	if [ -f "$PASSWORD_PATH" ]; then
-		POSTGRES_PASSWORD=$(cat "$PASSWORD_PATH/POSTGRES_PASSWORD")
-	else
-		echo
-		echo 'Missing environment file '${PASSWORD_PATH}'. Using default password.'
-		echo
-		POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
-	fi
+    ###### get postgres user password ######
+    if [ -f "$PASSWORD_PATH" ]; then
+        export $(cat /srv/postgres/secrets/.admin | xargs)
+    else
+        echo
+        echo 'Missing environment file '${PASSWORD_PATH}'. Using default password.'
+        echo
+    fi
+    POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
 }
 
 set_password() {
-	load_password
-	pg_ctl -D "$PGDATA"  -w start
+    load_password
+    pg_ctl -D "$PGDATA"  -w start
 
-	psql --username postgres <<-EOSQL
+    psql --username postgres <<-EOSQL
 ALTER USER postgres WITH SUPERUSER PASSWORD '$POSTGRES_PASSWORD';
 EOSQL
-	pg_ctl -D "$PGDATA" -m fast -w stop
+    pg_ctl -D "$PGDATA" -m fast -w stop
 }
 
 configure_pghba() {
-	{ echo; echo 'local all         all                         trust'; }   >> "$PGDATA/pg_hba.conf"
-	{       echo 'host  all         all         127.0.0.1/32    trust'; }   >> "$PGDATA/pg_hba.conf"
-	{       echo 'host  all         all         0.0.0.0/0       md5'; }     >> "$PGDATA/pg_hba.conf"
-	{       echo 'host  replication postgres    0.0.0.0/0       md5'; }     >> "$PGDATA/pg_hba.conf"
+    { echo; echo 'local all         all                         trust'; }   >> "$PGDATA/pg_hba.conf"
+    {       echo 'host  all         all         127.0.0.1/32    trust'; }   >> "$PGDATA/pg_hba.conf"
+    {       echo 'host  all         all         0.0.0.0/0       md5'; }     >> "$PGDATA/pg_hba.conf"
+    {       echo 'host  replication postgres    0.0.0.0/0       md5'; }     >> "$PGDATA/pg_hba.conf"
 }
 
 set_walg_env() {
@@ -70,29 +67,34 @@ use_standby() {
     # Adding additional configuration in /tmp/postgresql.conf
     echo "# ====== Archiving ======" >> /tmp/postgresql.conf
     echo "archive_mode = always" >> /tmp/postgresql.conf
-    echo "archive_timeout = 0" >> /tmp/postgresql.conf
-    echo "# ====== Archiving ======" >> /tmp/postgresql.conf
-    echo "# ====== WRITE AHEAD LOG ======" >> /tmp/postgresql.conf
-    echo "wal_level = $1" >> /tmp/postgresql.conf
-    echo "max_wal_senders = 99" >> /tmp/postgresql.conf
-    echo "wal_keep_segments = 32" >> /tmp/postgresql.conf
 
-    if [[ -v STREAMING ]]; then
-        if [ "$STREAMING" == "synchronous" ]; then
-            echo "synchronous_commit = on" >> /tmp/postgresql.conf
-            #
-            echo "synchronous_standby_names = '3 (*)'" >> /tmp/postgresql.conf
-        fi
-    fi
+    archive_command="'test ! -f /var/pgwal/%f && cp %p /var/pgwal/%f'"
+    archive_timeout=0
 
     if [[ -v ARCHIVE ]]; then
         if [ "$ARCHIVE" == "wal-g" ]; then
             set_walg_env
-            echo "archive_timeout = 60" >> /tmp/postgresql.conf
-            echo "archive_command = 'wal-g wal-push %p'" >> /tmp/postgresql.conf
+            archive_timeout=60
+            archive_command="'wal-g wal-push %p'"
         fi
     fi
 
+    echo "archive_command = $archive_command" >> /tmp/postgresql.conf
+    echo "archive_timeout = $archive_timeout" >> /tmp/postgresql.conf
+
+     if [[ -v STREAMING ]]; then
+        if [ "$STREAMING" == "synchronous" ]; then
+            echo "synchronous_commit = on" >> /tmp/postgresql.conf
+            echo "synchronous_standby_names = '3 (*)'" >> /tmp/postgresql.conf
+        fi
+    fi
+
+    echo "# ====== Archiving ======" >> /tmp/postgresql.conf
+
+    echo "# ====== WRITE AHEAD LOG ======" >> /tmp/postgresql.conf
+    echo "wal_level = $1" >> /tmp/postgresql.conf
+    echo "max_wal_senders = 99" >> /tmp/postgresql.conf
+    echo "wal_keep_segments = 32" >> /tmp/postgresql.conf
     echo "# ====== WRITE AHEAD LOG ======" >> /tmp/postgresql.conf
 }
 
@@ -132,23 +134,21 @@ EOF
 }
 
 wait_for_running() {
-	while true; do
-		pg_isready --host="$PRIMARY_HOST" --timeout=2 &>/dev/null && break
-		echo "Attempting pg_isready on primary"
-		sleep 2
-	done
+    while true; do
+        pg_isready --host="$PRIMARY_HOST" --timeout=2 &>/dev/null && break
+        echo "Attempting pg_isready on primary"
+        sleep 2
+    done
 
-	while true; do
-		psql -h "$PRIMARY_HOST" --no-password --command="select now();" &>/dev/null && break
-		echo "Attempting query on primary"
-		sleep 2
-	done
+    while true; do
+        psql -h "$PRIMARY_HOST" --no-password --command="select now();" &>/dev/null && break
+        echo "Attempting query on primary"
+        sleep 2
+    done
 }
 
 base_backup() {
     pg_basebackup -X fetch --no-password --pgdata "$PGDATA" --host="$PRIMARY_HOST"
-
-    ls -la "$PGDATA"
 
     cp /scripts/replica/recovery.conf /tmp
     echo "archive_cleanup_command = 'pg_archivecleanup $PGWAL %r'" >> /tmp/recovery.conf
@@ -209,21 +209,17 @@ push_backup() {
 }
 
 restore_from_walg() {
-    mkdir -p "$PGDATA"
-	rm -rf "$PGDATA"/*
-	reset_owner
+    reset_owner
+    set_walg_env
+    wal-g backup-fetch "$PGDATA" LATEST >/dev/null
 
-	set_walg_env
+    configure_replica_postgres
 
-	wal-g backup-fetch "$PGDATA" LATEST >/dev/null
+    mkdir -p "$PGDATA"/{pg_tblspc,pg_twophase,pg_stat,pg_commit_ts}/
+    mkdir -p "$PGDATA"/pg_logical/{snapshots,mappings}/
 
-	configure_replica_postgres
-
-	mkdir -p "$PGDATA"/{pg_tblspc,pg_twophase,pg_stat,pg_commit_ts}/
-	mkdir -p "$PGDATA"/pg_logical/{snapshots,mappings}/
-
-	cp /scripts/replica/recovery.conf /tmp
-	echo "restore_command = 'wal-g wal-fetch %f %p'" >> /tmp/recovery.conf
+    cp /scripts/replica/recovery.conf /tmp
+    echo "restore_command = 'wal-g wal-fetch %f %p'" >> /tmp/recovery.conf
     cp /tmp/recovery.conf "$PGDATA/recovery.conf"
 
     touch '/tmp/pg-failover-trigger'
