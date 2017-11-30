@@ -19,6 +19,7 @@ const (
 	GCS_BUCKET_NAME      = "GCS_BUCKET_NAME"
 	AZURE_CONTAINER_NAME = "AZURE_CONTAINER_NAME"
 	SWIFT_CONTAINER_NAME = "SWIFT_CONTAINER_NAME"
+	WALE_S3_PREFIX       = "WALE_S3_PREFIX"
 )
 
 var _ = Describe("Postgres", func() {
@@ -621,6 +622,78 @@ var _ = Describe("Postgres", func() {
 					deleteTestResource()
 				})
 			})
+		})
+
+		Context("Archive with wal-g", func() {
+			BeforeEach(func() {
+				secret = f.SecretForS3Backend()
+				secret.Data[WALE_S3_PREFIX] = []byte(fmt.Sprintf("s3://%v/%v", os.Getenv(S3_BUCKET_NAME), postgres.Name))
+				postgres.Spec.Archive = &tapi.PostgresArchive{
+					Type: "wal-g",
+					Secret: &core.SecretVolumeSource{
+						SecretName: secret.Name,
+					},
+				}
+			})
+
+			FIt("should archive successfully", func() {
+				err := f.CreateSecret(secret)
+				Expect(err).NotTo(HaveOccurred())
+
+				// Create Postgres
+				createAndWaitForRunning()
+
+				By("Check for Postgres client")
+				f.EventuallyPostgresClientReady(postgres.ObjectMeta).Should(BeTrue())
+
+				pgClient, err := f.GetPostgresClient(postgres.ObjectMeta)
+				Expect(err).NotTo(HaveOccurred())
+
+				err = f.CreateSchema(pgClient)
+				Expect(err).NotTo(HaveOccurred())
+
+				By("Creating Table")
+				err = f.CreateTable(pgClient, 3)
+				Expect(err).NotTo(HaveOccurred())
+
+				By("Checking Table")
+				f.EventuallyPostgresTableCount(pgClient).Should(Equal(3))
+
+				By("Count Archive")
+				count, err := f.CountArchive(pgClient)
+				Expect(err).NotTo(HaveOccurred())
+
+				By("Checking Archive")
+				f.EventuallyPostgresArchiveCount(pgClient).Should(BeNumerically(">", count))
+
+				// Delete test resource
+				deleteTestResource()
+
+				*postgres = *f.Postgres()
+				postgres.Spec.Archive = &tapi.PostgresArchive{
+					Type: "wal-g",
+					Secret: &core.SecretVolumeSource{
+						SecretName: secret.Name,
+					},
+				}
+				postgres.Spec.Restore = true
+
+				// Create Postgres
+				createAndWaitForRunning()
+
+				By("Check for Postgres client")
+				f.EventuallyPostgresClientReady(postgres.ObjectMeta).Should(BeTrue())
+
+				pgClient, err = f.GetPostgresClient(postgres.ObjectMeta)
+				Expect(err).NotTo(HaveOccurred())
+
+				By("Checking Table")
+				f.EventuallyPostgresTableCount(pgClient).Should(Equal(3))
+
+				// Delete test resource
+				deleteTestResource()
+			})
+
 		})
 
 	})

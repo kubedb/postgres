@@ -14,13 +14,13 @@ import (
 	"k8s.io/client-go/transport/spdy"
 )
 
-func (f *Framework) getProxyURL(namespace, podName string, port int) (string, error) {
+func (f *Framework) getProxyPort(namespace, podName string, port int) (int, error) {
 	tunnel := newTunnel(f.kubeClient, f.restConfig, namespace, podName, port)
 	if err := tunnel.forwardPort(); err != nil {
-		return "", err
+		return 0, err
 	}
 
-	return fmt.Sprintf("127.0.0.1:%d", tunnel.Local), nil
+	return tunnel.Local, nil
 }
 
 type tunnel struct {

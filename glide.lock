@@ -1,5 +1,5 @@
 hash: 3899b4ab9fcd52ba910d9e6d7db8c8c718c7d669d460c6128464252428344dbf
-updated: 2017-11-30T14:21:28.184865789+06:00
+updated: 2017-11-30T17:10:57.391915131+06:00
 imports:
 - name: cloud.google.com/go
   version: fe3d41e1ecb2ce36ad3a979037c9b9a2b726226f
@@ -137,14 +137,6 @@ imports:
   version: 6aced65f8501fe1217321abf0749d354824ba2ff
 - name: github.com/go-openapi/swag
   version: 1d0bd113de87027671077d3c71eb3ac5d7dbba72
-- name: github.com/go-pg/pg
-  version: 91c6bdd887406878e9bde15f3c4a12c1197da739
-  subpackages:
-  - internal
-  - internal/parser
-  - internal/pool
-  - orm
-  - types
 - name: github.com/go-xorm/builder
   version: a4a881a4e552fcb5473f39e8b9f7d9f3457a7fb0
 - name: github.com/go-xorm/core
@@ -219,8 +211,6 @@ imports:
   version: 6633656539c1639d9d78127b7d47c622b5d7b6dc
 - name: github.com/inconshreveable/mousetrap
   version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
-- name: github.com/jinzhu/inflection
-  version: 1c35d901db3da928c72a72d8458480cc9ade058f
 - name: github.com/jmespath/go-jmespath
   version: 3433f3ea46d9f8019119e7dd41274e112a2359a9
 - name: github.com/jpillora/go-ogle-analytics

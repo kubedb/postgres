@@ -254,7 +254,7 @@ func (c *Controller) ensurePostgresNode(postgres *api.Postgres) error {
 		return err
 	}
 
-	pg, err = kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
+	_, err = kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
 		in.Status.Phase = api.DatabasePhaseRunning
 		return in
 	})
@@ -262,7 +262,6 @@ func (c *Controller) ensurePostgresNode(postgres *api.Postgres) error {
 		c.recorder.Eventf(postgres.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
 		return err
 	}
-	*postgres = *pg
 
 	return nil
 }

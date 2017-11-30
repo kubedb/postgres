@@ -4,30 +4,27 @@ import (
 	"crypto/rand"
 	"fmt"
 
-	"github.com/go-pg/pg"
+	"github.com/go-xorm/xorm"
+	_ "github.com/lib/pq"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (f *Framework) GetPostgresClient(meta metav1.ObjectMeta) (*pg.DB, error) {
+func (f *Framework) GetPostgresClient(meta metav1.ObjectMeta) (*xorm.Engine, error) {
 	postgres, err := f.GetPostgres(meta)
 	if err != nil {
 		return nil, err
 	}
 	clientPodName := fmt.Sprintf("%v-0", postgres.Name)
-	url, err := f.getProxyURL(postgres.Namespace, clientPodName, 5432)
+	port, err := f.getProxyPort(postgres.Namespace, clientPodName, 5432)
 	if err != nil {
 		return nil, err
 	}
 
-	return pg.Connect(&pg.Options{
-		Addr:     url,
-		Database: "postgres",
-		User:     "postgres",
-		Password: "postgres",
-	}), nil
+	cnnstr := fmt.Sprintf("user=postgres host=127.0.0.1 port=%v dbname=postgres sslmode=disable", port)
+	return xorm.NewEngine("postgres", cnnstr)
 }
 
-func (f *Framework) CreateSchema(db *pg.DB) error {
+func (f *Framework) CreateSchema(db *xorm.Engine) error {
 	sql := `
 DROP SCHEMA IF EXISTS "data" CASCADE;
 CREATE SCHEMA "data" AUTHORIZATION "postgres";
@@ -52,7 +49,7 @@ func characters(len int) string {
 	return string(r)
 }
 
-func (f *Framework) CreateTable(db *pg.DB, count int) error {
+func (f *Framework) CreateTable(db *xorm.Engine, count int) error {
 
 	for i := 0; i < count; i++ {
 		table := fmt.Sprintf("SET search_path TO \"data\"; CREATE TABLE %v ( id bigserial )", characters(5))
@@ -65,19 +62,32 @@ func (f *Framework) CreateTable(db *pg.DB, count int) error {
 	return nil
 }
 
-func (f *Framework) CountTable(db *pg.DB) (int, error) {
-	res, err := db.Exec("SELECT table_name FROM information_schema.tables WHERE table_schema='data'")
+func (f *Framework) CountTable(db *xorm.Engine) (int, error) {
+	res, err := db.Query("SELECT table_name FROM information_schema.tables WHERE table_schema='data'")
 	if err != nil {
 		return 0, err
 	}
 
-	return res.RowsReturned(), nil
+	return len(res), nil
 }
 
-func (f *Framework) CheckPostgres(db *pg.DB) error {
-	_, err := db.Exec("select * from pg_stat_activity")
+func (f *Framework) CheckPostgres(db *xorm.Engine) error {
+	err := db.Ping()
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+type PgStatArchiver struct {
+	ArchivedCount int
+}
+
+func (f *Framework) CountArchive(db *xorm.Engine) (int, error) {
+	var archiver PgStatArchiver
+	if _, err := db.Limit(1).Cols("archived_count").Get(&archiver); err != nil {
+		return 0, err
+	}
+
+	return archiver.ArchivedCount, nil
 }

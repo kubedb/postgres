@@ -1,11 +1,12 @@
 package framework
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/appscode/go/crypto/rand"
 	"github.com/appscode/go/encoding/json/types"
-	"github.com/go-pg/pg"
+	"github.com/go-xorm/xorm"
 	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
 	kutildb "github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1/util"
 	. "github.com/onsi/gomega"
@@ -101,6 +102,7 @@ func (f *Framework) EventuallyPostgresClientReady(meta metav1.ObjectMeta) Gomega
 	return Eventually(
 		func() bool {
 			if err := f.CheckPostgres(db); err != nil {
+				fmt.Println("---- ,", err)
 				return false
 			}
 			return true
@@ -110,10 +112,23 @@ func (f *Framework) EventuallyPostgresClientReady(meta metav1.ObjectMeta) Gomega
 	)
 }
 
-func (f *Framework) EventuallyPostgresTableCount(db *pg.DB) GomegaAsyncAssertion {
+func (f *Framework) EventuallyPostgresTableCount(db *xorm.Engine) GomegaAsyncAssertion {
 	return Eventually(
 		func() int {
 			count, err := f.CountTable(db)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(count).To(Equal(count))
+			return count
+		},
+		time.Minute*5,
+		time.Second*5,
+	)
+}
+
+func (f *Framework) EventuallyPostgresArchiveCount(db *xorm.Engine) GomegaAsyncAssertion {
+	return Eventually(
+		func() int {
+			count, err := f.CountArchive(db)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(count).To(Equal(count))
 			return count
