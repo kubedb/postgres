@@ -4,14 +4,14 @@ import (
 	kutilcore "github.com/appscode/kutil/core/v1"
 	kutilrbac "github.com/appscode/kutil/rbac/v1beta1"
 	"github.com/k8sdb/apimachinery/apis/kubedb"
-	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
+	api "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
 	core "k8s.io/api/core/v1"
 	rbac "k8s.io/api/rbac/v1beta1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (c *Controller) deleteRole(postgres *tapi.Postgres) error {
+func (c *Controller) deleteRole(postgres *api.Postgres) error {
 	// Delete existing Roles
 	if err := c.Client.RbacV1beta1().Roles(postgres.Namespace).Delete(postgres.OffshootName(), nil); err != nil {
 		if !kerr.IsNotFound(err) {
@@ -21,7 +21,7 @@ func (c *Controller) deleteRole(postgres *tapi.Postgres) error {
 	return nil
 }
 
-func (c *Controller) ensureRole(postgres *tapi.Postgres) error {
+func (c *Controller) ensureRole(postgres *api.Postgres) error {
 	// Create new Roles
 	_, err := kutilrbac.CreateOrPatchRole(
 		c.Client,
@@ -33,7 +33,7 @@ func (c *Controller) ensureRole(postgres *tapi.Postgres) error {
 			in.Rules = []rbac.PolicyRule{
 				{
 					APIGroups:     []string{kubedb.GroupName},
-					Resources:     []string{tapi.ResourceTypePostgres},
+					Resources:     []string{api.ResourceTypePostgres},
 					ResourceNames: []string{postgres.Name},
 					Verbs:         []string{"get"},
 				},
@@ -50,7 +50,7 @@ func (c *Controller) ensureRole(postgres *tapi.Postgres) error {
 	return err
 }
 
-func (c *Controller) deleteServiceAccount(postgres *tapi.Postgres) error {
+func (c *Controller) deleteServiceAccount(postgres *api.Postgres) error {
 	// Delete existing ServiceAccount
 	if err := c.Client.CoreV1().ServiceAccounts(postgres.Namespace).Delete(postgres.OffshootName(), nil); err != nil {
 		if !kerr.IsNotFound(err) {
@@ -60,7 +60,7 @@ func (c *Controller) deleteServiceAccount(postgres *tapi.Postgres) error {
 	return nil
 }
 
-func (c *Controller) createServiceAccount(postgres *tapi.Postgres) error {
+func (c *Controller) createServiceAccount(postgres *api.Postgres) error {
 	// Create new ServiceAccount
 	_, err := kutilcore.CreateOrPatchServiceAccount(
 		c.Client,
@@ -75,7 +75,7 @@ func (c *Controller) createServiceAccount(postgres *tapi.Postgres) error {
 	return err
 }
 
-func (c *Controller) deleteRoleBinding(postgres *tapi.Postgres) error {
+func (c *Controller) deleteRoleBinding(postgres *api.Postgres) error {
 	// Delete existing RoleBindings
 	if err := c.Client.RbacV1beta1().RoleBindings(postgres.Namespace).Delete(postgres.OffshootName(), nil); err != nil {
 		if !kerr.IsNotFound(err) {
@@ -85,7 +85,7 @@ func (c *Controller) deleteRoleBinding(postgres *tapi.Postgres) error {
 	return nil
 }
 
-func (c *Controller) createRoleBinding(postgres *tapi.Postgres) error {
+func (c *Controller) createRoleBinding(postgres *api.Postgres) error {
 	// Ensure new RoleBindings
 	_, err := kutilrbac.CreateOrPatchRoleBinding(
 		c.Client,
@@ -112,7 +112,7 @@ func (c *Controller) createRoleBinding(postgres *tapi.Postgres) error {
 	return err
 }
 
-func (c *Controller) ensureRBACStuff(postgres *tapi.Postgres) error {
+func (c *Controller) ensureRBACStuff(postgres *api.Postgres) error {
 	// Create New Role
 	if err := c.ensureRole(postgres); err != nil {
 		return err
@@ -133,7 +133,7 @@ func (c *Controller) ensureRBACStuff(postgres *tapi.Postgres) error {
 	return nil
 }
 
-func (c *Controller) deleteRBACStuff(postgres *tapi.Postgres) error {
+func (c *Controller) deleteRBACStuff(postgres *api.Postgres) error {
 	// Delete Existing Role
 	if err := c.deleteRole(postgres); err != nil {
 		return err

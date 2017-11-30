@@ -154,12 +154,14 @@ def default():
     fmt()
     die(call('GO15VENDOREXPERIMENT=1 ' + libbuild.GOC + ' install .'))
 
+
 def test(type, *args):
     pydotenv.load_dotenv(join(libbuild.REPO_ROOT, 'hack/config/.env'))
     if type == 'e2e':
         die(call('ginkgo -r -v -progress -trace test/e2e -- ' + " ".join(args)))
     else:
         print '{test e2e}'
+
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:

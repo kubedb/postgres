@@ -172,7 +172,7 @@ init_database() {
 
     pg_ctl -D "$PGDATA"  -w start
 
-    for f in "$INITDB/*"; do
+    for f in "$INITDB"/*; do
         case "$f" in
             *.sh)     echo "$0: running $f"; . "$f" ;;
             *.sql)    echo "$0: running $f"; "${psql[@]}" -f "$f"; echo ;;

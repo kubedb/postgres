@@ -1360,6 +1360,28 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 			Dependencies: []string{
 				"github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.PostgresSpec", "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.PostgresStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 		},
+		"github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.PostgresArchive": {
+			Schema: spec.Schema{
+				SchemaProps: spec.SchemaProps{
+					Properties: map[string]spec.Schema{
+						"type": {
+							SchemaProps: spec.SchemaProps{
+								Type:   []string{"string"},
+								Format: "",
+							},
+						},
+						"secret": {
+							SchemaProps: spec.SchemaProps{
+								Description: "Secret for wal-g configuration",
+								Ref:         ref("k8s.io/api/core/v1.SecretVolumeSource"),
+							},
+						},
+					},
+				},
+			},
+			Dependencies: []string{
+				"k8s.io/api/core/v1.SecretVolumeSource"},
+		},
 		"github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.PostgresConfiguration": {
 			Schema: spec.Schema{
 				SchemaProps: spec.SchemaProps{
@@ -1476,6 +1498,19 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 								Ref:         ref("github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.PostgresConfiguration"),
 							},
 						},
+						"archive": {
+							SchemaProps: spec.SchemaProps{
+								Description: "Archive for wal files",
+								Ref:         ref("github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.PostgresArchive"),
+							},
+						},
+						"restore": {
+							SchemaProps: spec.SchemaProps{
+								Description: "Restore from wal-g archive",
+								Type:        []string{"boolean"},
+								Format:      "",
+							},
+						},
 						"storage": {
 							SchemaProps: spec.SchemaProps{
 								Description: "Storage to specify how storage shall be used.",
@@ -1557,7 +1592,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 				},
 			},
 			Dependencies: []string{
-				"github.com/appscode/kutil/tools/monitoring/api.AgentSpec", "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.BackupScheduleSpec", "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.InitSpec", "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.PostgresConfiguration", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.PersistentVolumeClaimSpec", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.SecretVolumeSource", "k8s.io/api/core/v1.Toleration"},
+				"github.com/appscode/kutil/tools/monitoring/api.AgentSpec", "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.BackupScheduleSpec", "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.InitSpec", "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.PostgresArchive", "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.PostgresConfiguration", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.PersistentVolumeClaimSpec", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.SecretVolumeSource", "k8s.io/api/core/v1.Toleration"},
 		},
 		"github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.PostgresStatus": {
 			Schema: spec.Schema{

@@ -34,6 +34,10 @@ type PostgresSpec struct {
 	DatabaseSecret *core.SecretVolumeSource `json:"databaseSecret,omitempty"`
 	// Database HA configuration
 	Configuration PostgresConfiguration `json:"configuration,omitempty"`
+	// Archive for wal files
+	Archive *PostgresArchive `json:"archive,omitempty"`
+	// Restore from wal-g archive
+	Restore bool `json:"restore,omitempty"`
 	// Storage to specify how storage shall be used.
 	Storage *core.PersistentVolumeClaimSpec `json:"storage,omitempty"`
 	// NodeSelector is a selector which must be true for the pod to fit on a node
@@ -69,6 +73,12 @@ type PostgresSpec struct {
 type PostgresConfiguration struct {
 	Standby   string `json:"standby,omitempty"`
 	Streaming string `json:"streaming,omitempty"`
+}
+
+type PostgresArchive struct {
+	Type string `json:"type,omitempty"`
+	// Secret for wal-g configuration
+	Secret *core.SecretVolumeSource `json:"secret,omitempty"`
 }
 
 type PostgresStatus struct {

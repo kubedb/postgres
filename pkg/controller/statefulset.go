@@ -57,6 +57,15 @@ func (c *Controller) ensureStatefulSet(
 
 		in = upsertMonitoringContainer(in, postgres, c.opt.ExporterTag)
 		in = upsertDatabaseSecret(in, postgres.Spec.DatabaseSecret.SecretName)
+		if postgres.Spec.Archive != nil {
+			if postgres.Spec.Archive.Secret != nil {
+				in = upsertArchiveSecret(in, postgres.Spec.Archive.Secret.SecretName)
+			}
+		}
+		if postgres.Spec.Init != nil && postgres.Spec.Init.ScriptSource != nil {
+			in = upsertInitScript(in, postgres.Spec.Init.ScriptSource.VolumeSource)
+		}
+
 		in = upsertDataVolume(in, postgres)
 
 		if c.opt.EnableRbac {
@@ -120,6 +129,20 @@ func (c *Controller) ensureCombinedNode(postgres *api.Postgres) error {
 		},
 	}
 
+	if postgres.Spec.Archive != nil {
+		envList = append(envList, core.EnvVar{
+			Name:  "ARCHIVE",
+			Value: postgres.Spec.Archive.Type,
+		})
+	}
+
+	if postgres.Spec.Restore {
+		envList = append(envList, core.EnvVar{
+			Name:  "RESTORE",
+			Value: fmt.Sprintf("%v", true),
+		})
+	}
+
 	return c.ensureStatefulSet(postgres, envList)
 }
 
@@ -153,7 +176,7 @@ func upsertContainer(statefulSet *apps.StatefulSet, postgres *api.Postgres) *app
 	container := core.Container{
 		Name:            api.ResourceNamePostgres,
 		Image:           fmt.Sprintf("%v:%v-db", docker.ImagePostgres, postgres.Spec.Version),
-		ImagePullPolicy: core.PullAlways,
+		ImagePullPolicy: core.PullIfNotPresent,
 		SecurityContext: &core.SecurityContext{
 			Privileged: types.BoolP(false),
 			Capabilities: &core.Capabilities{
@@ -273,6 +296,58 @@ func upsertDatabaseSecret(statefulset *apps.StatefulSet, secretName string) *app
 						SecretName: secretName,
 					},
 				},
+			}
+			volumes := statefulset.Spec.Template.Spec.Volumes
+			volumes = kutilcore.UpsertVolume(volumes, volume)
+			statefulset.Spec.Template.Spec.Volumes = volumes
+			return statefulset
+		}
+	}
+	return statefulset
+}
+
+func upsertArchiveSecret(statefulset *apps.StatefulSet, secretName string) *apps.StatefulSet {
+	for i, container := range statefulset.Spec.Template.Spec.Containers {
+		if container.Name == api.ResourceNamePostgres {
+			volumeMount := core.VolumeMount{
+				Name:      "wal-g",
+				MountPath: "/srv/wal-g/secrets",
+			}
+			volumeMounts := container.VolumeMounts
+			volumeMounts = kutilcore.UpsertVolumeMount(volumeMounts, volumeMount)
+			statefulset.Spec.Template.Spec.Containers[i].VolumeMounts = volumeMounts
+
+			volume := core.Volume{
+				Name: "wal-g",
+				VolumeSource: core.VolumeSource{
+					Secret: &core.SecretVolumeSource{
+						SecretName: secretName,
+					},
+				},
+			}
+			volumes := statefulset.Spec.Template.Spec.Volumes
+			volumes = kutilcore.UpsertVolume(volumes, volume)
+			statefulset.Spec.Template.Spec.Volumes = volumes
+			return statefulset
+		}
+	}
+	return statefulset
+}
+
+func upsertInitScript(statefulset *apps.StatefulSet, script core.VolumeSource) *apps.StatefulSet {
+	for i, container := range statefulset.Spec.Template.Spec.Containers {
+		if container.Name == api.ResourceNamePostgres {
+			volumeMount := core.VolumeMount{
+				Name:      "initial-script",
+				MountPath: "/var/initdb",
+			}
+			volumeMounts := container.VolumeMounts
+			volumeMounts = kutilcore.UpsertVolumeMount(volumeMounts, volumeMount)
+			statefulset.Spec.Template.Spec.Containers[i].VolumeMounts = volumeMounts
+
+			volume := core.Volume{
+				Name:         "initial-script",
+				VolumeSource: script,
 			}
 			volumes := statefulset.Spec.Template.Spec.Volumes
 			volumes = kutilcore.UpsertVolume(volumes, volume)

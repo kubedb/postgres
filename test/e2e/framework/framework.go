@@ -4,9 +4,11 @@ import (
 	"github.com/appscode/go/crypto/rand"
 	tcs "github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 )
 
 type Framework struct {
+	restConfig   *rest.Config
 	kubeClient   kubernetes.Interface
 	extClient    tcs.KubedbV1alpha1Interface
 	namespace    string
@@ -14,8 +16,9 @@ type Framework struct {
 	StorageClass string
 }
 
-func New(kubeClient kubernetes.Interface, extClient tcs.KubedbV1alpha1Interface, storageClass string) *Framework {
+func New(restConfig *rest.Config, kubeClient kubernetes.Interface, extClient tcs.KubedbV1alpha1Interface, storageClass string) *Framework {
 	return &Framework{
+		restConfig:   restConfig,
 		kubeClient:   kubeClient,
 		extClient:    extClient,
 		name:         "postgres-operator",

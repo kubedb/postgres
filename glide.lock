@@ -1,5 +1,5 @@
-hash: 073bf2fb10dc232f16845c19b923b5e7538331d4b1edd2ab53c1e3fa45665c42
-updated: 2017-11-28T10:58:54.228464449+06:00
+hash: 3899b4ab9fcd52ba910d9e6d7db8c8c718c7d669d460c6128464252428344dbf
+updated: 2017-11-30T11:06:15.070319729+06:00
 imports:
 - name: cloud.google.com/go
   version: fe3d41e1ecb2ce36ad3a979037c9b9a2b726226f
@@ -22,7 +22,7 @@ imports:
   - version
   - wait
 - name: github.com/appscode/kutil
-  version: ac6427fbeb2fd375449725acd01d85f956446a70
+  version: 34b061c221ca2ce46f8ae1ec03a28cd5ab112742
   subpackages:
   - apps/v1beta1
   - core/v1
@@ -112,7 +112,11 @@ imports:
   - reference
   - uuid
 - name: github.com/docker/libtrust
-  version: 9cbd2a1374f46905c68a4eb3694a130610adc62a
+  version: aabc10ec26b754e797f9028f4589c5b7bd90dc20
+- name: github.com/docker/spdystream
+  version: 449fdfce4d962303d702fec724ef0ad181c92528
+  subpackages:
+  - spdy
 - name: github.com/emicklei/go-restful
   version: ff4f55a206334ef123e4f79bbf348980da81ca46
   subpackages:
@@ -133,6 +137,14 @@ imports:
   version: 6aced65f8501fe1217321abf0749d354824ba2ff
 - name: github.com/go-openapi/swag
   version: 1d0bd113de87027671077d3c71eb3ac5d7dbba72
+- name: github.com/go-pg/pg
+  version: 91c6bdd887406878e9bde15f3c4a12c1197da739
+  subpackages:
+  - internal
+  - internal/parser
+  - internal/pool
+  - orm
+  - types
 - name: github.com/go-xorm/builder
   version: a4a881a4e552fcb5473f39e8b9f7d9f3457a7fb0
 - name: github.com/go-xorm/core
@@ -164,7 +176,7 @@ imports:
 - name: github.com/google/gofuzz
   version: 44d81051d367757e1c7c6a5a86423ece9afcf63c
 - name: github.com/google/uuid
-  version: 4ebdd04351c754ab14fd5295c91fb901e07dfbcc
+  version: dec09d789f3dba190787f8b4454c7d3c936fed9e
 - name: github.com/googleapis/gnostic
   version: 0c5108395e2debce0d731cf0287ddf7242066aba
   subpackages:
@@ -172,9 +184,9 @@ imports:
   - compiler
   - extensions
 - name: github.com/gorilla/context
-  version: 215affda49addc4c8ef7e2534915df2c8c35c6cd
+  version: 08b5f424b9271eedf6f9f0ce86cb9396ed337a42
 - name: github.com/gorilla/mux
-  version: 8096f47503459bcc74d1f4c487b7e6e42e5746b5
+  version: 0a192a193177452756c362c20087ddafcf6829c4
 - name: github.com/graymeta/stow
   version: 6f2b8867a3fb15cca5507da1d552b55cfe5d07a7
   repo: https://github.com/appscode/stow.git
@@ -198,9 +210,7 @@ imports:
   subpackages:
   - simplelru
 - name: github.com/heroku/docker-registry-client
-  version: 63418fd485f793ab9a21e44f9a7511bb649cc9af
-  repo: https://github.com/appscode/docker-registry-client.git
-  vcs: git
+  version: fd2fe803496897db70c236ee244f41487ea92ec2
   subpackages:
   - registry
 - name: github.com/howeyc/gopass
@@ -209,6 +219,8 @@ imports:
   version: 6633656539c1639d9d78127b7d47c622b5d7b6dc
 - name: github.com/inconshreveable/mousetrap
   version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
+- name: github.com/jinzhu/inflection
+  version: 1c35d901db3da928c72a72d8458480cc9ade058f
 - name: github.com/jmespath/go-jmespath
   version: 3433f3ea46d9f8019119e7dd41274e112a2359a9
 - name: github.com/jpillora/go-ogle-analytics
@@ -218,7 +230,7 @@ imports:
 - name: github.com/juju/ratelimit
   version: 5b9ff866471762aa2ab2dced63c9fb6f53921342
 - name: github.com/k8sdb/apimachinery
-  version: ea36019dfff7e45544fd9ad53debd47fcee0ac5c
+  version: 23152100bd54f177f41819864407176105d5bd37
   subpackages:
   - apis/kubedb
   - apis/kubedb/v1alpha1
@@ -292,7 +304,7 @@ imports:
   - matchers/support/goraph/util
   - types
 - name: github.com/opencontainers/go-digest
-  version: a6d0ee40d4207ea02364bd3b9e8e77b9159ba1eb
+  version: 279bed98673dd5bef374d3b6e4b09e2af76183bf
 - name: github.com/orcaman/concurrent-map
   version: d4c23bd0e01134806215ffe65ba3fd22ec6721f7
 - name: github.com/peterbourgon/diskv
@@ -394,7 +406,7 @@ imports:
   - unicode/norm
   - width
 - name: google.golang.org/api
-  version: b804618854e387dc7fdd9e50496183ddcbb4b120
+  version: 88d8826ad7655f8bdc7328b1ec3774f3851c3a44
   subpackages:
   - gensupport
   - googleapi
@@ -492,6 +504,8 @@ imports:
   - pkg/util/diff
   - pkg/util/errors
   - pkg/util/framer
+  - pkg/util/httpstream
+  - pkg/util/httpstream/spdy
   - pkg/util/intstr
   - pkg/util/json
   - pkg/util/jsonmergepatch
@@ -507,6 +521,7 @@ imports:
   - pkg/version
   - pkg/watch
   - third_party/forked/golang/json
+  - third_party/forked/golang/netutil
   - third_party/forked/golang/reflect
 - name: k8s.io/client-go
   version: 60bf397d7966ab2285d3ba7701ead2cc376111d4
@@ -552,9 +567,11 @@ imports:
   - tools/leaderelection/resourcelock
   - tools/metrics
   - tools/pager
+  - tools/portforward
   - tools/record
   - tools/reference
   - transport
+  - transport/spdy
   - util/cert
   - util/flowcontrol
   - util/homedir

@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"encoding/json"
 	"errors"
 
 	"github.com/appscode/go/log"
@@ -8,7 +9,6 @@ import (
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
-	"encoding/json"
 )
 
 func (c *Controller) Exists(om *metav1.ObjectMeta) (bool, error) {
@@ -188,7 +188,7 @@ func (c *Controller) createDormantDatabase(postgres *api.Postgres) (*api.Dormant
 
 	if postgres.Spec.Init != nil {
 		initSpec, err := json.Marshal(postgres.Spec.Init)
-		if err != nil {
+		if err == nil {
 			dormantDb.Annotations = map[string]string{
 				api.PostgresInitSpec: string(initSpec),
 			}

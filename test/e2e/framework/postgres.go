@@ -5,6 +5,7 @@ import (
 
 	"github.com/appscode/go/crypto/rand"
 	"github.com/appscode/go/encoding/json/types"
+	"github.com/go-pg/pg"
 	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
 	kutildb "github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1/util"
 	. "github.com/onsi/gomega"
@@ -22,7 +23,8 @@ func (f *Invocation) Postgres() *tapi.Postgres {
 			},
 		},
 		Spec: tapi.PostgresSpec{
-			Version: types.StrYo("9.5"),
+			Version:  types.StrYo("9.6.5"),
+			Replicas: 1,
 		},
 	}
 }
@@ -62,12 +64,59 @@ func (f *Framework) EventuallyPostgres(meta metav1.ObjectMeta) GomegaAsyncAssert
 	)
 }
 
+func (f *Framework) EventuallyPostgresPodCount(meta metav1.ObjectMeta) GomegaAsyncAssertion {
+	return Eventually(
+		func() int32 {
+			st, err := f.kubeClient.AppsV1beta1().StatefulSets(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
+			if err != nil {
+				if kerr.IsNotFound(err) {
+					return -1
+				} else {
+					Expect(err).NotTo(HaveOccurred())
+				}
+			}
+			return st.Status.ReadyReplicas
+		},
+		time.Minute*5,
+		time.Second*5,
+	)
+}
+
 func (f *Framework) EventuallyPostgresRunning(meta metav1.ObjectMeta) GomegaAsyncAssertion {
 	return Eventually(
 		func() bool {
 			postgres, err := f.extClient.Postgreses(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
 			Expect(err).NotTo(HaveOccurred())
 			return postgres.Status.Phase == tapi.DatabasePhaseRunning
+		},
+		time.Minute*5,
+		time.Second*5,
+	)
+}
+
+func (f *Framework) EventuallyPostgresClientReady(meta metav1.ObjectMeta) GomegaAsyncAssertion {
+	db, err := f.GetPostgresClient(meta)
+	Expect(err).NotTo(HaveOccurred())
+
+	return Eventually(
+		func() bool {
+			if err := f.CheckPostgres(db); err != nil {
+				return false
+			}
+			return true
+		},
+		time.Minute*5,
+		time.Second*5,
+	)
+}
+
+func (f *Framework) EventuallyPostgresTableCount(db *pg.DB) GomegaAsyncAssertion {
+	return Eventually(
+		func() int {
+			count, err := f.CountTable(db)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(count).To(Equal(count))
+			return count
 		},
 		time.Minute*5,
 		time.Second*5,

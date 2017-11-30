@@ -103,7 +103,58 @@ var _ = Describe("Postgres", func() {
 						StorageClassName: types.StringP(f.StorageClass),
 					}
 				})
-				It("should run successfully", shouldSuccessfullyRunning)
+				It("should run successfully", func() {
+					// Create Postgres
+					createAndWaitForRunning()
+
+					By("Check for Postgres client")
+					f.EventuallyPostgresClientReady(postgres.ObjectMeta).Should(BeTrue())
+
+					pgClient, err := f.GetPostgresClient(postgres.ObjectMeta)
+					Expect(err).NotTo(HaveOccurred())
+
+					err = f.CreateSchema(pgClient)
+					Expect(err).NotTo(HaveOccurred())
+
+					By("Creating Table")
+					err = f.CreateTable(pgClient, 3)
+					Expect(err).NotTo(HaveOccurred())
+
+					By("Checking Table")
+					f.EventuallyPostgresTableCount(pgClient).Should(Equal(3))
+
+					By("Update postgres to set Replicas=0")
+					pg, err := f.TryPatchPostgres(postgres.ObjectMeta, func(in *tapi.Postgres) *tapi.Postgres {
+						in.Spec.Replicas = 0
+						return in
+					})
+					*postgres = *pg
+
+					By("Counting for Postgres Pod")
+					f.EventuallyPostgresPodCount(postgres.ObjectMeta).Should(BeZero())
+
+					By("Update postgres to set Replicas=1")
+					pg, err = f.TryPatchPostgres(postgres.ObjectMeta, func(in *tapi.Postgres) *tapi.Postgres {
+						in.Spec.Replicas = 1
+						return in
+					})
+					*postgres = *pg
+
+					By("Counting for Postgres Pod")
+					f.EventuallyPostgresPodCount(postgres.ObjectMeta).Should(BeNumerically("==", 1))
+
+					By("Check for Postgres client")
+					f.EventuallyPostgresClientReady(postgres.ObjectMeta).Should(BeTrue())
+
+					pgClient, err = f.GetPostgresClient(postgres.ObjectMeta)
+					Expect(err).NotTo(HaveOccurred())
+
+					By("Checking Table")
+					f.EventuallyPostgresTableCount(pgClient).Should(Equal(3))
+
+					// Delete test resource
+					deleteTestResource()
+				})
 			})
 		})
 
@@ -184,9 +235,7 @@ var _ = Describe("Postgres", func() {
 					snapshot.Spec.Local = &tapi.LocalSpec{
 						Path: "/repo",
 						VolumeSource: core.VolumeSource{
-							HostPath: &core.HostPathVolumeSource{
-								Path: "/repo",
-							},
+							EmptyDir: &core.EmptyDirVolumeSource{},
 						},
 					}
 				})
@@ -248,17 +297,32 @@ var _ = Describe("Postgres", func() {
 				BeforeEach(func() {
 					postgres.Spec.Init = &tapi.InitSpec{
 						ScriptSource: &tapi.ScriptSourceSpec{
-							ScriptPath: "postgres-init-scripts/run.sh",
 							VolumeSource: core.VolumeSource{
 								GitRepo: &core.GitRepoVolumeSource{
 									Repository: "https://github.com/k8sdb/postgres-init-scripts.git",
+									Directory:  ".",
 								},
 							},
 						},
 					}
 				})
 
-				It("should run successfully", shouldSuccessfullyRunning)
+				It("should run successfully", func() {
+					// Create Postgres
+					createAndWaitForRunning()
+
+					By("Check for Postgres client")
+					f.EventuallyPostgresClientReady(postgres.ObjectMeta).Should(BeTrue())
+
+					pgClient, err := f.GetPostgresClient(postgres.ObjectMeta)
+					Expect(err).NotTo(HaveOccurred())
+
+					By("Checking Table")
+					f.EventuallyPostgresTableCount(pgClient).Should(Equal(1))
+
+					// Delete test resource
+					deleteTestResource()
+				})
 
 			})
 
@@ -280,6 +344,22 @@ var _ = Describe("Postgres", func() {
 					// Create and wait for running Postgres
 					createAndWaitForRunning()
 
+					By("Check for Postgres client")
+					f.EventuallyPostgresClientReady(postgres.ObjectMeta).Should(BeTrue())
+
+					pgClient, err := f.GetPostgresClient(postgres.ObjectMeta)
+					Expect(err).NotTo(HaveOccurred())
+
+					err = f.CreateSchema(pgClient)
+					Expect(err).NotTo(HaveOccurred())
+
+					By("Creating Table")
+					err = f.CreateTable(pgClient, 3)
+					Expect(err).NotTo(HaveOccurred())
+
+					By("Checking Table")
+					f.EventuallyPostgresTableCount(pgClient).Should(Equal(3))
+
 					By("Create Secret")
 					f.CreateSecret(secret)
 
@@ -296,7 +376,7 @@ var _ = Describe("Postgres", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					By("Create postgres from snapshot")
-					postgres = f.Postgres()
+					*postgres = *f.Postgres()
 					postgres.Spec.DatabaseSecret = oldPostgres.Spec.DatabaseSecret
 					postgres.Spec.Init = &tapi.InitSpec{
 						SnapshotSource: &tapi.SnapshotSourceSpec{
@@ -308,9 +388,18 @@ var _ = Describe("Postgres", func() {
 					// Create and wait for running Postgres
 					createAndWaitForRunning()
 
+					By("Check for Postgres client")
+					f.EventuallyPostgresClientReady(postgres.ObjectMeta).Should(BeTrue())
+
+					pgClient, err = f.GetPostgresClient(postgres.ObjectMeta)
+					Expect(err).NotTo(HaveOccurred())
+
+					By("Checking Table")
+					f.EventuallyPostgresTableCount(pgClient).Should(Equal(3))
+
 					// Delete test resource
 					deleteTestResource()
-					postgres = oldPostgres
+					*postgres = *oldPostgres
 					// Delete test resource
 					deleteTestResource()
 				})
@@ -345,9 +434,10 @@ var _ = Describe("Postgres", func() {
 				By("Wait for Running postgres")
 				f.EventuallyPostgresRunning(postgres.ObjectMeta).Should(BeTrue())
 
-				postgres, err = f.GetPostgres(postgres.ObjectMeta)
+				_postgres, err := f.GetPostgres(postgres.ObjectMeta)
 				Expect(err).NotTo(HaveOccurred())
 
+				*postgres = *_postgres
 				if usedInitSpec {
 					Expect(postgres.Spec.Init).Should(BeNil())
 					Expect(postgres.Annotations[tapi.PostgresInitSpec]).ShouldNot(BeEmpty())
@@ -366,10 +456,10 @@ var _ = Describe("Postgres", func() {
 					usedInitSpec = true
 					postgres.Spec.Init = &tapi.InitSpec{
 						ScriptSource: &tapi.ScriptSourceSpec{
-							ScriptPath: "postgres-init-scripts/run.sh",
 							VolumeSource: core.VolumeSource{
 								GitRepo: &core.GitRepoVolumeSource{
 									Repository: "https://github.com/k8sdb/postgres-init-scripts.git",
+									Directory:  ".",
 								},
 							},
 						},
@@ -477,9 +567,7 @@ var _ = Describe("Postgres", func() {
 							Local: &tapi.LocalSpec{
 								Path: "/repo",
 								VolumeSource: core.VolumeSource{
-									HostPath: &core.HostPathVolumeSource{
-										Path: "/repo",
-									},
+									EmptyDir: &core.EmptyDirVolumeSource{},
 								},
 							},
 						},
@@ -517,9 +605,7 @@ var _ = Describe("Postgres", func() {
 								Local: &tapi.LocalSpec{
 									Path: "/repo",
 									VolumeSource: core.VolumeSource{
-										HostPath: &core.HostPathVolumeSource{
-											Path: "/repo",
-										},
+										EmptyDir: &core.EmptyDirVolumeSource{},
 									},
 								},
 							},

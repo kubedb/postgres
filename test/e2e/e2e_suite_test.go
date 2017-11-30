@@ -58,7 +58,7 @@ var _ = BeforeSuite(func() {
 	apiExtKubeClient := crd_cs.NewForConfigOrDie(config)
 	extClient := cs.NewForConfigOrDie(config)
 	// Framework
-	root = framework.New(kubeClient, extClient, storageClass)
+	root = framework.New(config, kubeClient, extClient, storageClass)
 
 	By("Using namespace " + root.Namespace())
 

@@ -83,9 +83,6 @@ func (c *Controller) create(postgres *api.Postgres) error {
 	}
 	*postgres = *pg
 
-	kutildb.AssignTypeKind(postgres)
-
-
 	if postgres.Spec.Init != nil && postgres.Spec.Init.SnapshotSource != nil {
 		pg, err := kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
 			in.Status.Phase = api.DatabasePhaseInitializing
@@ -125,6 +122,7 @@ func (c *Controller) create(postgres *api.Postgres) error {
 		"Successfully created Postgres",
 	)
 
+	kutildb.AssignTypeKind(postgres)
 	// Ensure Schedule backup
 	c.ensureBackupScheduler(postgres)
 
@@ -235,7 +233,6 @@ func (c *Controller) matchDormantDatabase(postgres *api.Postgres) (bool, error) 
 
 	return true, nil
 }
-
 
 func (c *Controller) ensurePostgresNode(postgres *api.Postgres) error {
 	c.ensureDatabaseSecret(postgres)
@@ -446,6 +443,7 @@ func (c *Controller) update(oldPostgres, updatedPostgres *api.Postgres) error {
 	}
 
 	if !reflect.DeepEqual(updatedPostgres.Spec.BackupSchedule, oldPostgres.Spec.BackupSchedule) {
+		kutildb.AssignTypeKind(updatedPostgres)
 		c.ensureBackupScheduler(updatedPostgres)
 	}
 
