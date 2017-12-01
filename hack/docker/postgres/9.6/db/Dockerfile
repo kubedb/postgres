@@ -17,7 +17,12 @@ RUN mkdir -p "$PGWAL" && chown -R postgres:postgres "$PGWAL" && chmod 0700 "$PGW
 
 VOLUME ["$PV", "$PGWAL"]
 
+ENV STANDBY warm
 ENV RESTORE false
+ENV BACKUP_NAME LATEST
+ENV PITR latest
+ENV ARCHIVE_S3_PREFIX ""
+ENV RESTORE_S3_PREFIX ""
 
 ENTRYPOINT ["pg-operator"]
 CMD ["leader_election"]

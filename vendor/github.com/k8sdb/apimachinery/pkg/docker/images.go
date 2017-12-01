@@ -3,7 +3,7 @@ package docker
 const (
 	ImageOperator          = "kubedb/operator"
 	ImagePostgresOperator  = "kubedb/pg-operator"
-	ImagePostgres          = "kubedb/postgres"
+	ImagePostgres          = "aerokite/postgres"
 	ImageMySQLOperator     = "kubedb/mysql-operator"
 	ImageMySQL             = "library/mysql"
 	ImageElasticOperator   = "kubedb/es-operator"

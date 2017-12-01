@@ -30,14 +30,14 @@ type PostgresSpec struct {
 	Version types.StrYo `json:"version,omitempty"`
 	// Number of instances to deploy for a Postgres database.
 	Replicas int32 `json:"replicas,omitempty"`
+	// Standby mode
+	Standby StandbyMode `json:"standby,omitempty"`
+	// Streaming mode
+	Streaming StreamingMode `json:"streaming,omitempty"`
+	// Archive for wal files
+	Archiver PostgresArchiverSpec `json:"archiver,omitempty"`
 	// Database authentication secret
 	DatabaseSecret *core.SecretVolumeSource `json:"databaseSecret,omitempty"`
-	// Database HA configuration
-	Configuration PostgresConfiguration `json:"configuration,omitempty"`
-	// Archive for wal files
-	Archive *PostgresArchive `json:"archive,omitempty"`
-	// Restore from wal-g archive
-	Restore bool `json:"restore,omitempty"`
 	// Storage to specify how storage shall be used.
 	Storage *core.PersistentVolumeClaimSpec `json:"storage,omitempty"`
 	// NodeSelector is a selector which must be true for the pod to fit on a node
@@ -70,15 +70,9 @@ type PostgresSpec struct {
 	Tolerations []core.Toleration `json:"tolerations,omitempty" protobuf:"bytes,22,opt,name=tolerations"`
 }
 
-type PostgresConfiguration struct {
-	Standby   string `json:"standby,omitempty"`
-	Streaming string `json:"streaming,omitempty"`
-}
-
-type PostgresArchive struct {
-	Type string `json:"type,omitempty"`
-	// Secret for wal-g configuration
-	Secret *core.SecretVolumeSource `json:"secret,omitempty"`
+type PostgresArchiverSpec struct {
+	Storage *SnapshotStorageSpec `json:"archive,omitempty"`
+	// wal_keep_segments
 }
 
 type PostgresStatus struct {
@@ -110,3 +104,23 @@ type PostgresSchemaInfo struct {
 type PostgresSummary struct {
 	Schema map[string]*PostgresSchemaInfo `json:"schema"`
 }
+
+type PostgresWALSourceSpec struct {
+	BackupName          string `json:"backupName,omitempty"`
+	PITR                string `json:"pitr,omitempty"`
+	SnapshotStorageSpec `json:",inline,omitempty"`
+}
+
+type StandbyMode string
+
+const (
+	HotStandby  StandbyMode = "hot"
+	WarmStandby StandbyMode = "warm"
+)
+
+type StreamingMode string
+
+const (
+	SynchronousStreaming  StreamingMode = "synchronous"
+	AsynchronousStreaming StreamingMode = "asynchronous"
+)

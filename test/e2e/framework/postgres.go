@@ -1,7 +1,6 @@
 package framework
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/appscode/go/crypto/rand"
@@ -96,13 +95,14 @@ func (f *Framework) EventuallyPostgresRunning(meta metav1.ObjectMeta) GomegaAsyn
 }
 
 func (f *Framework) EventuallyPostgresClientReady(meta metav1.ObjectMeta) GomegaAsyncAssertion {
-	db, err := f.GetPostgresClient(meta)
-	Expect(err).NotTo(HaveOccurred())
-
 	return Eventually(
 		func() bool {
+			db, err := f.GetPostgresClient(meta)
+			if err != nil {
+				return false
+			}
+
 			if err := f.CheckPostgres(db); err != nil {
-				fmt.Println("---- ,", err)
 				return false
 			}
 			return true

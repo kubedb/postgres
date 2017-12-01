@@ -41,6 +41,15 @@ func RunLeaderElection() {
 		log.Fatalln(err)
 	}
 
+	cmd := exec.Command("su-exec", "postgres", fmt.Sprintf("/scripts/primary/run.sh"))
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	if err := cmd.Run(); err != nil {
+		log.Println(err)
+	}
+	os.Exit(1)
+
 	hostname, err := os.Hostname()
 	if err != nil {
 		log.Fatalln(err)

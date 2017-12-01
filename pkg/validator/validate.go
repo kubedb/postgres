@@ -1,12 +1,13 @@
 package validator
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
+	"errors"
 	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/k8sdb/apimachinery/pkg/docker"
+	"github.com/k8sdb/apimachinery/pkg/storage"
 	amv "github.com/k8sdb/apimachinery/pkg/validator"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -28,43 +29,57 @@ func ValidatePostgres(client kubernetes.Interface, postgres *tapi.Postgres) erro
 			return err
 		}
 	}
-
-	configuration := postgres.Spec.Configuration
-	if configuration.Standby != "" {
-		if strings.ToLower(configuration.Standby) != "hot" &&
-			strings.ToLower(configuration.Standby) != "warm" {
-			return fmt.Errorf(`configuration.Standby "%v" invalid`, configuration.Standby)
+	if postgres.Spec.Standby != "" {
+		if strings.ToLower(string(postgres.Spec.Standby)) != "hot" &&
+			strings.ToLower(string(postgres.Spec.Standby)) != "warm" {
+			return fmt.Errorf(`configuration.Standby "%v" invalid`, postgres.Spec.Standby)
 		}
 	}
-	if configuration.Streaming != "" {
+	if postgres.Spec.Streaming != "" {
 		// TODO: synchronous Streaming is unavailable due to lack of support
 		if /*strings.ToLower(configuration.Streaming) != "synchronous" &&
-		 */strings.ToLower(configuration.Streaming) != "asynchronous" {
-			return fmt.Errorf(`configuration.Streaming "%v" invalid`, configuration.Streaming)
+		 */strings.ToLower(string(postgres.Spec.Streaming)) != "asynchronous" {
+			return fmt.Errorf(`configuration.Streaming "%v" invalid`, postgres.Spec.Streaming)
 		}
 	}
 
-	archive := postgres.Spec.Archive
-	if postgres.Spec.Archive != nil {
-		switch archive.Type {
-		case "wal-g":
-			if archive.Secret == nil {
-				return errors.New("archive.Secret not found")
-			}
-			if _, err := client.CoreV1().Secrets(postgres.Namespace).Get(archive.Secret.SecretName, metav1.GetOptions{}); err != nil {
-				return err
-			}
-		case "":
-			return errors.New("archive.Type not found")
-		default:
-			return fmt.Errorf(`archive.Type "%v" invalid`, archive.Type)
+	archiver := postgres.Spec.Archiver.Storage
+	if archiver != nil {
+		if archiver.StorageSecretName == "" {
+			return fmt.Errorf(`object 'StorageSecretName' is missing in '%v'`, archiver)
+		}
+		if archiver.S3 == nil {
+			return errors.New("no storage provider is configured")
+		}
+		if !(archiver.GCS == nil && archiver.Azure == nil && archiver.Swift == nil && archiver.Local == nil) {
+			return errors.New("invalid storage provider is configured")
+		}
 
+		if err := storage.CheckBucketAccess(client, *archiver, postgres.Namespace); err != nil {
+			return err
 		}
 	}
 
 	databaseSecret := postgres.Spec.DatabaseSecret
 	if databaseSecret != nil {
 		if _, err := client.CoreV1().Secrets(postgres.Namespace).Get(databaseSecret.SecretName, metav1.GetOptions{}); err != nil {
+			return err
+		}
+	}
+
+	if postgres.Spec.Init != nil && postgres.Spec.Init.PostgresWAL != nil {
+		wal := postgres.Spec.Init.PostgresWAL
+		if wal.StorageSecretName == "" {
+			return fmt.Errorf(`object 'StorageSecretName' is missing in '%v'`, wal)
+		}
+		if wal.S3 == nil {
+			return errors.New("no storage provider is configured")
+		}
+		if !(wal.GCS == nil && wal.Azure == nil && wal.Swift == nil && wal.Local == nil) {
+			return errors.New("invalid storage provider is configured")
+		}
+
+		if err := storage.CheckBucketAccess(client, wal.SnapshotStorageSpec, postgres.Namespace); err != nil {
 			return err
 		}
 	}

@@ -42,12 +42,8 @@ configure_pghba() {
 }
 
 set_walg_env() {
-    CRED_PATH='/srv/wal-g/secrets'
+    CRED_PATH="$1"
     if [ -d "$CRED_PATH" ]; then
-        WALE_S3_PREFIX_PATH="$CRED_PATH/WALE_S3_PREFIX"
-        if [ -f "$WALE_S3_PREFIX_PATH" ]; then
-            export WALE_S3_PREFIX=$(cat "$WALE_S3_PREFIX_PATH")
-        fi
         AWS_ACCESS_KEY_ID_PATH="$CRED_PATH/AWS_ACCESS_KEY_ID"
         if [ -f "$AWS_ACCESS_KEY_ID_PATH" ]; then
             export AWS_ACCESS_KEY_ID=$(cat "$AWS_ACCESS_KEY_ID_PATH")
@@ -73,7 +69,8 @@ use_standby() {
 
     if [[ -v ARCHIVE ]]; then
         if [ "$ARCHIVE" == "wal-g" ]; then
-            set_walg_env
+            export WALE_S3_PREFIX=$(echo "$ARCHIVE_S3_PREFIX")
+            set_walg_env "/srv/wal-g/archive/secrets"
             archive_timeout=60
             archive_command="'wal-g wal-push %p'"
         fi
@@ -99,6 +96,9 @@ use_standby() {
 }
 
 configure_primary_postgres() {
+
+    cp /scripts/primary/postgresql.conf /tmp
+
     if [[ -v STANDBY ]]; then
         if [ "$STANDBY" == "warm" ]; then
             use_standby "archive"
@@ -107,21 +107,20 @@ configure_primary_postgres() {
         fi
     fi
 
-    if [ -s /tmp/postgresql.conf ]; then
-        cat /tmp/postgresql.conf >> "$PGDATA/postgresql.conf"
-    fi
+    cp /tmp/postgresql.conf "$PGDATA/postgresql.conf"
 }
 
 configure_replica_postgres() {
+
+    cp /scripts/primary/postgresql.conf /tmp
+
     if [[ -v STANDBY ]]; then
         if [ "$STANDBY" == "hot" ]; then
             echo "hot_standby = on" >> /tmp/postgresql.conf
         fi
     fi
 
-    if [ -s /tmp/postgresql.conf ]; then
-        cat /tmp/postgresql.conf >> "$PGDATA/postgresql.conf"
-    fi
+    cp /tmp/postgresql.conf "$PGDATA/postgresql.conf"
 }
 
 create_pgpass_file() {
@@ -151,13 +150,15 @@ base_backup() {
     pg_basebackup -X fetch --no-password --pgdata "$PGDATA" --host="$PRIMARY_HOST"
 
     cp /scripts/replica/recovery.conf /tmp
+    echo "recovery_target_timeline = 'latest'" >> /tmp/recovery.conf
     echo "archive_cleanup_command = 'pg_archivecleanup $PGWAL %r'" >> /tmp/recovery.conf
     # primary_conninfo is used for streaming replication
     echo "primary_conninfo = 'application_name=$HOSTNAME host=$PRIMARY_HOST'" >> /tmp/recovery.conf
 
     if [[ -v ARCHIVE ]]; then
         if [ "$ARCHIVE" == "wal-g" ]; then
-            set_walg_env
+            export WALE_S3_PREFIX=$(echo "$ARCHIVE_S3_PREFIX")
+            set_walg_env "/srv/wal-g/archive/secrets"
             echo "restore_command = 'wal-g wal-fetch %f %p'" >> /tmp/recovery.conf
         fi
     fi
@@ -191,7 +192,8 @@ push_backup() {
 
             echo "Pushing base backup"
 
-            set_walg_env
+            export WALE_S3_PREFIX=$(echo "$ARCHIVE_S3_PREFIX")
+            set_walg_env "/srv/wal-g/archive/secrets"
             create_pgpass_file
 
             PGHOST="127.0.0.1"
@@ -210,8 +212,11 @@ push_backup() {
 
 restore_from_walg() {
     reset_owner
-    set_walg_env
-    wal-g backup-fetch "$PGDATA" LATEST >/dev/null
+    # Restore from wal archive
+    export WALE_S3_PREFIX=$(echo "$RESTORE_S3_PREFIX")
+    set_walg_env "/srv/wal-g/restore/secrets"
+
+    wal-g backup-fetch "$PGDATA" "$BACKUP_NAME" &>/dev/null
 
     configure_replica_postgres
 
@@ -219,25 +224,33 @@ restore_from_walg() {
     mkdir -p "$PGDATA"/pg_logical/{snapshots,mappings}/
 
     cp /scripts/replica/recovery.conf /tmp
+    echo "recovery_target_timeline = '$PITR'" >> /tmp/recovery.conf
     echo "restore_command = 'wal-g wal-fetch %f %p'" >> /tmp/recovery.conf
     cp /tmp/recovery.conf "$PGDATA/recovery.conf"
 
     touch '/tmp/pg-failover-trigger'
 
-    check_recovery_done &
-}
+    echo "Starting up Database"
+    (pg_ctl -D "$PGDATA"  -w start &>/dev/null) &
 
-
-check_recovery_done() {
     while [ -f "/tmp/pg-failover-trigger" ]
     do
         echo "Waiting for archive recovery complete"
         sleep 2
     done
 
-    create_pgpass_file
+    pg_ctl -D "$PGDATA" -m fast -w stop &>/dev/null
 
-    PGHOST="127.0.0.1" PGPORT="5432" PGUSER="postgres" wal-g backup-push "$PGDATA" >/dev/null
+    rm "$PGDATA/postgresql.conf" || true
+    rm "$PGDATA/recovery.conf" || true
+
+    configure_primary_postgres
+
+    pg_ctl -D "$PGDATA"  -w start &>/dev/null
+
+    PGHOST="127.0.0.1" PGPORT="5432" PGUSER="postgres" wal-g backup-push "$PGDATA" &>/dev/null
 
     echo "Successfully pushed backup"
+
+    pg_ctl -D "$PGDATA" -m fast -w stop &>/dev/null
 }

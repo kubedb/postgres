@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/appscode/go/types"
-	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
+	api "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/k8sdb/postgres/test/e2e/framework"
 	"github.com/k8sdb/postgres/test/e2e/matcher"
 	. "github.com/onsi/ginkgo"
@@ -26,8 +26,8 @@ var _ = Describe("Postgres", func() {
 	var (
 		err         error
 		f           *framework.Invocation
-		postgres    *tapi.Postgres
-		snapshot    *tapi.Snapshot
+		postgres    *api.Postgres
+		snapshot    *api.Snapshot
 		secret      *core.Secret
 		skipMessage string
 	)
@@ -57,7 +57,7 @@ var _ = Describe("Postgres", func() {
 		f.EventuallyDormantDatabaseStatus(postgres.ObjectMeta).Should(matcher.HavePaused())
 
 		By("WipeOut postgres")
-		_, err := f.TryPatchDormantDatabase(postgres.ObjectMeta, func(in *tapi.DormantDatabase) *tapi.DormantDatabase {
+		_, err := f.TryPatchDormantDatabase(postgres.ObjectMeta, func(in *api.DormantDatabase) *api.DormantDatabase {
 			in.Spec.WipeOut = true
 			return in
 		})
@@ -125,7 +125,7 @@ var _ = Describe("Postgres", func() {
 					f.EventuallyPostgresTableCount(pgClient).Should(Equal(3))
 
 					By("Update postgres to set Replicas=0")
-					pg, err := f.TryPatchPostgres(postgres.ObjectMeta, func(in *tapi.Postgres) *tapi.Postgres {
+					pg, err := f.TryPatchPostgres(postgres.ObjectMeta, func(in *api.Postgres) *api.Postgres {
 						in.Spec.Replicas = 0
 						return in
 					})
@@ -135,7 +135,7 @@ var _ = Describe("Postgres", func() {
 					f.EventuallyPostgresPodCount(postgres.ObjectMeta).Should(BeZero())
 
 					By("Update postgres to set Replicas=1")
-					pg, err = f.TryPatchPostgres(postgres.ObjectMeta, func(in *tapi.Postgres) *tapi.Postgres {
+					pg, err = f.TryPatchPostgres(postgres.ObjectMeta, func(in *api.Postgres) *api.Postgres {
 						in.Spec.Replicas = 1
 						return in
 					})
@@ -179,7 +179,7 @@ var _ = Describe("Postgres", func() {
 				f.EventuallyPostgresRunning(postgres.ObjectMeta).Should(BeTrue())
 
 				By("Update postgres to set DoNotPause=false")
-				f.TryPatchPostgres(postgres.ObjectMeta, func(in *tapi.Postgres) *tapi.Postgres {
+				f.TryPatchPostgres(postgres.ObjectMeta, func(in *api.Postgres) *api.Postgres {
 					in.Spec.DoNotPause = false
 					return in
 				})
@@ -212,7 +212,7 @@ var _ = Describe("Postgres", func() {
 				f.CreateSnapshot(snapshot)
 
 				By("Check for Successed snapshot")
-				f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(tapi.SnapshotPhaseSuccessed))
+				f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(api.SnapshotPhaseSuccessed))
 
 				if !skipDataCheck {
 					By("Check for snapshot data")
@@ -233,7 +233,7 @@ var _ = Describe("Postgres", func() {
 					skipDataCheck = true
 					secret = f.SecretForLocalBackend()
 					snapshot.Spec.StorageSecretName = secret.Name
-					snapshot.Spec.Local = &tapi.LocalSpec{
+					snapshot.Spec.Local = &api.LocalSpec{
 						Path: "/repo",
 						VolumeSource: core.VolumeSource{
 							EmptyDir: &core.EmptyDirVolumeSource{},
@@ -248,7 +248,7 @@ var _ = Describe("Postgres", func() {
 				BeforeEach(func() {
 					secret = f.SecretForS3Backend()
 					snapshot.Spec.StorageSecretName = secret.Name
-					snapshot.Spec.S3 = &tapi.S3Spec{
+					snapshot.Spec.S3 = &api.S3Spec{
 						Bucket: os.Getenv(S3_BUCKET_NAME),
 					}
 				})
@@ -256,11 +256,11 @@ var _ = Describe("Postgres", func() {
 				It("should take Snapshot successfully", shouldTakeSnapshot)
 			})
 
-			Context("In GCS", func() {
+			XContext("In GCS", func() {
 				BeforeEach(func() {
 					secret = f.SecretForGCSBackend()
 					snapshot.Spec.StorageSecretName = secret.Name
-					snapshot.Spec.GCS = &tapi.GCSSpec{
+					snapshot.Spec.GCS = &api.GCSSpec{
 						Bucket: os.Getenv(GCS_BUCKET_NAME),
 					}
 				})
@@ -268,11 +268,11 @@ var _ = Describe("Postgres", func() {
 				It("should take Snapshot successfully", shouldTakeSnapshot)
 			})
 
-			Context("In Azure", func() {
+			XContext("In Azure", func() {
 				BeforeEach(func() {
 					secret = f.SecretForAzureBackend()
 					snapshot.Spec.StorageSecretName = secret.Name
-					snapshot.Spec.Azure = &tapi.AzureSpec{
+					snapshot.Spec.Azure = &api.AzureSpec{
 						Container: os.Getenv(AZURE_CONTAINER_NAME),
 					}
 				})
@@ -280,11 +280,11 @@ var _ = Describe("Postgres", func() {
 				It("should take Snapshot successfully", shouldTakeSnapshot)
 			})
 
-			Context("In Swift", func() {
+			XContext("In Swift", func() {
 				BeforeEach(func() {
 					secret = f.SecretForSwiftBackend()
 					snapshot.Spec.StorageSecretName = secret.Name
-					snapshot.Spec.Swift = &tapi.SwiftSpec{
+					snapshot.Spec.Swift = &api.SwiftSpec{
 						Container: os.Getenv(SWIFT_CONTAINER_NAME),
 					}
 				})
@@ -296,8 +296,8 @@ var _ = Describe("Postgres", func() {
 		Context("Initialize", func() {
 			Context("With Script", func() {
 				BeforeEach(func() {
-					postgres.Spec.Init = &tapi.InitSpec{
-						ScriptSource: &tapi.ScriptSourceSpec{
+					postgres.Spec.Init = &api.InitSpec{
+						ScriptSource: &api.ScriptSourceSpec{
 							VolumeSource: core.VolumeSource{
 								GitRepo: &core.GitRepoVolumeSource{
 									Repository: "https://github.com/k8sdb/postgres-init-scripts.git",
@@ -335,7 +335,7 @@ var _ = Describe("Postgres", func() {
 				BeforeEach(func() {
 					secret = f.SecretForS3Backend()
 					snapshot.Spec.StorageSecretName = secret.Name
-					snapshot.Spec.S3 = &tapi.S3Spec{
+					snapshot.Spec.S3 = &api.S3Spec{
 						Bucket: os.Getenv(S3_BUCKET_NAME),
 					}
 					snapshot.Spec.DatabaseName = postgres.Name
@@ -368,7 +368,7 @@ var _ = Describe("Postgres", func() {
 					f.CreateSnapshot(snapshot)
 
 					By("Check for Successed snapshot")
-					f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(tapi.SnapshotPhaseSuccessed))
+					f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(api.SnapshotPhaseSuccessed))
 
 					By("Check for snapshot data")
 					f.EventuallySnapshotDataFound(snapshot).Should(BeTrue())
@@ -379,8 +379,8 @@ var _ = Describe("Postgres", func() {
 					By("Create postgres from snapshot")
 					*postgres = *f.Postgres()
 					postgres.Spec.DatabaseSecret = oldPostgres.Spec.DatabaseSecret
-					postgres.Spec.Init = &tapi.InitSpec{
-						SnapshotSource: &tapi.SnapshotSourceSpec{
+					postgres.Spec.Init = &api.InitSpec{
+						SnapshotSource: &api.SnapshotSourceSpec{
 							Namespace: snapshot.Namespace,
 							Name:      snapshot.Name,
 						},
@@ -423,7 +423,7 @@ var _ = Describe("Postgres", func() {
 				By("Wait for postgres to be paused")
 				f.EventuallyDormantDatabaseStatus(postgres.ObjectMeta).Should(matcher.HavePaused())
 
-				_, err = f.TryPatchDormantDatabase(postgres.ObjectMeta, func(in *tapi.DormantDatabase) *tapi.DormantDatabase {
+				_, err = f.TryPatchDormantDatabase(postgres.ObjectMeta, func(in *api.DormantDatabase) *api.DormantDatabase {
 					in.Spec.Resume = true
 					return in
 				})
@@ -441,7 +441,7 @@ var _ = Describe("Postgres", func() {
 				*postgres = *_postgres
 				if usedInitSpec {
 					Expect(postgres.Spec.Init).Should(BeNil())
-					Expect(postgres.Annotations[tapi.PostgresInitSpec]).ShouldNot(BeEmpty())
+					Expect(postgres.Annotations[api.PostgresInitSpec]).ShouldNot(BeEmpty())
 				}
 
 				// Delete test resource
@@ -455,8 +455,8 @@ var _ = Describe("Postgres", func() {
 			Context("With Init", func() {
 				BeforeEach(func() {
 					usedInitSpec = true
-					postgres.Spec.Init = &tapi.InitSpec{
-						ScriptSource: &tapi.ScriptSourceSpec{
+					postgres.Spec.Init = &api.InitSpec{
+						ScriptSource: &api.ScriptSourceSpec{
 							VolumeSource: core.VolumeSource{
 								GitRepo: &core.GitRepoVolumeSource{
 									Repository: "https://github.com/k8sdb/postgres-init-scripts.git",
@@ -504,8 +504,8 @@ var _ = Describe("Postgres", func() {
 				Context("with init", func() {
 					BeforeEach(func() {
 						usedInitSpec = true
-						postgres.Spec.Init = &tapi.InitSpec{
-							ScriptSource: &tapi.ScriptSourceSpec{
+						postgres.Spec.Init = &api.InitSpec{
+							ScriptSource: &api.ScriptSourceSpec{
 								ScriptPath: "postgres-init-scripts/run.sh",
 								VolumeSource: core.VolumeSource{
 									GitRepo: &core.GitRepoVolumeSource{
@@ -561,11 +561,11 @@ var _ = Describe("Postgres", func() {
 
 			Context("With Startup", func() {
 				BeforeEach(func() {
-					postgres.Spec.BackupSchedule = &tapi.BackupScheduleSpec{
+					postgres.Spec.BackupSchedule = &api.BackupScheduleSpec{
 						CronExpression: "@every 1m",
-						SnapshotStorageSpec: tapi.SnapshotStorageSpec{
+						SnapshotStorageSpec: api.SnapshotStorageSpec{
 							StorageSecretName: secret.Name,
-							Local: &tapi.LocalSpec{
+							Local: &api.LocalSpec{
 								Path: "/repo",
 								VolumeSource: core.VolumeSource{
 									EmptyDir: &core.EmptyDirVolumeSource{},
@@ -598,12 +598,12 @@ var _ = Describe("Postgres", func() {
 					f.CreateSecret(secret)
 
 					By("Update postgres")
-					_, err = f.TryPatchPostgres(postgres.ObjectMeta, func(in *tapi.Postgres) *tapi.Postgres {
-						in.Spec.BackupSchedule = &tapi.BackupScheduleSpec{
+					_, err = f.TryPatchPostgres(postgres.ObjectMeta, func(in *api.Postgres) *api.Postgres {
+						in.Spec.BackupSchedule = &api.BackupScheduleSpec{
 							CronExpression: "@every 1m",
-							SnapshotStorageSpec: tapi.SnapshotStorageSpec{
+							SnapshotStorageSpec: api.SnapshotStorageSpec{
 								StorageSecretName: secret.Name,
-								Local: &tapi.LocalSpec{
+								Local: &api.LocalSpec{
 									Path: "/repo",
 									VolumeSource: core.VolumeSource{
 										EmptyDir: &core.EmptyDirVolumeSource{},
@@ -624,19 +624,22 @@ var _ = Describe("Postgres", func() {
 			})
 		})
 
-		Context("Archive with wal-g", func() {
+		FContext("Archive with wal-g", func() {
 			BeforeEach(func() {
 				secret = f.SecretForS3Backend()
-				secret.Data[WALE_S3_PREFIX] = []byte(fmt.Sprintf("s3://%v/%v", os.Getenv(S3_BUCKET_NAME), postgres.Name))
-				postgres.Spec.Archive = &tapi.PostgresArchive{
-					Type: "wal-g",
-					Secret: &core.SecretVolumeSource{
-						SecretName: secret.Name,
+				postgres.Spec.Archiver = api.PostgresArchiverSpec{
+					Storage: &api.SnapshotStorageSpec{
+						StorageSecretName: secret.Name,
+						S3: &api.S3Spec{
+							Bucket: os.Getenv(S3_BUCKET_NAME),
+							Prefix: postgres.Name,
+						},
 					},
 				}
 			})
 
-			FIt("should archive successfully", func() {
+			It("should archive successfully", func() {
+				// -- > 1st Postgres < --
 				err := f.CreateSecret(secret)
 				Expect(err).NotTo(HaveOccurred())
 
@@ -666,17 +669,79 @@ var _ = Describe("Postgres", func() {
 				By("Checking Archive")
 				f.EventuallyPostgresArchiveCount(pgClient).Should(BeNumerically(">", count))
 
+				oldPostgres, err := f.GetPostgres(postgres.ObjectMeta)
+				Expect(err).NotTo(HaveOccurred())
+
 				// Delete test resource
 				deleteTestResource()
+				// -- > 1st Postgres < --
 
+				// -- > 2nd Postgres < --
 				*postgres = *f.Postgres()
-				postgres.Spec.Archive = &tapi.PostgresArchive{
-					Type: "wal-g",
-					Secret: &core.SecretVolumeSource{
-						SecretName: secret.Name,
+				postgres.Spec.Archiver = api.PostgresArchiverSpec{
+					Storage: &api.SnapshotStorageSpec{
+						StorageSecretName: secret.Name,
+						S3: &api.S3Spec{
+							Bucket: os.Getenv(S3_BUCKET_NAME),
+							Prefix: postgres.Name,
+						},
 					},
 				}
-				postgres.Spec.Restore = true
+				postgres.Spec.Init = &api.InitSpec{
+					PostgresWAL: &api.PostgresWALSourceSpec{
+						SnapshotStorageSpec: api.SnapshotStorageSpec{
+							StorageSecretName: secret.Name,
+							S3: &api.S3Spec{
+								Bucket: os.Getenv(S3_BUCKET_NAME),
+								Prefix: oldPostgres.Name,
+							},
+						},
+					},
+				}
+
+				// Create Postgres
+				createAndWaitForRunning()
+
+				By("Check for Postgres client")
+				f.EventuallyPostgresClientReady(postgres.ObjectMeta).Should(BeTrue())
+
+				pgClient, err = f.GetPostgresClient(postgres.ObjectMeta)
+				Expect(err).NotTo(HaveOccurred())
+
+				By("Creating Table")
+				err = f.CreateTable(pgClient, 3)
+				Expect(err).NotTo(HaveOccurred())
+
+				By("Checking Table")
+				f.EventuallyPostgresTableCount(pgClient).Should(Equal(6))
+
+				By("Count Archive")
+				count, err = f.CountArchive(pgClient)
+				Expect(err).NotTo(HaveOccurred())
+
+				By("Checking Archive")
+				f.EventuallyPostgresArchiveCount(pgClient).Should(BeNumerically(">", count))
+
+				oldPostgres, err = f.GetPostgres(postgres.ObjectMeta)
+				Expect(err).NotTo(HaveOccurred())
+
+				// Delete test resource
+				deleteTestResource()
+				// -- > 2nd Postgres < --
+
+				// -- > 3rd Postgres < --
+				*postgres = *f.Postgres()
+				postgres.Spec.Init = &api.InitSpec{
+					PostgresWAL: &api.PostgresWALSourceSpec{
+						SnapshotStorageSpec: api.SnapshotStorageSpec{
+							StorageSecretName: secret.Name,
+							S3: &api.S3Spec{
+								Bucket: os.Getenv(S3_BUCKET_NAME),
+								Prefix: oldPostgres.Name,
+							},
+						},
+					},
+				}
 
 				// Create Postgres
 				createAndWaitForRunning()
@@ -688,7 +753,7 @@ var _ = Describe("Postgres", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				By("Checking Table")
-				f.EventuallyPostgresTableCount(pgClient).Should(Equal(3))
+				f.EventuallyPostgresTableCount(pgClient).Should(Equal(6))
 
 				// Delete test resource
 				deleteTestResource()

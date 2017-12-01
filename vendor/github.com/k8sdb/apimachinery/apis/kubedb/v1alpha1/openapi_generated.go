@@ -602,11 +602,16 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 								Ref: ref("github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.SnapshotSourceSpec"),
 							},
 						},
+						"postgresWAL": {
+							SchemaProps: spec.SchemaProps{
+								Ref: ref("github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.PostgresWALSourceSpec"),
+							},
+						},
 					},
 				},
 			},
 			Dependencies: []string{
-				"github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.ScriptSourceSpec", "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.SnapshotSourceSpec"},
+				"github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.PostgresWALSourceSpec", "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.ScriptSourceSpec", "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.SnapshotSourceSpec"},
 		},
 		"github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.LocalSpec": {
 			Schema: spec.Schema{
@@ -1360,48 +1365,20 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 			Dependencies: []string{
 				"github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.PostgresSpec", "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.PostgresStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 		},
-		"github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.PostgresArchive": {
+		"github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.PostgresArchiverSpec": {
 			Schema: spec.Schema{
 				SchemaProps: spec.SchemaProps{
 					Properties: map[string]spec.Schema{
-						"type": {
+						"storage": {
 							SchemaProps: spec.SchemaProps{
-								Type:   []string{"string"},
-								Format: "",
-							},
-						},
-						"secret": {
-							SchemaProps: spec.SchemaProps{
-								Description: "Secret for wal-g configuration",
-								Ref:         ref("k8s.io/api/core/v1.SecretVolumeSource"),
+								Ref: ref("github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.SnapshotStorageSpec"),
 							},
 						},
 					},
 				},
 			},
 			Dependencies: []string{
-				"k8s.io/api/core/v1.SecretVolumeSource"},
-		},
-		"github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.PostgresConfiguration": {
-			Schema: spec.Schema{
-				SchemaProps: spec.SchemaProps{
-					Properties: map[string]spec.Schema{
-						"standby": {
-							SchemaProps: spec.SchemaProps{
-								Type:   []string{"string"},
-								Format: "",
-							},
-						},
-						"streaming": {
-							SchemaProps: spec.SchemaProps{
-								Type:   []string{"string"},
-								Format: "",
-							},
-						},
-					},
-				},
-			},
-			Dependencies: []string{},
+				"github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.SnapshotStorageSpec"},
 		},
 		"github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.PostgresList": {
 			Schema: spec.Schema{
@@ -1486,29 +1463,30 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 								Format:      "int32",
 							},
 						},
+						"standby": {
+							SchemaProps: spec.SchemaProps{
+								Description: "Standby mode",
+								Type:        []string{"string"},
+								Format:      "",
+							},
+						},
+						"streaming": {
+							SchemaProps: spec.SchemaProps{
+								Description: "Streaming mode",
+								Type:        []string{"string"},
+								Format:      "",
+							},
+						},
+						"archiver": {
+							SchemaProps: spec.SchemaProps{
+								Description: "Archive for wal files",
+								Ref:         ref("github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.PostgresArchiverSpec"),
+							},
+						},
 						"databaseSecret": {
 							SchemaProps: spec.SchemaProps{
 								Description: "Database authentication secret",
 								Ref:         ref("k8s.io/api/core/v1.SecretVolumeSource"),
-							},
-						},
-						"configuration": {
-							SchemaProps: spec.SchemaProps{
-								Description: "Database HA configuration",
-								Ref:         ref("github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.PostgresConfiguration"),
-							},
-						},
-						"archive": {
-							SchemaProps: spec.SchemaProps{
-								Description: "Archive for wal files",
-								Ref:         ref("github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.PostgresArchive"),
-							},
-						},
-						"restore": {
-							SchemaProps: spec.SchemaProps{
-								Description: "Restore from wal-g archive",
-								Type:        []string{"boolean"},
-								Format:      "",
 							},
 						},
 						"storage": {
@@ -1592,7 +1570,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 				},
 			},
 			Dependencies: []string{
-				"github.com/appscode/kutil/tools/monitoring/api.AgentSpec", "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.BackupScheduleSpec", "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.InitSpec", "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.PostgresArchive", "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.PostgresConfiguration", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.PersistentVolumeClaimSpec", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.SecretVolumeSource", "k8s.io/api/core/v1.Toleration"},
+				"github.com/appscode/kutil/tools/monitoring/api.AgentSpec", "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.BackupScheduleSpec", "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.InitSpec", "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.PostgresArchiverSpec", "k8s.io/api/core/v1.Affinity", "k8s.io/api/core/v1.PersistentVolumeClaimSpec", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.SecretVolumeSource", "k8s.io/api/core/v1.Toleration"},
 		},
 		"github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.PostgresStatus": {
 			Schema: spec.Schema{
@@ -1672,6 +1650,59 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 				},
 			},
 			Dependencies: []string{},
+		},
+		"github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.PostgresWALSourceSpec": {
+			Schema: spec.Schema{
+				SchemaProps: spec.SchemaProps{
+					Properties: map[string]spec.Schema{
+						"backupName": {
+							SchemaProps: spec.SchemaProps{
+								Type:   []string{"string"},
+								Format: "",
+							},
+						},
+						"pitr": {
+							SchemaProps: spec.SchemaProps{
+								Type:   []string{"string"},
+								Format: "",
+							},
+						},
+						"storageSecretName": {
+							SchemaProps: spec.SchemaProps{
+								Type:   []string{"string"},
+								Format: "",
+							},
+						},
+						"local": {
+							SchemaProps: spec.SchemaProps{
+								Ref: ref("github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.LocalSpec"),
+							},
+						},
+						"s3": {
+							SchemaProps: spec.SchemaProps{
+								Ref: ref("github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.S3Spec"),
+							},
+						},
+						"gcs": {
+							SchemaProps: spec.SchemaProps{
+								Ref: ref("github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.GCSSpec"),
+							},
+						},
+						"azure": {
+							SchemaProps: spec.SchemaProps{
+								Ref: ref("github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.AzureSpec"),
+							},
+						},
+						"swift": {
+							SchemaProps: spec.SchemaProps{
+								Ref: ref("github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.SwiftSpec"),
+							},
+						},
+					},
+				},
+			},
+			Dependencies: []string{
+				"github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.AzureSpec", "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.GCSSpec", "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.LocalSpec", "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.S3Spec", "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.SwiftSpec"},
 		},
 		"github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.Redis": {
 			Schema: spec.Schema{
@@ -2312,6 +2343,13 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 						"swift": {
 							SchemaProps: spec.SchemaProps{
 								Ref: ref("github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1.SwiftSpec"),
+							},
+						},
+						"type": {
+							SchemaProps: spec.SchemaProps{
+								Description: "Snapshot Type",
+								Type:        []string{"string"},
+								Format:      "",
 							},
 						},
 						"resources": {

@@ -57,10 +57,11 @@ func (c *Controller) ensureStatefulSet(
 
 		in = upsertMonitoringContainer(in, postgres, c.opt.ExporterTag)
 		in = upsertDatabaseSecret(in, postgres.Spec.DatabaseSecret.SecretName)
-		if postgres.Spec.Archive != nil {
-			if postgres.Spec.Archive.Secret != nil {
-				in = upsertArchiveSecret(in, postgres.Spec.Archive.Secret.SecretName)
-			}
+		if postgres.Spec.Archiver.Storage != nil {
+			in = upsertArchiveSecret(in, postgres.Spec.Archiver.Storage.StorageSecretName)
+		}
+		if postgres.Spec.Init != nil && postgres.Spec.Init.PostgresWAL != nil {
+			in = upsertInitWalSecret(in, postgres.Spec.Init.PostgresWAL.StorageSecretName)
 		}
 		if postgres.Spec.Init != nil && postgres.Spec.Init.ScriptSource != nil {
 			in = upsertInitScript(in, postgres.Spec.Init.ScriptSource.VolumeSource)
@@ -107,10 +108,8 @@ func (c *Controller) ensureStatefulSet(
 }
 
 func (c *Controller) ensureCombinedNode(postgres *api.Postgres) error {
-
-	configuration := postgres.Spec.Configuration
-	standby := configuration.Standby
-	streaming := configuration.Streaming
+	standby := postgres.Spec.Standby
+	streaming := postgres.Spec.Streaming
 	if standby == "" {
 		standby = "warm"
 	}
@@ -121,26 +120,44 @@ func (c *Controller) ensureCombinedNode(postgres *api.Postgres) error {
 	envList := []core.EnvVar{
 		{
 			Name:  "STANDBY",
-			Value: standby,
+			Value: string(standby),
 		},
 		{
 			Name:  "STREAMING",
-			Value: streaming,
+			Value: string(streaming),
 		},
 	}
 
-	if postgres.Spec.Archive != nil {
-		envList = append(envList, core.EnvVar{
-			Name:  "ARCHIVE",
-			Value: postgres.Spec.Archive.Type,
-		})
+	archiver := postgres.Spec.Archiver.Storage
+	if archiver != nil {
+		envList = append(envList,
+			[]core.EnvVar{
+				{
+					Name:  "ARCHIVE",
+					Value: "wal-g",
+				},
+				{
+					Name:  "ARCHIVE_S3_PREFIX",
+					Value: fmt.Sprintf("s3://%v/%v", archiver.S3.Bucket, archiver.S3.Prefix),
+				},
+			}...,
+		)
 	}
 
-	if postgres.Spec.Restore {
-		envList = append(envList, core.EnvVar{
-			Name:  "RESTORE",
-			Value: fmt.Sprintf("%v", true),
-		})
+	if postgres.Spec.Init != nil && postgres.Spec.Init.PostgresWAL != nil {
+		wal := postgres.Spec.Init.PostgresWAL
+		envList = append(envList,
+			[]core.EnvVar{
+				{
+					Name:  "RESTORE",
+					Value: "true",
+				},
+				{
+					Name:  "RESTORE_S3_PREFIX",
+					Value: fmt.Sprintf("s3://%v/%v", wal.S3.Bucket, wal.S3.Prefix),
+				},
+			}...,
+		)
 	}
 
 	return c.ensureStatefulSet(postgres, envList)
@@ -176,7 +193,7 @@ func upsertContainer(statefulSet *apps.StatefulSet, postgres *api.Postgres) *app
 	container := core.Container{
 		Name:            api.ResourceNamePostgres,
 		Image:           fmt.Sprintf("%v:%v-db", docker.ImagePostgres, postgres.Spec.Version),
-		ImagePullPolicy: core.PullIfNotPresent,
+		ImagePullPolicy: core.PullAlways,
 		SecurityContext: &core.SecurityContext{
 			Privileged: types.BoolP(false),
 			Capabilities: &core.Capabilities{
@@ -204,14 +221,6 @@ func upsertEnv(statefulSet *apps.StatefulSet, postgres *api.Postgres, envs []cor
 		{
 			Name:  "PRIMARY_HOST",
 			Value: postgres.PrimaryName(),
-		},
-		{
-			Name:  "STANDBY",
-			Value: postgres.Spec.Configuration.Standby,
-		},
-		{
-			Name:  "STREAMING",
-			Value: postgres.Spec.Configuration.Streaming,
 		},
 	}
 
@@ -310,15 +319,43 @@ func upsertArchiveSecret(statefulset *apps.StatefulSet, secretName string) *apps
 	for i, container := range statefulset.Spec.Template.Spec.Containers {
 		if container.Name == api.ResourceNamePostgres {
 			volumeMount := core.VolumeMount{
-				Name:      "wal-g",
-				MountPath: "/srv/wal-g/secrets",
+				Name:      "wal-g-archive",
+				MountPath: "/srv/wal-g/archive/secrets",
 			}
 			volumeMounts := container.VolumeMounts
 			volumeMounts = kutilcore.UpsertVolumeMount(volumeMounts, volumeMount)
 			statefulset.Spec.Template.Spec.Containers[i].VolumeMounts = volumeMounts
 
 			volume := core.Volume{
-				Name: "wal-g",
+				Name: "wal-g-archive",
+				VolumeSource: core.VolumeSource{
+					Secret: &core.SecretVolumeSource{
+						SecretName: secretName,
+					},
+				},
+			}
+			volumes := statefulset.Spec.Template.Spec.Volumes
+			volumes = kutilcore.UpsertVolume(volumes, volume)
+			statefulset.Spec.Template.Spec.Volumes = volumes
+			return statefulset
+		}
+	}
+	return statefulset
+}
+
+func upsertInitWalSecret(statefulset *apps.StatefulSet, secretName string) *apps.StatefulSet {
+	for i, container := range statefulset.Spec.Template.Spec.Containers {
+		if container.Name == api.ResourceNamePostgres {
+			volumeMount := core.VolumeMount{
+				Name:      "wal-g-restore",
+				MountPath: "/srv/wal-g/restore/secrets",
+			}
+			volumeMounts := container.VolumeMounts
+			volumeMounts = kutilcore.UpsertVolumeMount(volumeMounts, volumeMount)
+			statefulset.Spec.Template.Spec.Containers[i].VolumeMounts = volumeMounts
+
+			volume := core.Volume{
+				Name: "wal-g-restore",
 				VolumeSource: core.VolumeSource{
 					Secret: &core.SecretVolumeSource{
 						SecretName: secretName,
