@@ -1,10 +1,10 @@
 package validator
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
-	"errors"
 	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/k8sdb/apimachinery/pkg/docker"
 	"github.com/k8sdb/apimachinery/pkg/storage"

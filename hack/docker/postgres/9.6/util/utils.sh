@@ -10,7 +10,7 @@ backup() {
     # 2 - username
     # 3 - password
 
-    path=/var/dump-backup
+    path=/var/pg_dumpall
     mkdir -p "$path"
     cd "$path"
     rm -rf "$path"/*
@@ -33,7 +33,7 @@ restore() {
     # 2 - username
     # 3 - password
 
-    path=/var/dump-restore/
+    path=/var/pg_dumpall/
     mkdir -p "$path"
     cd "$path"
 
@@ -55,7 +55,7 @@ push() {
     # 2 - folder
     # 3 - snapshot-name
 
-    src_path=/var/dump-backup/dumpfile.sql
+    src_path=/var/pg_dumpall/dumpfile.sql
     osm push --osmconfig=/etc/osm/config -c "$1" "$src_path" "$2/$3/dumpfile.sql"
     retval=$?
     if [ "$retval" -ne 0 ]; then
@@ -71,7 +71,7 @@ pull() {
     # 2 - folder
     # 3 - snapshot-name
 
-    dst_path=/var/dump-restore/
+    dst_path=/var/pg_dumpall/
     mkdir -p "$dst_path"
     rm -rf "$dst_path"
 
@@ -116,7 +116,7 @@ base_backup() {
     fi
 
     export WALE_S3_PREFIX="s3://$4/$5/$6"
-    PGDATA="/var/base-backup"
+    PGDATA="/var/pg_basebackup"
     create_pgpass_file "$3"
     pg_basebackup -X fetch --no-password --pgdata "$PGDATA" --username="$2" --host="$1" &>/dev/null
     PGHOST="$1" PGPORT="5432" PGUSER="$2" wal-g backup-push "$PGDATA" &>/dev/null

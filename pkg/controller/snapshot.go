@@ -14,8 +14,7 @@ import (
 )
 
 const (
-	SnapshotProcess_Backup  = "backup"
-	snapshotType_DumpBackup = "dump-backup"
+	SnapshotProcess_Backup = "backup"
 )
 
 func (c *Controller) ValidateSnapshot(snapshot *api.Snapshot) error {
@@ -35,7 +34,15 @@ func (c *Controller) ValidateSnapshot(snapshot *api.Snapshot) error {
 		return fmt.Errorf(`image %v:%v not found`, docker.ImagePostgres, version)
 	}
 
-	return amv.ValidateSnapshotSpec(c.Client, snapshot.Spec.SnapshotStorageSpec, snapshot.Namespace)
+	if snapshot.Spec.Type == api.SnapshotTypePostgresDumpAll {
+		return amv.ValidateSnapshotSpec(c.Client, snapshot.Spec.SnapshotStorageSpec, snapshot.Namespace)
+	} else if snapshot.Spec.Type == api.SnapshotTypePostgresBaseBackup {
+		if snapshot.Spec.S3 != nil {
+			return amv.ValidateSnapshotSpec(c.Client, snapshot.Spec.SnapshotStorageSpec, snapshot.Namespace)
+		}
+	}
+
+	return nil
 }
 
 func (c *Controller) GetDatabase(snapshot *api.Snapshot) (runtime.Object, error) {

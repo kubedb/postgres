@@ -18,7 +18,6 @@ const (
 	// Continue checking for this duration until failure
 	durationCheckStatefulSet = time.Minute * 30
 	SnapshotProcess_Restore  = "restore"
-	snapshotType_DumpRestore = "dump-restore"
 )
 
 func (c *Controller) createRestoreJob(postgres *api.Postgres, snapshot *api.Snapshot) (*batch.Job, error) {
@@ -73,7 +72,7 @@ func (c *Controller) createRestoreJob(postgres *api.Postgres, snapshot *api.Snap
 								},
 								{
 									Name:      persistentVolume.Name,
-									MountPath: "/var/" + snapshotType_DumpRestore + "/",
+									MountPath: "/var/" + string(api.SnapshotTypePostgresDumpAll) + "/",
 								},
 								{
 									Name:      "osmconfig",
@@ -179,12 +178,7 @@ func (c *Controller) getSnapshotterJob(snapshot *api.Snapshot) (*batch.Job, erro
 								},
 								{
 									Name:      persistentVolume.Name,
-									MountPath: "/var/" + snapshotType_DumpBackup + "/",
-								},
-								{
-									Name:      "osmconfig",
-									MountPath: storage.SecretMountPath,
-									ReadOnly:  true,
+									MountPath: "/var/" + string(snapshot.Spec.Type) + "/",
 								},
 							},
 						},
@@ -202,29 +196,71 @@ func (c *Controller) getSnapshotterJob(snapshot *api.Snapshot) (*batch.Job, erro
 							Name:         persistentVolume.Name,
 							VolumeSource: persistentVolume.VolumeSource,
 						},
-						{
-							Name: "osmconfig",
-							VolumeSource: core.VolumeSource{
-								Secret: &core.SecretVolumeSource{
-									SecretName: snapshot.OSMSecretName(),
-								},
-							},
-						},
 					},
 					RestartPolicy: core.RestartPolicyNever,
 				},
 			},
 		},
 	}
-	if snapshot.Spec.SnapshotStorageSpec.Local != nil {
-		job.Spec.Template.Spec.Containers[0].VolumeMounts = append(job.Spec.Template.Spec.Containers[0].VolumeMounts, core.VolumeMount{
-			Name:      "local",
-			MountPath: snapshot.Spec.SnapshotStorageSpec.Local.Path,
-		})
-		job.Spec.Template.Spec.Volumes = append(job.Spec.Template.Spec.Volumes, core.Volume{
-			Name:         "local",
-			VolumeSource: snapshot.Spec.SnapshotStorageSpec.Local.VolumeSource,
-		})
+
+	volumeMounts := job.Spec.Template.Spec.Containers[0].VolumeMounts
+	volume := job.Spec.Template.Spec.Volumes
+
+	if snapshot.Spec.Type == api.SnapshotTypePostgresDumpAll {
+		volumeMounts = append(volumeMounts, []core.VolumeMount{
+			{
+				Name:      "osmconfig",
+				MountPath: storage.SecretMountPath,
+				ReadOnly:  true,
+			},
+		}...,
+		)
+		volume = append(volume, []core.Volume{
+			{
+				Name: "osmconfig",
+				VolumeSource: core.VolumeSource{
+					Secret: &core.SecretVolumeSource{
+						SecretName: snapshot.OSMSecretName(),
+					},
+				},
+			},
+		}...,
+		)
+
+		if snapshot.Spec.SnapshotStorageSpec.Local != nil {
+			volumeMounts = append(volumeMounts, core.VolumeMount{
+				Name:      "local",
+				MountPath: snapshot.Spec.SnapshotStorageSpec.Local.Path,
+			})
+			volume = append(volume, core.Volume{
+				Name:         "local",
+				VolumeSource: snapshot.Spec.SnapshotStorageSpec.Local.VolumeSource,
+			})
+		}
+	} else if snapshot.Spec.Type == api.SnapshotTypePostgresBaseBackup {
+		volumeMounts = append(volumeMounts, []core.VolumeMount{
+			{
+				Name:      "wal-g",
+				MountPath: "/srv/wal-g/archive/secrets",
+				ReadOnly:  true,
+			},
+		}...,
+		)
+		volume = append(volume, []core.Volume{
+			{
+				Name: "wal-g",
+				VolumeSource: core.VolumeSource{
+					Secret: &core.SecretVolumeSource{
+						SecretName: snapshot.Spec.StorageSecretName,
+					},
+				},
+			},
+		}...,
+		)
 	}
-	return job, nil
+
+	job.Spec.Template.Spec.Containers[0].VolumeMounts = volumeMounts
+	job.Spec.Template.Spec.Volumes = volume
+
+	return c.Client.BatchV1().Jobs(postgres.Namespace).Create(job)
 }
