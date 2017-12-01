@@ -53,7 +53,6 @@ func (f *Framework) CreateTable(db *xorm.Engine, count int) error {
 
 	for i := 0; i < count; i++ {
 		table := fmt.Sprintf("SET search_path TO \"data\"; CREATE TABLE %v ( id bigserial )", characters(5))
-		fmt.Println(table)
 		_, err := db.Exec(table)
 		if err != nil {
 			return err

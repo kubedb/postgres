@@ -15,7 +15,7 @@ load_password() {
     PASSWORD_PATH='/srv/postgres/secrets/.admin'
     ###### get postgres user password ######
     if [ -f "$PASSWORD_PATH" ]; then
-        export $(cat /srv/postgres/secrets/.admin | xargs)
+        export $(cat /srv/postgres/secrets/.admin | xargs) || true
     else
         echo
         echo 'Missing environment file '${PASSWORD_PATH}'. Using default password.'
