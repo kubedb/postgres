@@ -1,25 +1,19 @@
-## pg-operator run
+## pg-operator leader_election
 
-Run Postgres in Kubernetes
+Run leader election for postgres
 
 ### Synopsis
 
-Run Postgres in Kubernetes
+Run leader election for postgres
 
 ```
-pg-operator run [flags]
+pg-operator leader_election [flags]
 ```
 
 ### Options
 
 ```
-      --address string             Address to listen on for web interface and telemetry. (default ":8080")
-      --exporter-tag string        Tag of kubedb/operator used as exporter (default "0.7.1")
-      --governing-service string   Governing service for database statefulset (default "kubedb")
-  -h, --help                       help for run
-      --kubeconfig string          Path to kubeconfig file with authorization information (the master location is set by the master flag).
-      --master string              The address of the Kubernetes API server (overrides any value in kubeconfig)
-      --rbac                       Enable RBAC for database workloads
+  -h, --help   help for leader_election
 ```
 
 ### Options inherited from parent commands
