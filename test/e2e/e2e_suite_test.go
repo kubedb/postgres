@@ -18,6 +18,7 @@ import (
 	crd_cs "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
+	logs "github.com/appscode/go/log/golog"
 )
 
 var storageClass string
@@ -36,6 +37,7 @@ var (
 )
 
 func TestE2e(t *testing.T) {
+	logs.InitLogs()
 	RegisterFailHandler(Fail)
 	SetDefaultEventuallyTimeout(TIMEOUT)
 

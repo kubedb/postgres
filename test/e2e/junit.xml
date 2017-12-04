@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<<<<<<< HEAD
   <testsuite tests="1" failures="0" time="76.657193857">
+=======
+  <testsuite tests="4" failures="0" time="667.879425407">
+>>>>>>> remotes/origin/master
       <testcase name="Postgres Test General - should run successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
@@ -13,9 +17,7 @@
       <testcase name="Postgres Test Snapshot In S3 should take Snapshot successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="Postgres Test Snapshot In GCS should take Snapshot successfully" classname="e2e Suite" time="0">
-          <skipped></skipped>
-      </testcase>
+      <testcase name="Postgres Test Snapshot In GCS should take Snapshot successfully" classname="e2e Suite" time="141.635659844"></testcase>
       <testcase name="Postgres Test Snapshot In Azure should take Snapshot successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
@@ -25,9 +27,10 @@
       <testcase name="Postgres Test Initialize With Script should run successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="Postgres Test Initialize With Snapshot should run successfully" classname="e2e Suite" time="0">
+      <testcase name="Postgres Test Initialize With Snapshot with S3 should run successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
+      <testcase name="Postgres Test Initialize With Snapshot with GCS should run successfully" classname="e2e Suite" time="235.994976093"></testcase>
       <testcase name="Postgres Test Resume - should resume DormantDatabase successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
@@ -38,6 +41,7 @@
           <skipped></skipped>
       </testcase>
       <testcase name="Postgres Test Resume With original Postgres with init should resume DormantDatabase successfully" classname="e2e Suite" time="0">
+<<<<<<< HEAD
           <skipped></skipped>
       </testcase>
       <testcase name="Postgres Test SnapshotScheduler With Startup should run schedular successfully" classname="e2e Suite" time="0">
@@ -49,4 +53,9 @@
       <testcase name="Postgres Test Archive with wal-g should archive successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
+=======
+          <skipped></skipped>
+      </testcase>
+      <testcase name="Postgres Test SnapshotScheduler With Startup should run schedular successfully" classname="e2e Suite" time="236.010055823"></testcase>
+>>>>>>> remotes/origin/master
   </testsuite>
