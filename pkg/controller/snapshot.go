@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	"github.com/appscode/go/log"
-	api "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
-	"github.com/k8sdb/apimachinery/pkg/docker"
-	amv "github.com/k8sdb/apimachinery/pkg/validator"
+	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
+	"github.com/kubedb/apimachinery/pkg/docker"
+	amv "github.com/kubedb/apimachinery/pkg/validator"
 	batch "k8s.io/api/batch/v1"
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

@@ -1,4 +1,4 @@
-package: github.com/k8sdb/postgres
+package: github.com/kubedb/postgres
 import:
 - package: github.com/appscode/go
 - package: github.com/appscode/pat
@@ -20,8 +20,8 @@ import:
   repo: https://github.com/appscode/stow.git
   vcs: git
   version: master
-- package: github.com/k8sdb/apimachinery
-  version: 9.6.5-a
+- package: github.com/kubedb/apimachinery
+  version: kubedb
 - package: github.com/spf13/cobra
   version: master
 - package: github.com/spf13/pflag

@@ -5,7 +5,7 @@ import (
 
 	"github.com/appscode/kutil/tools/monitoring/agents"
 	mona "github.com/appscode/kutil/tools/monitoring/api"
-	api "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
+	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 )
 
 func (c *Controller) newMonitorController(postgres *api.Postgres) (mona.Agent, error) {

@@ -8,14 +8,14 @@ GOPATH=$(go env GOPATH)
 SRC=$GOPATH/src
 BIN=$GOPATH/bin
 ROOT=$GOPATH
-REPO_ROOT=$GOPATH/src/github.com/k8sdb/postgres
+REPO_ROOT=$GOPATH/src/github.com/kubedb/postgres
 
 source "$REPO_ROOT/hack/libbuild/common/kubedb_image.sh"
 
 APPSCODE_ENV=${APPSCODE_ENV:-dev}
 IMG=pg-operator
 
-DIST=$GOPATH/src/github.com/k8sdb/postgres/dist
+DIST=$GOPATH/src/github.com/kubedb/postgres/dist
 mkdir -p $DIST
 if [ -f "$DIST/.tag" ]; then
 	export $(cat $DIST/.tag | xargs)

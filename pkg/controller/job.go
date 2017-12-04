@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	api "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
-	"github.com/k8sdb/apimachinery/pkg/docker"
-	"github.com/k8sdb/apimachinery/pkg/storage"
+	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
+	"github.com/kubedb/apimachinery/pkg/docker"
+	"github.com/kubedb/apimachinery/pkg/storage"
 	batch "k8s.io/api/batch/v1"
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -169,6 +169,7 @@ func (c *Controller) getSnapshotterJob(snapshot *api.Snapshot) (*batch.Job, erro
 								fmt.Sprintf(`--bucket=%s`, bucket),
 								fmt.Sprintf(`--folder=%s`, folderName),
 								fmt.Sprintf(`--snapshot=%s`, snapshot.Name),
+								fmt.Sprintf(`--type=%v`, snapshot.Spec.Type),
 							},
 							Resources: snapshot.Spec.Resources,
 							VolumeMounts: []core.VolumeMount{
@@ -237,30 +238,10 @@ func (c *Controller) getSnapshotterJob(snapshot *api.Snapshot) (*batch.Job, erro
 				VolumeSource: snapshot.Spec.SnapshotStorageSpec.Local.VolumeSource,
 			})
 		}
-	} else if snapshot.Spec.Type == api.SnapshotTypePostgresBaseBackup {
-		volumeMounts = append(volumeMounts, []core.VolumeMount{
-			{
-				Name:      "wal-g",
-				MountPath: "/srv/wal-g/archive/secrets",
-				ReadOnly:  true,
-			},
-		}...,
-		)
-		volume = append(volume, []core.Volume{
-			{
-				Name: "wal-g",
-				VolumeSource: core.VolumeSource{
-					Secret: &core.SecretVolumeSource{
-						SecretName: snapshot.Spec.StorageSecretName,
-					},
-				},
-			},
-		}...,
-		)
 	}
 
 	job.Spec.Template.Spec.Containers[0].VolumeMounts = volumeMounts
 	job.Spec.Template.Spec.Volumes = volume
 
-	return c.Client.BatchV1().Jobs(postgres.Namespace).Create(job)
+	return job, nil
 }

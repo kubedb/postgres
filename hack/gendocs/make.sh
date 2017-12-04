@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 
-pushd $GOPATH/src/github.com/k8sdb/postgres/hack/gendocs
+pushd $GOPATH/src/github.com/kubedb/postgres/hack/gendocs
 go run main.go
 popd

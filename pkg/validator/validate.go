@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"strings"
 
-	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
-	"github.com/k8sdb/apimachinery/pkg/docker"
-	"github.com/k8sdb/apimachinery/pkg/storage"
-	amv "github.com/k8sdb/apimachinery/pkg/validator"
+	tapi "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
+	"github.com/kubedb/apimachinery/pkg/docker"
+	"github.com/kubedb/apimachinery/pkg/storage"
+	amv "github.com/kubedb/apimachinery/pkg/validator"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )

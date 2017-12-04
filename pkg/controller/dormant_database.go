@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	"github.com/appscode/go/log"
-	api "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
+	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"

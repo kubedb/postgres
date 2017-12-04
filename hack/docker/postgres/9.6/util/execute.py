@@ -39,17 +39,6 @@ def continuous_exec(process):
         exit(1)
 
 
-def pg_basebackup():
-    code = 1
-    code = subprocess.call(['./utils.sh', "base_backup",
-                     Flag["host"], Flag["username"], Flag["password"],
-                     Flag["bucket"], Flag["folder"], Flag["snapshot"]])
-
-    if code != 0:
-        print "Fail backup process"
-        exit(1)
-
-
 def main(argv):
     for flag in argv:
         if flag[:2]!= "--":
@@ -75,8 +64,6 @@ def main(argv):
             if code != 0:
                 print "Fail to push"
                 exit(1)
-        elif Flag["type"] == "pg_basebackup":
-            pg_basebackup()
 
     if Flag["process"] == "restore":
         get_auth()
@@ -92,4 +79,3 @@ def main(argv):
 
 if __name__ == "__main__":
     main(sys.argv[1:])
-

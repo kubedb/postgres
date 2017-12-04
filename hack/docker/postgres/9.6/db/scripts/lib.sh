@@ -216,7 +216,7 @@ restore_from_walg() {
     export WALE_S3_PREFIX=$(echo "$RESTORE_S3_PREFIX")
     set_walg_env "/srv/wal-g/restore/secrets"
 
-    wal-g backup-fetch "$PGDATA" "$BACKUP_NAME" &>/dev/null
+    wal-g backup-fetch "$PGDATA" "$BACKUP_NAME" >/dev/null
 
     configure_replica_postgres
 
@@ -231,7 +231,7 @@ restore_from_walg() {
     touch '/tmp/pg-failover-trigger'
 
     echo "Starting up Database"
-    (pg_ctl -D "$PGDATA"  -w start &>/dev/null) &
+    (pg_ctl -D "$PGDATA"  -w start >/dev/null) &
 
     while [ -f "/tmp/pg-failover-trigger" ]
     do
@@ -239,18 +239,18 @@ restore_from_walg() {
         sleep 2
     done
 
-    pg_ctl -D "$PGDATA" -m fast -w stop &>/dev/null
+    pg_ctl -D "$PGDATA" -m fast -w stop >/dev/null
 
     rm "$PGDATA/postgresql.conf" || true
     rm "$PGDATA/recovery.conf" || true
 
     configure_primary_postgres
 
-    pg_ctl -D "$PGDATA"  -w start &>/dev/null
+    pg_ctl -D "$PGDATA"  -w start >/dev/null
 
-    PGHOST="127.0.0.1" PGPORT="5432" PGUSER="postgres" wal-g backup-push "$PGDATA" &>/dev/null
+    PGHOST="127.0.0.1" PGPORT="5432" PGUSER="postgres" wal-g backup-push "$PGDATA" >/dev/null
 
     echo "Successfully pushed backup"
 
-    pg_ctl -D "$PGDATA" -m fast -w stop &>/dev/null
+    pg_ctl -D "$PGDATA" -m fast -w stop >/dev/null
 }

@@ -5,9 +5,9 @@ import (
 	"os"
 
 	"github.com/appscode/go/types"
-	api "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
-	"github.com/k8sdb/postgres/test/e2e/framework"
-	"github.com/k8sdb/postgres/test/e2e/matcher"
+	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
+	"github.com/kubedb/postgres/test/e2e/framework"
+	"github.com/kubedb/postgres/test/e2e/matcher"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	core "k8s.io/api/core/v1"
@@ -256,7 +256,7 @@ var _ = Describe("Postgres", func() {
 				It("should take Snapshot successfully", shouldTakeSnapshot)
 			})
 
-			XContext("In GCS", func() {
+			Context("In GCS", func() {
 				BeforeEach(func() {
 					secret = f.SecretForGCSBackend()
 					snapshot.Spec.StorageSecretName = secret.Name
@@ -268,7 +268,7 @@ var _ = Describe("Postgres", func() {
 				It("should take Snapshot successfully", shouldTakeSnapshot)
 			})
 
-			XContext("In Azure", func() {
+			Context("In Azure", func() {
 				BeforeEach(func() {
 					secret = f.SecretForAzureBackend()
 					snapshot.Spec.StorageSecretName = secret.Name
@@ -280,7 +280,7 @@ var _ = Describe("Postgres", func() {
 				It("should take Snapshot successfully", shouldTakeSnapshot)
 			})
 
-			XContext("In Swift", func() {
+			Context("In Swift", func() {
 				BeforeEach(func() {
 					secret = f.SecretForSwiftBackend()
 					snapshot.Spec.StorageSecretName = secret.Name
@@ -300,7 +300,7 @@ var _ = Describe("Postgres", func() {
 						ScriptSource: &api.ScriptSourceSpec{
 							VolumeSource: core.VolumeSource{
 								GitRepo: &core.GitRepoVolumeSource{
-									Repository: "https://github.com/k8sdb/postgres-init-scripts.git",
+									Repository: "https://github.com/kubedb/postgres-init-scripts.git",
 									Directory:  ".",
 								},
 							},
@@ -459,7 +459,7 @@ var _ = Describe("Postgres", func() {
 						ScriptSource: &api.ScriptSourceSpec{
 							VolumeSource: core.VolumeSource{
 								GitRepo: &core.GitRepoVolumeSource{
-									Repository: "https://github.com/k8sdb/postgres-init-scripts.git",
+									Repository: "https://github.com/kubedb/postgres-init-scripts.git",
 									Directory:  ".",
 								},
 							},
@@ -509,7 +509,7 @@ var _ = Describe("Postgres", func() {
 								ScriptPath: "postgres-init-scripts/run.sh",
 								VolumeSource: core.VolumeSource{
 									GitRepo: &core.GitRepoVolumeSource{
-										Repository: "https://github.com/k8sdb/postgres-init-scripts.git",
+										Repository: "https://github.com/kubedb/postgres-init-scripts.git",
 									},
 								},
 							},
@@ -624,7 +624,7 @@ var _ = Describe("Postgres", func() {
 			})
 		})
 
-		FContext("Archive with wal-g", func() {
+		Context("Archive with wal-g", func() {
 			BeforeEach(func() {
 				secret = f.SecretForS3Backend()
 				postgres.Spec.Archiver = api.PostgresArchiverSpec{

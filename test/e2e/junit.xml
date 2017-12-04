@@ -1,14 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-  <testsuite tests="1" failures="0" time="277.112205321">
+  <testsuite tests="1" failures="0" time="76.657193857">
       <testcase name="Postgres Test General - should run successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
       <testcase name="Postgres Test General With PVC should run successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="Postgres Test DoNotPause should work successfully" classname="e2e Suite" time="0">
-          <skipped></skipped>
-      </testcase>
+      <testcase name="Postgres Test DoNotPause should work successfully" classname="e2e Suite" time="73.406220028"></testcase>
       <testcase name="Postgres Test Snapshot In Local should take Snapshot successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
@@ -46,6 +44,9 @@
           <skipped></skipped>
       </testcase>
       <testcase name="Postgres Test SnapshotScheduler With Update should run schedular successfully" classname="e2e Suite" time="0">
+          <skipped></skipped>
+      </testcase>
+      <testcase name="Postgres Test Archive with wal-g should archive successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
   </testsuite>

@@ -85,43 +85,6 @@ pull() {
     exit 0
 }
 
-create_pgpass_file() {
-    rm -rf /tmp/.pgpass
-    cat >> "/tmp/.pgpass" <<-EOF
-*:*:*:*:${1}
-EOF
-    cat /tmp/.pgpass
-    chmod 0600 "/tmp/.pgpass"
-    export PGPASSFILE=/tmp/.pgpass
-}
-
-base_backup() {
-    # 1 - Host
-    # 2 - username
-    # 3 - password
-    # 4 - Bucket
-    # 5 - Folder
-    # 6 - Snapshot
-
-    CRED_PATH="/srv/wal-g/archive/secrets"
-    if [ -d "$CRED_PATH" ]; then
-        AWS_ACCESS_KEY_ID_PATH="$CRED_PATH/AWS_ACCESS_KEY_ID"
-        if [ -f "$AWS_ACCESS_KEY_ID_PATH" ]; then
-            export AWS_ACCESS_KEY_ID=$(cat "$AWS_ACCESS_KEY_ID_PATH")
-        fi
-        AWS_SECRET_ACCESS_KEY_PATH="$CRED_PATH/AWS_SECRET_ACCESS_KEY"
-        if [ -f "$AWS_SECRET_ACCESS_KEY_PATH" ]; then
-            export AWS_SECRET_ACCESS_KEY=$(cat "$AWS_SECRET_ACCESS_KEY_PATH")
-        fi
-    fi
-
-    export WALE_S3_PREFIX="s3://$4/$5/$6"
-    PGDATA="/var/pg_basebackup"
-    create_pgpass_file "$3"
-    pg_basebackup -X fetch --no-password --pgdata "$PGDATA" --username="$2" --host="$1" &>/dev/null
-    PGHOST="$1" PGPORT="5432" PGUSER="$2" wal-g backup-push "$PGDATA" &>/dev/null
-}
-
 process=$1
 shift
 case "$process" in

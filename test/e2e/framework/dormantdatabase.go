@@ -3,8 +3,8 @@ package framework
 import (
 	"time"
 
-	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
-	kutildb "github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1/util"
+	tapi "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
+	kutildb "github.com/kubedb/apimachinery/client/typed/kubedb/v1alpha1/util"
 	. "github.com/onsi/gomega"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

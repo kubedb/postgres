@@ -6,8 +6,8 @@ import (
 	"net/http"
 
 	"github.com/go-ini/ini"
-	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
-	tcs "github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1"
+	tapi "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
+	tcs "github.com/kubedb/apimachinery/client/typed/kubedb/v1alpha1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"

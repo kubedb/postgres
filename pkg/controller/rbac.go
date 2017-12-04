@@ -3,8 +3,8 @@ package controller
 import (
 	kutilcore "github.com/appscode/kutil/core/v1"
 	kutilrbac "github.com/appscode/kutil/rbac/v1beta1"
-	"github.com/k8sdb/apimachinery/apis/kubedb"
-	api "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
+	"github.com/kubedb/apimachinery/apis/kubedb"
+	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	core "k8s.io/api/core/v1"
 	rbac "k8s.io/api/rbac/v1beta1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"

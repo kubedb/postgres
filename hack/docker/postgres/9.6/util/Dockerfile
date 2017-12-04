@@ -30,6 +30,5 @@ RUN set -x \
 COPY execute.py /execute.py
 COPY utils.sh /utils.sh
 RUN chmod +x /utils.sh
-COPY wal-g /usr/bin/
 
 ENTRYPOINT ["python2.7", "execute.py"]
