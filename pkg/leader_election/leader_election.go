@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/appscode/go/io"
-	kutil "github.com/appscode/kutil/core/v1"
+	core_util "github.com/appscode/kutil/core/v1"
 	core "k8s.io/api/core/v1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -126,7 +126,7 @@ func RunLeaderElection() {
 
 						var primaryPod metav1.ObjectMeta
 						for _, pod := range pods.Items {
-							_, err = kutil.TryPatchPod(kubeClient, pod.ObjectMeta, func(in *core.Pod) *core.Pod {
+							_, err = core_util.TryPatchPod(kubeClient, pod.ObjectMeta, func(in *core.Pod) *core.Pod {
 								in.Labels["kubedb.com/role"] = RoleReplica
 								return in
 							})
@@ -139,7 +139,7 @@ func RunLeaderElection() {
 							}
 						}
 
-						_, err = kutil.TryPatchPod(kubeClient, primaryPod, func(in *core.Pod) *core.Pod {
+						_, err = core_util.TryPatchPod(kubeClient, primaryPod, func(in *core.Pod) *core.Pod {
 							in.Labels["kubedb.com/role"] = RolePrimary
 							return in
 						})

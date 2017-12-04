@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	tapi "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
+	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/kubedb/apimachinery/pkg/docker"
 	"github.com/kubedb/apimachinery/pkg/storage"
 	amv "github.com/kubedb/apimachinery/pkg/validator"
@@ -13,7 +13,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-func ValidatePostgres(client kubernetes.Interface, postgres *tapi.Postgres) error {
+func ValidatePostgres(client kubernetes.Interface, postgres *api.Postgres) error {
 	if postgres.Spec.Version == "" {
 		return fmt.Errorf(`object 'Version' is missing in '%v'`, postgres.Spec)
 	}

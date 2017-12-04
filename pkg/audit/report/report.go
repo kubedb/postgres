@@ -6,8 +6,8 @@ import (
 	"net/http"
 
 	"github.com/go-ini/ini"
-	tapi "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
-	tcs "github.com/kubedb/apimachinery/client/typed/kubedb/v1alpha1"
+	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
+	cs "github.com/kubedb/apimachinery/client/typed/kubedb/v1alpha1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -15,7 +15,7 @@ import (
 
 func ExportReport(
 	kubeClient kubernetes.Interface,
-	dbClient tcs.KubedbV1alpha1Interface,
+	dbClient cs.KubedbV1alpha1Interface,
 	namespace string,
 	kubedbName string,
 	dbname string,
@@ -84,7 +84,7 @@ func ExportReport(
 		databases = append(databases, dbname)
 	}
 
-	pgSummary := make(map[string]*tapi.PostgresSummary)
+	pgSummary := make(map[string]*api.PostgresSummary)
 	for _, db := range databases {
 		engine, err := newXormEngine(username, password, host, port, db)
 		if err != nil {
@@ -102,13 +102,13 @@ func ExportReport(
 
 	completionTime := metav1.Now()
 
-	r := &tapi.Report{
+	r := &api.Report{
 		TypeMeta:   postgres.TypeMeta,
 		ObjectMeta: postgres.ObjectMeta,
-		Summary: tapi.ReportSummary{
+		Summary: api.ReportSummary{
 			Postgres: pgSummary,
 		},
-		Status: tapi.ReportStatus{
+		Status: api.ReportStatus{
 			StartTime:      &startTime,
 			CompletionTime: &completionTime,
 		},

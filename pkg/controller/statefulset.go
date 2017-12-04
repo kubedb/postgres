@@ -5,8 +5,8 @@ import (
 
 	"github.com/appscode/go/log"
 	"github.com/appscode/go/types"
-	kutilapps "github.com/appscode/kutil/apps/v1beta1"
-	kutilcore "github.com/appscode/kutil/core/v1"
+	app_util "github.com/appscode/kutil/apps/v1beta1"
+	core_util "github.com/appscode/kutil/core/v1"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/kubedb/apimachinery/pkg/docker"
 	"github.com/kubedb/apimachinery/pkg/eventer"
@@ -35,7 +35,7 @@ func (c *Controller) ensureStatefulSet(
 		replicas = 0
 	}
 
-	statefulSet, err := kutilapps.CreateOrPatchStatefulSet(c.Client, statefulSetMeta, func(in *apps.StatefulSet) *apps.StatefulSet {
+	statefulSet, err := app_util.CreateOrPatchStatefulSet(c.Client, statefulSetMeta, func(in *apps.StatefulSet) *apps.StatefulSet {
 		in = upsertObjectMeta(in, postgres)
 
 		in.Spec.Replicas = types.Int32P(replicas)
@@ -184,8 +184,8 @@ func (c *Controller) checkStatefulSet(postgres *api.Postgres) error {
 }
 
 func upsertObjectMeta(statefulSet *apps.StatefulSet, postgres *api.Postgres) *apps.StatefulSet {
-	statefulSet.Labels = kutilcore.UpsertMap(statefulSet.Labels, postgres.StatefulSetLabels())
-	statefulSet.Annotations = kutilcore.UpsertMap(statefulSet.Annotations, postgres.StatefulSetAnnotations())
+	statefulSet.Labels = core_util.UpsertMap(statefulSet.Labels, postgres.StatefulSetLabels())
+	statefulSet.Annotations = core_util.UpsertMap(statefulSet.Annotations, postgres.StatefulSetAnnotations())
 	return statefulSet
 }
 
@@ -202,7 +202,7 @@ func upsertContainer(statefulSet *apps.StatefulSet, postgres *api.Postgres) *app
 		},
 	}
 	containers := statefulSet.Spec.Template.Spec.Containers
-	containers = kutilcore.UpsertContainer(containers, container)
+	containers = core_util.UpsertContainer(containers, container)
 	statefulSet.Spec.Template.Spec.Containers = containers
 	return statefulSet
 }
@@ -229,7 +229,7 @@ func upsertEnv(statefulSet *apps.StatefulSet, postgres *api.Postgres, envs []cor
 	// To do this, Upsert Container first
 	for i, container := range statefulSet.Spec.Template.Spec.Containers {
 		if container.Name == api.ResourceNamePostgres {
-			statefulSet.Spec.Template.Spec.Containers[i].Env = kutilcore.UpsertEnvVars(container.Env, envList...)
+			statefulSet.Spec.Template.Spec.Containers[i].Env = core_util.UpsertEnvVars(container.Env, envList...)
 			return statefulSet
 		}
 	}
@@ -281,7 +281,7 @@ func upsertMonitoringContainer(statefulSet *apps.StatefulSet, postgres *api.Post
 			},
 		}
 		containers := statefulSet.Spec.Template.Spec.Containers
-		containers = kutilcore.UpsertContainer(containers, container)
+		containers = core_util.UpsertContainer(containers, container)
 		statefulSet.Spec.Template.Spec.Containers = containers
 	}
 	return statefulSet
@@ -295,7 +295,7 @@ func upsertDatabaseSecret(statefulset *apps.StatefulSet, secretName string) *app
 				MountPath: "/srv/" + api.ResourceNamePostgres + "/secrets",
 			}
 			volumeMounts := container.VolumeMounts
-			volumeMounts = kutilcore.UpsertVolumeMount(volumeMounts, volumeMount)
+			volumeMounts = core_util.UpsertVolumeMount(volumeMounts, volumeMount)
 			statefulset.Spec.Template.Spec.Containers[i].VolumeMounts = volumeMounts
 
 			volume := core.Volume{
@@ -307,7 +307,7 @@ func upsertDatabaseSecret(statefulset *apps.StatefulSet, secretName string) *app
 				},
 			}
 			volumes := statefulset.Spec.Template.Spec.Volumes
-			volumes = kutilcore.UpsertVolume(volumes, volume)
+			volumes = core_util.UpsertVolume(volumes, volume)
 			statefulset.Spec.Template.Spec.Volumes = volumes
 			return statefulset
 		}
@@ -323,7 +323,7 @@ func upsertArchiveSecret(statefulset *apps.StatefulSet, secretName string) *apps
 				MountPath: "/srv/wal-g/archive/secrets",
 			}
 			volumeMounts := container.VolumeMounts
-			volumeMounts = kutilcore.UpsertVolumeMount(volumeMounts, volumeMount)
+			volumeMounts = core_util.UpsertVolumeMount(volumeMounts, volumeMount)
 			statefulset.Spec.Template.Spec.Containers[i].VolumeMounts = volumeMounts
 
 			volume := core.Volume{
@@ -335,7 +335,7 @@ func upsertArchiveSecret(statefulset *apps.StatefulSet, secretName string) *apps
 				},
 			}
 			volumes := statefulset.Spec.Template.Spec.Volumes
-			volumes = kutilcore.UpsertVolume(volumes, volume)
+			volumes = core_util.UpsertVolume(volumes, volume)
 			statefulset.Spec.Template.Spec.Volumes = volumes
 			return statefulset
 		}
@@ -351,7 +351,7 @@ func upsertInitWalSecret(statefulset *apps.StatefulSet, secretName string) *apps
 				MountPath: "/srv/wal-g/restore/secrets",
 			}
 			volumeMounts := container.VolumeMounts
-			volumeMounts = kutilcore.UpsertVolumeMount(volumeMounts, volumeMount)
+			volumeMounts = core_util.UpsertVolumeMount(volumeMounts, volumeMount)
 			statefulset.Spec.Template.Spec.Containers[i].VolumeMounts = volumeMounts
 
 			volume := core.Volume{
@@ -363,7 +363,7 @@ func upsertInitWalSecret(statefulset *apps.StatefulSet, secretName string) *apps
 				},
 			}
 			volumes := statefulset.Spec.Template.Spec.Volumes
-			volumes = kutilcore.UpsertVolume(volumes, volume)
+			volumes = core_util.UpsertVolume(volumes, volume)
 			statefulset.Spec.Template.Spec.Volumes = volumes
 			return statefulset
 		}
@@ -379,7 +379,7 @@ func upsertInitScript(statefulset *apps.StatefulSet, script core.VolumeSource) *
 				MountPath: "/var/initdb",
 			}
 			volumeMounts := container.VolumeMounts
-			volumeMounts = kutilcore.UpsertVolumeMount(volumeMounts, volumeMount)
+			volumeMounts = core_util.UpsertVolumeMount(volumeMounts, volumeMount)
 			statefulset.Spec.Template.Spec.Containers[i].VolumeMounts = volumeMounts
 
 			volume := core.Volume{
@@ -387,7 +387,7 @@ func upsertInitScript(statefulset *apps.StatefulSet, script core.VolumeSource) *
 				VolumeSource: script,
 			}
 			volumes := statefulset.Spec.Template.Spec.Volumes
-			volumes = kutilcore.UpsertVolume(volumes, volume)
+			volumes = core_util.UpsertVolume(volumes, volume)
 			statefulset.Spec.Template.Spec.Volumes = volumes
 			return statefulset
 		}
@@ -403,7 +403,7 @@ func upsertDataVolume(statefulSet *apps.StatefulSet, postgres *api.Postgres) *ap
 				MountPath: "/var/pv",
 			}
 			volumeMounts := container.VolumeMounts
-			volumeMounts = kutilcore.UpsertVolumeMount(volumeMounts, volumeMount)
+			volumeMounts = core_util.UpsertVolumeMount(volumeMounts, volumeMount)
 			statefulSet.Spec.Template.Spec.Containers[i].VolumeMounts = volumeMounts
 
 			pvcSpec := postgres.Spec.Storage
@@ -427,7 +427,7 @@ func upsertDataVolume(statefulSet *apps.StatefulSet, postgres *api.Postgres) *ap
 					}
 				}
 				volumeClaims := statefulSet.Spec.VolumeClaimTemplates
-				volumeClaims = kutilcore.UpsertVolumeClaim(volumeClaims, volumeClaim)
+				volumeClaims = core_util.UpsertVolumeClaim(volumeClaims, volumeClaim)
 				statefulSet.Spec.VolumeClaimTemplates = volumeClaims
 			} else {
 				volume := core.Volume{
@@ -437,7 +437,7 @@ func upsertDataVolume(statefulSet *apps.StatefulSet, postgres *api.Postgres) *ap
 					},
 				}
 				volumes := statefulSet.Spec.Template.Spec.Volumes
-				volumes = kutilcore.UpsertVolume(volumes, volume)
+				volumes = core_util.UpsertVolume(volumes, volume)
 				statefulSet.Spec.Template.Spec.Volumes = volumes
 				return statefulSet
 			}

@@ -8,7 +8,7 @@ import (
 
 	"github.com/go-xorm/core"
 	"github.com/go-xorm/xorm"
-	tapi "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
+	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	pg "github.com/lib/pq"
 )
 
@@ -47,7 +47,7 @@ func getAllDatabase(engine *xorm.Engine) ([]string, error) {
 	return databases, nil
 }
 
-func getDataFromDB(engine *xorm.Engine) (*tapi.PostgresSummary, error) {
+func getDataFromDB(engine *xorm.Engine) (*api.PostgresSummary, error) {
 	defer engine.Close()
 	engine.ShowSQL(true)
 	session := engine.NewSession()
@@ -58,7 +58,7 @@ func getDataFromDB(engine *xorm.Engine) (*tapi.PostgresSummary, error) {
 		return nil, err
 	}
 
-	schemaList := make(map[string]*tapi.PostgresSchemaInfo, 0)
+	schemaList := make(map[string]*api.PostgresSchemaInfo, 0)
 	for _, row := range schemaRowSlice {
 		schemaName := string(row["schema_name"])
 		schemaInfo, err := getDataFromSchema(session, schemaName)
@@ -68,19 +68,19 @@ func getDataFromDB(engine *xorm.Engine) (*tapi.PostgresSummary, error) {
 		schemaList[schemaName] = schemaInfo
 	}
 
-	return &tapi.PostgresSummary{
+	return &api.PostgresSummary{
 		Schema: schemaList,
 	}, nil
 }
 
-func getDataFromSchema(session *xorm.Session, schemaName string) (*tapi.PostgresSchemaInfo, error) {
+func getDataFromSchema(session *xorm.Session, schemaName string) (*api.PostgresSchemaInfo, error) {
 	tableRowSlice, err := session.Query("SELECT tablename FROM pg_tables where schemaname=$1", schemaName)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	schemaInfo := &tapi.PostgresSchemaInfo{
-		Table: make(map[string]*tapi.PostgresTableInfo),
+	schemaInfo := &api.PostgresSchemaInfo{
+		Table: make(map[string]*api.PostgresTableInfo),
 	}
 
 	for _, row := range tableRowSlice {
@@ -106,7 +106,7 @@ const (
 	NextID                = "next_id"
 )
 
-func getDataFromTable(session *xorm.Session, schemaName, tableName string) (*tapi.PostgresTableInfo, error) {
+func getDataFromTable(session *xorm.Session, schemaName, tableName string) (*api.PostgresTableInfo, error) {
 	table := fmt.Sprintf(`"%v".%v`, schemaName, tableName)
 	dataRows, err := session.Query(fmt.Sprintf(`SELECT count(*) as total_row, coalesce(max(id),0) as max_id FROM %v`, table))
 
@@ -118,17 +118,17 @@ func getDataFromTable(session *xorm.Session, schemaName, tableName string) (*tap
 		if errorName == errorUndefinedColumn || errorName == errorDatatypeMismatch {
 			dataRows, err = session.Query(fmt.Sprintf("SELECT count(*) as total_row FROM %v", table))
 			if err != nil {
-				return &tapi.PostgresTableInfo{}, err
+				return &api.PostgresTableInfo{}, err
 			}
 
 			if totalRow, err = strconv.ParseInt(string(dataRows[0][TotalRow]), 10, 64); err != nil {
-				return &tapi.PostgresTableInfo{}, err
+				return &api.PostgresTableInfo{}, err
 			}
 			maxID = invalidData
 			nextID = invalidData
 
 		} else {
-			return &tapi.PostgresTableInfo{}, err
+			return &api.PostgresTableInfo{}, err
 		}
 	} else {
 		if len(dataRows) == 0 {
@@ -138,28 +138,28 @@ func getDataFromTable(session *xorm.Session, schemaName, tableName string) (*tap
 			nextID = invalidData
 		} else {
 			if totalRow, err = strconv.ParseInt(string(dataRows[0][TotalRow]), 10, 64); err != nil {
-				return &tapi.PostgresTableInfo{}, err
+				return &api.PostgresTableInfo{}, err
 			}
 
 			if maxID, err = strconv.ParseInt(string(dataRows[0][MaxID]), 10, 64); err != nil {
-				return &tapi.PostgresTableInfo{}, err
+				return &api.PostgresTableInfo{}, err
 			}
 
 			dataRows, err = session.Query(fmt.Sprintf(`select (last_value+1) as next_id from %v_id_seq`, table))
 			if err != nil {
-				return &tapi.PostgresTableInfo{}, err
+				return &api.PostgresTableInfo{}, err
 			}
 			if len(dataRows) == 0 {
 				nextID = invalidData
 			} else {
 				if nextID, err = strconv.ParseInt(string(dataRows[0][NextID]), 10, 64); err != nil {
-					return &tapi.PostgresTableInfo{}, err
+					return &api.PostgresTableInfo{}, err
 				}
 			}
 		}
 	}
 
-	return &tapi.PostgresTableInfo{
+	return &api.PostgresTableInfo{
 		TotalRow: totalRow,
 		MaxID:    maxID,
 		NextID:   nextID,

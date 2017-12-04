@@ -21,7 +21,7 @@ import:
   vcs: git
   version: master
 - package: github.com/kubedb/apimachinery
-  version: kubedb
+  version: master
 - package: github.com/spf13/cobra
   version: master
 - package: github.com/spf13/pflag
