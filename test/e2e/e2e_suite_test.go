@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/appscode/go/log"
+	logs "github.com/appscode/go/log/golog"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	cs "github.com/kubedb/apimachinery/client/typed/kubedb/v1alpha1"
 	amc "github.com/kubedb/apimachinery/pkg/controller"
@@ -18,7 +20,6 @@ import (
 	crd_cs "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
-	logs "github.com/appscode/go/log/golog"
 )
 
 var storageClass string
@@ -79,6 +80,10 @@ var _ = BeforeSuite(func() {
 
 	// Controller
 	ctrl = controller.New(kubeClient, apiExtKubeClient, extClient, nil, cronController, opt)
+	err = ctrl.Setup()
+	if err != nil {
+		log.Fatalln(err)
+	}
 	ctrl.Run()
 	root.EventuallyCRD().Should(Succeed())
 })

@@ -62,6 +62,12 @@ func NewCmdRun() *cobra.Command {
 			w := controller.New(client, apiExtKubeClient, extClient, promClient, cronController, opt)
 			defer runtime.HandleCrash()
 
+			// Ensuring Custom Resource Definitions
+			err = w.Setup()
+			if err != nil {
+				log.Fatalln(err)
+			}
+
 			tprMigrator := migrator.NewMigrator(client, apiExtKubeClient, extClient)
 			err = tprMigrator.RunMigration(
 				&api.Postgres{},
@@ -73,6 +79,7 @@ func NewCmdRun() *cobra.Command {
 			}
 
 			fmt.Println("Starting operator...")
+
 			w.RunAndHold()
 		},
 	}
