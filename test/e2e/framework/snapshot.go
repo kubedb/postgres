@@ -23,9 +23,6 @@ func (f *Invocation) Snapshot() *api.Snapshot {
 				api.LabelDatabaseKind: api.ResourceKindPostgres,
 			},
 		},
-		Spec: api.SnapshotSpec{
-			Type: api.SnapshotTypePostgresDumpAll,
-		},
 	}
 }
 

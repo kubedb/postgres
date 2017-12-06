@@ -54,16 +54,11 @@ def main(argv):
     get_auth()
 
     if Flag["process"] == "backup":
-        if "type" not in Flag:
-            print '--type is required'
+        continuous_exec("backup")
+        code = subprocess.call(['./utils.sh', "push", Flag["bucket"], Flag["folder"], Flag["snapshot"]])
+        if code != 0:
+            print "Fail to push"
             exit(1)
-
-        if Flag["type"] == "pg_dumpall":
-            continuous_exec("backup")
-            code = subprocess.call(['./utils.sh', "push", Flag["bucket"], Flag["folder"], Flag["snapshot"]])
-            if code != 0:
-                print "Fail to push"
-                exit(1)
 
     if Flag["process"] == "restore":
         get_auth()

@@ -1576,7 +1576,6 @@ func autoConvert_v1alpha1_SnapshotSpec_To_kubedb_SnapshotSpec(in *SnapshotSpec, 
 	if err := Convert_v1alpha1_SnapshotStorageSpec_To_kubedb_SnapshotStorageSpec(&in.SnapshotStorageSpec, &out.SnapshotStorageSpec, s); err != nil {
 		return err
 	}
-	out.Type = kubedb.SnapshotType(in.Type)
 	out.Resources = in.Resources
 	return nil
 }
@@ -1591,7 +1590,6 @@ func autoConvert_kubedb_SnapshotSpec_To_v1alpha1_SnapshotSpec(in *kubedb.Snapsho
 	if err := Convert_kubedb_SnapshotStorageSpec_To_v1alpha1_SnapshotStorageSpec(&in.SnapshotStorageSpec, &out.SnapshotStorageSpec, s); err != nil {
 		return err
 	}
-	out.Type = SnapshotType(in.Type)
 	out.Resources = in.Resources
 	return nil
 }

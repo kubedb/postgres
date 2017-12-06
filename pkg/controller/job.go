@@ -72,7 +72,7 @@ func (c *Controller) createRestoreJob(postgres *api.Postgres, snapshot *api.Snap
 								},
 								{
 									Name:      persistentVolume.Name,
-									MountPath: "/var/" + string(api.SnapshotTypePostgresDumpAll) + "/",
+									MountPath: "/var/pg_dumpall/",
 								},
 								{
 									Name:      "osmconfig",
@@ -169,7 +169,6 @@ func (c *Controller) getSnapshotterJob(snapshot *api.Snapshot) (*batch.Job, erro
 								fmt.Sprintf(`--bucket=%s`, bucket),
 								fmt.Sprintf(`--folder=%s`, folderName),
 								fmt.Sprintf(`--snapshot=%s`, snapshot.Name),
-								fmt.Sprintf(`--type=%v`, snapshot.Spec.Type),
 							},
 							Resources: snapshot.Spec.Resources,
 							VolumeMounts: []core.VolumeMount{
@@ -179,7 +178,12 @@ func (c *Controller) getSnapshotterJob(snapshot *api.Snapshot) (*batch.Job, erro
 								},
 								{
 									Name:      persistentVolume.Name,
-									MountPath: "/var/" + string(snapshot.Spec.Type) + "/",
+									MountPath: "/var/pg_dumpall/",
+								},
+								{
+									Name:      "osmconfig",
+									MountPath: storage.SecretMountPath,
+									ReadOnly:  true,
 								},
 							},
 						},
@@ -197,6 +201,14 @@ func (c *Controller) getSnapshotterJob(snapshot *api.Snapshot) (*batch.Job, erro
 							Name:         persistentVolume.Name,
 							VolumeSource: persistentVolume.VolumeSource,
 						},
+						{
+							Name: "osmconfig",
+							VolumeSource: core.VolumeSource{
+								Secret: &core.SecretVolumeSource{
+									SecretName: snapshot.OSMSecretName(),
+								},
+							},
+						},
 					},
 					RestartPolicy: core.RestartPolicyNever,
 				},
@@ -207,37 +219,15 @@ func (c *Controller) getSnapshotterJob(snapshot *api.Snapshot) (*batch.Job, erro
 	volumeMounts := job.Spec.Template.Spec.Containers[0].VolumeMounts
 	volume := job.Spec.Template.Spec.Volumes
 
-	if snapshot.Spec.Type == api.SnapshotTypePostgresDumpAll {
-		volumeMounts = append(volumeMounts, []core.VolumeMount{
-			{
-				Name:      "osmconfig",
-				MountPath: storage.SecretMountPath,
-				ReadOnly:  true,
-			},
-		}...,
-		)
-		volume = append(volume, []core.Volume{
-			{
-				Name: "osmconfig",
-				VolumeSource: core.VolumeSource{
-					Secret: &core.SecretVolumeSource{
-						SecretName: snapshot.OSMSecretName(),
-					},
-				},
-			},
-		}...,
-		)
-
-		if snapshot.Spec.SnapshotStorageSpec.Local != nil {
-			volumeMounts = append(volumeMounts, core.VolumeMount{
-				Name:      "local",
-				MountPath: snapshot.Spec.SnapshotStorageSpec.Local.Path,
-			})
-			volume = append(volume, core.Volume{
-				Name:         "local",
-				VolumeSource: snapshot.Spec.SnapshotStorageSpec.Local.VolumeSource,
-			})
-		}
+	if snapshot.Spec.SnapshotStorageSpec.Local != nil {
+		volumeMounts = append(volumeMounts, core.VolumeMount{
+			Name:      "local",
+			MountPath: snapshot.Spec.SnapshotStorageSpec.Local.Path,
+		})
+		volume = append(volume, core.Volume{
+			Name:         "local",
+			VolumeSource: snapshot.Spec.SnapshotStorageSpec.Local.VolumeSource,
+		})
 	}
 
 	job.Spec.Template.Spec.Containers[0].VolumeMounts = volumeMounts
