@@ -70,11 +70,13 @@ func (c *Controller) getVolumeForSnapshot(pvcSpec *core.PersistentVolumeClaimSpe
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      jobName,
 				Namespace: namespace,
-				Annotations: map[string]string{
-					"volume.beta.kubernetes.io/storage-class": *pvcSpec.StorageClassName,
-				},
 			},
 			Spec: *pvcSpec,
+		}
+		if pvcSpec.StorageClassName != nil {
+			claim.Annotations = map[string]string{
+				"volume.beta.kubernetes.io/storage-class": *pvcSpec.StorageClassName,
+			}
 		}
 
 		if _, err := c.Client.CoreV1().PersistentVolumeClaims(claim.Namespace).Create(claim); err != nil {
