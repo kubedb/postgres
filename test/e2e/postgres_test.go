@@ -627,7 +627,7 @@ var _ = Describe("Postgres", func() {
 		Context("Archive with wal-g", func() {
 			BeforeEach(func() {
 				secret = f.SecretForS3Backend()
-				postgres.Spec.Archiver = api.PostgresArchiverSpec{
+				postgres.Spec.Archiver = &api.PostgresArchiverSpec{
 					Storage: &api.SnapshotStorageSpec{
 						StorageSecretName: secret.Name,
 						S3: &api.S3Spec{
@@ -678,7 +678,7 @@ var _ = Describe("Postgres", func() {
 
 				// -- > 2nd Postgres < --
 				*postgres = *f.Postgres()
-				postgres.Spec.Archiver = api.PostgresArchiverSpec{
+				postgres.Spec.Archiver = &api.PostgresArchiverSpec{
 					Storage: &api.SnapshotStorageSpec{
 						StorageSecretName: secret.Name,
 						S3: &api.S3Spec{
