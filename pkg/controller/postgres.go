@@ -18,7 +18,13 @@ import (
 )
 
 func (c *Controller) create(postgres *api.Postgres) error {
-	pg, err := kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
+	pg, err := kutildb.TryPatchPostgres(c.ExtClient, postgres.ObjectMeta, func(in *api.Postgres) *api.Postgres {
+		// This will ignore processing all kind of Update while creating
+		if in.Annotations == nil {
+			in.Annotations = make(map[string]string)
+		}
+		in.Annotations["kubedb.com/ignore"] = "set"
+
 		t := metav1.Now()
 		in.Status.CreationTime = &t
 		in.Status.Phase = api.DatabasePhaseCreating
@@ -84,7 +90,7 @@ func (c *Controller) create(postgres *api.Postgres) error {
 	*postgres = *pg
 
 	if postgres.Spec.Init != nil && postgres.Spec.Init.SnapshotSource != nil {
-		pg, err := kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
+		pg, err := kutildb.TryPatchPostgres(c.ExtClient, postgres.ObjectMeta, func(in *api.Postgres) *api.Postgres {
 			in.Status.Phase = api.DatabasePhaseInitializing
 			return in
 		})
@@ -104,7 +110,7 @@ func (c *Controller) create(postgres *api.Postgres) error {
 			)
 		}
 
-		pg, err = kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
+		pg, err = kutildb.TryPatchPostgres(c.ExtClient, postgres.ObjectMeta, func(in *api.Postgres) *api.Postgres {
 			in.Status.Phase = api.DatabasePhaseRunning
 			return in
 		})
@@ -145,6 +151,17 @@ func (c *Controller) create(postgres *api.Postgres) error {
 			"Successfully added monitoring system.",
 		)
 	}
+
+	//TODO: For updating posgtres,
+	_, err = kutildb.TryPatchPostgres(c.ExtClient, postgres.ObjectMeta, func(in *api.Postgres) *api.Postgres {
+		delete(in.Annotations, "kubedb.com/ignore")
+		return in
+	})
+	if err != nil {
+		c.recorder.Eventf(postgres.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
+		return err
+	}
+
 	return nil
 }
 
@@ -215,7 +232,7 @@ func (c *Controller) matchDormantDatabase(postgres *api.Postgres) (bool, error) 
 
 	//TODO: Use Annotation Key
 	postgres.Annotations = map[string]string{
-		"kubedb.com/ignore": "",
+		"kubedb.com/ignore": "set",
 	}
 
 	if err := c.ExtClient.Postgreses(postgres.Namespace).Delete(postgres.Name, &metav1.DeleteOptions{}); err != nil {
@@ -235,7 +252,10 @@ func (c *Controller) matchDormantDatabase(postgres *api.Postgres) (bool, error) 
 }
 
 func (c *Controller) ensurePostgresNode(postgres *api.Postgres) error {
-	c.ensureDatabaseSecret(postgres)
+
+	if err := c.ensureDatabaseSecret(postgres); err != nil {
+		return err
+	}
 
 	if c.opt.EnableRbac {
 		// Ensure ClusterRoles for database statefulsets
@@ -254,7 +274,7 @@ func (c *Controller) ensurePostgresNode(postgres *api.Postgres) error {
 		return err
 	}
 
-	_, err = kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
+	_, err = kutildb.TryPatchPostgres(c.ExtClient, postgres.ObjectMeta, func(in *api.Postgres) *api.Postgres {
 		in.Status.Phase = api.DatabasePhaseRunning
 		return in
 	})
@@ -420,6 +440,11 @@ func (c *Controller) pause(postgres *api.Postgres) error {
 }
 
 func (c *Controller) update(oldPostgres, updatedPostgres *api.Postgres) error {
+	if updatedPostgres.Annotations != nil {
+		if _, found := updatedPostgres.Annotations["kubedb.com/ignore"]; found {
+			return nil
+		}
+	}
 	if err := validator.ValidatePostgres(c.Client, updatedPostgres); err != nil {
 		c.recorder.Event(updatedPostgres.ObjectReference(), core.EventTypeWarning, eventer.EventReasonInvalid, err.Error())
 		return err

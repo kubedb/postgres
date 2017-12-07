@@ -76,7 +76,7 @@ func New(
 		cronController:   cronController,
 		recorder:         eventer.NewEventRecorder(client, "Postgres operator"),
 		opt:              opt,
-		syncPeriod:       time.Minute * 2,
+		syncPeriod:       time.Second * 1,
 	}
 }
 
@@ -225,7 +225,7 @@ func (c *Controller) pushFailureEvent(postgres *api.Postgres, reason string) {
 		reason,
 	)
 
-	pg, err := kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
+	pg, err := kutildb.TryPatchPostgres(c.ExtClient, postgres.ObjectMeta, func(in *api.Postgres) *api.Postgres {
 		in.Status.Phase = api.DatabasePhaseFailed
 		in.Status.Reason = reason
 		return in
