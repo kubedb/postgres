@@ -41,15 +41,6 @@ func RunLeaderElection() {
 		log.Fatalln(err)
 	}
 
-	cmd := exec.Command("su-exec", "postgres", fmt.Sprintf("/scripts/primary/run.sh"))
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	if err := cmd.Run(); err != nil {
-		log.Println(err)
-	}
-	os.Exit(1)
-
 	hostname, err := os.Hostname()
 	if err != nil {
 		log.Fatalln(err)
@@ -110,42 +101,27 @@ func RunLeaderElection() {
 
 					role := RoleReplica
 
-					if identity == hostname {
-						role = RolePrimary
-						statefulSet, err := kubeClient.AppsV1beta1().StatefulSets(namespace).Get(statefulsetName, metav1.GetOptions{})
-						if err != nil {
-							log.Fatalln(err)
+					statefulSet, err := kubeClient.AppsV1beta1().StatefulSets(namespace).Get(statefulsetName, metav1.GetOptions{})
+					if err != nil {
+						log.Fatalln(err)
+					}
+
+					pods, err := kubeClient.CoreV1().Pods(namespace).List(metav1.ListOptions{
+						LabelSelector: metav1.FormatLabelSelector(statefulSet.Spec.Selector),
+					})
+					if err != nil {
+						log.Fatalln(err)
+					}
+
+					for _, pod := range pods.Items {
+						role := RoleReplica
+						if pod.Name == identity {
+							role = RolePrimary
 						}
-
-						pods, err := kubeClient.CoreV1().Pods(namespace).List(metav1.ListOptions{
-							LabelSelector: metav1.FormatLabelSelector(statefulSet.Spec.Selector),
-						})
-						if err != nil {
-							log.Fatalln(err)
-						}
-
-						var primaryPod metav1.ObjectMeta
-						for _, pod := range pods.Items {
-							_, err = core_util.TryPatchPod(kubeClient, pod.ObjectMeta, func(in *core.Pod) *core.Pod {
-								in.Labels["kubedb.com/role"] = RoleReplica
-								return in
-							})
-							if err != nil && !kerr.IsNotFound(err) {
-								log.Fatalln(err)
-							}
-
-							if pod.Name == hostname {
-								primaryPod = pod.ObjectMeta
-							}
-						}
-
-						_, err = core_util.TryPatchPod(kubeClient, primaryPod, func(in *core.Pod) *core.Pod {
-							in.Labels["kubedb.com/role"] = RolePrimary
+						_, err = core_util.TryPatchPod(kubeClient, pod.ObjectMeta, func(in *core.Pod) *core.Pod {
+							in.Labels["kubedb.com/role"] = role
 							return in
 						})
-						if err != nil {
-							log.Fatalln(err)
-						}
 					}
 
 					if runningFirstTime {

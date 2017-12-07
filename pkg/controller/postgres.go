@@ -420,7 +420,6 @@ func (c *Controller) pause(postgres *api.Postgres) error {
 }
 
 func (c *Controller) update(oldPostgres, updatedPostgres *api.Postgres) error {
-
 	if err := validator.ValidatePostgres(c.Client, updatedPostgres); err != nil {
 		c.recorder.Event(updatedPostgres.ObjectReference(), core.EventTypeWarning, eventer.EventReasonInvalid, err.Error())
 		return err
