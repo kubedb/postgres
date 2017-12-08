@@ -237,7 +237,6 @@ func (c *Controller) matchDormantDatabase(postgres *api.Postgres) (bool, error) 
 }
 
 func (c *Controller) ensurePostgresNode(postgres *api.Postgres) error {
-
 	if err := c.ensureDatabaseSecret(postgres); err != nil {
 		return err
 	}
@@ -422,7 +421,7 @@ func (c *Controller) pause(postgres *api.Postgres) error {
 func (c *Controller) update(oldPostgres, updatedPostgres *api.Postgres) error {
 	if updatedPostgres.Annotations != nil {
 		if _, found := updatedPostgres.Annotations["kubedb.com/ignore"]; found {
-			_, err := kutildb.TryPatchPostgres(c.ExtClient, updatedPostgres.ObjectMeta, func(in *api.Postgres) *api.Postgres {
+			_, err := kutildb.PatchPostgres(c.ExtClient, updatedPostgres, func(in *api.Postgres) *api.Postgres {
 				delete(in.Annotations, "kubedb.com/ignore")
 				return in
 			})
@@ -433,8 +432,6 @@ func (c *Controller) update(oldPostgres, updatedPostgres *api.Postgres) error {
 			return nil
 		}
 	}
-
-	fmt.Println("--- Working")
 
 	if err := validator.ValidatePostgres(c.Client, updatedPostgres); err != nil {
 		c.recorder.Event(updatedPostgres.ObjectReference(), core.EventTypeWarning, eventer.EventReasonInvalid, err.Error())
