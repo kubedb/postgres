@@ -98,9 +98,6 @@ func RunLeaderElection() {
 					os.Exit(1)
 				},
 				OnNewLeader: func(identity string) {
-
-					role := RoleReplica
-
 					statefulSet, err := kubeClient.AppsV1beta1().StatefulSets(namespace).Get(statefulsetName, metav1.GetOptions{})
 					if err != nil {
 						log.Fatalln(err)
@@ -122,6 +119,11 @@ func RunLeaderElection() {
 							in.Labels["kubedb.com/role"] = role
 							return in
 						})
+					}
+
+					role := RoleReplica
+					if identity == hostname {
+						role = RolePrimary
 					}
 
 					if runningFirstTime {
