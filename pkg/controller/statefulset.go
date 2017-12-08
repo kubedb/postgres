@@ -14,6 +14,7 @@ import (
 	core "k8s.io/api/core/v1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"path/filepath"
 )
 
 func (c *Controller) ensureStatefulSet(
@@ -143,7 +144,7 @@ func (c *Controller) ensureCombinedNode(postgres *api.Postgres) error {
 					},
 					{
 						Name:  "ARCHIVE_S3_PREFIX",
-						Value: fmt.Sprintf("s3://%v/%v", archiverStorage.S3.Bucket, archiverStorage.S3.Prefix),
+						Value: fmt.Sprintf("s3://%v/%v/archive", archiverStorage.S3.Bucket, filepath.Join(archiverStorage.S3.Prefix, api.DatabaseNamePrefix, postgres.Namespace, postgres.Name)),
 					},
 				}...,
 			)

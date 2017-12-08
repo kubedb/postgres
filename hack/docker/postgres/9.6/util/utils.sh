@@ -73,9 +73,9 @@ pull() {
 
     dst_path=/var/pg_dumpall/
     mkdir -p "$dst_path"
-    rm -rf "$dst_path"
+    rm -rf "$dst_path"/*
 
-    osm pull --osmconfig=/etc/osm/config -c "$1" "$2/$3" "$dst_path"
+    osm pull --osmconfig=/etc/osm/config -c "$1" "$2/$3/" "$dst_path"
     retval=$?
     if [ "$retval" -ne 0 ]; then
         echo "Fail to pull data from cloud"
