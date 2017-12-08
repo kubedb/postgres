@@ -24,6 +24,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/record"
+	"fmt"
 )
 
 type Options struct {
@@ -76,7 +77,7 @@ func New(
 		cronController:   cronController,
 		recorder:         eventer.NewEventRecorder(client, "Postgres operator"),
 		opt:              opt,
-		syncPeriod:       time.Second * 1,
+		syncPeriod:       time.Minute * 2,
 	}
 }
 
@@ -133,7 +134,7 @@ func (c *Controller) watchPostgres() {
 				kutildb.AssignTypeKind(postgres)
 
 				if postgres.Status.CreationTime == nil {
-					if err := c.create(postgres); err != nil {
+					if err := c.create(postgres.DeepCopy()); err != nil {
 						log.Errorln(err)
 						c.pushFailureEvent(postgres, err.Error())
 					}
@@ -143,7 +144,7 @@ func (c *Controller) watchPostgres() {
 			DeleteFunc: func(obj interface{}) {
 				postgres := obj.(*api.Postgres)
 				kutildb.AssignTypeKind(postgres)
-				if err := c.pause(postgres); err != nil {
+				if err := c.pause(postgres.DeepCopy()); err != nil {
 					log.Errorln(err)
 				}
 			},
@@ -159,7 +160,7 @@ func (c *Controller) watchPostgres() {
 				kutildb.AssignTypeKind(oldObj)
 				kutildb.AssignTypeKind(newObj)
 				if !reflect.DeepEqual(oldObj.Spec, newObj.Spec) {
-					if err := c.update(oldObj, newObj); err != nil {
+					if err := c.update(oldObj, newObj.DeepCopy()); err != nil {
 						log.Errorln(err)
 					}
 				}
@@ -225,7 +226,7 @@ func (c *Controller) pushFailureEvent(postgres *api.Postgres, reason string) {
 		reason,
 	)
 
-	pg, err := kutildb.TryPatchPostgres(c.ExtClient, postgres.ObjectMeta, func(in *api.Postgres) *api.Postgres {
+	pg, err := kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
 		in.Status.Phase = api.DatabasePhaseFailed
 		in.Status.Reason = reason
 		return in
