@@ -3,6 +3,7 @@ package controller
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/appscode/go/log"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
@@ -48,6 +49,13 @@ func (c *Controller) PauseDatabase(dormantDb *api.DormantDatabase) error {
 		log.Errorln(err)
 		return err
 	}
+
+	configMapName := fmt.Sprintf("%v-leader-lock", dormantDb.OffshootName())
+	if err := c.Client.CoreV1().ConfigMaps(dormantDb.Namespace).Delete(configMapName, nil); !kerr.IsNotFound(err) {
+		log.Errorln(err)
+		return err
+	}
+
 	return nil
 }
 
