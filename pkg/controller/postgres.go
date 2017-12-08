@@ -421,14 +421,10 @@ func (c *Controller) pause(postgres *api.Postgres) error {
 func (c *Controller) update(oldPostgres, updatedPostgres *api.Postgres) error {
 	if updatedPostgres.Annotations != nil {
 		if _, found := updatedPostgres.Annotations["kubedb.com/ignore"]; found {
-			_, err := kutildb.PatchPostgres(c.ExtClient, updatedPostgres, func(in *api.Postgres) *api.Postgres {
+			kutildb.PatchPostgres(c.ExtClient, updatedPostgres, func(in *api.Postgres) *api.Postgres {
 				delete(in.Annotations, "kubedb.com/ignore")
 				return in
 			})
-			if err != nil {
-				c.recorder.Eventf(updatedPostgres.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
-				return err
-			}
 			return nil
 		}
 	}
