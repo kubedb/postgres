@@ -28,6 +28,4 @@ configure_replica_postgres
 # Push base_backup using wal-g if possible
 push_backup
 
-postgres -D "$PGDATA"
-
 exec postgres

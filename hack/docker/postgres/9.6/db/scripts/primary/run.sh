@@ -34,4 +34,4 @@ if [ ! -e "$PGDATA/PG_VERSION" ]; then
     fi
 fi
 
-postgres -D "$PGDATA"
+exec postgres
