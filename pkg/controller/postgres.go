@@ -115,7 +115,6 @@ func (c *Controller) create(postgres *api.Postgres) error {
 		"Successfully created Postgres",
 	)
 
-	kutildb.AssignTypeKind(postgres)
 	// Ensure Schedule backup
 	c.ensureBackupScheduler(postgres)
 
@@ -266,6 +265,7 @@ func (c *Controller) ensurePostgresNode(postgres *api.Postgres) error {
 }
 
 func (c *Controller) ensureBackupScheduler(postgres *api.Postgres) {
+	kutildb.AssignTypeKind(postgres)
 	// Setup Schedule backup
 	if postgres.Spec.BackupSchedule != nil {
 		err := c.cronController.ScheduleBackup(postgres, postgres.ObjectMeta, postgres.Spec.BackupSchedule)
@@ -450,7 +450,6 @@ func (c *Controller) update(oldPostgres, updatedPostgres *api.Postgres) error {
 	}
 
 	if !reflect.DeepEqual(updatedPostgres.Spec.BackupSchedule, oldPostgres.Spec.BackupSchedule) {
-		kutildb.AssignTypeKind(updatedPostgres)
 		c.ensureBackupScheduler(updatedPostgres)
 	}
 
