@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/appscode/go/crypto/rand"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/kubedb/apimachinery/pkg/docker"
 	"github.com/kubedb/apimachinery/pkg/storage"
@@ -22,7 +23,7 @@ const (
 
 func (c *Controller) createRestoreJob(postgres *api.Postgres, snapshot *api.Snapshot) (*batch.Job, error) {
 	databaseName := postgres.Name
-	jobName := snapshot.OffshootName()
+	jobName := rand.WithUniqSuffix(snapshot.OffshootName())
 	jobLabel := map[string]string{
 		api.LabelDatabaseName: databaseName,
 		api.LabelJobType:      SnapshotProcess_Restore,
@@ -125,7 +126,7 @@ func (c *Controller) createRestoreJob(postgres *api.Postgres, snapshot *api.Snap
 
 func (c *Controller) getSnapshotterJob(snapshot *api.Snapshot) (*batch.Job, error) {
 	databaseName := snapshot.Spec.DatabaseName
-	jobName := snapshot.OffshootName()
+	jobName := rand.WithUniqSuffix(snapshot.OffshootName())
 	jobLabel := map[string]string{
 		api.LabelDatabaseName: databaseName,
 		api.LabelJobType:      SnapshotProcess_Backup,
