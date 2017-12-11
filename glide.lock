@@ -1,5 +1,5 @@
-hash: 202553cc576fdacf0a6ce7a3fcb9f1ed0396e292552b9ebb1bc2555bccc3f818
-updated: 2017-12-06T11:58:39.088673218+06:00
+hash: d9610f41921d8dbca5f996753bbe3f78a2d17f05de2ebf2832e3734b00807aaf
+updated: 2017-12-11T11:13:50.643521039+06:00
 imports:
 - name: cloud.google.com/go
   version: fe3d41e1ecb2ce36ad3a979037c9b9a2b726226f
@@ -221,7 +221,7 @@ imports:
 - name: github.com/juju/ratelimit
   version: 5b9ff866471762aa2ab2dced63c9fb6f53921342
 - name: github.com/kubedb/apimachinery
-  version: 93df6d01a63901de6994b036937400d3606e5558
+  version: 29d9015df0562fa64b3fd149542bec4317733432
   subpackages:
   - apis/kubedb
   - apis/kubedb/v1alpha1
@@ -235,7 +235,7 @@ imports:
   - pkg/storage
   - pkg/validator
 - name: github.com/kubernetes/apimachinery
-  version: 18a564baac720819100827c16fdebcadb05b2d0d
+  version: a04e753f5223cf882db01ac64212682ea28767b4
   subpackages:
   - pkg/conversion
 - name: github.com/lib/pq
@@ -335,7 +335,7 @@ imports:
 - name: github.com/sirupsen/logrus
   version: f006c2ac4710855cf0f916dd6b77acf6b048dc6e
 - name: github.com/spf13/cobra
-  version: de2d9c4eca8f3c1de17d48b096b6504e0296f003
+  version: ccaecb155a2177302cb56cae929251a256d0f646
   subpackages:
   - doc
 - name: github.com/spf13/pflag
@@ -397,7 +397,7 @@ imports:
   - unicode/norm
   - width
 - name: google.golang.org/api
-  version: e31351a3998a5bddef4462979b301901b02003d1
+  version: ba22d24b46e8ea8b6dea3b8782695cece79574d4
   subpackages:
   - gensupport
   - googleapi
@@ -429,7 +429,7 @@ imports:
 - name: gopkg.in/yaml.v2
   version: 53feefa2559fb8dfa8d81baad31be332c97d6c77
 - name: k8s.io/api
-  version: 4df58c811fe2e65feb879227b2b245e4dc26e7ad
+  version: 9b9dca205a15b6ce9ef10091f05d60a13fdcf418
   subpackages:
   - admissionregistration/v1alpha1
   - apps/v1beta1
@@ -456,7 +456,7 @@ imports:
   - storage/v1
   - storage/v1beta1
 - name: k8s.io/apiextensions-apiserver
-  version: 5bc0d8f05a92b3a09bcf1a9db442a29c0b7a514d
+  version: 996a70a27a0dcf53642ca52601b9107cb2ad810a
   subpackages:
   - pkg/apis/apiextensions
   - pkg/apis/apiextensions/v1beta1
