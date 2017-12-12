@@ -115,7 +115,10 @@ configure_replica_postgres() {
     cp /scripts/primary/postgresql.conf /tmp
 
     if [[ -v STANDBY ]]; then
-        if [ "$STANDBY" == "hot" ]; then
+        if [ "$STANDBY" == "warm" ]; then
+            use_standby "archive"
+        elif [ "$STANDBY" == "hot" ]; then
+            use_standby "hot_standby"
             echo "hot_standby = on" >> /tmp/postgresql.conf
         fi
     fi
