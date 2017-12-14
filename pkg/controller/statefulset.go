@@ -274,7 +274,7 @@ func upsertMonitoringContainer(statefulSet *apps.StatefulSet, postgres *api.Post
 			Name: "exporter",
 			Args: []string{
 				"export",
-				fmt.Sprintf("--address=:%d", api.PrometheusExporterPortNumber),
+				fmt.Sprintf("--address=:%d", postgres.Spec.Monitor.Prometheus.Port),
 				"--v=3",
 			},
 			Image:           docker.ImageOperator + ":" + tag,
@@ -283,7 +283,7 @@ func upsertMonitoringContainer(statefulSet *apps.StatefulSet, postgres *api.Post
 				{
 					Name:          api.PrometheusExporterPortName,
 					Protocol:      core.ProtocolTCP,
-					ContainerPort: int32(api.PrometheusExporterPortNumber),
+					ContainerPort: postgres.Spec.Monitor.Prometheus.Port,
 				},
 			},
 		}

@@ -30,6 +30,10 @@ func (c *Controller) create(postgres *api.Postgres) error {
 	}
 	*postgres = *pg
 
+	if err := c.setMonitoringPort(postgres); err != nil {
+		return err
+	}
+
 	if err := validator.ValidatePostgres(c.Client, postgres); err != nil {
 		c.recorder.Event(postgres.ObjectReference(), core.EventTypeWarning, eventer.EventReasonInvalid, err.Error())
 		return err
@@ -141,6 +145,28 @@ func (c *Controller) create(postgres *api.Postgres) error {
 			eventer.EventReasonSuccessfulCreate,
 			"Successfully added monitoring system.",
 		)
+	}
+	return nil
+}
+
+func (c Controller) setMonitoringPort(postgres *api.Postgres) error {
+	if postgres.Spec.Monitor != nil &&
+		postgres.Spec.Monitor.Prometheus != nil {
+		if postgres.Spec.Monitor.Prometheus.Port == 0 {
+			pg, err := kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
+				if in.Annotations == nil {
+					in.Annotations = make(map[string]string)
+				}
+				in.Annotations["kubedb.com/ignore"] = "set"
+				in.Spec.Monitor.Prometheus.Port = api.PrometheusExporterPortNumber
+				return in
+			})
+			if err != nil {
+				c.recorder.Eventf(postgres.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
+				return err
+			}
+			*postgres = *pg
+		}
 	}
 	return nil
 }
@@ -355,6 +381,14 @@ func (c *Controller) pause(postgres *api.Postgres) error {
 		}
 	}
 
+	// Assign default Prometheus port
+	if postgres.Spec.Monitor != nil &&
+		postgres.Spec.Monitor.Prometheus != nil {
+		if postgres.Spec.Monitor.Prometheus.Port == 0 {
+				postgres.Spec.Monitor.Prometheus.Port = api.PrometheusExporterPortNumber
+			}
+	}
+
 	c.recorder.Event(postgres.ObjectReference(), core.EventTypeNormal, eventer.EventReasonPausing, "Pausing Postgres")
 
 	if postgres.Spec.DoNotPause {
@@ -432,6 +466,14 @@ func (c *Controller) update(oldPostgres, updatedPostgres *api.Postgres) error {
 			})
 			return nil
 		}
+	}
+
+	if err := c.setMonitoringPort(oldPostgres); err != nil {
+		return err
+	}
+
+	if err := c.setMonitoringPort(updatedPostgres); err != nil {
+		return err
 	}
 
 	if err := validator.ValidatePostgres(c.Client, updatedPostgres); err != nil {

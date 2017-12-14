@@ -98,7 +98,7 @@ func (c *Controller) createService(postgres *api.Postgres) error {
 		postgres.Spec.Monitor.Prometheus != nil {
 		svc.Spec.Ports = append(svc.Spec.Ports, core.ServicePort{
 			Name:       api.PrometheusExporterPortName,
-			Port:       api.PrometheusExporterPortNumber,
+			Port:       postgres.Spec.Monitor.Prometheus.Port,
 			TargetPort: intstr.FromString(api.PrometheusExporterPortName),
 		})
 	}
