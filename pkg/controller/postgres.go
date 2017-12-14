@@ -18,10 +18,6 @@ import (
 )
 
 func (c *Controller) create(postgres *api.Postgres) error {
-	if err := c.setMonitoringPort(postgres); err != nil {
-		return err
-	}
-
 	pg, err := kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
 		t := metav1.Now()
 		in.Status.CreationTime = &t
@@ -33,6 +29,10 @@ func (c *Controller) create(postgres *api.Postgres) error {
 		return err
 	}
 	*postgres = *pg
+
+	if err := c.setMonitoringPort(postgres); err != nil {
+		return err
+	}
 
 	if err := validator.ValidatePostgres(c.Client, postgres); err != nil {
 		c.recorder.Event(postgres.ObjectReference(), core.EventTypeWarning, eventer.EventReasonInvalid, err.Error())
@@ -154,6 +154,10 @@ func (c Controller) setMonitoringPort(postgres *api.Postgres) error {
 		postgres.Spec.Monitor.Prometheus != nil {
 		if postgres.Spec.Monitor.Prometheus.Port == 0 {
 			pg, err := kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
+				if in.Annotations == nil {
+					in.Annotations = make(map[string]string)
+				}
+				in.Annotations["kubedb.com/ignore"] = "set"
 				in.Spec.Monitor.Prometheus.Port = api.PrometheusExporterPortNumber
 				return in
 			})
@@ -369,16 +373,20 @@ func (c *Controller) initialize(postgres *api.Postgres) error {
 }
 
 func (c *Controller) pause(postgres *api.Postgres) error {
-	if err := c.setMonitoringPort(postgres); err != nil {
-		return err
-	}
-
 	if postgres.Annotations != nil {
 		if val, found := postgres.Annotations["kubedb.com/ignore"]; found {
 			//TODO: Add Event Reason "Ignored"
 			c.recorder.Event(postgres.ObjectReference(), core.EventTypeNormal, "Ignored", val)
 			return nil
 		}
+	}
+
+	// Assign default Prometheus port
+	if postgres.Spec.Monitor != nil &&
+		postgres.Spec.Monitor.Prometheus != nil {
+		if postgres.Spec.Monitor.Prometheus.Port == 0 {
+				postgres.Spec.Monitor.Prometheus.Port = api.PrometheusExporterPortNumber
+			}
 	}
 
 	c.recorder.Event(postgres.ObjectReference(), core.EventTypeNormal, eventer.EventReasonPausing, "Pausing Postgres")
@@ -450,14 +458,6 @@ func (c *Controller) pause(postgres *api.Postgres) error {
 }
 
 func (c *Controller) update(oldPostgres, updatedPostgres *api.Postgres) error {
-	if err := c.setMonitoringPort(oldPostgres); err != nil {
-		return err
-	}
-
-	if err := c.setMonitoringPort(updatedPostgres); err != nil {
-		return err
-	}
-
 	if updatedPostgres.Annotations != nil {
 		if _, found := updatedPostgres.Annotations["kubedb.com/ignore"]; found {
 			kutildb.PatchPostgres(c.ExtClient, updatedPostgres, func(in *api.Postgres) *api.Postgres {
@@ -466,6 +466,14 @@ func (c *Controller) update(oldPostgres, updatedPostgres *api.Postgres) error {
 			})
 			return nil
 		}
+	}
+
+	if err := c.setMonitoringPort(oldPostgres); err != nil {
+		return err
+	}
+
+	if err := c.setMonitoringPort(updatedPostgres); err != nil {
+		return err
 	}
 
 	if err := validator.ValidatePostgres(c.Client, updatedPostgres); err != nil {
