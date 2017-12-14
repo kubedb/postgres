@@ -130,6 +130,7 @@ func (c *Controller) watchPostgres() {
 		cache.ResourceEventHandlerFuncs{
 			AddFunc: func(obj interface{}) {
 				postgres := obj.(*api.Postgres)
+				setMonitoringPort(postgres)
 				if postgres.Status.CreationTime == nil {
 					if err := c.create(postgres.DeepCopy()); err != nil {
 						log.Errorln(err)
@@ -140,6 +141,7 @@ func (c *Controller) watchPostgres() {
 			},
 			DeleteFunc: func(obj interface{}) {
 				postgres := obj.(*api.Postgres)
+				setMonitoringPort(postgres)
 				if err := c.pause(postgres.DeepCopy()); err != nil {
 					log.Errorln(err)
 				}
@@ -153,6 +155,8 @@ func (c *Controller) watchPostgres() {
 				if !ok {
 					return
 				}
+				setMonitoringPort(oldObj)
+				setMonitoringPort(newObj)
 				if !reflect.DeepEqual(oldObj.Spec, newObj.Spec) {
 					if err := c.update(oldObj, newObj.DeepCopy()); err != nil {
 						log.Errorln(err)
@@ -162,6 +166,15 @@ func (c *Controller) watchPostgres() {
 		},
 	)
 	cacheController.Run(wait.NeverStop)
+}
+
+func setMonitoringPort(postgres *api.Postgres) {
+	if postgres.Spec.Monitor != nil &&
+		postgres.Spec.Monitor.Prometheus != nil {
+		if postgres.Spec.Monitor.Prometheus.Port == 0 {
+			postgres.Spec.Monitor.Prometheus.Port = api.PrometheusExporterPortNumber
+		}
+	}
 }
 
 func (c *Controller) watchSnapshot() {
