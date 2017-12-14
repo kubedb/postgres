@@ -18,6 +18,10 @@ import (
 )
 
 func (c *Controller) create(postgres *api.Postgres) error {
+	if err := c.setMonitoringPort(postgres); err != nil {
+		return err
+	}
+
 	pg, err := kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
 		t := metav1.Now()
 		in.Status.CreationTime = &t
@@ -141,6 +145,24 @@ func (c *Controller) create(postgres *api.Postgres) error {
 			eventer.EventReasonSuccessfulCreate,
 			"Successfully added monitoring system.",
 		)
+	}
+	return nil
+}
+
+func (c Controller) setMonitoringPort(postgres *api.Postgres) error {
+	if postgres.Spec.Monitor != nil &&
+		postgres.Spec.Monitor.Prometheus != nil {
+		if postgres.Spec.Monitor.Prometheus.Port == 0 {
+			pg, err := kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
+				in.Spec.Monitor.Prometheus.Port = api.PrometheusExporterPortNumber
+				return in
+			})
+			if err != nil {
+				c.recorder.Eventf(postgres.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
+				return err
+			}
+			*postgres = *pg
+		}
 	}
 	return nil
 }
@@ -347,6 +369,10 @@ func (c *Controller) initialize(postgres *api.Postgres) error {
 }
 
 func (c *Controller) pause(postgres *api.Postgres) error {
+	if err := c.setMonitoringPort(postgres); err != nil {
+		return err
+	}
+
 	if postgres.Annotations != nil {
 		if val, found := postgres.Annotations["kubedb.com/ignore"]; found {
 			//TODO: Add Event Reason "Ignored"
@@ -424,6 +450,14 @@ func (c *Controller) pause(postgres *api.Postgres) error {
 }
 
 func (c *Controller) update(oldPostgres, updatedPostgres *api.Postgres) error {
+	if err := c.setMonitoringPort(oldPostgres); err != nil {
+		return err
+	}
+
+	if err := c.setMonitoringPort(updatedPostgres); err != nil {
+		return err
+	}
+
 	if updatedPostgres.Annotations != nil {
 		if _, found := updatedPostgres.Annotations["kubedb.com/ignore"]; found {
 			kutildb.PatchPostgres(c.ExtClient, updatedPostgres, func(in *api.Postgres) *api.Postgres {
