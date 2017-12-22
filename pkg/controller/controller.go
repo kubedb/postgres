@@ -136,7 +136,6 @@ func (c *Controller) watchPostgres() {
 						c.pushFailureEvent(postgres, err.Error())
 					}
 				}
-
 			},
 			DeleteFunc: func(obj interface{}) {
 				postgres := obj.(*api.Postgres)

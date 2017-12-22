@@ -1,5 +1,5 @@
-hash: d9610f41921d8dbca5f996753bbe3f78a2d17f05de2ebf2832e3734b00807aaf
-updated: 2017-12-11T11:13:50.643521039+06:00
+hash: 30a31273bc5230891f82ae24a93cf3aa243e51876676788f958fc13760122ce2
+updated: 2017-12-22T17:28:37.52645774+06:00
 imports:
 - name: cloud.google.com/go
   version: fe3d41e1ecb2ce36ad3a979037c9b9a2b726226f
@@ -7,36 +7,39 @@ imports:
   - compute/metadata
   - internal
 - name: github.com/appscode/go
-  version: 0042f7fe164fd03992cfa5ea70a98615516be99b
+  version: f08cee5a2aa53a1ab6d30e4ae11e381d1b265f81
   subpackages:
   - context
   - crypto/rand
   - encoding/json/types
   - encoding/yaml
   - hold
-  - io
+  - ioutil
   - log
   - log/golog
   - runtime
   - types
   - version
   - wait
+- name: github.com/appscode/kube-mon
+  version: dd6884c63ee4615ca9ecdb7f0ca3e35c975bcca3
+  subpackages:
+  - agents
+  - agents/coreosprometheusoperator
+  - agents/prometheusbuiltin
+  - api
 - name: github.com/appscode/kutil
-  version: e0c1936a0ec86173f8278752bef81964b4ffbea5
+  version: 543454628a918137145df3eb2d3903389fcccfe0
   subpackages:
   - apiextensions/v1beta1
   - apps/v1beta1
   - core/v1
   - meta
   - rbac/v1beta1
-  - tools/monitoring/agents
-  - tools/monitoring/agents/coreosprometheusoperator
-  - tools/monitoring/agents/prometheusbuiltin
-  - tools/monitoring/api
 - name: github.com/appscode/mergo
   version: e3000cb3d28c72b837601cac94debd91032d19fe
 - name: github.com/appscode/osm
-  version: b3ed1c7835d33f312616b260a949589cf33311ee
+  version: 8e933dfca7c6a2730d77a63282369d843b1db1f4
   subpackages:
   - context
 - name: github.com/appscode/pat
@@ -221,7 +224,7 @@ imports:
 - name: github.com/juju/ratelimit
   version: 5b9ff866471762aa2ab2dced63c9fb6f53921342
 - name: github.com/kubedb/apimachinery
-  version: 29d9015df0562fa64b3fd149542bec4317733432
+  version: eddf3a6c93b63f4968af7e37445d406264384806
   subpackages:
   - apis/kubedb
   - apis/kubedb/v1alpha1
@@ -235,7 +238,7 @@ imports:
   - pkg/storage
   - pkg/validator
 - name: github.com/kubernetes/apimachinery
-  version: a04e753f5223cf882db01ac64212682ea28767b4
+  version: 20bbfef868144faf29af69ddb2f01646ead5c1a1
   subpackages:
   - pkg/conversion
 - name: github.com/lib/pq
@@ -259,7 +262,7 @@ imports:
   - idgen
   - signal
 - name: github.com/ncw/swift
-  version: c95c6e5c2d1a3d37fc44c8c6dc9e231c7500667d
+  version: 067578e41c8dd06bf557d02a92a77bd35e97c05a
 - name: github.com/onsi/ginkgo
   version: 9eda700730cba42af70d53180f9dcce9266bc2bc
   subpackages:
@@ -397,14 +400,14 @@ imports:
   - unicode/norm
   - width
 - name: google.golang.org/api
-  version: ba22d24b46e8ea8b6dea3b8782695cece79574d4
+  version: 905d2b6c9443c02c46229c39d60442903a68c229
   subpackages:
   - gensupport
   - googleapi
   - googleapi/internal/uritemplates
   - storage/v1
 - name: google.golang.org/appengine
-  version: 9d8544a6b2c7df9cff240fcf92d7b2f59bc13416
+  version: 5bee14b453b4c71be47ec1781b0fa61c2ea182db
   subpackages:
   - internal
   - internal/app_identity

@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/appscode/go/io"
+	"github.com/appscode/go/ioutil"
 	core_util "github.com/appscode/kutil/core/v1"
 	core "k8s.io/api/core/v1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
@@ -141,7 +141,7 @@ func RunLeaderElection() {
 						}()
 					} else {
 						if identity == hostname {
-							if !io.WriteString("/tmp/pg-failover-trigger", "") {
+							if !ioutil.WriteString("/tmp/pg-failover-trigger", "") {
 								log.Fatalln("Failed to create trigger file")
 							}
 						}
