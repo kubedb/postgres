@@ -12,6 +12,8 @@ import (
 	cs "github.com/kubedb/apimachinery/client/typed/kubedb/v1alpha1"
 	kutildb "github.com/kubedb/apimachinery/client/typed/kubedb/v1alpha1/util"
 	amc "github.com/kubedb/apimachinery/pkg/controller"
+	drmnc "github.com/kubedb/apimachinery/pkg/controller/dormant_database"
+	snapc "github.com/kubedb/apimachinery/pkg/controller/snapshot"
 	"github.com/kubedb/apimachinery/pkg/eventer"
 	"github.com/kubedb/postgres/pkg/docker"
 	core "k8s.io/api/core/v1"
@@ -25,6 +27,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/record"
+	"k8s.io/client-go/util/workqueue"
 )
 
 type Options struct {
@@ -37,41 +40,46 @@ type Options struct {
 	Address string
 	// Enable RBAC for database workloads
 	EnableRbac bool
+	//Max number requests for retries
+	MaxNumRequeues int
 }
 
 type Controller struct {
 	*amc.Controller
-	// Api Extension Client
-	ApiExtKubeClient crd_cs.ApiextensionsV1beta1Interface
 	// Prometheus client
 	promClient pcm.MonitoringV1Interface
 	// Cron Controller
-	cronController amc.CronControllerInterface
+	cronController snapc.CronControllerInterface
 	// Event Recorder
 	recorder record.EventRecorder
 	// Flag data
 	opt Options
 	// sync time to sync the list.
 	syncPeriod time.Duration
+
+	// Workqueue
+	indexer  cache.Indexer
+	queue    workqueue.RateLimitingInterface
+	informer cache.Controller
 }
 
-var _ amc.Snapshotter = &Controller{}
-var _ amc.Deleter = &Controller{}
+var _ snapc.Snapshotter = &Controller{}
+var _ drmnc.Deleter = &Controller{}
 
 func New(
 	client kubernetes.Interface,
 	apiExtKubeClient crd_cs.ApiextensionsV1beta1Interface,
 	extClient cs.KubedbV1alpha1Interface,
 	promClient pcm.MonitoringV1Interface,
-	cronController amc.CronControllerInterface,
+	cronController snapc.CronControllerInterface,
 	opt Options,
 ) *Controller {
 	return &Controller{
 		Controller: &amc.Controller{
 			Client:    client,
 			ExtClient: extClient,
+			ApiExtKubeClient: apiExtKubeClient,
 		},
-		ApiExtKubeClient: apiExtKubeClient,
 		promClient:       promClient,
 		cronController:   cronController,
 		recorder:         eventer.NewEventRecorder(client, "Postgres operator"),
