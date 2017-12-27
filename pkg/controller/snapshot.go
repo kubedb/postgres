@@ -29,9 +29,8 @@ func (c *Controller) ValidateSnapshot(snapshot *api.Snapshot) error {
 		return err
 	}
 
-	version := fmt.Sprintf("%s-util", postgres.Spec.Version)
-	if err := docker.CheckDockerImageVersion(docker.ImagePostgres, version); err != nil {
-		return fmt.Errorf(`image %v:%v not found`, docker.ImagePostgres, version)
+	if err := docker.CheckDockerImageVersion(c.opt.Docker.GetToolsImage(postgres), string(postgres.Spec.Version)); err != nil {
+		return fmt.Errorf(`image %s not found`, c.opt.Docker.GetToolsImageWithTag(postgres))
 	}
 
 	return amv.ValidateSnapshotSpec(c.Client, snapshot.Spec.SnapshotStorageSpec, snapshot.Namespace)

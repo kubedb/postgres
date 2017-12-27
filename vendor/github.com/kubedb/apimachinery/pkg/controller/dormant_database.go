@@ -128,7 +128,7 @@ func (c *DormantDbController) watch() {
 }
 
 func (c *DormantDbController) create(dormantDb *api.DormantDatabase) error {
-	_, err := util.TryPatchDormantDatabase(c.extClient, dormantDb.ObjectMeta, func(in *api.DormantDatabase) *api.DormantDatabase {
+	_, _, err := util.PatchDormantDatabase(c.extClient, dormantDb, func(in *api.DormantDatabase) *api.DormantDatabase {
 		t := metav1.Now()
 		in.Status.CreationTime = &t
 		return in
@@ -174,7 +174,7 @@ func (c *DormantDbController) create(dormantDb *api.DormantDatabase) error {
 		return errors.New(message)
 	}
 
-	_, err = util.TryPatchDormantDatabase(c.extClient, dormantDb.ObjectMeta, func(in *api.DormantDatabase) *api.DormantDatabase {
+	_, _, err = util.PatchDormantDatabase(c.extClient, dormantDb, func(in *api.DormantDatabase) *api.DormantDatabase {
 		in.Status.Phase = api.DormantDatabasePhasePausing
 		return in
 	})
@@ -204,7 +204,7 @@ func (c *DormantDbController) create(dormantDb *api.DormantDatabase) error {
 		"Successfully paused Database workload",
 	)
 
-	_, err = util.TryPatchDormantDatabase(c.extClient, dormantDb.ObjectMeta, func(in *api.DormantDatabase) *api.DormantDatabase {
+	_, _, err = util.PatchDormantDatabase(c.extClient, dormantDb, func(in *api.DormantDatabase) *api.DormantDatabase {
 		t := metav1.Now()
 		in.Status.PausingTime = &t
 		in.Status.Phase = api.DormantDatabasePhasePaused
@@ -304,7 +304,7 @@ func (c *DormantDbController) wipeOut(dormantDb *api.DormantDatabase) error {
 		return errors.New(message)
 	}
 
-	_, err = util.TryPatchDormantDatabase(c.extClient, dormantDb.ObjectMeta, func(in *api.DormantDatabase) *api.DormantDatabase {
+	_, _, err = util.PatchDormantDatabase(c.extClient, dormantDb, func(in *api.DormantDatabase) *api.DormantDatabase {
 		in.Status.Phase = api.DormantDatabasePhaseWipingOut
 		return in
 	})
@@ -333,7 +333,7 @@ func (c *DormantDbController) wipeOut(dormantDb *api.DormantDatabase) error {
 		"Successfully wiped out Database workload",
 	)
 
-	_, err = util.TryPatchDormantDatabase(c.extClient, dormantDb.ObjectMeta, func(in *api.DormantDatabase) *api.DormantDatabase {
+	_, _, err = util.PatchDormantDatabase(c.extClient, dormantDb, func(in *api.DormantDatabase) *api.DormantDatabase {
 		t := metav1.Now()
 		in.Status.WipeOutTime = &t
 		in.Status.Phase = api.DormantDatabasePhaseWipedOut
@@ -379,7 +379,7 @@ func (c *DormantDbController) resume(dormantDb *api.DormantDatabase) error {
 		return errors.New(message)
 	}
 
-	_, err = util.TryPatchDormantDatabase(c.extClient, dormantDb.ObjectMeta, func(in *api.DormantDatabase) *api.DormantDatabase {
+	_, _, err = util.PatchDormantDatabase(c.extClient, dormantDb, func(in *api.DormantDatabase) *api.DormantDatabase {
 		in.Status.Phase = api.DormantDatabasePhaseResuming
 		return in
 	})

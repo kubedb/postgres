@@ -115,7 +115,7 @@ const (
 )
 
 func (c *SnapshotController) create(snapshot *api.Snapshot) error {
-	_, err := util.TryPatchSnapshot(c.extClient, snapshot.ObjectMeta, func(in *api.Snapshot) *api.Snapshot {
+	_, _, err := util.PatchSnapshot(c.extClient, snapshot, func(in *api.Snapshot) *api.Snapshot {
 		t := metav1.Now()
 		in.Status.StartTime = &t
 		return in
@@ -143,7 +143,7 @@ func (c *SnapshotController) create(snapshot *api.Snapshot) error {
 		return err
 	}
 
-	_, err = util.TryPatchSnapshot(c.extClient, snapshot.ObjectMeta, func(in *api.Snapshot) *api.Snapshot {
+	_, _, err = util.PatchSnapshot(c.extClient, snapshot, func(in *api.Snapshot) *api.Snapshot {
 		in.Labels[api.LabelDatabaseName] = snapshot.Spec.DatabaseName
 		in.Labels[api.LabelSnapshotStatus] = string(api.SnapshotPhaseRunning)
 		in.Status.Phase = api.SnapshotPhaseRunning
@@ -259,7 +259,7 @@ func (c *SnapshotController) checkRunningSnapshot(snapshot *api.Snapshot) error 
 	}
 
 	if len(snapshotList.Items) > 0 {
-		_, err = util.TryPatchSnapshot(c.extClient, snapshot.ObjectMeta, func(in *api.Snapshot) *api.Snapshot {
+		_, _, err = util.PatchSnapshot(c.extClient, snapshot, func(in *api.Snapshot) *api.Snapshot {
 			t := metav1.Now()
 			in.Status.StartTime = &t
 			in.Status.CompletionTime = &t
@@ -371,7 +371,7 @@ func (c *SnapshotController) checkSnapshotJob(snapshot *api.Snapshot, jobName st
 		)
 	}
 
-	_, err = util.TryPatchSnapshot(c.extClient, snapshot.ObjectMeta, func(in *api.Snapshot) *api.Snapshot {
+	_, _, err = util.PatchSnapshot(c.extClient, snapshot, func(in *api.Snapshot) *api.Snapshot {
 		t := metav1.Now()
 		in.Status.CompletionTime = &t
 		delete(in.Labels, api.LabelSnapshotStatus)

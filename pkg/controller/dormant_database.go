@@ -6,7 +6,9 @@ import (
 	"fmt"
 
 	"github.com/appscode/go/log"
+	apps_util "github.com/appscode/kutil/apps/v1beta1"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
+	core "k8s.io/api/core/v1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -31,17 +33,20 @@ func (c *Controller) PauseDatabase(dormantDb *api.DormantDatabase) error {
 		},
 	}
 	// Delete Service
-	if err := c.DeleteService(postgres.OffshootName(), dormantDb.Namespace); err != nil {
+	if err := c.deleteService(postgres.OffshootName(), dormantDb.Namespace); err != nil {
 		log.Errorln(err)
 		return err
 	}
-	if err := c.DeleteService(postgres.PrimaryName(), dormantDb.Namespace); err != nil {
+	if err := c.deleteService(postgres.PrimaryName(), dormantDb.Namespace); err != nil {
 		log.Errorln(err)
 		return err
 	}
 
-	if err := c.DeleteStatefulSet(dormantDb.OffshootName(), dormantDb.Namespace); err != nil {
-		log.Errorln(err)
+	err := apps_util.DeleteStatefulSet(c.Client, metav1.ObjectMeta{
+		Name:      dormantDb.OffshootName(),
+		Namespace: dormantDb.Namespace,
+	})
+	if err != nil {
 		return err
 	}
 
@@ -67,29 +72,24 @@ func (c *Controller) WipeOutDatabase(dormantDb *api.DormantDatabase) error {
 	labelSelector := labels.SelectorFromSet(labelMap)
 
 	if err := c.DeleteSnapshots(dormantDb.Namespace, labelSelector); err != nil {
-		log.Errorln(err)
 		return err
 	}
 
 	if err := c.DeletePersistentVolumeClaims(dormantDb.Namespace, labelSelector); err != nil {
-		log.Errorln(err)
 		return err
 	}
 
 	if dormantDb.Spec.Origin.Spec.Postgres.DatabaseSecret != nil {
-		if err := c.deleteSecret(dormantDb); err != nil {
+		if err := c.deleteSecret(dormantDb, dormantDb.Spec.Origin.Spec.Postgres.DatabaseSecret); err != nil {
 			return err
 		}
-
 	}
-
 	return nil
 }
 
-func (c *Controller) deleteSecret(dormantDb *api.DormantDatabase) error {
+func (c *Controller) deleteSecret(dormantDb *api.DormantDatabase, secretVolume *core.SecretVolumeSource) error {
 
 	var secretFound bool = false
-	dormantDatabaseSecret := dormantDb.Spec.Origin.Spec.Postgres.DatabaseSecret
 
 	postgresList, err := c.ExtClient.Postgreses(dormantDb.Namespace).List(metav1.ListOptions{})
 	if err != nil {
@@ -99,7 +99,7 @@ func (c *Controller) deleteSecret(dormantDb *api.DormantDatabase) error {
 	for _, postgres := range postgresList.Items {
 		databaseSecret := postgres.Spec.DatabaseSecret
 		if databaseSecret != nil {
-			if databaseSecret.SecretName == dormantDatabaseSecret.SecretName {
+			if databaseSecret.SecretName == secretVolume.SecretName {
 				secretFound = true
 				break
 			}
@@ -126,7 +126,7 @@ func (c *Controller) deleteSecret(dormantDb *api.DormantDatabase) error {
 
 			databaseSecret := ddb.Spec.Origin.Spec.Postgres.DatabaseSecret
 			if databaseSecret != nil {
-				if databaseSecret.SecretName == dormantDatabaseSecret.SecretName {
+				if databaseSecret.SecretName == secretVolume.SecretName {
 					secretFound = true
 					break
 				}
@@ -135,7 +135,7 @@ func (c *Controller) deleteSecret(dormantDb *api.DormantDatabase) error {
 	}
 
 	if !secretFound {
-		if err := c.DeleteSecret(dormantDatabaseSecret.SecretName, dormantDb.Namespace); err != nil {
+		if err := c.Client.CoreV1().Secrets(dormantDb.Namespace).Delete(secretVolume.SecretName, nil); !kerr.IsNotFound(err) {
 			return err
 		}
 	}

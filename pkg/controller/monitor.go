@@ -27,7 +27,8 @@ func (c *Controller) addMonitor(postgres *api.Postgres) error {
 	if err != nil {
 		return err
 	}
-	return agent.Add(postgres.StatsAccessor(), postgres.Spec.Monitor)
+	_, err = agent.CreateOrUpdate(postgres.StatsAccessor(), postgres.Spec.Monitor)
+	return err
 }
 
 func (c *Controller) deleteMonitor(postgres *api.Postgres) error {
@@ -35,7 +36,8 @@ func (c *Controller) deleteMonitor(postgres *api.Postgres) error {
 	if err != nil {
 		return err
 	}
-	return agent.Delete(postgres.StatsAccessor(), postgres.Spec.Monitor)
+	_, err = agent.Delete(postgres.StatsAccessor())
+	return err
 }
 
 func (c *Controller) updateMonitor(oldPostgres, updatedPostgres *api.Postgres) error {
@@ -49,5 +51,6 @@ func (c *Controller) updateMonitor(oldPostgres, updatedPostgres *api.Postgres) e
 	if err != nil {
 		return err
 	}
-	return agent.Update(updatedPostgres.StatsAccessor(), oldPostgres.Spec.Monitor, updatedPostgres.Spec.Monitor)
+	_, err = agent.CreateOrUpdate(updatedPostgres.StatsAccessor(), updatedPostgres.Spec.Monitor)
+	return err
 }

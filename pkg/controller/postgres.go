@@ -18,7 +18,7 @@ import (
 )
 
 func (c *Controller) create(postgres *api.Postgres) error {
-	pg, err := kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
+	pg, _, err := kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
 		t := metav1.Now()
 		in.Status.CreationTime = &t
 		in.Status.Phase = api.DatabasePhaseCreating
@@ -30,7 +30,7 @@ func (c *Controller) create(postgres *api.Postgres) error {
 	}
 	*postgres = *pg
 
-	if err := validator.ValidatePostgres(c.Client, postgres); err != nil {
+	if err := validator.ValidatePostgres(c.Client, postgres, c.opt.Docker); err != nil {
 		c.recorder.Event(postgres.ObjectReference(), core.EventTypeWarning, eventer.EventReasonInvalid, err.Error())
 		return err
 	}
@@ -82,7 +82,7 @@ func (c *Controller) create(postgres *api.Postgres) error {
 	}
 
 	if postgres.Spec.Init != nil && postgres.Spec.Init.SnapshotSource != nil {
-		pg, err := kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
+		pg, _, err := kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
 			in.Status.Phase = api.DatabasePhaseInitializing
 			return in
 		})
@@ -102,7 +102,7 @@ func (c *Controller) create(postgres *api.Postgres) error {
 			)
 		}
 
-		pg, err = kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
+		pg, _, err = kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
 			in.Status.Phase = api.DatabasePhaseRunning
 			return in
 		})
@@ -210,7 +210,7 @@ func (c *Controller) matchDormantDatabase(postgres *api.Postgres) (bool, error) 
 		return sendEvent("Postgres spec mismatches with OriginSpec in DormantDatabases")
 	}
 
-	pg, err := kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
+	pg, _, err := kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
 		// This will ignore processing all kind of Update while creating
 		if in.Annotations == nil {
 			in.Annotations = make(map[string]string)
@@ -228,7 +228,7 @@ func (c *Controller) matchDormantDatabase(postgres *api.Postgres) (bool, error) 
 		return sendEvent(`failed to resume Postgres "%v" from DormantDatabase "%v". Error: %v`, postgres.Name, postgres.Name, err)
 	}
 
-	_, err = kutildb.PatchDormantDatabase(c.ExtClient, dormantDb, func(in *api.DormantDatabase) *api.DormantDatabase {
+	_, _, err = kutildb.PatchDormantDatabase(c.ExtClient, dormantDb, func(in *api.DormantDatabase) *api.DormantDatabase {
 		in.Spec.Resume = true
 		return in
 	})
@@ -256,7 +256,7 @@ func (c *Controller) ensurePostgresNode(postgres *api.Postgres) error {
 		return err
 	}
 
-	pg, err := kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
+	pg, _, err := kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
 		in.Status.Phase = api.DatabasePhaseRunning
 		return in
 	})
@@ -434,7 +434,7 @@ func (c *Controller) update(oldPostgres, updatedPostgres *api.Postgres) error {
 		}
 	}
 
-	if err := validator.ValidatePostgres(c.Client, updatedPostgres); err != nil {
+	if err := validator.ValidatePostgres(c.Client, updatedPostgres, c.opt.Docker); err != nil {
 		c.recorder.Event(updatedPostgres.ObjectReference(), core.EventTypeWarning, eventer.EventReasonInvalid, err.Error())
 		return err
 	}

@@ -57,27 +57,6 @@ func PatchPod(c kubernetes.Interface, cur *core.Pod, transform func(*core.Pod) *
 	return out, kutil.VerbPatched, err
 }
 
-func TryPatchPod(c kubernetes.Interface, meta metav1.ObjectMeta, transform func(*core.Pod) *core.Pod) (result *core.Pod, err error) {
-	attempt := 0
-	err = wait.PollImmediate(kutil.RetryInterval, kutil.RetryTimeout, func() (bool, error) {
-		attempt++
-		cur, e2 := c.CoreV1().Pods(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
-		if kerr.IsNotFound(e2) {
-			return false, e2
-		} else if e2 == nil {
-			result, _, e2 = PatchPod(c, cur, transform)
-			return e2 == nil, nil
-		}
-		glog.Errorf("Attempt %d failed to patch Pod %s/%s due to %v.", attempt, cur.Namespace, cur.Name, e2)
-		return false, nil
-	})
-
-	if err != nil {
-		err = fmt.Errorf("failed to patch Pod %s/%s after %d attempts due to %v", meta.Namespace, meta.Name, attempt, err)
-	}
-	return
-}
-
 func TryUpdatePod(c kubernetes.Interface, meta metav1.ObjectMeta, transform func(*core.Pod) *core.Pod) (result *core.Pod, err error) {
 	attempt := 0
 	err = wait.PollImmediate(kutil.RetryInterval, kutil.RetryTimeout, func() (bool, error) {
@@ -138,24 +117,32 @@ func WaitUntilPodRunning(kubeClient kubernetes.Interface, meta metav1.ObjectMeta
 	})
 }
 
-func WaitUntilPodRunningBySelector(kubeClient kubernetes.Interface, namespace string, selector *metav1.LabelSelector) error {
+func WaitUntilPodRunningBySelector(kubeClient kubernetes.Interface, namespace string, selector *metav1.LabelSelector, count int) error {
 	r, err := metav1.LabelSelectorAsSelector(selector)
 	if err != nil {
 		return err
 	}
-	podList, err := kubeClient.CoreV1().Pods(namespace).List(metav1.ListOptions{
-		LabelSelector: r.String(),
-	})
-	if err != nil {
-		return err
-	}
 
-	for _, pod := range podList.Items {
-		if err := WaitUntilPodRunning(kubeClient, pod.ObjectMeta); err != nil {
-			return err
+	return wait.PollImmediate(kutil.RetryInterval, kutil.ReadinessTimeout, func() (bool, error) {
+		podList, err := kubeClient.CoreV1().Pods(namespace).List(metav1.ListOptions{
+			LabelSelector: r.String(),
+		})
+		if err != nil {
+			return false, nil
 		}
-	}
-	return nil
+
+		if len(podList.Items) != count {
+			return false, nil
+		}
+
+		for _, pod := range podList.Items {
+			runningAndReady, _ := PodRunningAndReady(pod)
+			if !runningAndReady {
+				return false, nil
+			}
+		}
+		return true, nil
+	})
 }
 
 func WaitUntilPodDeletedBySelector(kubeClient kubernetes.Interface, namespace string, selector *metav1.LabelSelector) error {
@@ -165,15 +152,12 @@ func WaitUntilPodDeletedBySelector(kubeClient kubernetes.Interface, namespace st
 	}
 
 	return wait.PollImmediate(kutil.RetryInterval, kutil.ReadinessTimeout, func() (bool, error) {
-		podList, err := kubeClient.CoreV1().Pods(metav1.NamespaceAll).List(metav1.ListOptions{
+		podList, err := kubeClient.CoreV1().Pods(namespace).List(metav1.ListOptions{
 			LabelSelector: r.String(),
 		})
 		if err != nil {
 			return false, nil
 		}
-		if len(podList.Items) == 0 {
-			return true, nil
-		}
-		return false, nil
+		return len(podList.Items) == 0, nil
 	})
 }

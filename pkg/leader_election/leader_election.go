@@ -115,7 +115,7 @@ func RunLeaderElection() {
 						if pod.Name == identity {
 							role = RolePrimary
 						}
-						_, err = core_util.TryPatchPod(kubeClient, pod.ObjectMeta, func(in *core.Pod) *core.Pod {
+						_, _, err = core_util.PatchPod(kubeClient, &pod, func(in *core.Pod) *core.Pod {
 							in.Labels["kubedb.com/role"] = role
 							return in
 						})

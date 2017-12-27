@@ -13,6 +13,7 @@ import (
 	kutildb "github.com/kubedb/apimachinery/client/typed/kubedb/v1alpha1/util"
 	amc "github.com/kubedb/apimachinery/pkg/controller"
 	"github.com/kubedb/apimachinery/pkg/eventer"
+	"github.com/kubedb/postgres/pkg/docker"
 	core "k8s.io/api/core/v1"
 	crd_api "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	crd_cs "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
@@ -27,10 +28,9 @@ import (
 )
 
 type Options struct {
+	Docker docker.Docker
 	// Operator namespace
 	OperatorNamespace string
-	// Exporter tag
-	ExporterTag string
 	// Governing service
 	GoverningService string
 	// Address to listen on for web interface and telemetry.
@@ -219,7 +219,7 @@ func (c *Controller) pushFailureEvent(postgres *api.Postgres, reason string) {
 		reason,
 	)
 
-	pg, err := kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
+	pg, _, err := kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
 		in.Status.Phase = api.DatabasePhaseFailed
 		in.Status.Reason = reason
 		return in
@@ -227,5 +227,5 @@ func (c *Controller) pushFailureEvent(postgres *api.Postgres, reason string) {
 	if err != nil {
 		c.recorder.Eventf(postgres.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
 	}
-	*postgres = *pg
+	postgres.Status = pg.Status
 }

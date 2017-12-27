@@ -1,5 +1,5 @@
-hash: 30a31273bc5230891f82ae24a93cf3aa243e51876676788f958fc13760122ce2
-updated: 2017-12-22T17:28:37.52645774+06:00
+hash: fcdc99da11ca829afc1fdf250f90e38e02ea51eea6ee25d05b8cd6714057c426
+updated: 2017-12-27T11:01:24.73391385+06:00
 imports:
 - name: cloud.google.com/go
   version: fe3d41e1ecb2ce36ad3a979037c9b9a2b726226f
@@ -7,13 +7,15 @@ imports:
   - compute/metadata
   - internal
 - name: github.com/appscode/go
-  version: f08cee5a2aa53a1ab6d30e4ae11e381d1b265f81
+  version: 9a3559e6132eda4069baad2c63689729f5d20ac4
   subpackages:
+  - analytics
   - context
   - crypto/rand
   - encoding/json/types
   - encoding/yaml
   - hold
+  - homedir
   - ioutil
   - log
   - log/golog
@@ -29,13 +31,14 @@ imports:
   - agents/prometheusbuiltin
   - api
 - name: github.com/appscode/kutil
-  version: 543454628a918137145df3eb2d3903389fcccfe0
+  version: 4b27a4da2b262e7fe6e81173aeb8001c007bfca2
   subpackages:
   - apiextensions/v1beta1
   - apps/v1beta1
   - core/v1
   - meta
   - rbac/v1beta1
+  - tools/analytics
 - name: github.com/appscode/mergo
   version: e3000cb3d28c72b837601cac94debd91032d19fe
 - name: github.com/appscode/osm
@@ -169,6 +172,13 @@ imports:
   - ptypes/timestamp
 - name: github.com/google/btree
   version: 7d79101e329e5a3adf994758c578dab82b90c017
+- name: github.com/google/go-cmp
+  version: 97a1ff3c48253a51c601f6e4420181273b6ca0ea
+  subpackages:
+  - cmp
+  - cmp/internal/diff
+  - cmp/internal/function
+  - cmp/internal/value
 - name: github.com/google/gofuzz
   version: 44d81051d367757e1c7c6a5a86423ece9afcf63c
 - name: github.com/google/uuid
@@ -224,7 +234,7 @@ imports:
 - name: github.com/juju/ratelimit
   version: 5b9ff866471762aa2ab2dced63c9fb6f53921342
 - name: github.com/kubedb/apimachinery
-  version: eddf3a6c93b63f4968af7e37445d406264384806
+  version: 81ac62590d180eb92c7eb8d69f7b7c116db175f8
   subpackages:
   - apis/kubedb
   - apis/kubedb/v1alpha1
@@ -238,7 +248,7 @@ imports:
   - pkg/storage
   - pkg/validator
 - name: github.com/kubernetes/apimachinery
-  version: 20bbfef868144faf29af69ddb2f01646ead5c1a1
+  version: bc1325710437b54535daa5d6877ca62df7bd76db
   subpackages:
   - pkg/conversion
 - name: github.com/lib/pq
@@ -400,7 +410,7 @@ imports:
   - unicode/norm
   - width
 - name: google.golang.org/api
-  version: 905d2b6c9443c02c46229c39d60442903a68c229
+  version: 272e2963aad1a56aba54e1167c47abff8d37ac08
   subpackages:
   - gensupport
   - googleapi
