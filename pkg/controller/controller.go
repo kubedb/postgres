@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"reflect"
 	"time"
 
 	"github.com/appscode/go/hold"
@@ -22,7 +21,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
@@ -76,15 +74,15 @@ func New(
 ) *Controller {
 	return &Controller{
 		Controller: &amc.Controller{
-			Client:    client,
-			ExtClient: extClient,
+			Client:           client,
+			ExtClient:        extClient,
 			ApiExtKubeClient: apiExtKubeClient,
 		},
-		promClient:       promClient,
-		cronController:   cronController,
-		recorder:         eventer.NewEventRecorder(client, "Postgres operator"),
-		opt:              opt,
-		syncPeriod:       time.Minute * 2,
+		promClient:     promClient,
+		cronController: cronController,
+		recorder:       eventer.NewEventRecorder(client, "Postgres operator"),
+		opt:            opt,
+		syncPeriod:     time.Minute * 2,
 	}
 }
 
@@ -100,9 +98,6 @@ func (c *Controller) Setup() error {
 }
 
 func (c *Controller) Run() {
-	// Start Cron
-	c.cronController.StartCron()
-
 	// Watch Postgres TPR objects
 	go c.watchPostgres()
 	// Watch Snapshot with labelSelector only for Postgres
@@ -122,53 +117,13 @@ func (c *Controller) RunAndHold() {
 }
 
 func (c *Controller) watchPostgres() {
-	lw := &cache.ListWatch{
-		ListFunc: func(opts metav1.ListOptions) (runtime.Object, error) {
-			return c.ExtClient.Postgreses(metav1.NamespaceAll).List(metav1.ListOptions{})
-		},
-		WatchFunc: func(options metav1.ListOptions) (watch.Interface, error) {
-			return c.ExtClient.Postgreses(metav1.NamespaceAll).Watch(metav1.ListOptions{})
-		},
-	}
+	c.initWatcher()
 
-	_, cacheController := cache.NewInformer(
-		lw,
-		&api.Postgres{},
-		c.syncPeriod,
-		cache.ResourceEventHandlerFuncs{
-			AddFunc: func(obj interface{}) {
-				postgres := obj.(*api.Postgres)
-				if postgres.Status.CreationTime == nil {
-					if err := c.create(postgres.DeepCopy()); err != nil {
-						log.Errorln(err)
-						c.pushFailureEvent(postgres, err.Error())
-					}
-				}
-			},
-			DeleteFunc: func(obj interface{}) {
-				postgres := obj.(*api.Postgres)
-				if err := c.pause(postgres.DeepCopy()); err != nil {
-					log.Errorln(err)
-				}
-			},
-			UpdateFunc: func(old, new interface{}) {
-				oldObj, ok := old.(*api.Postgres)
-				if !ok {
-					return
-				}
-				newObj, ok := new.(*api.Postgres)
-				if !ok {
-					return
-				}
-				if !reflect.DeepEqual(oldObj.Spec, newObj.Spec) {
-					if err := c.update(oldObj, newObj.DeepCopy()); err != nil {
-						log.Errorln(err)
-					}
-				}
-			},
-		},
-	)
-	cacheController.Run(wait.NeverStop)
+	stop := make(chan struct{})
+	defer close(stop)
+
+	c.runWatcher(1, stop)
+	select {}
 }
 
 func (c *Controller) watchSnapshot() {
@@ -191,7 +146,7 @@ func (c *Controller) watchSnapshot() {
 		},
 	}
 
-	amc.NewSnapshotController(c.Client, c.ApiExtKubeClient, c.ExtClient, c, lw, c.syncPeriod).Run()
+	snapc.NewController(c.Controller, c, lw, c.syncPeriod).Run()
 }
 
 func (c *Controller) watchDormantDatabase() {
@@ -214,7 +169,7 @@ func (c *Controller) watchDormantDatabase() {
 		},
 	}
 
-	amc.NewDormantDbController(c.Client, c.ApiExtKubeClient, c.ExtClient, c, lw, c.syncPeriod).Run()
+	drmnc.NewController(c.Controller, c, lw, c.syncPeriod).Run()
 }
 
 func (c *Controller) pushFailureEvent(postgres *api.Postgres, reason string) {

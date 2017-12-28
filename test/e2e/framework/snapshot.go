@@ -5,21 +5,23 @@ import (
 	"time"
 
 	"github.com/appscode/go/crypto/rand"
+	core_util "github.com/appscode/kutil/core/v1"
 	"github.com/graymeta/stow"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
+	kutildb "github.com/kubedb/apimachinery/client/typed/kubedb/v1alpha1/util"
 	"github.com/kubedb/apimachinery/pkg/storage"
 	. "github.com/onsi/gomega"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 )
 
-func (f *Invocation) Snapshot() *api.Snapshot {
+func (i *Invocation) Snapshot() *api.Snapshot {
 	return &api.Snapshot{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      rand.WithUniqSuffix("snapshot"),
-			Namespace: f.namespace,
+			Namespace: i.namespace,
 			Labels: map[string]string{
-				"app": f.app,
+				"app":                 i.app,
 				api.LabelDatabaseKind: api.ResourceKindPostgres,
 			},
 		},
@@ -124,4 +126,17 @@ func (f *Framework) checkSnapshotData(snapshot *api.Snapshot) (bool, error) {
 	}
 
 	return totalItem != 0, nil
+}
+
+func (f *Framework) CleanSnapshot() {
+	snapshotList, err := f.extClient.Snapshots(f.namespace).List(metav1.ListOptions{})
+	if err != nil {
+		return
+	}
+	for _, s := range snapshotList.Items {
+		kutildb.PatchSnapshot(f.extClient, &s, func(in *api.Snapshot) *api.Snapshot {
+			in.ObjectMeta = core_util.RemoveFinalizer(in.ObjectMeta, "kubedb.com")
+			return in
+		})
+	}
 }

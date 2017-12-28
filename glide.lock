@@ -1,5 +1,5 @@
 hash: 1df3d86ca080ea78dd4422847af6b67129e65d69a662ad9e52a783ef8c28fdce
-updated: 2017-12-27T12:29:15.86957644+06:00
+updated: 2017-12-27T13:30:52.596293261+06:00
 imports:
 - name: cloud.google.com/go
   version: fe3d41e1ecb2ce36ad3a979037c9b9a2b726226f
@@ -234,7 +234,7 @@ imports:
 - name: github.com/juju/ratelimit
   version: 5b9ff866471762aa2ab2dced63c9fb6f53921342
 - name: github.com/kubedb/apimachinery
-  version: 138a338bccc8f8774907265e1ebcf40311de1b65
+  version: 512826380ceedd99befdef0c336c9087886ac5df
   subpackages:
   - apis/kubedb
   - apis/kubedb/v1alpha1
@@ -242,6 +242,8 @@ imports:
   - client/typed/kubedb/v1alpha1
   - client/typed/kubedb/v1alpha1/util
   - pkg/controller
+  - pkg/controller/dormant_database
+  - pkg/controller/snapshot
   - pkg/docker
   - pkg/eventer
   - pkg/migrator
@@ -309,6 +311,8 @@ imports:
   - types
 - name: github.com/opencontainers/go-digest
   version: 279bed98673dd5bef374d3b6e4b09e2af76183bf
+- name: github.com/orcaman/concurrent-map
+  version: d4c23bd0e01134806215ffe65ba3fd22ec6721f7
 - name: github.com/peterbourgon/diskv
   version: 5f041e8faa004a95c88a202771f4cc3e991971e6
 - name: github.com/pkg/errors
@@ -433,6 +437,10 @@ imports:
   subpackages:
   - bson
   - internal/json
+- name: gopkg.in/robfig/cron.v2
+  version: ca60c6d796d4b1f7bb2a8fd5271d8a59aeffb4bf
+  repo: https://github.com/appscode/cron.git
+  vcs: git
 - name: gopkg.in/yaml.v2
   version: 53feefa2559fb8dfa8d81baad31be332c97d6c77
 - name: k8s.io/api
@@ -574,6 +582,7 @@ imports:
   - util/flowcontrol
   - util/homedir
   - util/integer
+  - util/workqueue
 - name: k8s.io/kube-openapi
   version: 868f2f29720b192240e18284659231b440f9cda5
   subpackages:

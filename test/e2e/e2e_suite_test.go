@@ -10,8 +10,9 @@ import (
 	logs "github.com/appscode/go/log/golog"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	cs "github.com/kubedb/apimachinery/client/typed/kubedb/v1alpha1"
-	amc "github.com/kubedb/apimachinery/pkg/controller"
+	snapc "github.com/kubedb/apimachinery/pkg/controller/snapshot"
 	"github.com/kubedb/postgres/pkg/controller"
+	"github.com/kubedb/postgres/pkg/docker"
 	"github.com/kubedb/postgres/test/e2e/framework"
 	"github.com/mitchellh/go-homedir"
 	. "github.com/onsi/ginkgo"
@@ -69,13 +70,17 @@ var _ = BeforeSuite(func() {
 	err = root.CreateNamespace()
 	Expect(err).NotTo(HaveOccurred())
 
-	cronController := amc.NewCronController(kubeClient, extClient)
+	cronController := snapc.NewCronController(kubeClient, extClient)
 	// Start Cron
 	cronController.StartCron()
 
 	opt := controller.Options{
+		Docker: docker.Docker{
+			Registry: "aerokite",
+		},
 		OperatorNamespace: root.Namespace(),
 		GoverningService:  api.DatabaseNamePrefix,
+		MaxNumRequeues:    5,
 	}
 
 	// Controller
@@ -85,10 +90,12 @@ var _ = BeforeSuite(func() {
 		log.Fatalln(err)
 	}
 	ctrl.Run()
-	root.EventuallyCRD().Should(Succeed())
 })
 
 var _ = AfterSuite(func() {
+	root.CleanPostgres()
+	root.CleanDormantDatabase()
+	root.CleanSnapshot()
 	err := root.DeleteNamespace()
 	Expect(err).NotTo(HaveOccurred())
 	By("Deleted namespace")

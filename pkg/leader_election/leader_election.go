@@ -47,8 +47,8 @@ func RunLeaderElection() {
 	}
 
 	parts := strings.Split(hostname, "-")
-	statefulsetName := strings.Join(parts[:len(parts)-1], "-")
-	configMapName := fmt.Sprintf("%v-leader-lock", statefulsetName)
+	statefulSetName := strings.Join(parts[:len(parts)-1], "-")
+	configMapName := fmt.Sprintf("%v-leader-lock", statefulSetName)
 
 	fmt.Println(fmt.Sprintf(`We want "%v" as our leader`, hostname))
 
@@ -98,7 +98,7 @@ func RunLeaderElection() {
 					os.Exit(1)
 				},
 				OnNewLeader: func(identity string) {
-					statefulSet, err := kubeClient.AppsV1beta1().StatefulSets(namespace).Get(statefulsetName, metav1.GetOptions{})
+					statefulSet, err := kubeClient.AppsV1beta1().StatefulSets(namespace).Get(statefulSetName, metav1.GetOptions{})
 					if err != nil {
 						log.Fatalln(err)
 					}

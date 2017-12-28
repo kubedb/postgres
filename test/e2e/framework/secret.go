@@ -14,17 +14,17 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (fi *Invocation) SecretForLocalBackend() *core.Secret {
+func (i *Invocation) SecretForLocalBackend() *core.Secret {
 	return &core.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      rand.WithUniqSuffix(fi.app + "-local"),
-			Namespace: fi.namespace,
+			Name:      rand.WithUniqSuffix(i.app + "-local"),
+			Namespace: i.namespace,
 		},
 		Data: map[string][]byte{},
 	}
 }
 
-func (fi *Invocation) SecretForS3Backend() *core.Secret {
+func (i *Invocation) SecretForS3Backend() *core.Secret {
 	if os.Getenv(api.AWS_ACCESS_KEY_ID) == "" ||
 		os.Getenv(api.AWS_SECRET_ACCESS_KEY) == "" {
 		return &core.Secret{}
@@ -32,8 +32,8 @@ func (fi *Invocation) SecretForS3Backend() *core.Secret {
 
 	return &core.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      rand.WithUniqSuffix(fi.app + "-s3"),
-			Namespace: fi.namespace,
+			Name:      rand.WithUniqSuffix(i.app + "-s3"),
+			Namespace: i.namespace,
 		},
 		Data: map[string][]byte{
 			api.AWS_ACCESS_KEY_ID:     []byte(os.Getenv(api.AWS_ACCESS_KEY_ID)),
@@ -42,7 +42,7 @@ func (fi *Invocation) SecretForS3Backend() *core.Secret {
 	}
 }
 
-func (fi *Invocation) SecretForGCSBackend() *core.Secret {
+func (i *Invocation) SecretForGCSBackend() *core.Secret {
 	if os.Getenv(api.GOOGLE_PROJECT_ID) == "" ||
 		(os.Getenv("GOOGLE_APPLICATION_CREDENTIALS") == "" && os.Getenv(api.GOOGLE_SERVICE_ACCOUNT_JSON_KEY) == "") {
 		return &core.Secret{}
@@ -57,8 +57,8 @@ func (fi *Invocation) SecretForGCSBackend() *core.Secret {
 
 	return &core.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      rand.WithUniqSuffix(fi.app + "-gcs"),
-			Namespace: fi.namespace,
+			Name:      rand.WithUniqSuffix(i.app + "-gcs"),
+			Namespace: i.namespace,
 		},
 		Data: map[string][]byte{
 			api.GOOGLE_PROJECT_ID:               []byte(os.Getenv(api.GOOGLE_PROJECT_ID)),
@@ -67,7 +67,7 @@ func (fi *Invocation) SecretForGCSBackend() *core.Secret {
 	}
 }
 
-func (fi *Invocation) SecretForAzureBackend() *core.Secret {
+func (i *Invocation) SecretForAzureBackend() *core.Secret {
 	if os.Getenv(api.AZURE_ACCOUNT_NAME) == "" ||
 		os.Getenv(api.AZURE_ACCOUNT_KEY) == "" {
 		return &core.Secret{}
@@ -75,8 +75,8 @@ func (fi *Invocation) SecretForAzureBackend() *core.Secret {
 
 	return &core.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      rand.WithUniqSuffix(fi.app + "-azure"),
-			Namespace: fi.namespace,
+			Name:      rand.WithUniqSuffix(i.app + "-azure"),
+			Namespace: i.namespace,
 		},
 		Data: map[string][]byte{
 			api.AZURE_ACCOUNT_NAME: []byte(os.Getenv(api.AZURE_ACCOUNT_NAME)),
@@ -85,7 +85,7 @@ func (fi *Invocation) SecretForAzureBackend() *core.Secret {
 	}
 }
 
-func (fi *Invocation) SecretForSwiftBackend() *core.Secret {
+func (i *Invocation) SecretForSwiftBackend() *core.Secret {
 	if os.Getenv(api.OS_AUTH_URL) == "" ||
 		(os.Getenv(api.OS_TENANT_ID) == "" && os.Getenv(api.OS_TENANT_NAME) == "") ||
 		os.Getenv(api.OS_USERNAME) == "" ||
@@ -95,8 +95,8 @@ func (fi *Invocation) SecretForSwiftBackend() *core.Secret {
 
 	return &core.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      rand.WithUniqSuffix(fi.app + "-swift"),
-			Namespace: fi.namespace,
+			Name:      rand.WithUniqSuffix(i.app + "-swift"),
+			Namespace: i.namespace,
 		},
 		Data: map[string][]byte{
 			api.OS_AUTH_URL:    []byte(os.Getenv(api.OS_AUTH_URL)),
@@ -132,9 +132,13 @@ func (f *Framework) UpdateSecret(meta metav1.ObjectMeta, transformer func(core.S
 		log.Errorf("Attempt %d failed to update Secret %s@%s due to %s.", attempt, cur.Name, cur.Namespace, err)
 		time.Sleep(updateRetryInterval)
 	}
-	return fmt.Errorf("Failed to update Secret %s@%s after %d attempts.", meta.Name, meta.Namespace, attempt)
+	return fmt.Errorf("failed to update Secret %s@%s after %d attempts", meta.Name, meta.Namespace, attempt)
 }
 
 func (f *Framework) DeleteSecret(meta metav1.ObjectMeta) error {
-	return f.kubeClient.CoreV1().Secrets(meta.Namespace).Delete(meta.Name, deleteInForeground())
+	err := f.kubeClient.CoreV1().Secrets(meta.Namespace).Delete(meta.Name, deleteInForeground())
+	if !kerr.IsNotFound(err) {
+		return err
+	}
+	return nil
 }

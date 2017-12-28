@@ -2,7 +2,6 @@ package controller
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/appscode/go/crypto/rand"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
@@ -13,11 +12,8 @@ import (
 )
 
 const (
-	// Duration in Minute
-	// Check whether pod under StatefulSet is running or not
-	// Continue checking for this duration until failure
-	durationCheckStatefulSet = time.Minute * 30
-	SnapshotProcess_Restore  = "restore"
+	snapshotProcessRestore = "restore"
+	snapshotTypePgDumpall  = "pg_dumpall"
 )
 
 func (c *Controller) createRestoreJob(postgres *api.Postgres, snapshot *api.Snapshot) (*batch.Job, error) {
@@ -25,7 +21,7 @@ func (c *Controller) createRestoreJob(postgres *api.Postgres, snapshot *api.Snap
 	jobName := rand.WithUniqSuffix(snapshot.OffshootName())
 	jobLabel := map[string]string{
 		api.LabelDatabaseName: databaseName,
-		api.LabelJobType:      SnapshotProcess_Restore,
+		api.LabelJobType:      snapshotProcessRestore,
 	}
 	backupSpec := snapshot.Spec.SnapshotStorageSpec
 	bucket, err := backupSpec.Container()
@@ -55,10 +51,11 @@ func (c *Controller) createRestoreJob(postgres *api.Postgres, snapshot *api.Snap
 				Spec: core.PodSpec{
 					Containers: []core.Container{
 						{
-							Name:  SnapshotProcess_Restore,
-							Image: c.opt.Docker.GetToolsImageWithTag(postgres),
+							Name:            snapshotProcessRestore,
+							Image:           c.opt.Docker.GetToolsImageWithTag(postgres),
+							ImagePullPolicy: core.PullIfNotPresent,
 							Args: []string{
-								fmt.Sprintf(`--process=%s`, SnapshotProcess_Restore),
+								fmt.Sprintf(`--process=%s`, snapshotProcessRestore),
 								fmt.Sprintf(`--host=%s`, databaseName),
 								fmt.Sprintf(`--bucket=%s`, bucket),
 								fmt.Sprintf(`--folder=%s`, folderName),
@@ -72,7 +69,7 @@ func (c *Controller) createRestoreJob(postgres *api.Postgres, snapshot *api.Snap
 								},
 								{
 									Name:      persistentVolume.Name,
-									MountPath: "/var/pg_dumpall/",
+									MountPath: "/var/" + snapshotTypePgDumpall + "/",
 								},
 								{
 									Name:      "osmconfig",
@@ -128,7 +125,7 @@ func (c *Controller) getSnapshotterJob(snapshot *api.Snapshot) (*batch.Job, erro
 	jobName := rand.WithUniqSuffix(snapshot.OffshootName())
 	jobLabel := map[string]string{
 		api.LabelDatabaseName: databaseName,
-		api.LabelJobType:      SnapshotProcess_Backup,
+		api.LabelJobType:      snapshotProcessBackup,
 	}
 	backupSpec := snapshot.Spec.SnapshotStorageSpec
 	bucket, err := backupSpec.Container()
@@ -161,10 +158,10 @@ func (c *Controller) getSnapshotterJob(snapshot *api.Snapshot) (*batch.Job, erro
 				Spec: core.PodSpec{
 					Containers: []core.Container{
 						{
-							Name:  SnapshotProcess_Backup,
+							Name:  snapshotProcessBackup,
 							Image: c.opt.Docker.GetToolsImageWithTag(postgres),
 							Args: []string{
-								fmt.Sprintf(`--process=%s`, SnapshotProcess_Backup),
+								fmt.Sprintf(`--process=%s`, snapshotProcessBackup),
 								fmt.Sprintf(`--host=%s`, databaseName),
 								fmt.Sprintf(`--bucket=%s`, bucket),
 								fmt.Sprintf(`--folder=%s`, folderName),
@@ -178,7 +175,7 @@ func (c *Controller) getSnapshotterJob(snapshot *api.Snapshot) (*batch.Job, erro
 								},
 								{
 									Name:      persistentVolume.Name,
-									MountPath: "/var/pg_dumpall/",
+									MountPath: "/var/" + snapshotTypePgDumpall + "/",
 								},
 								{
 									Name:      "osmconfig",
@@ -216,22 +213,15 @@ func (c *Controller) getSnapshotterJob(snapshot *api.Snapshot) (*batch.Job, erro
 		},
 	}
 
-	volumeMounts := job.Spec.Template.Spec.Containers[0].VolumeMounts
-	volume := job.Spec.Template.Spec.Volumes
-
 	if snapshot.Spec.SnapshotStorageSpec.Local != nil {
-		volumeMounts = append(volumeMounts, core.VolumeMount{
+		job.Spec.Template.Spec.Containers[0].VolumeMounts = append(job.Spec.Template.Spec.Containers[0].VolumeMounts, core.VolumeMount{
 			Name:      "local",
 			MountPath: snapshot.Spec.SnapshotStorageSpec.Local.Path,
 		})
-		volume = append(volume, core.Volume{
+		job.Spec.Template.Spec.Volumes = append(job.Spec.Template.Spec.Volumes, core.Volume{
 			Name:         "local",
 			VolumeSource: snapshot.Spec.SnapshotStorageSpec.Local.VolumeSource,
 		})
 	}
-
-	job.Spec.Template.Spec.Containers[0].VolumeMounts = volumeMounts
-	job.Spec.Template.Spec.Volumes = volume
-
 	return job, nil
 }

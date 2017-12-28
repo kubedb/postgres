@@ -11,7 +11,7 @@ import (
 	pcm "github.com/coreos/prometheus-operator/pkg/client/monitoring/v1"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	cs "github.com/kubedb/apimachinery/client/typed/kubedb/v1alpha1"
-	amc "github.com/kubedb/apimachinery/pkg/controller"
+	snapc "github.com/kubedb/apimachinery/pkg/controller/snapshot"
 	"github.com/kubedb/apimachinery/pkg/migrator"
 	"github.com/kubedb/postgres/pkg/controller"
 	"github.com/kubedb/postgres/pkg/docker"
@@ -58,7 +58,7 @@ func NewCmdRun(version string) *cobra.Command {
 				log.Fatalln(err)
 			}
 
-			cronController := amc.NewCronController(client, extClient)
+			cronController := snapc.NewCronController(client, extClient)
 			// Start Cron
 			cronController.StartCron()
 			// Stop Cron

@@ -6,6 +6,7 @@ import (
 
 	"github.com/appscode/go/log"
 	"github.com/appscode/go/types"
+	"github.com/appscode/kutil"
 	app_util "github.com/appscode/kutil/apps/v1beta1"
 	core_util "github.com/appscode/kutil/core/v1"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
@@ -19,10 +20,10 @@ import (
 func (c *Controller) ensureStatefulSet(
 	postgres *api.Postgres,
 	envList []core.EnvVar,
-) error {
+) (kutil.VerbType, error) {
 
 	if err := c.checkStatefulSet(postgres); err != nil {
-		return err
+		return kutil.VerbUnchanged, err
 	}
 
 	statefulSetMeta := metav1.ObjectMeta{
@@ -31,11 +32,11 @@ func (c *Controller) ensureStatefulSet(
 	}
 
 	replicas := postgres.Spec.Replicas
-	if replicas < 0 {
-		replicas = 0
+	if replicas <= 0 {
+		replicas = 1
 	}
 
-	statefulSet, _, err := app_util.CreateOrPatchStatefulSet(c.Client, statefulSetMeta, func(in *apps.StatefulSet) *apps.StatefulSet {
+	statefulSet, vt, err := app_util.CreateOrPatchStatefulSet(c.Client, statefulSetMeta, func(in *apps.StatefulSet) *apps.StatefulSet {
 		in = upsertObjectMeta(in, postgres)
 
 		in.Spec.Replicas = types.Int32P(replicas)
@@ -83,32 +84,32 @@ func (c *Controller) ensureStatefulSet(
 	})
 
 	if err != nil {
-		return err
+		return kutil.VerbUnchanged, err
 	}
 
-	if replicas > 0 {
+	if vt == kutil.VerbCreated || vt == kutil.VerbPatched {
 		// Check StatefulSet Pod status
 		if err := c.CheckStatefulSetPodStatus(statefulSet); err != nil {
 			c.recorder.Eventf(
 				postgres.ObjectReference(),
 				core.EventTypeWarning,
 				eventer.EventReasonFailedToStart,
-				"Failed to create StatefulSet. Reason: %v",
+				`Failed to be running after StatefulSet %v. Reason: %v`,
+				vt,
 				err,
 			)
-
-			return err
-		} else {
-			c.recorder.Event(
-				postgres.ObjectReference(),
-				core.EventTypeNormal,
-				eventer.EventReasonSuccessfulCreate,
-				"Successfully created StatefulSet",
-			)
+			return kutil.VerbUnchanged, err
 		}
-	}
 
-	return nil
+		c.recorder.Eventf(
+			postgres.ObjectReference(),
+			core.EventTypeNormal,
+			eventer.EventReasonSuccessful,
+			"Successfully %v StatefulSet",
+			vt,
+		)
+	}
+	return vt, nil
 }
 
 func (c *Controller) CheckStatefulSetPodStatus(statefulSet *apps.StatefulSet) error {
@@ -124,7 +125,7 @@ func (c *Controller) CheckStatefulSetPodStatus(statefulSet *apps.StatefulSet) er
 	return nil
 }
 
-func (c *Controller) ensureCombinedNode(postgres *api.Postgres) error {
+func (c *Controller) ensureCombinedNode(postgres *api.Postgres) (kutil.VerbType, error) {
 	standby := postgres.Spec.Standby
 	streaming := postgres.Spec.Streaming
 	if standby == "" {
@@ -212,7 +213,7 @@ func (c *Controller) upsertContainer(statefulSet *apps.StatefulSet, postgres *ap
 	container := core.Container{
 		Name:            api.ResourceNamePostgres,
 		Image:           c.opt.Docker.GetImageWithTag(postgres),
-		ImagePullPolicy: core.PullIfNotPresent,
+		ImagePullPolicy: core.PullAlways,
 		SecurityContext: &core.SecurityContext{
 			Privileged: types.BoolP(false),
 			Capabilities: &core.Capabilities{

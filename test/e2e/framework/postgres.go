@@ -5,21 +5,22 @@ import (
 
 	"github.com/appscode/go/crypto/rand"
 	"github.com/appscode/go/encoding/json/types"
+	core_util "github.com/appscode/kutil/core/v1"
 	"github.com/go-xorm/xorm"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
-	"github.com/kubedb/apimachinery/client/typed/kubedb/v1alpha1/util"
+	kutildb "github.com/kubedb/apimachinery/client/typed/kubedb/v1alpha1/util"
 	. "github.com/onsi/gomega"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (f *Invocation) Postgres() *api.Postgres {
+func (i *Invocation) Postgres() *api.Postgres {
 	return &api.Postgres{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      rand.WithUniqSuffix("postgres"),
-			Namespace: f.namespace,
+			Namespace: i.namespace,
 			Labels: map[string]string{
-				"app": f.app,
+				"app": i.app,
 			},
 		},
 		Spec: api.PostgresSpec{
@@ -38,8 +39,13 @@ func (f *Framework) GetPostgres(meta metav1.ObjectMeta) (*api.Postgres, error) {
 	return f.extClient.Postgreses(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
 }
 
-func (f *Framework) TryPatchPostgres(meta metav1.ObjectMeta, transform func(*api.Postgres) *api.Postgres) (*api.Postgres, error) {
-	return util.TryPatchPostgres(f.extClient, meta, transform)
+func (f *Framework) PatchPostgres(meta metav1.ObjectMeta, transform func(postgres *api.Postgres) *api.Postgres) (*api.Postgres, error) {
+	postgres, err := f.extClient.Postgreses(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+	postgres, _, err = kutildb.PatchPostgres(f.extClient, postgres, transform)
+	return postgres, err
 }
 
 func (f *Framework) DeletePostgres(meta metav1.ObjectMeta) error {
@@ -136,4 +142,17 @@ func (f *Framework) EventuallyPostgresArchiveCount(db *xorm.Engine) GomegaAsyncA
 		time.Minute*5,
 		time.Second*5,
 	)
+}
+
+func (f *Framework) CleanPostgres() {
+	postgresList, err := f.extClient.Postgreses(f.namespace).List(metav1.ListOptions{})
+	if err != nil {
+		return
+	}
+	for _, e := range postgresList.Items {
+		kutildb.PatchPostgres(f.extClient, &e, func(in *api.Postgres) *api.Postgres {
+			in.ObjectMeta = core_util.RemoveFinalizer(in.ObjectMeta, "kubedb.com")
+			return in
+		})
+	}
 }
