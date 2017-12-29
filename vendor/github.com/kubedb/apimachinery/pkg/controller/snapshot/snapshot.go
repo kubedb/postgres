@@ -279,9 +279,7 @@ func (c *Controller) checkSnapshotJob(snapshot *api.Snapshot, jobName string, ch
 	snap, _, err := util.PatchSnapshot(c.ExtClient, snapshot, func(in *api.Snapshot) *api.Snapshot {
 		t := metav1.Now()
 		in.Status.CompletionTime = &t
-		fmt.Println("---- ", in.Labels)
 		delete(in.Labels, api.LabelSnapshotStatus)
-		fmt.Println("---- ", in.Labels)
 		in.Status.Phase = snapshotPhase
 		return in
 	})
