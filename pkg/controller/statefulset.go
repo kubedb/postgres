@@ -213,7 +213,7 @@ func (c *Controller) upsertContainer(statefulSet *apps.StatefulSet, postgres *ap
 	container := core.Container{
 		Name:            api.ResourceNamePostgres,
 		Image:           c.opt.Docker.GetImageWithTag(postgres),
-		ImagePullPolicy: core.PullAlways,
+		ImagePullPolicy: core.PullIfNotPresent,
 		SecurityContext: &core.SecurityContext{
 			Privileged: types.BoolP(false),
 			Capabilities: &core.Capabilities{
