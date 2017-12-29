@@ -149,12 +149,6 @@ func (c *Controller) create(postgres *api.Postgres) error {
 			log.Errorln(err)
 			return nil
 		}
-		c.recorder.Event(
-			postgres.ObjectReference(),
-			core.EventTypeNormal,
-			eventer.EventReasonSuccessfulCreate,
-			"Successfully added monitoring system.",
-		)
 	}
 	return nil
 }
