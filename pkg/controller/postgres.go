@@ -137,18 +137,16 @@ func (c *Controller) create(postgres *api.Postgres) error {
 	// Ensure Schedule backup
 	c.ensureBackupScheduler(postgres)
 
-	if postgres.Spec.Monitor != nil {
-		if err := c.addMonitor(postgres); err != nil {
-			c.recorder.Eventf(
-				postgres.ObjectReference(),
-				core.EventTypeWarning,
-				eventer.EventReasonFailedToCreate,
-				"Failed to add monitoring system. Reason: %v",
-				err,
-			)
-			log.Errorln(err)
-			return nil
-		}
+	if err := c.manageMonitor(postgres); err != nil {
+		c.recorder.Eventf(
+			postgres.ObjectReference(),
+			core.EventTypeWarning,
+			eventer.EventReasonFailedToCreate,
+			"Failed to manage monitoring system. Reason: %v",
+			err,
+		)
+		log.Errorln(err)
+		return nil
 	}
 	return nil
 }
@@ -405,7 +403,7 @@ func (c *Controller) pause(postgres *api.Postgres) error {
 	c.cronController.StopBackupScheduling(postgres.ObjectMeta)
 
 	if postgres.Spec.Monitor != nil {
-		if err := c.deleteMonitor(postgres); err != nil {
+		if _, err := c.deleteMonitor(postgres); err != nil {
 			c.recorder.Eventf(
 				postgres.ObjectReference(),
 				core.EventTypeWarning,

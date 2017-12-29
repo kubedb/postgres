@@ -21,7 +21,7 @@ func (i *Invocation) Snapshot() *api.Snapshot {
 			Name:      rand.WithUniqSuffix("snapshot"),
 			Namespace: i.namespace,
 			Labels: map[string]string{
-				"app":                 i.app,
+				"app": i.app,
 				api.LabelDatabaseKind: api.ResourceKindPostgres,
 			},
 		},
