@@ -416,12 +416,6 @@ func (c *Controller) pause(postgres *api.Postgres) error {
 			log.Errorln(err)
 			return nil
 		}
-		c.recorder.Event(
-			postgres.ObjectReference(),
-			core.EventTypeNormal,
-			eventer.EventReasonSuccessfulMonitorDelete,
-			"Successfully deleted monitoring system.",
-		)
 	}
 	return nil
 }
