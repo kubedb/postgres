@@ -26,7 +26,7 @@ var _ = Describe("Postgres", func() {
 		err                      error
 		f                        *framework.Invocation
 		postgres                 *api.Postgres
-		garbagePostgres          []api.Postgres
+		garbagePostgres          *api.PostgresList
 		snapshot                 *api.Snapshot
 		secret                   *core.Secret
 		skipMessage              string
@@ -36,7 +36,7 @@ var _ = Describe("Postgres", func() {
 	BeforeEach(func() {
 		f = root.Invoke()
 		postgres = f.Postgres()
-		garbagePostgres = make([]api.Postgres, 0)
+		garbagePostgres = new(api.PostgresList)
 		snapshot = f.Snapshot()
 		secret = new(core.Secret)
 		skipMessage = ""
@@ -81,7 +81,7 @@ var _ = Describe("Postgres", func() {
 		// Delete test resource
 		deleteTestResource()
 
-		for _, pg := range garbagePostgres {
+		for _, pg := range garbagePostgres.Items {
 			*postgres = pg
 			// Delete test resource
 			deleteTestResource()
@@ -376,7 +376,7 @@ var _ = Describe("Postgres", func() {
 					oldPostgres, err := f.GetPostgres(postgres.ObjectMeta)
 					Expect(err).NotTo(HaveOccurred())
 
-					garbagePostgres = append(garbagePostgres, *oldPostgres)
+					garbagePostgres.Items = append(garbagePostgres.Items, *oldPostgres)
 
 					By("Create postgres from snapshot")
 					*postgres = *f.Postgres()
@@ -650,7 +650,7 @@ var _ = Describe("Postgres", func() {
 				oldPostgres, err := f.GetPostgres(postgres.ObjectMeta)
 				Expect(err).NotTo(HaveOccurred())
 
-				garbagePostgres = append(garbagePostgres, *oldPostgres)
+				garbagePostgres.Items = append(garbagePostgres.Items, *oldPostgres)
 
 				// -- > 1st Postgres < --
 
@@ -702,7 +702,7 @@ var _ = Describe("Postgres", func() {
 				oldPostgres, err = f.GetPostgres(postgres.ObjectMeta)
 				Expect(err).NotTo(HaveOccurred())
 
-				garbagePostgres = append(garbagePostgres, *oldPostgres)
+				garbagePostgres.Items = append(garbagePostgres.Items, *oldPostgres)
 
 				// -- > 2nd Postgres < --
 
