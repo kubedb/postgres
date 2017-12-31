@@ -21,7 +21,7 @@ import:
   vcs: git
   version: master
 - package: github.com/kubedb/apimachinery
-  version: work-queue-tools
+  version: master
 - package: github.com/spf13/cobra
   version: master
 - package: github.com/spf13/pflag
@@ -31,17 +31,17 @@ import:
 - package: github.com/sirupsen/logrus
   version: v1.0.3
 - package: github.com/appscode/kutil
-  version: master
+  version: release-5.0
 - package: k8s.io/api
-  version: release-1.8
+  version: kubernetes-1.8.3
 - package: k8s.io/apimachinery
   repo: https://github.com/tamalsaha/apimachinery.git
   version: release-1.8
   vcs: git
 - package: k8s.io/client-go
-  version: kubernetes-1.8.3-beta.0
+  version: kubernetes-1.8.3
 - package: k8s.io/apiextensions-apiserver
-  version: release-1.8
+  version: kubernetes-1.8.3
 - package: k8s.io/kubernetes
   repo: https://github.com/appscode/kubernetes.git
   version: v1.8.3

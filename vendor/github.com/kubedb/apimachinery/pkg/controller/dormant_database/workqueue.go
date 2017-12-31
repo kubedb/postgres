@@ -58,7 +58,7 @@ func (c *Controller) initWatcher() {
 				}
 			}
 		},
-	}, cache.Indexers{})
+	}, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc})
 }
 
 func dormantDatabaseEqual(old, new *api.DormantDatabase) bool {

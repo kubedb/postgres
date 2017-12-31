@@ -57,7 +57,7 @@ func (c *Controller) initWatcher() {
 				}
 			}
 		},
-	}, cache.Indexers{})
+	}, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc})
 }
 
 func snapshotEqual(old, new *api.Snapshot) bool {

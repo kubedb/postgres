@@ -109,7 +109,8 @@ func (c *Controller) createRestoreJob(postgres *api.Postgres, snapshot *api.Snap
 	if snapshot.Spec.SnapshotStorageSpec.Local != nil {
 		job.Spec.Template.Spec.Containers[0].VolumeMounts = append(job.Spec.Template.Spec.Containers[0].VolumeMounts, core.VolumeMount{
 			Name:      "local",
-			MountPath: snapshot.Spec.SnapshotStorageSpec.Local.Path,
+			MountPath: snapshot.Spec.SnapshotStorageSpec.Local.MountPath,
+			SubPath:   snapshot.Spec.SnapshotStorageSpec.Local.SubPath,
 		})
 		volume := core.Volume{
 			Name:         "local",
@@ -216,7 +217,8 @@ func (c *Controller) getSnapshotterJob(snapshot *api.Snapshot) (*batch.Job, erro
 	if snapshot.Spec.SnapshotStorageSpec.Local != nil {
 		job.Spec.Template.Spec.Containers[0].VolumeMounts = append(job.Spec.Template.Spec.Containers[0].VolumeMounts, core.VolumeMount{
 			Name:      "local",
-			MountPath: snapshot.Spec.SnapshotStorageSpec.Local.Path,
+			MountPath: snapshot.Spec.SnapshotStorageSpec.Local.MountPath,
+			SubPath:   snapshot.Spec.SnapshotStorageSpec.Local.SubPath,
 		})
 		job.Spec.Template.Spec.Volumes = append(job.Spec.Template.Spec.Volumes, core.Volume{
 			Name:         "local",
