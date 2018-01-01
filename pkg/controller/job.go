@@ -79,6 +79,7 @@ func (c *Controller) createRestoreJob(postgres *api.Postgres, snapshot *api.Snap
 							},
 						},
 					},
+					ImagePullSecrets: postgres.Spec.ImagePullSecrets,
 					Volumes: []core.Volume{
 						{
 							Name: "secret",
@@ -186,6 +187,7 @@ func (c *Controller) getSnapshotterJob(snapshot *api.Snapshot) (*batch.Job, erro
 							},
 						},
 					},
+					ImagePullSecrets: postgres.Spec.ImagePullSecrets,
 					Volumes: []core.Volume{
 						{
 							Name: "secret",

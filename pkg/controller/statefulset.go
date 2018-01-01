@@ -55,6 +55,7 @@ func (c *Controller) ensureStatefulSet(
 		in.Spec.Template.Spec.Affinity = postgres.Spec.Affinity
 		in.Spec.Template.Spec.SchedulerName = postgres.Spec.SchedulerName
 		in.Spec.Template.Spec.Tolerations = postgres.Spec.Tolerations
+		in.Spec.Template.Spec.ImagePullSecrets = postgres.Spec.ImagePullSecrets
 
 		in = c.upsertMonitoringContainer(in, postgres)
 		in = upsertDatabaseSecret(in, postgres.Spec.DatabaseSecret.SecretName)

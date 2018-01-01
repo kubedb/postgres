@@ -145,7 +145,7 @@ func (c *Controller) createDormantDatabase(postgres *api.Postgres) (*api.Dormant
 		initSpec, err := json.Marshal(postgres.Spec.Init)
 		if err == nil {
 			dormantDb.Annotations = map[string]string{
-				api.PostgresInitSpec: string(initSpec),
+				api.GenericInitSpec: string(initSpec),
 			}
 		}
 	}
