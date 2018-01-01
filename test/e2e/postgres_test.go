@@ -240,7 +240,7 @@ var _ = Describe("Postgres", func() {
 					secret = f.SecretForLocalBackend()
 					snapshot.Spec.StorageSecretName = secret.Name
 					snapshot.Spec.Local = &api.LocalSpec{
-						Path: "/repo",
+						MountPath: "/repo",
 						VolumeSource: core.VolumeSource{
 							EmptyDir: &core.EmptyDirVolumeSource{},
 						},
@@ -437,7 +437,7 @@ var _ = Describe("Postgres", func() {
 				*postgres = *pg
 				if usedInitSpec {
 					Expect(postgres.Spec.Init).Should(BeNil())
-					Expect(postgres.Annotations[api.PostgresInitSpec]).ShouldNot(BeEmpty())
+					Expect(postgres.Annotations[api.GenericInitSpec]).ShouldNot(BeEmpty())
 				}
 			}
 
@@ -549,7 +549,7 @@ var _ = Describe("Postgres", func() {
 						SnapshotStorageSpec: api.SnapshotStorageSpec{
 							StorageSecretName: secret.Name,
 							Local: &api.LocalSpec{
-								Path: "/repo",
+								MountPath: "/repo",
 								VolumeSource: core.VolumeSource{
 									EmptyDir: &core.EmptyDirVolumeSource{},
 								},
@@ -585,7 +585,7 @@ var _ = Describe("Postgres", func() {
 							SnapshotStorageSpec: api.SnapshotStorageSpec{
 								StorageSecretName: secret.Name,
 								Local: &api.LocalSpec{
-									Path: "/repo",
+									MountPath: "/repo",
 									VolumeSource: core.VolumeSource{
 										EmptyDir: &core.EmptyDirVolumeSource{},
 									},
