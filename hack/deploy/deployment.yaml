@@ -20,5 +20,4 @@ spec:
         image: kubedb/pg-operator:canary
         args:
         - run
-        - --postgres-util=0.1.0-util
         - --v=4
