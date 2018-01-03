@@ -59,7 +59,7 @@ func RunLeaderElection() {
 
 	kubeClient, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		log.Fatalln(err.Error())
+		log.Fatalln(err)
 	}
 
 	configMap := &core.ConfigMap{

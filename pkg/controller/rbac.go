@@ -1,10 +1,11 @@
 package controller
 
 import (
+	"fmt"
 	core_util "github.com/appscode/kutil/core/v1"
 	rbac_util "github.com/appscode/kutil/rbac/v1beta1"
-	"github.com/kubedb/apimachinery/apis/kubedb"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
+	apps "k8s.io/api/apps/v1beta1"
 	core "k8s.io/api/core/v1"
 	rbac "k8s.io/api/rbac/v1beta1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
@@ -32,16 +33,26 @@ func (c *Controller) ensureRole(postgres *api.Postgres) error {
 		func(in *rbac.Role) *rbac.Role {
 			in.Rules = []rbac.PolicyRule{
 				{
-					APIGroups:     []string{kubedb.GroupName},
-					Resources:     []string{api.ResourceTypePostgres},
-					ResourceNames: []string{postgres.Name},
+					APIGroups:     []string{apps.GroupName},
+					Resources:     []string{"statefulsets"},
 					Verbs:         []string{"get"},
+					ResourceNames: []string{postgres.OffshootName()},
+				},
+				{
+					APIGroups: []string{core.GroupName},
+					Resources: []string{"pods"},
+					Verbs:     []string{"list", "patch"},
+				},
+				{
+					APIGroups: []string{core.GroupName},
+					Resources: []string{"configmaps"},
+					Verbs:     []string{"create"},
 				},
 				{
 					APIGroups:     []string{core.GroupName},
-					Resources:     []string{"secrets"},
-					ResourceNames: []string{postgres.Spec.DatabaseSecret.SecretName},
-					Verbs:         []string{"get"},
+					Resources:     []string{"configmaps"},
+					Verbs:         []string{"get", "update"},
+					ResourceNames: []string{fmt.Sprintf("%v-leader-lock", postgres.OffshootName())},
 				},
 			}
 			return in

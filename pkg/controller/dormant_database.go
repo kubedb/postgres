@@ -51,7 +51,6 @@ func (c *Controller) PauseDatabase(dormantDb *api.DormantDatabase) error {
 	}
 
 	if err := c.deleteRBACStuff(postgres); err != nil {
-		log.Errorln(err)
 		return err
 	}
 

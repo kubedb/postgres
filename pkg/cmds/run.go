@@ -38,6 +38,7 @@ func NewCmdRun(version string) *cobra.Command {
 		GoverningService:  "kubedb",
 		Address:           ":8080",
 		EnableRbac:        false,
+		AnalyticsClientID: analyticsClientID,
 	}
 
 	cmd := &cobra.Command{

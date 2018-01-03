@@ -1,5 +1,5 @@
 hash: 8ae5854f53887b8634180764bba78041d7af858e045ceed7ba9345855d89460f
-updated: 2018-01-01T13:51:33.809761299+06:00
+updated: 2018-01-03T16:28:03.380578461+06:00
 imports:
 - name: cloud.google.com/go
   version: fe3d41e1ecb2ce36ad3a979037c9b9a2b726226f
@@ -24,14 +24,14 @@ imports:
   - types
   - version
 - name: github.com/appscode/kube-mon
-  version: dd6884c63ee4615ca9ecdb7f0ca3e35c975bcca3
+  version: 7f7ea00b96f4fe39dbcc4fbe405768eae032ba2f
   subpackages:
   - agents
   - agents/coreosprometheusoperator
   - agents/prometheusbuiltin
   - api
 - name: github.com/appscode/kutil
-  version: a506fd42d3c4d688675c639c9c14c27b79275e73
+  version: 4a8306c9183a0dbebfc98327238735a1fb015e6a
   subpackages:
   - apiextensions/v1beta1
   - apps/v1beta1
@@ -42,7 +42,7 @@ imports:
 - name: github.com/appscode/mergo
   version: e3000cb3d28c72b837601cac94debd91032d19fe
 - name: github.com/appscode/osm
-  version: 8e933dfca7c6a2730d77a63282369d843b1db1f4
+  version: bd094241594e26fce6d54e17db21ff253df8cd22
   subpackages:
   - context
 - name: github.com/appscode/pat
@@ -234,7 +234,7 @@ imports:
 - name: github.com/juju/ratelimit
   version: 5b9ff866471762aa2ab2dced63c9fb6f53921342
 - name: github.com/kubedb/apimachinery
-  version: f4fbe461c426dbecefee76e047e3a03058de525c
+  version: c62e5c9ee18651a8183c708df55ec8abd6ee2083
   subpackages:
   - apis/kubedb
   - apis/kubedb/v1alpha1
@@ -250,7 +250,7 @@ imports:
   - pkg/storage
   - pkg/validator
 - name: github.com/kubernetes/apimachinery
-  version: bc1325710437b54535daa5d6877ca62df7bd76db
+  version: cc51b76607439c12d6bfa78aab2a81e46107b24f
   subpackages:
   - pkg/conversion
 - name: github.com/lib/pq
@@ -412,7 +412,7 @@ imports:
   - unicode/norm
   - width
 - name: google.golang.org/api
-  version: 92c31202d4179425301c9ad5a63abd8df45a9674
+  version: 99aea8c56b9527d6ca9dc96b743c94e184ab704b
   subpackages:
   - gensupport
   - googleapi
