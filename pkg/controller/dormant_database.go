@@ -3,7 +3,6 @@ package controller
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 
 	"github.com/appscode/go/log"
 	apps_util "github.com/appscode/kutil/apps/v1beta1"
@@ -56,8 +55,7 @@ func (c *Controller) PauseDatabase(dormantDb *api.DormantDatabase) error {
 		}
 	}
 
-	configMapName := fmt.Sprintf("%v-leader-lock", dormantDb.OffshootName())
-	if err := c.deleteConfigMap(configMapName, dormantDb.Namespace); err != nil {
+	if err := c.deleteLeaderLockConfigMap(dormantDb.ObjectMeta); err != nil {
 		return err
 	}
 

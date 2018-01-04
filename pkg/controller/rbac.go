@@ -1,11 +1,10 @@
 package controller
 
 import (
-	"fmt"
-
 	core_util "github.com/appscode/kutil/core/v1"
 	rbac_util "github.com/appscode/kutil/rbac/v1beta1"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
+	"github.com/kubedb/postgres/pkg/leader_election"
 	apps "k8s.io/api/apps/v1beta1"
 	core "k8s.io/api/core/v1"
 	rbac "k8s.io/api/rbac/v1beta1"
@@ -53,7 +52,7 @@ func (c *Controller) ensureRole(postgres *api.Postgres) error {
 					APIGroups:     []string{core.GroupName},
 					Resources:     []string{"configmaps"},
 					Verbs:         []string{"get", "update"},
-					ResourceNames: []string{fmt.Sprintf("%v-leader-lock", postgres.OffshootName())},
+					ResourceNames: []string{leader_election.GetLeaderLockName(postgres.OffshootName())},
 				},
 			}
 			return in
