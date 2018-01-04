@@ -50,8 +50,10 @@ func (c *Controller) PauseDatabase(dormantDb *api.DormantDatabase) error {
 		return err
 	}
 
-	if err := c.deleteRBACStuff(postgres); err != nil {
-		return err
+	if c.opt.EnableRbac {
+		if err := c.deleteRBACStuff(postgres); err != nil {
+			return err
+		}
 	}
 
 	configMapName := fmt.Sprintf("%v-leader-lock", dormantDb.OffshootName())

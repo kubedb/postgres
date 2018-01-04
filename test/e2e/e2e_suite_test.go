@@ -88,6 +88,7 @@ var _ = BeforeSuite(func() {
 		GoverningService:  api.DatabaseNamePrefix,
 		MaxNumRequeues:    5,
 		EnableRbac:        enableRbac,
+		AnalyticsClientID: "kubedb:postgres:e2e:test",
 	}
 
 	// Controller

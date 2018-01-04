@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-  <testsuite tests="1" failures="0" time="323.296409559">
-      <testcase name="Postgres Test General - should run successfully" classname="e2e Suite" time="320.237971229"></testcase>
+  <testsuite tests="1" failures="0" time="449.372844032">
+      <testcase name="Postgres Test General - should run successfully" classname="e2e Suite" time="0">
+          <skipped></skipped>
+      </testcase>
       <testcase name="Postgres Test General With PVC should run successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
@@ -40,9 +42,7 @@
       <testcase name="Postgres Test Resume With original Postgres with init should resume DormantDatabase successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="Postgres Test SnapshotScheduler With Startup should run schedular successfully" classname="e2e Suite" time="0">
-          <skipped></skipped>
-      </testcase>
+      <testcase name="Postgres Test SnapshotScheduler With Startup should run schedular successfully" classname="e2e Suite" time="446.310182109"></testcase>
       <testcase name="Postgres Test SnapshotScheduler With Update should run schedular successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>

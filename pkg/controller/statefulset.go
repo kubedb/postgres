@@ -212,8 +212,8 @@ func upsertObjectMeta(statefulSet *apps.StatefulSet, postgres *api.Postgres) *ap
 
 func (c *Controller) upsertContainer(statefulSet *apps.StatefulSet, postgres *api.Postgres) *apps.StatefulSet {
 	container := core.Container{
-		Name:            api.ResourceNamePostgres,
-		Image:           c.opt.Docker.GetImageWithTag(postgres),
+		Name:  api.ResourceNamePostgres,
+		Image: c.opt.Docker.GetImageWithTag(postgres),
 		SecurityContext: &core.SecurityContext{
 			Privileged: types.BoolP(false),
 			Capabilities: &core.Capabilities{
