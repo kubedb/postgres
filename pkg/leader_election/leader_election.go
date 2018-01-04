@@ -173,6 +173,6 @@ func setPermission() error {
 	return nil
 }
 
-func GetLeaderLockName(name string) string {
-	return fmt.Sprintf("%s-leader-lock", name)
+func GetLeaderLockName(offshootName string) string {
+	return fmt.Sprintf("%s-leader-lock", offshootName)
 }
