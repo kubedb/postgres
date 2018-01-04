@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/appscode/go/crypto/rand"
+	"github.com/appscode/kutil/tools/analytics"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/kubedb/apimachinery/pkg/storage"
 	batch "k8s.io/api/batch/v1"
@@ -63,7 +64,7 @@ func (c *Controller) createRestoreJob(postgres *api.Postgres, snapshot *api.Snap
 							},
 							Env: []core.EnvVar{
 								{
-									Name:  "APPSCODE_ANALYTICS_CLIENT_ID",
+									Name:  analytics.Key,
 									Value: c.opt.AnalyticsClientID,
 								},
 							},
@@ -177,7 +178,7 @@ func (c *Controller) getSnapshotterJob(snapshot *api.Snapshot) (*batch.Job, erro
 							},
 							Env: []core.EnvVar{
 								{
-									Name:  "APPSCODE_ANALYTICS_CLIENT_ID",
+									Name:  analytics.Key,
 									Value: c.opt.AnalyticsClientID,
 								},
 							},
