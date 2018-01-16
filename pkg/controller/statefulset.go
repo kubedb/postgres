@@ -242,6 +242,17 @@ func upsertEnv(statefulSet *apps.StatefulSet, postgres *api.Postgres, envs []cor
 			Name:  "PRIMARY_HOST",
 			Value: postgres.PrimaryName(),
 		},
+		{
+			Name: "POSTGRES_PASSWORD",
+			ValueFrom: &core.EnvVarSource{
+				SecretKeyRef: &core.SecretKeySelector{
+					LocalObjectReference: core.LocalObjectReference{
+						Name: postgres.Spec.DatabaseSecret.SecretName,
+					},
+					Key: "POSTGRES_PASSWORD",
+				},
+			},
+		},
 	}
 
 	envList = append(envList, envs...)

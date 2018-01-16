@@ -213,8 +213,6 @@ func (c *Controller) checkSnapshotJob(snapshot *api.Snapshot, jobName string, ch
 		if job.Status.Succeeded > 0 {
 			jobSuccess = true
 			break
-		} else if job.Status.Failed > 0 {
-			break
 		}
 
 		time.Sleep(sleepDuration)

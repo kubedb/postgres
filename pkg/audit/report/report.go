@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/go-ini/ini"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	cs "github.com/kubedb/apimachinery/client/typed/kubedb/v1alpha1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
@@ -43,27 +42,8 @@ func ExportReport(
 		return
 	}
 
-	cfg, err := ini.Load(secret.Data[".admin"])
-	if err != nil {
-		http.Error(w, fmt.Sprintf(`secret key ".admin" not found`), http.StatusNotFound)
-		return
-	}
-	section, err := cfg.GetSection("")
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
-		return
-	}
 	username := "postgres"
-	if k, err := section.GetKey("POSTGRES_USER"); err == nil {
-		username = k.Value()
-	}
-	var password string
-	if k, err := section.GetKey("POSTGRES_PASSWORD"); err == nil {
-		password = k.Value()
-	} else {
-		http.Error(w, fmt.Sprintf(`POSTGRES_PASSWORD not found in secret`), http.StatusNotFound)
-		return
-	}
+	password := string(secret.Data["POSTGRES_PASSWORD"])
 
 	host := fmt.Sprintf("%v.%v", kubedbName, namespace)
 	port := "5432"
