@@ -1,5 +1,5 @@
-hash: 8ae5854f53887b8634180764bba78041d7af858e045ceed7ba9345855d89460f
-updated: 2018-01-16T12:21:02.07915427+06:00
+hash: 91c50b2afc1d71f2f2234badd0f11659f2f6b485bca12b802df7ebd07da1743d
+updated: 2018-01-16T12:59:53.699597016+06:00
 imports:
 - name: cloud.google.com/go
   version: fe3d41e1ecb2ce36ad3a979037c9b9a2b726226f
@@ -94,9 +94,7 @@ imports:
   subpackages:
   - quantile
 - name: github.com/coreos/prometheus-operator
-  version: cbdd1b519796673cd02d53b0e21999acbcbfe6e4
-  repo: https://github.com/appscode/prometheus-operator.git
-  vcs: git
+  version: 0b87bfa150cf57bdc7b081d9b48ef48a9350b47b
   subpackages:
   - pkg/client/monitoring/v1
 - name: github.com/cpuguy83/go-md2man
@@ -146,7 +144,7 @@ imports:
 - name: github.com/go-openapi/swag
   version: 1d0bd113de87027671077d3c71eb3ac5d7dbba72
 - name: github.com/go-xorm/builder
-  version: a4a881a4e552fcb5473f39e8b9f7d9f3457a7fb0
+  version: 488224409dd8aa2ce7a5baf8d10d55764a913738
 - name: github.com/go-xorm/core
   version: 5bf745d7d163f4380e6c2bba8c4afa60534dd087
 - name: github.com/go-xorm/xorm
@@ -235,7 +233,7 @@ imports:
 - name: github.com/juju/ratelimit
   version: 5b9ff866471762aa2ab2dced63c9fb6f53921342
 - name: github.com/kubedb/apimachinery
-  version: 0fbe2f9c300e9af33fb64b4edc11ea9de226ce6d
+  version: d8312d3dac5933b603138bdfb9e7418655960f2b
   subpackages:
   - apis/kubedb
   - apis/kubedb/v1alpha1
