@@ -29,7 +29,7 @@ func (c *Controller) initWatcher() {
 	}
 
 	// create the workqueue
-	c.queue = workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "postgres")
+	c.queue = workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), api.ResourceNamePostgres)
 
 	// Bind the workqueue to a cache with the help of an informer. This way we make sure that
 	// whenever the cache is updated, the Postgres key is added to the workqueue.

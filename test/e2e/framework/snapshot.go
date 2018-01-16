@@ -18,7 +18,7 @@ import (
 func (i *Invocation) Snapshot() *api.Snapshot {
 	return &api.Snapshot{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      rand.WithUniqSuffix("snapshot"),
+			Name:      rand.WithUniqSuffix(api.ResourceNameSnapshot),
 			Namespace: i.namespace,
 			Labels: map[string]string{
 				"app": i.app,

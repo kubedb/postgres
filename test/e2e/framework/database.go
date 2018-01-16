@@ -4,7 +4,9 @@ import (
 	"crypto/rand"
 	"fmt"
 
+	"github.com/appscode/kutil/tools/portforward"
 	"github.com/go-xorm/xorm"
+	"github.com/kubedb/postgres/pkg/controller"
 	_ "github.com/lib/pq"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -15,12 +17,18 @@ func (f *Framework) GetPostgresClient(meta metav1.ObjectMeta) (*xorm.Engine, err
 		return nil, err
 	}
 	clientPodName := fmt.Sprintf("%v-0", postgres.Name)
-	port, err := f.getProxyPort(postgres.Namespace, clientPodName, 5432)
-	if err != nil {
+	tunnel := portforward.NewTunnel(
+		f.kubeClient.CoreV1().RESTClient(),
+		f.restConfig,
+		postgres.Namespace,
+		clientPodName,
+		controller.PostgresPort,
+	)
+	if err := tunnel.ForwardPort(); err != nil {
 		return nil, err
 	}
 
-	cnnstr := fmt.Sprintf("user=postgres host=127.0.0.1 port=%v dbname=postgres sslmode=disable", port)
+	cnnstr := fmt.Sprintf("user=postgres host=127.0.0.1 port=%v dbname=postgres sslmode=disable", tunnel.Local)
 	return xorm.NewEngine("postgres", cnnstr)
 }
 

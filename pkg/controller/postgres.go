@@ -356,31 +356,6 @@ func (c *Controller) pause(postgres *api.Postgres) error {
 
 	c.recorder.Event(postgres.ObjectReference(), core.EventTypeNormal, eventer.EventReasonPausing, "Pausing Postgres")
 
-	/*
-		if postgres.Spec.DoNotPause {
-			c.recorder.Eventf(
-				postgres.ObjectReference(),
-				core.EventTypeWarning,
-				eventer.EventReasonFailedToPause,
-				`Postgres "%v" is locked.`,
-				postgres.Name,
-			)
-
-			if err := c.reCreatePostgres(postgres); err != nil {
-				c.recorder.Eventf(
-					postgres.ObjectReference(),
-					core.EventTypeWarning,
-					eventer.EventReasonFailedToCreate,
-					`Failed to recreate Postgres: "%v". Reason: %v`,
-					postgres.Name,
-					err,
-				)
-				return err
-			}
-			return nil
-		}
-	*/
-
 	if _, err := c.createDormantDatabase(postgres); err != nil {
 		c.recorder.Eventf(
 			postgres.ObjectReference(),
@@ -417,24 +392,3 @@ func (c *Controller) pause(postgres *api.Postgres) error {
 	}
 	return nil
 }
-
-/*
-func (c *Controller) reCreatePostgres(postgres *api.Postgres) error {
-	pg := &api.Postgres{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        postgres.Name,
-			Namespace:   postgres.Namespace,
-			Labels:      postgres.Labels,
-			Annotations: postgres.Annotations,
-		},
-		Spec:   postgres.Spec,
-		Status: postgres.Status,
-	}
-
-	if _, err := c.ExtClient.Postgreses(pg.Namespace).Create(pg); err != nil {
-		return err
-	}
-
-	return nil
-}
-*/

@@ -1,4 +1,4 @@
-package framework
+package portforward
 
 import (
 	"fmt"
@@ -8,48 +8,38 @@ import (
 	"net/http"
 	"strconv"
 
-	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/portforward"
 	"k8s.io/client-go/transport/spdy"
 )
 
-func (f *Framework) getProxyPort(namespace, podName string, port int) (int, error) {
-	tunnel := newTunnel(f.kubeClient, f.restConfig, namespace, podName, port)
-	if err := tunnel.forwardPort(); err != nil {
-		return 0, err
-	}
-
-	return tunnel.Local, nil
+type Tunnel struct {
+	Local     int
+	Remote    int
+	Namespace string
+	PodName   string
+	Out       io.Writer
+	stopChan  chan struct{}
+	readyChan chan struct{}
+	config    *rest.Config
+	client    rest.Interface
 }
 
-type tunnel struct {
-	Local      int
-	Remote     int
-	Namespace  string
-	PodName    string
-	Out        io.Writer
-	stopChan   chan struct{}
-	readyChan  chan struct{}
-	config     *rest.Config
-	kubeClient kubernetes.Interface
-}
-
-func newTunnel(client kubernetes.Interface, config *rest.Config, namespace, podName string, remote int) *tunnel {
-	return &tunnel{
-		config:     config,
-		kubeClient: client,
-		Namespace:  namespace,
-		PodName:    podName,
-		Remote:     remote,
-		stopChan:   make(chan struct{}, 1),
-		readyChan:  make(chan struct{}, 1),
-		Out:        ioutil.Discard,
+func NewTunnel(client rest.Interface, config *rest.Config, namespace, podName string, remote int) *Tunnel {
+	return &Tunnel{
+		config:    config,
+		client:    client,
+		Namespace: namespace,
+		PodName:   podName,
+		Remote:    remote,
+		stopChan:  make(chan struct{}, 1),
+		readyChan: make(chan struct{}, 1),
+		Out:       ioutil.Discard,
 	}
 }
 
-func (t *tunnel) forwardPort() error {
-	u := t.kubeClient.Core().RESTClient().Post().
+func (t *Tunnel) ForwardPort() error {
+	u := t.client.Post().
 		Resource("pods").
 		Namespace(t.Namespace).
 		Name(t.PodName).
@@ -85,6 +75,10 @@ func (t *tunnel) forwardPort() error {
 	case <-pf.Ready:
 		return nil
 	}
+}
+
+func (t *Tunnel) Close() {
+	close(t.stopChan)
 }
 
 func getAvailablePort() (int, error) {

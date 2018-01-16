@@ -7,6 +7,7 @@ import (
 
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	cs "github.com/kubedb/apimachinery/client/typed/kubedb/v1alpha1"
+	"github.com/kubedb/postgres/pkg/controller"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -42,11 +43,11 @@ func ExportReport(
 		return
 	}
 
-	username := "postgres"
-	password := string(secret.Data["POSTGRES_PASSWORD"])
+	username := controller.PostgresUser
+	password := string(secret.Data[controller.KeyPostgresPassword])
 
 	host := fmt.Sprintf("%v.%v", kubedbName, namespace)
-	port := "5432"
+	port := controller.PostgresPort
 
 	databases := make([]string, 0)
 	if dbname == "" {

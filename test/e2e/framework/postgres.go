@@ -17,7 +17,7 @@ import (
 func (i *Invocation) Postgres() *api.Postgres {
 	return &api.Postgres{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      rand.WithUniqSuffix("postgres"),
+			Name:      rand.WithUniqSuffix(api.ResourceNamePostgres),
 			Namespace: i.namespace,
 			Labels: map[string]string{
 				"app": i.app,

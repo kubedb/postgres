@@ -17,6 +17,11 @@ var (
 	NodeRole = "kubedb.com/role"
 )
 
+const (
+	PostgresPort     = 5432
+	PostgresPortName = "api"
+)
+
 func (c *Controller) ensureService(postgres *api.Postgres) (kutil.VerbType, error) {
 	// Check if service name exists
 	err := c.checkService(postgres, postgres.OffshootName())
@@ -114,9 +119,9 @@ func (c *Controller) createService(postgres *api.Postgres) (kutil.VerbType, erro
 func upsertServicePort(service *core.Service, postgres *api.Postgres) []core.ServicePort {
 	desiredPorts := []core.ServicePort{
 		{
-			Name:       "api",
-			Port:       5432,
-			TargetPort: intstr.FromString("api"),
+			Name:       PostgresPortName,
+			Port:       PostgresPort,
+			TargetPort: intstr.FromString(PostgresPortName),
 		},
 	}
 	if postgres.Spec.Monitor != nil &&

@@ -58,7 +58,6 @@ func (c *Controller) ensureStatefulSet(
 		in.Spec.Template.Spec.ImagePullSecrets = postgres.Spec.ImagePullSecrets
 
 		in = c.upsertMonitoringContainer(in, postgres)
-		in = upsertDatabaseSecret(in, postgres.Spec.DatabaseSecret.SecretName)
 		if postgres.Spec.Archiver != nil {
 			archiverStorage := postgres.Spec.Archiver.Storage
 			if archiverStorage != nil {
@@ -228,7 +227,6 @@ func (c *Controller) upsertContainer(statefulSet *apps.StatefulSet, postgres *ap
 }
 
 func upsertEnv(statefulSet *apps.StatefulSet, postgres *api.Postgres, envs []core.EnvVar) *apps.StatefulSet {
-
 	envList := []core.EnvVar{
 		{
 			Name: "NAMESPACE",
@@ -243,13 +241,13 @@ func upsertEnv(statefulSet *apps.StatefulSet, postgres *api.Postgres, envs []cor
 			Value: postgres.PrimaryName(),
 		},
 		{
-			Name: "POSTGRES_PASSWORD",
+			Name: KeyPostgresPassword,
 			ValueFrom: &core.EnvVarSource{
 				SecretKeyRef: &core.SecretKeySelector{
 					LocalObjectReference: core.LocalObjectReference{
 						Name: postgres.Spec.DatabaseSecret.SecretName,
 					},
-					Key: "POSTGRES_PASSWORD",
+					Key: KeyPostgresPassword,
 				},
 			},
 		},
@@ -272,8 +270,8 @@ func upsertPort(statefulSet *apps.StatefulSet) *apps.StatefulSet {
 	getPorts := func() []core.ContainerPort {
 		portList := []core.ContainerPort{
 			{
-				Name:          "api",
-				ContainerPort: 5432,
+				Name:          PostgresPortName,
+				ContainerPort: PostgresPort,
 				Protocol:      core.ProtocolTCP,
 			},
 		}
@@ -310,40 +308,30 @@ func (c *Controller) upsertMonitoringContainer(statefulSet *apps.StatefulSet, po
 					ContainerPort: int32(api.PrometheusExporterPortNumber),
 				},
 			},
+			VolumeMounts: []core.VolumeMount{
+				{
+					Name:      "secret",
+					MountPath: ExporterSecretPath,
+				},
+			},
 		}
 		containers := statefulSet.Spec.Template.Spec.Containers
 		containers = core_util.UpsertContainer(containers, container)
 		statefulSet.Spec.Template.Spec.Containers = containers
+
+		volume := core.Volume{
+			Name: "secret",
+			VolumeSource: core.VolumeSource{
+				Secret: &core.SecretVolumeSource{
+					SecretName: postgres.Spec.DatabaseSecret.SecretName,
+				},
+			},
+		}
+		volumes := statefulSet.Spec.Template.Spec.Volumes
+		volumes = core_util.UpsertVolume(volumes, volume)
+		statefulSet.Spec.Template.Spec.Volumes = volumes
 	}
 	return statefulSet
-}
-
-func upsertDatabaseSecret(statefulset *apps.StatefulSet, secretName string) *apps.StatefulSet {
-	for i, container := range statefulset.Spec.Template.Spec.Containers {
-		if container.Name == api.ResourceNamePostgres {
-			volumeMount := core.VolumeMount{
-				Name:      "secret",
-				MountPath: "/srv/" + api.ResourceNamePostgres + "/secrets",
-			}
-			volumeMounts := container.VolumeMounts
-			volumeMounts = core_util.UpsertVolumeMount(volumeMounts, volumeMount)
-			statefulset.Spec.Template.Spec.Containers[i].VolumeMounts = volumeMounts
-
-			volume := core.Volume{
-				Name: "secret",
-				VolumeSource: core.VolumeSource{
-					Secret: &core.SecretVolumeSource{
-						SecretName: secretName,
-					},
-				},
-			}
-			volumes := statefulset.Spec.Template.Spec.Volumes
-			volumes = core_util.UpsertVolume(volumes, volume)
-			statefulset.Spec.Template.Spec.Volumes = volumes
-			return statefulset
-		}
-	}
-	return statefulset
 }
 
 func upsertArchiveSecret(statefulset *apps.StatefulSet, secretName string) *apps.StatefulSet {

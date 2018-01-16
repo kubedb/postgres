@@ -2,6 +2,7 @@ package framework
 
 import (
 	"github.com/appscode/go/crypto/rand"
+	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	cs "github.com/kubedb/apimachinery/client/typed/kubedb/v1alpha1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -22,7 +23,7 @@ func New(restConfig *rest.Config, kubeClient kubernetes.Interface, extClient cs.
 		kubeClient:   kubeClient,
 		extClient:    extClient,
 		name:         "postgres-operator",
-		namespace:    rand.WithUniqSuffix("postgres"),
+		namespace:    rand.WithUniqSuffix(api.ResourceNamePostgres),
 		StorageClass: storageClass,
 	}
 }

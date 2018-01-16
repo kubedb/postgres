@@ -63,13 +63,13 @@ func (c *Controller) createRestoreJob(postgres *api.Postgres, snapshot *api.Snap
 							},
 							Env: []core.EnvVar{
 								{
-									Name: "POSTGRES_PASSWORD",
+									Name: KeyPostgresPassword,
 									ValueFrom: &core.EnvVarSource{
 										SecretKeyRef: &core.SecretKeySelector{
 											LocalObjectReference: core.LocalObjectReference{
 												Name: postgres.Spec.DatabaseSecret.SecretName,
 											},
-											Key: "POSTGRES_PASSWORD",
+											Key: KeyPostgresPassword,
 										},
 									},
 								},
@@ -175,13 +175,13 @@ func (c *Controller) getSnapshotterJob(snapshot *api.Snapshot) (*batch.Job, erro
 							},
 							Env: []core.EnvVar{
 								{
-									Name: "POSTGRES_PASSWORD",
+									Name: KeyPostgresPassword,
 									ValueFrom: &core.EnvVarSource{
 										SecretKeyRef: &core.SecretKeySelector{
 											LocalObjectReference: core.LocalObjectReference{
 												Name: postgres.Spec.DatabaseSecret.SecretName,
 											},
-											Key: "POSTGRES_PASSWORD",
+											Key: KeyPostgresPassword,
 										},
 									},
 								},
