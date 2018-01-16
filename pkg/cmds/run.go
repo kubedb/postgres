@@ -1,6 +1,7 @@
 package cmds
 
 import (
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -21,7 +22,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
-	"flag"
 )
 
 func NewCmdRun(version string) *cobra.Command {
