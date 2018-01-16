@@ -9,7 +9,7 @@ source "$REPO_ROOT/hack/libbuild/common/kubedb_image.sh"
 
 DOCKER_REGISTRY=${DOCKER_REGISTRY:-kubedb}
 IMG=postgres
-TAG=9.6.5
+TAG=9.6
 
 WALG_VER=${WALG_VER:-0.1.3}
 

@@ -17,7 +17,12 @@ type Framework struct {
 	StorageClass string
 }
 
-func New(restConfig *rest.Config, kubeClient kubernetes.Interface, extClient cs.KubedbV1alpha1Interface, storageClass string) *Framework {
+func New(
+	restConfig *rest.Config,
+	kubeClient kubernetes.Interface,
+	extClient cs.KubedbV1alpha1Interface,
+	storageClass string,
+) *Framework {
 	return &Framework{
 		restConfig:   restConfig,
 		kubeClient:   kubeClient,

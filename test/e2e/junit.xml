@@ -1,12 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-  <testsuite tests="12" failures="1" time="925.474997612">
-      <testcase name="Postgres Test General - should run successfully" classname="e2e Suite" time="36.06181796"></testcase>
-      <testcase name="Postgres Test General With PVC should run successfully" classname="e2e Suite" time="100.058516434"></testcase>
+  <testsuite tests="2" failures="1" time="161.050257421">
+      <testcase name="Postgres Test General - should run successfully" classname="e2e Suite" time="0">
+          <skipped></skipped>
+      </testcase>
+      <testcase name="Postgres Test General With PVC should run successfully" classname="e2e Suite" time="111.268180004"></testcase>
       <testcase name="Postgres Test DoNotPause should work successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="Postgres Test Snapshot In Local should take Snapshot successfully" classname="e2e Suite" time="50.996908987"></testcase>
-      <testcase name="Postgres Test Snapshot In S3 should take Snapshot successfully" classname="e2e Suite" time="58.677803146"></testcase>
+      <testcase name="Postgres Test Snapshot In Local should take Snapshot successfully" classname="e2e Suite" time="0">
+          <skipped></skipped>
+      </testcase>
+      <testcase name="Postgres Test Snapshot In S3 should take Snapshot successfully" classname="e2e Suite" time="0">
+          <skipped></skipped>
+      </testcase>
       <testcase name="Postgres Test Snapshot In GCS should take Snapshot successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
@@ -16,14 +22,32 @@
       <testcase name="Postgres Test Snapshot In Swift should take Snapshot successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="Postgres Test Initialize With Script should run successfully" classname="e2e Suite" time="39.641742171"></testcase>
-      <testcase name="Postgres Test Initialize With Snapshot should run successfully" classname="e2e Suite" time="143.879399192">
-          <failure type="Failure">/home/shahriar/go/src/github.com/kubedb/postgres/test/e2e/postgres_test.go:402&#xA;Expected error:&#xA;    &lt;*errors.errorString | 0xc420016120&gt;: {s: &#34;EOF&#34;}&#xA;    EOF&#xA;not to have occurred&#xA;/home/shahriar/go/src/github.com/kubedb/postgres/test/e2e/framework/postgres.go:125</failure>
-          <system-out>[BeforeEach] Postgres&#xA;  /home/shahriar/go/src/github.com/kubedb/postgres/test/e2e/postgres_test.go:44&#xA;[BeforeEach] With Snapshot&#xA;  /home/shahriar/go/src/github.com/kubedb/postgres/test/e2e/postgres_test.go:342&#xA;[It] should run successfully&#xA;  /home/shahriar/go/src/github.com/kubedb/postgres/test/e2e/postgres_test.go:402&#xA;�[1mSTEP�[0m: Create Postgres: postgres-fehgo5&#xA;�[1mSTEP�[0m: Wait for Running postgres&#xA;�[1mSTEP�[0m: Check for Postgres client&#xA;�[1mSTEP�[0m: Creating Table&#xA;�[1mSTEP�[0m: Checking Table&#xA;�[1mSTEP�[0m: Create Secret&#xA;�[1mSTEP�[0m: Create Snapshot&#xA;�[1mSTEP�[0m: Check for Succeeded snapshot&#xA;�[1mSTEP�[0m: Check for snapshot data&#xA;�[1mSTEP�[0m: Create postgres from snapshot&#xA;�[1mSTEP�[0m: Create Postgres: postgres-anxe7v&#xA;�[1mSTEP�[0m: Wait for Running postgres&#xA;�[1mSTEP�[0m: Check for Postgres client&#xA;�[1mSTEP�[0m: Checking Table&#xA;[AfterEach] Postgres&#xA;  /home/shahriar/go/src/github.com/kubedb/postgres/test/e2e/postgres_test.go:98&#xA;�[1mSTEP�[0m: Delete postgres: postgres-anxe7v&#xA;�[1mSTEP�[0m: Wait for postgres to be paused&#xA;�[1mSTEP�[0m: WipeOut postgres: postgres-anxe7v&#xA;�[1mSTEP�[0m: Wait for postgres to be wipedOut&#xA;�[1mSTEP�[0m: Delete postgres: postgres-fehgo5&#xA;�[1mSTEP�[0m: Wait for postgres to be paused&#xA;�[1mSTEP�[0m: WipeOut postgres: postgres-fehgo5&#xA;�[1mSTEP�[0m: Wait for postgres to be wipedOut&#xA;�[1mSTEP�[0m: Check for snapshot data&#xA;</system-out>
+      <testcase name="Postgres Test Initialize With Script should run successfully" classname="e2e Suite" time="0">
+          <skipped></skipped>
       </testcase>
-      <testcase name="Postgres Test Resume - should resume DormantDatabase successfully" classname="e2e Suite" time="64.931503823"></testcase>
-      <testcase name="Postgres Test Resume With Init should resume DormantDatabase successfully" classname="e2e Suite" time="58.442642229"></testcase>
-      <testcase name="Postgres Test Resume With original Postgres should resume DormantDatabase successfully" classname="e2e Suite" time="82.953629753"></testcase>
-      <testcase name="Postgres Test Resume With original Postgres with init should resume DormantDatabase successfully" classname="e2e Suite" time="128.464491978"></testcase>
-      <testcase name="Postgres Test SnapshotScheduler With Startup should run schedular successfully" classname="e2e Suite" time="150.122656346"></testcase>
+      <testcase name="Postgres Test Initialize With Snapshot should run successfully" classname="e2e Suite" time="0">
+          <skipped></skipped>
+      </testcase>
+      <testcase name="Postgres Test Resume - should resume DormantDatabase successfully" classname="e2e Suite" time="0">
+          <skipped></skipped>
+      </testcase>
+      <testcase name="Postgres Test Resume With Init should resume DormantDatabase successfully" classname="e2e Suite" time="0">
+          <skipped></skipped>
+      </testcase>
+      <testcase name="Postgres Test Resume With original Postgres should resume DormantDatabase successfully" classname="e2e Suite" time="0">
+          <skipped></skipped>
+      </testcase>
+      <testcase name="Postgres Test Resume With original Postgres with init should resume DormantDatabase successfully" classname="e2e Suite" time="0">
+          <skipped></skipped>
+      </testcase>
+      <testcase name="Postgres Test SnapshotScheduler With Startup should run schedular successfully" classname="e2e Suite" time="0">
+          <skipped></skipped>
+      </testcase>
+      <testcase name="Postgres Test SnapshotScheduler With Update should run schedular successfully" classname="e2e Suite" time="0">
+          <skipped></skipped>
+      </testcase>
+      <testcase name="Postgres Test Archive with wal-g should archive successfully" classname="e2e Suite" time="43.30342523">
+          <failure type="Failure">/home/shahriar/go/src/github.com/kubedb/postgres/test/e2e/postgres_test.go:734&#xA;Expected error:&#xA;    &lt;*errors.errorString | 0xc420072020&gt;: {s: &#34;EOF&#34;}&#xA;    EOF&#xA;not to have occurred&#xA;/home/shahriar/go/src/github.com/kubedb/postgres/test/e2e/postgres_test.go:634</failure>
+          <system-out>[BeforeEach] Postgres&#xA;  /home/shahriar/go/src/github.com/kubedb/postgres/test/e2e/postgres_test.go:44&#xA;[BeforeEach] Archive with wal-g&#xA;  /home/shahriar/go/src/github.com/kubedb/postgres/test/e2e/postgres_test.go:617&#xA;[It] should archive successfully&#xA;  /home/shahriar/go/src/github.com/kubedb/postgres/test/e2e/postgres_test.go:734&#xA;�[1mSTEP�[0m: Create Postgres: postgres-lsmyoo&#xA;�[1mSTEP�[0m: Wait for Running postgres&#xA;�[1mSTEP�[0m: Check for Postgres client&#xA;[AfterEach] Postgres&#xA;  /home/shahriar/go/src/github.com/kubedb/postgres/test/e2e/postgres_test.go:98&#xA;�[1mSTEP�[0m: Delete postgres: postgres-lsmyoo&#xA;�[1mSTEP�[0m: Wait for postgres to be paused&#xA;�[1mSTEP�[0m: WipeOut postgres: postgres-lsmyoo&#xA;�[1mSTEP�[0m: Wait for postgres to be wipedOut&#xA;</system-out>
+      </testcase>
   </testsuite>

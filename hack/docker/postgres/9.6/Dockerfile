@@ -1,4 +1,4 @@
-FROM postgres:9.6.5-alpine
+FROM postgres:9.6-alpine
 
 RUN apk update && apk add ca-certificates && rm -rf /var/cache/apk/*
 
