@@ -17,6 +17,7 @@ show_help() {
     echo "    --bucket=BUCKET                name of bucket"
     echo "    --folder=FOLDER                name of folder in bucket"
     echo "    --snapshot=SNAPSHOT            name of snapshot"
+    echo "    --analytics=ENABLE_ANALYTICS   send analytical events to Google Analytics (default true)"
 }
 
 RETVAL=0
@@ -31,6 +32,7 @@ DB_FOLDER=${DB_FOLDER:-}
 DB_SNAPSHOT=${DB_SNAPSHOT:-}
 DB_DATA_DIR=${DB_DATA_DIR:-/var/data}
 OSM_CONFIG_FILE=/etc/osm/config
+ENABLE_ANALYTICS=${ENABLE_ANALYTICS:-true}
 
 op=$1
 shift
@@ -59,6 +61,10 @@ while test $# -gt 0; do
             ;;
         --snapshot*)
             export DB_SNAPSHOT=`echo $1 | sed -e 's/^[^=]*=//g'`
+            shift
+            ;;
+        --analytics*)
+            export ENABLE_ANALYTICS=`echo $1 | sed -e 's/^[^=]*=//g'`
             shift
             ;;
         *)
@@ -90,10 +96,10 @@ while ! nc "$DB_HOST" "$DB_PORT" -w 30 > /dev/null; do echo "Waiting... database
 case "$op" in
     backup)
         PGPASSWORD="$POSTGRES_PASSWORD" pg_dumpall -U "$DB_USER" -h "$DB_HOST" > dumpfile.sql || exit_on_error "failed to take backup"
-        osm push --osmconfig="$OSM_CONFIG_FILE" -c "$DB_BUCKET" "$DB_DATA_DIR" "$DB_FOLDER/$DB_SNAPSHOT" || exit_on_error "failed to push data"
+        osm push --analytics="$ENABLE_ANALYTICS" --osmconfig="$OSM_CONFIG_FILE" -c "$DB_BUCKET" "$DB_DATA_DIR" "$DB_FOLDER/$DB_SNAPSHOT" || exit_on_error "failed to push data"
         ;;
     restore)
-        osm pull --osmconfig="$OSM_CONFIG_FILE" -c "$DB_BUCKET" "$DB_FOLDER/$DB_SNAPSHOT" "$DB_DATA_DIR" || exit_on_error "failed to pull data"
+        osm pull --analytics="$ENABLE_ANALYTICS" --osmconfig="$OSM_CONFIG_FILE" -c "$DB_BUCKET" "$DB_FOLDER/$DB_SNAPSHOT" "$DB_DATA_DIR" || exit_on_error "failed to pull data"
         PGPASSWORD="$POSTGRES_PASSWORD" psql -U "$DB_USER" -h "$DB_HOST"  -f dumpfile.sql postgres || exit_on_error "failed to restore backup"
         ;;
     *)  (10)

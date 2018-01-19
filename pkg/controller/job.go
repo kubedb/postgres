@@ -60,6 +60,7 @@ func (c *Controller) createRestoreJob(postgres *api.Postgres, snapshot *api.Snap
 								fmt.Sprintf(`--bucket=%s`, bucket),
 								fmt.Sprintf(`--folder=%s`, folderName),
 								fmt.Sprintf(`--snapshot=%s`, snapshot.Name),
+								fmt.Sprintf("--analytics=%v", c.opt.EnableAnalytics),
 							},
 							Env: []core.EnvVar{
 								{
@@ -127,7 +128,7 @@ func (c *Controller) createRestoreJob(postgres *api.Postgres, snapshot *api.Snap
 	return c.Client.BatchV1().Jobs(postgres.Namespace).Create(job)
 }
 
-func (c *Controller) getSnapshotterJob(snapshot *api.Snapshot) (*batch.Job, error) {
+func (c *Controller) GetSnapshotter(snapshot *api.Snapshot) (*batch.Job, error) {
 	postgres, err := c.ExtClient.Postgreses(snapshot.Namespace).Get(snapshot.Spec.DatabaseName, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
@@ -172,6 +173,7 @@ func (c *Controller) getSnapshotterJob(snapshot *api.Snapshot) (*batch.Job, erro
 								fmt.Sprintf(`--bucket=%s`, bucket),
 								fmt.Sprintf(`--folder=%s`, folderName),
 								fmt.Sprintf(`--snapshot=%s`, snapshot.Name),
+								fmt.Sprintf("--analytics=%v", c.opt.EnableAnalytics),
 							},
 							Env: []core.EnvVar{
 								{

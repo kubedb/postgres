@@ -5,6 +5,7 @@ import (
 
 	"github.com/appscode/go/hold"
 	"github.com/appscode/go/log"
+	"github.com/appscode/go/log/golog"
 	apiext_util "github.com/appscode/kutil/apiextensions/v1beta1"
 	pcm "github.com/coreos/prometheus-operator/pkg/client/monitoring/v1"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
@@ -40,8 +41,12 @@ type Options struct {
 	EnableRbac bool
 	//Max number requests for retries
 	MaxNumRequeues int
+	// Enable Analytics
+	EnableAnalytics bool
 	// Analytics Client ID
 	AnalyticsClientID string
+	// Logger Options
+	LoggerOptions golog.Options
 }
 
 type Controller struct {
@@ -124,7 +129,7 @@ func (c *Controller) watchPostgres() {
 	stop := make(chan struct{})
 	defer close(stop)
 
-	c.runWatcher(1, stop)
+	c.runWatcher(5, stop)
 	select {}
 }
 

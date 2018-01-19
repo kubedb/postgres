@@ -7,9 +7,11 @@ import (
 	"time"
 
 	"github.com/appscode/go/log"
+	mon_api "github.com/appscode/kube-mon/api"
 	"github.com/appscode/kutil"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	kutildb "github.com/kubedb/apimachinery/client/typed/kubedb/v1alpha1/util"
+	"github.com/kubedb/apimachinery/pkg/docker"
 	"github.com/kubedb/apimachinery/pkg/eventer"
 	"github.com/kubedb/apimachinery/pkg/storage"
 	"github.com/kubedb/postgres/pkg/validator"
@@ -102,7 +104,8 @@ func (c *Controller) create(postgres *api.Postgres) error {
 		)
 	}
 
-	if vt2 == kutil.VerbCreated && postgres.Spec.Init != nil && postgres.Spec.Init.SnapshotSource != nil {
+	initSpec := postgres.Annotations[api.GenericInitSpec]
+	if initSpec == "" && postgres.Spec.Init != nil && postgres.Spec.Init.SnapshotSource != nil {
 		pg, _, err := kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
 			in.Status.Phase = api.DatabasePhaseInitializing
 			return in
@@ -134,6 +137,27 @@ func (c *Controller) create(postgres *api.Postgres) error {
 		postgres.Status = pg.Status
 	}
 
+	if postgres.Spec.Init != nil {
+		pg, _, err := kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
+			if in.Annotations == nil {
+				in.Annotations = make(map[string]string)
+			}
+
+			initSpec, err := json.Marshal(postgres.Spec.Init)
+			if err == nil {
+				in.Annotations[api.GenericInitSpec] = string(initSpec)
+			}
+			in.Spec.Init = nil
+			return in
+		})
+		if err != nil {
+			c.recorder.Eventf(postgres.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
+			return err
+		}
+		postgres.Annotations = pg.Annotations
+		postgres.Spec.Init = pg.Spec.Init
+	}
+
 	// Ensure Schedule backup
 	c.ensureBackupScheduler(postgres)
 
@@ -151,11 +175,16 @@ func (c *Controller) create(postgres *api.Postgres) error {
 	return nil
 }
 
+// Assign Default Monitoring Port if MonitoringSpec Exists
+// and the AgentVendor is Prometheus.
 func (c *Controller) setMonitoringPort(postgres *api.Postgres) error {
 	if postgres.Spec.Monitor != nil &&
-		postgres.Spec.Monitor.Prometheus != nil {
+		postgres.GetMonitoringVendor() == mon_api.VendorPrometheus {
+		if postgres.Spec.Monitor.Prometheus == nil {
+			postgres.Spec.Monitor.Prometheus = &mon_api.PrometheusSpec{}
+		}
 		if postgres.Spec.Monitor.Prometheus.Port == 0 {
-			es, _, err := kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
+			pg, _, err := kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
 				in.Spec.Monitor.Prometheus.Port = api.PrometheusExporterPortNumber
 				return in
 			})
@@ -169,7 +198,7 @@ func (c *Controller) setMonitoringPort(postgres *api.Postgres) error {
 				)
 				return err
 			}
-			postgres.Spec.Monitor = es.Spec.Monitor
+			postgres.Spec = pg.Spec
 		}
 	}
 	return nil
@@ -317,6 +346,10 @@ func (c *Controller) initialize(postgres *api.Postgres) error {
 	snapshot, err := c.ExtClient.Snapshots(namespace).Get(snapshotSource.Name, metav1.GetOptions{})
 	if err != nil {
 		return err
+	}
+
+	if err := docker.CheckDockerImageVersion(c.opt.Docker.GetToolsImage(postgres), string(postgres.Spec.Version)); err != nil {
+		return fmt.Errorf(`image %s not found`, c.opt.Docker.GetToolsImageWithTag(postgres))
 	}
 
 	secret, err := storage.NewOSMSecret(c.Client, snapshot)

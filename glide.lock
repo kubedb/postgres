@@ -1,5 +1,5 @@
 hash: 91c50b2afc1d71f2f2234badd0f11659f2f6b485bca12b802df7ebd07da1743d
-updated: 2018-01-16T14:32:12.180319398+06:00
+updated: 2018-01-18T15:33:58.966284064+06:00
 imports:
 - name: cloud.google.com/go
   version: fe3d41e1ecb2ce36ad3a979037c9b9a2b726226f
@@ -7,7 +7,7 @@ imports:
   - compute/metadata
   - internal
 - name: github.com/appscode/go
-  version: 34bdbcf2efa80c0948ac6ab9fc3b5b977e98a34d
+  version: aee9dd25c6354457ed532ae0d463e54e53151ad8
   subpackages:
   - analytics
   - context
@@ -32,7 +32,7 @@ imports:
   - agents/prometheusbuiltin
   - api
 - name: github.com/appscode/kutil
-  version: 1246ec828f2f5024b54a1fe84ad4afaf3de0ed37
+  version: de69f2e242cc9e4df5dcf41d0d314e5fce818154
   subpackages:
   - apiextensions/v1beta1
   - apps/v1beta1
@@ -234,7 +234,7 @@ imports:
 - name: github.com/juju/ratelimit
   version: 5b9ff866471762aa2ab2dced63c9fb6f53921342
 - name: github.com/kubedb/apimachinery
-  version: d8312d3dac5933b603138bdfb9e7418655960f2b
+  version: 2d0777c52da98b5efaa6fbfcfd45dcbdabb2fa84
   subpackages:
   - apis/kubedb
   - apis/kubedb/v1alpha1
@@ -250,11 +250,11 @@ imports:
   - pkg/storage
   - pkg/validator
 - name: github.com/kubernetes/apimachinery
-  version: d0c8c1c78cacdef77dfcc0ff70d9b7b01faeaf08
+  version: bc918d4f73e11cb3110730ec8e8ee02c58d6267c
   subpackages:
   - pkg/conversion
 - name: github.com/lib/pq
-  version: 83612a56d3dd153a94a629cd64925371c9adad78
+  version: 27ea5d92de30060e7121ddd543fe14e9a327e0cc
   subpackages:
   - oid
 - name: github.com/mailru/easyjson
@@ -274,7 +274,7 @@ imports:
   - idgen
   - signal
 - name: github.com/ncw/swift
-  version: 067578e41c8dd06bf557d02a92a77bd35e97c05a
+  version: ae9f0ea1605b9aa6434ed5c731ca35d83ba67c55
 - name: github.com/onsi/ginkgo
   version: 9eda700730cba42af70d53180f9dcce9266bc2bc
   subpackages:
@@ -412,7 +412,7 @@ imports:
   - unicode/norm
   - width
 - name: google.golang.org/api
-  version: de3aa2cfa7f1c18dcb7f91738099bad280117b8e
+  version: fa74edab4387514996aa08b9bc287882c18cb79a
   subpackages:
   - gensupport
   - googleapi

@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"encoding/json"
 	"errors"
 
 	"github.com/appscode/go/log"
@@ -139,17 +138,6 @@ func (c *Controller) createDormantDatabase(postgres *api.Postgres) (*api.Dormant
 			},
 		},
 	}
-
-	if postgres.Spec.Init != nil {
-		initSpec, err := json.Marshal(postgres.Spec.Init)
-		if err == nil {
-			dormantDb.Annotations = map[string]string{
-				api.GenericInitSpec: string(initSpec),
-			}
-		}
-	}
-
-	dormantDb.Spec.Origin.Spec.Postgres.Init = nil
 
 	return c.ExtClient.DormantDatabases(dormantDb.Namespace).Create(dormantDb)
 }

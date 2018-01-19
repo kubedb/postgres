@@ -7,7 +7,6 @@ import (
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/kubedb/apimachinery/pkg/docker"
 	amv "github.com/kubedb/apimachinery/pkg/validator"
-	batch "k8s.io/api/batch/v1"
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -39,10 +38,6 @@ func (c *Controller) GetDatabase(snapshot *api.Snapshot) (runtime.Object, error)
 	}
 
 	return postgres, nil
-}
-
-func (c *Controller) GetSnapshotter(snapshot *api.Snapshot) (*batch.Job, error) {
-	return c.getSnapshotterJob(snapshot)
 }
 
 func (c *Controller) WipeOutSnapshot(snapshot *api.Snapshot) error {

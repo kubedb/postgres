@@ -9,6 +9,7 @@ import (
 
 	"github.com/appscode/go/log"
 	stringz "github.com/appscode/go/strings"
+	"github.com/appscode/kutil/tools/analytics"
 	pcm "github.com/coreos/prometheus-operator/pkg/client/monitoring/v1"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	cs "github.com/kubedb/apimachinery/client/typed/kubedb/v1alpha1"
@@ -24,6 +25,21 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
+var (
+	opt = controller.Options{
+		Docker: docker.Docker{
+			Registry:    "kubedb",
+			ExporterTag: "canary",
+		},
+		OperatorNamespace: namespace(),
+		GoverningService:  "kubedb",
+		Address:           ":8080",
+		EnableRbac:        false,
+		EnableAnalytics:   true,
+		AnalyticsClientID: analytics.ClientID(),
+	}
+)
+
 func NewCmdRun(version string) *cobra.Command {
 	var (
 		masterURL          string
@@ -32,17 +48,7 @@ func NewCmdRun(version string) *cobra.Command {
 		prometheusCrdKinds = pcm.DefaultCrdKinds
 	)
 
-	opt := controller.Options{
-		Docker: docker.Docker{
-			Registry:    "kubedb",
-			ExporterTag: stringz.Val(version, "canary"),
-		},
-		OperatorNamespace: namespace(),
-		GoverningService:  "kubedb",
-		Address:           ":8080",
-		EnableRbac:        false,
-		AnalyticsClientID: analyticsClientID,
-	}
+	opt.Docker.ExporterTag = stringz.Val(version, opt.Docker.ExporterTag)
 
 	cmd := &cobra.Command{
 		Use:               "run",
@@ -101,10 +107,10 @@ func NewCmdRun(version string) *cobra.Command {
 	cmd.Flags().StringVar(&opt.Address, "address", opt.Address, "Address to listen on for web interface and telemetry.")
 	cmd.Flags().BoolVar(&opt.EnableRbac, "rbac", opt.EnableRbac, "Enable RBAC for database workloads")
 
-	flagset := flag.CommandLine
-	flagset.StringVar(&prometheusCrdGroup, "prometheus-crd-apigroup", prometheusCrdGroup, "prometheus CRD  API group name")
-	flagset.Var(&prometheusCrdKinds, "prometheus-crd-kinds", " - EXPERIMENTAL (could be removed in future releases) - customize CRD kind names")
-	cmd.Flags().AddGoFlagSet(flagset)
+	fs := flag.NewFlagSet("prometheus", flag.ExitOnError)
+	fs.StringVar(&prometheusCrdGroup, "prometheus-crd-apigroup", prometheusCrdGroup, "prometheus CRD  API group name")
+	fs.Var(&prometheusCrdKinds, "prometheus-crd-kinds", " - EXPERIMENTAL (could be removed in future releases) - customize CRD kind names")
+	cmd.Flags().AddGoFlagSet(fs)
 
 	return cmd
 }
