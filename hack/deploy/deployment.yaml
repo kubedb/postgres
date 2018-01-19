@@ -16,8 +16,8 @@ spec:
         run: pg-operator
     spec:
       containers:
-      - name: operator
-        image: kubedb/pg-operator:canary
+      - name: kubedb-pg
+        image: kubedb/pg-operator:0.8.0-beta.0
         args:
         - run
         - --v=4
