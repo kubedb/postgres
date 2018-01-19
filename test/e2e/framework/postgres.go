@@ -6,7 +6,6 @@ import (
 	"github.com/appscode/go/crypto/rand"
 	"github.com/appscode/go/encoding/json/types"
 	core_util "github.com/appscode/kutil/core/v1"
-	"github.com/go-xorm/xorm"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	kutildb "github.com/kubedb/apimachinery/client/typed/kubedb/v1alpha1/util"
 	. "github.com/onsi/gomega"
@@ -94,53 +93,6 @@ func (f *Framework) EventuallyPostgresRunning(meta metav1.ObjectMeta) GomegaAsyn
 			postgres, err := f.extClient.Postgreses(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
 			Expect(err).NotTo(HaveOccurred())
 			return postgres.Status.Phase == api.DatabasePhaseRunning
-		},
-		time.Minute*5,
-		time.Second*5,
-	)
-}
-
-func (f *Framework) EventuallyPostgresClientReady(meta metav1.ObjectMeta) GomegaAsyncAssertion {
-	return Eventually(
-		func() bool {
-			db, err := f.GetPostgresClient(meta)
-			if err != nil {
-				return false
-			}
-
-			if err := f.CheckPostgres(db); err != nil {
-				return false
-			}
-			return true
-		},
-		time.Minute*5,
-		time.Second*5,
-	)
-}
-
-func (f *Framework) EventuallyPostgresTableCount(db *xorm.Engine) GomegaAsyncAssertion {
-	return Eventually(
-		func() int {
-			count, err := f.CountTable(db)
-			Expect(err).NotTo(HaveOccurred())
-			if err != nil {
-				return -1
-			}
-			return count
-		},
-		time.Minute*5,
-		time.Second*5,
-	)
-}
-
-func (f *Framework) EventuallyPostgresArchiveCount(db *xorm.Engine) GomegaAsyncAssertion {
-	return Eventually(
-		func() int {
-			count, err := f.CountArchive(db)
-			if err != nil {
-				return -1
-			}
-			return count
 		},
 		time.Minute*5,
 		time.Second*5,

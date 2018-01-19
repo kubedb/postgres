@@ -66,11 +66,14 @@ func (c *Controller) ensureStatefulSet(
 			}
 		}
 
-		if postgres.Spec.Init != nil && postgres.Spec.Init.PostgresWAL != nil {
-			in = upsertInitWalSecret(in, postgres.Spec.Init.PostgresWAL.StorageSecretName)
-		}
-		if postgres.Spec.Init != nil && postgres.Spec.Init.ScriptSource != nil {
-			in = upsertInitScript(in, postgres.Spec.Init.ScriptSource.VolumeSource)
+		initSpec := postgres.Annotations[api.GenericInitSpec]
+		if initSpec == "" {
+			if postgres.Spec.Init != nil && postgres.Spec.Init.PostgresWAL != nil {
+				in = upsertInitWalSecret(in, postgres.Spec.Init.PostgresWAL.StorageSecretName)
+			}
+			if postgres.Spec.Init != nil && postgres.Spec.Init.ScriptSource != nil {
+				in = upsertInitScript(in, postgres.Spec.Init.ScriptSource.VolumeSource)
+			}
 		}
 
 		in = upsertDataVolume(in, postgres)
@@ -165,20 +168,23 @@ func (c *Controller) ensureCombinedNode(postgres *api.Postgres) (kutil.VerbType,
 		}
 	}
 
-	if postgres.Spec.Init != nil && postgres.Spec.Init.PostgresWAL != nil {
-		wal := postgres.Spec.Init.PostgresWAL
-		envList = append(envList,
-			[]core.EnvVar{
-				{
-					Name:  "RESTORE",
-					Value: "true",
-				},
-				{
-					Name:  "RESTORE_S3_PREFIX",
-					Value: fmt.Sprintf("s3://%v/%v", wal.S3.Bucket, wal.S3.Prefix),
-				},
-			}...,
-		)
+	if postgres.Spec.Init != nil {
+		restoreStorage := postgres.Spec.Init.PostgresWAL
+		if restoreStorage != nil {
+			wal := postgres.Spec.Init.PostgresWAL
+			envList = append(envList,
+				[]core.EnvVar{
+					{
+						Name:  "RESTORE",
+						Value: "true",
+					},
+					{
+						Name:  "RESTORE_S3_PREFIX",
+						Value: fmt.Sprintf("s3://%v/%v", wal.S3.Bucket, wal.S3.Prefix),
+					},
+				}...,
+			)
+		}
 	}
 
 	return c.ensureStatefulSet(postgres, envList)

@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-  <testsuite tests="2" failures="1" time="161.050257421">
+  <testsuite tests="1" failures="1" time="68.12678307">
       <testcase name="Postgres Test General - should run successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="Postgres Test General With PVC should run successfully" classname="e2e Suite" time="111.268180004"></testcase>
+      <testcase name="Postgres Test General With PVC should run successfully" classname="e2e Suite" time="0">
+          <skipped></skipped>
+      </testcase>
       <testcase name="Postgres Test DoNotPause should work successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
@@ -46,8 +48,8 @@
       <testcase name="Postgres Test SnapshotScheduler With Update should run schedular successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="Postgres Test Archive with wal-g should archive successfully" classname="e2e Suite" time="43.30342523">
-          <failure type="Failure">/home/shahriar/go/src/github.com/kubedb/postgres/test/e2e/postgres_test.go:734&#xA;Expected error:&#xA;    &lt;*errors.errorString | 0xc420072020&gt;: {s: &#34;EOF&#34;}&#xA;    EOF&#xA;not to have occurred&#xA;/home/shahriar/go/src/github.com/kubedb/postgres/test/e2e/postgres_test.go:634</failure>
-          <system-out>[BeforeEach] Postgres&#xA;  /home/shahriar/go/src/github.com/kubedb/postgres/test/e2e/postgres_test.go:44&#xA;[BeforeEach] Archive with wal-g&#xA;  /home/shahriar/go/src/github.com/kubedb/postgres/test/e2e/postgres_test.go:617&#xA;[It] should archive successfully&#xA;  /home/shahriar/go/src/github.com/kubedb/postgres/test/e2e/postgres_test.go:734&#xA;�[1mSTEP�[0m: Create Postgres: postgres-lsmyoo&#xA;�[1mSTEP�[0m: Wait for Running postgres&#xA;�[1mSTEP�[0m: Check for Postgres client&#xA;[AfterEach] Postgres&#xA;  /home/shahriar/go/src/github.com/kubedb/postgres/test/e2e/postgres_test.go:98&#xA;�[1mSTEP�[0m: Delete postgres: postgres-lsmyoo&#xA;�[1mSTEP�[0m: Wait for postgres to be paused&#xA;�[1mSTEP�[0m: WipeOut postgres: postgres-lsmyoo&#xA;�[1mSTEP�[0m: Wait for postgres to be wipedOut&#xA;</system-out>
+      <testcase name="Postgres Test Archive with wal-g should archive successfully" classname="e2e Suite" time="60.327456449">
+          <failure type="Failure">/home/shahriar/go/src/github.com/kubedb/postgres/test/e2e/postgres_test.go:737&#xA;Expected error:&#xA;    &lt;*errors.errorString | 0xc420016120&gt;: {s: &#34;EOF&#34;}&#xA;    EOF&#xA;not to have occurred&#xA;/home/shahriar/go/src/github.com/kubedb/postgres/test/e2e/postgres_test.go:635</failure>
+          <system-out>[BeforeEach] Postgres&#xA;  /home/shahriar/go/src/github.com/kubedb/postgres/test/e2e/postgres_test.go:45&#xA;[BeforeEach] Archive with wal-g&#xA;  /home/shahriar/go/src/github.com/kubedb/postgres/test/e2e/postgres_test.go:618&#xA;[It] should archive successfully&#xA;  /home/shahriar/go/src/github.com/kubedb/postgres/test/e2e/postgres_test.go:737&#xA;�[1mSTEP�[0m: Create Postgres: postgres-3thy2m&#xA;�[1mSTEP�[0m: Wait for Running postgres&#xA;�[1mSTEP�[0m: Check for Postgres client&#xA;[AfterEach] Postgres&#xA;  /home/shahriar/go/src/github.com/kubedb/postgres/test/e2e/postgres_test.go:99&#xA;�[1mSTEP�[0m: Delete postgres: postgres-3thy2m&#xA;�[1mSTEP�[0m: Wait for postgres to be paused&#xA;�[1mSTEP�[0m: WipeOut postgres: postgres-3thy2m&#xA;�[1mSTEP�[0m: Wait for postgres to be wipedOut&#xA;</system-out>
       </testcase>
   </testsuite>

@@ -198,7 +198,7 @@ func (c *Controller) setMonitoringPort(postgres *api.Postgres) error {
 				)
 				return err
 			}
-			postgres.Spec = pg.Spec
+			postgres.Spec.Monitor = pg.Spec.Monitor
 		}
 	}
 	return nil

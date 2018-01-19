@@ -1,6 +1,7 @@
-FROM postgres:9.6-alpine
+FROM postgres:9.6.6-alpine
 
-RUN apk update && apk add ca-certificates && rm -rf /var/cache/apk/*
+RUN set -x \
+  && apk add --update --no-cache ca-certificates
 
 ENV PV /var/pv
 ENV PGDATA /var/pv/data

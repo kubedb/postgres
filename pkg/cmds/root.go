@@ -5,10 +5,13 @@ import (
 	"log"
 	"strings"
 
+	"github.com/appscode/go/log/golog"
 	v "github.com/appscode/go/version"
 	"github.com/jpillora/go-ogle-analytics"
+	"github.com/kubedb/apimachinery/client/scheme"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	clientsetscheme "k8s.io/client-go/kubernetes/scheme"
 )
 
 const (
@@ -30,6 +33,8 @@ func NewRootCmd(version string) *cobra.Command {
 					client.Send(ga.NewEvent(parts[0], strings.Join(parts[1:], "/")).Label(version))
 				}
 			}
+			scheme.AddToScheme(clientsetscheme.Scheme)
+			opt.LoggerOptions = golog.ParseFlags(c.Flags())
 		},
 	}
 	rootCmd.PersistentFlags().AddGoFlagSet(flag.CommandLine)

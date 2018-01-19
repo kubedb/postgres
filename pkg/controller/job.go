@@ -165,8 +165,9 @@ func (c *Controller) GetSnapshotter(snapshot *api.Snapshot) (*batch.Job, error) 
 				Spec: core.PodSpec{
 					Containers: []core.Container{
 						{
-							Name:  snapshotProcessBackup,
-							Image: c.opt.Docker.GetToolsImageWithTag(postgres),
+							Name:            snapshotProcessBackup,
+							Image:           c.opt.Docker.GetToolsImageWithTag(postgres),
+							ImagePullPolicy: core.PullAlways,
 							Args: []string{
 								snapshotProcessBackup,
 								fmt.Sprintf(`--host=%s`, postgres.PrimaryName()),
