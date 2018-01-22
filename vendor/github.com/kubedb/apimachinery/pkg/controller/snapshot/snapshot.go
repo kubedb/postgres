@@ -5,12 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/appscode/go/log"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/kubedb/apimachinery/client/typed/kubedb/v1alpha1/util"
 	"github.com/kubedb/apimachinery/pkg/eventer"
 	"github.com/kubedb/apimachinery/pkg/storage"
-	batch "k8s.io/api/batch/v1"
 	core "k8s.io/api/core/v1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -96,7 +94,40 @@ func (c *Controller) create(snapshot *api.Snapshot) error {
 		return err
 	}
 
-	return c.checkSnapshotJob(snapshot, job.Name, durationCheckSnapshotJob)
+	snap, err = util.WaitUntilSnapshotCompletion(c.ExtClient, snapshot.ObjectMeta)
+	if err != nil {
+		return err
+	}
+
+	if snap.Status.Phase == api.SnapshotPhaseSucceeded {
+		c.eventRecorder.Event(
+			api.ObjectReferenceFor(runtimeObj),
+			core.EventTypeNormal,
+			eventer.EventReasonSuccessfulSnapshot,
+			"Successfully completed snapshot",
+		)
+		c.eventRecorder.Event(
+			snapshot.ObjectReference(),
+			core.EventTypeNormal,
+			eventer.EventReasonSuccessfulSnapshot,
+			"Successfully completed snapshot",
+		)
+	} else {
+		c.eventRecorder.Event(
+			api.ObjectReferenceFor(runtimeObj),
+			core.EventTypeWarning,
+			eventer.EventReasonSnapshotFailed,
+			"Failed to complete snapshot",
+		)
+		c.eventRecorder.Event(
+			snapshot.ObjectReference(),
+			core.EventTypeWarning,
+			eventer.EventReasonSnapshotFailed,
+			"Failed to complete snapshot",
+		)
+	}
+
+	return nil
 }
 
 func (c *Controller) delete(snapshot *api.Snapshot) error {
@@ -178,115 +209,6 @@ func (c *Controller) checkRunningSnapshot(snapshot *api.Snapshot) error {
 
 		return errors.New("one Snapshot is already Running")
 	}
-
-	return nil
-}
-
-func (c *Controller) checkSnapshotJob(snapshot *api.Snapshot, jobName string, checkDuration time.Duration) error {
-
-	var jobSuccess bool = false
-	var job *batch.Job
-	var err error
-	then := time.Now()
-	now := time.Now()
-	for now.Sub(then) < checkDuration {
-		log.Debugln("Checking for Job ", jobName)
-		job, err = c.Client.BatchV1().Jobs(snapshot.Namespace).Get(jobName, metav1.GetOptions{})
-		if err != nil {
-			if kerr.IsNotFound(err) {
-				time.Sleep(sleepDuration)
-				now = time.Now()
-				continue
-			}
-			c.eventRecorder.Eventf(
-				snapshot.ObjectReference(),
-				core.EventTypeWarning,
-				eventer.EventReasonFailedToList,
-				"Failed to get Job. Reason: %v",
-				err,
-			)
-			return err
-		}
-		log.Debugf("Pods Statuses:	%d Running / %d Succeeded / %d Failed",
-			job.Status.Active, job.Status.Succeeded, job.Status.Failed)
-		// If job is success
-		if job.Status.Succeeded > 0 {
-			jobSuccess = true
-			break
-		}
-
-		time.Sleep(sleepDuration)
-		now = time.Now()
-	}
-
-	if err != nil {
-		return err
-	}
-
-	c.DeleteJobResources(c.eventRecorder, snapshot, job)
-
-	err = c.Client.CoreV1().Secrets(snapshot.Namespace).Delete(snapshot.OSMSecretName(), &metav1.DeleteOptions{})
-	if err != nil && !kerr.IsNotFound(err) {
-		c.eventRecorder.Eventf(
-			snapshot.ObjectReference(),
-			core.EventTypeWarning,
-			eventer.EventReasonFailedToDelete,
-			"Failed to delete Secret. Reason: %v",
-			err,
-		)
-		log.Errorln(err)
-	}
-
-	runtimeObj, err := c.snapshotter.GetDatabase(snapshot)
-	if err != nil {
-		c.eventRecorder.Event(snapshot.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToGet, err.Error())
-		return err
-	}
-
-	var snapshotPhase api.SnapshotPhase
-	if jobSuccess {
-		snapshotPhase = api.SnapshotPhaseSuccessed
-		c.eventRecorder.Event(
-			api.ObjectReferenceFor(runtimeObj),
-			core.EventTypeNormal,
-			eventer.EventReasonSuccessfulSnapshot,
-			"Successfully completed snapshot",
-		)
-		c.eventRecorder.Event(
-			snapshot.ObjectReference(),
-			core.EventTypeNormal,
-			eventer.EventReasonSuccessfulSnapshot,
-			"Successfully completed snapshot",
-		)
-	} else {
-		snapshotPhase = api.SnapshotPhaseFailed
-		c.eventRecorder.Event(
-			api.ObjectReferenceFor(runtimeObj),
-			core.EventTypeWarning,
-			eventer.EventReasonSnapshotFailed,
-			"Failed to complete snapshot",
-		)
-		c.eventRecorder.Event(
-			snapshot.ObjectReference(),
-			core.EventTypeWarning,
-			eventer.EventReasonSnapshotFailed,
-			"Failed to complete snapshot",
-		)
-	}
-
-	snap, _, err := util.PatchSnapshot(c.ExtClient, snapshot, func(in *api.Snapshot) *api.Snapshot {
-		t := metav1.Now()
-		in.Status.CompletionTime = &t
-		delete(in.Labels, api.LabelSnapshotStatus)
-		in.Status.Phase = snapshotPhase
-		return in
-	})
-	if err != nil {
-		c.eventRecorder.Eventf(snapshot.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
-		return err
-	}
-	snapshot.Labels = snap.Labels
-	snapshot.Status = snap.Status
 
 	return nil
 }

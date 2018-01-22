@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
-	"time"
 
 	"github.com/appscode/go/log"
 	mon_api "github.com/appscode/kube-mon/api"
 	"github.com/appscode/kutil"
+	core_util "github.com/appscode/kutil/core/v1"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	kutildb "github.com/kubedb/apimachinery/client/typed/kubedb/v1alpha1/util"
 	"github.com/kubedb/apimachinery/pkg/docker"
@@ -324,10 +324,6 @@ func (c *Controller) ensureBackupScheduler(postgres *api.Postgres) {
 	}
 }
 
-const (
-	durationCheckRestoreJob = time.Minute * 30
-)
-
 func (c *Controller) initialize(postgres *api.Postgres) error {
 	snapshotSource := postgres.Spec.Init.SnapshotSource
 	// Event for notification that kubernetes objects are creating
@@ -356,8 +352,8 @@ func (c *Controller) initialize(postgres *api.Postgres) error {
 	if err != nil {
 		return err
 	}
-	_, err = c.Client.CoreV1().Secrets(secret.Namespace).Create(secret)
-	if err != nil && !kerr.IsAlreadyExists(err) {
+	secret, err = c.Client.CoreV1().Secrets(secret.Namespace).Create(secret)
+	if err != nil {
 		return err
 	}
 
@@ -366,8 +362,44 @@ func (c *Controller) initialize(postgres *api.Postgres) error {
 		return err
 	}
 
-	jobSuccess := c.CheckDatabaseRestoreJob(snapshot, job, postgres, c.recorder, durationCheckRestoreJob)
-	if jobSuccess {
+	_, _, err = core_util.PatchSecret(c.Client, secret, func(in *core.Secret) *core.Secret {
+		in.SetOwnerReferences([]metav1.OwnerReference{
+			{
+				APIVersion: job.APIVersion,
+				Kind:       job.Kind,
+				Name:       job.Name,
+				UID:        job.UID,
+			},
+		})
+		return in
+	})
+	if err != nil {
+		return err
+	}
+
+	pvc, err := c.Client.CoreV1().PersistentVolumeClaims(job.Namespace).Get(job.Name, metav1.GetOptions{})
+	if err != nil && !kerr.IsNotFound(err) {
+		return err
+	}
+	pvc.SetOwnerReferences([]metav1.OwnerReference{
+		{
+			APIVersion: job.APIVersion,
+			Kind:       job.Kind,
+			Name:       job.Name,
+			UID:        job.UID,
+		},
+	})
+	_, err = c.Client.CoreV1().PersistentVolumeClaims(job.Namespace).Update(pvc)
+	if err != nil {
+		return err
+	}
+
+	snap, err := kutildb.WaitUntilSnapshotCompletion(c.ExtClient, snapshot.ObjectMeta)
+	if err != nil {
+		return err
+	}
+
+	if snap.Status.Phase == api.SnapshotPhaseSucceeded {
 		c.recorder.Event(
 			postgres.ObjectReference(),
 			core.EventTypeNormal,

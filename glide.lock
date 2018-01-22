@@ -1,5 +1,5 @@
-hash: 91c50b2afc1d71f2f2234badd0f11659f2f6b485bca12b802df7ebd07da1743d
-updated: 2018-01-18T15:33:58.966284064+06:00
+hash: f4698a348e905b76599ae2452494aecb1ee47c8aaf8e307e7eff17e20e2008fd
+updated: 2018-01-22T14:29:11.481540601+06:00
 imports:
 - name: cloud.google.com/go
   version: fe3d41e1ecb2ce36ad3a979037c9b9a2b726226f
@@ -25,7 +25,7 @@ imports:
   - types
   - version
 - name: github.com/appscode/kube-mon
-  version: bbf9306e9c161e411f0ddc5d946e67a3685530ee
+  version: fcafde645b3a37f2f99edd8c93abfa64c880df28
   subpackages:
   - agents
   - agents/coreosprometheusoperator
@@ -234,7 +234,7 @@ imports:
 - name: github.com/juju/ratelimit
   version: 5b9ff866471762aa2ab2dced63c9fb6f53921342
 - name: github.com/kubedb/apimachinery
-  version: 2d0777c52da98b5efaa6fbfcfd45dcbdabb2fa84
+  version: 316f36b6e43b0c9461b5b14fbb75295c46e18804
   subpackages:
   - apis/kubedb
   - apis/kubedb/v1alpha1
@@ -243,6 +243,7 @@ imports:
   - client/typed/kubedb/v1alpha1/util
   - pkg/controller
   - pkg/controller/dormant_database
+  - pkg/controller/job
   - pkg/controller/snapshot
   - pkg/docker
   - pkg/eventer
@@ -250,7 +251,7 @@ imports:
   - pkg/storage
   - pkg/validator
 - name: github.com/kubernetes/apimachinery
-  version: bc918d4f73e11cb3110730ec8e8ee02c58d6267c
+  version: 2f1e02d3e57b8fb5206c5326bcb65217edc63a8e
   subpackages:
   - pkg/conversion
 - name: github.com/lib/pq
@@ -412,7 +413,7 @@ imports:
   - unicode/norm
   - width
 - name: google.golang.org/api
-  version: fa74edab4387514996aa08b9bc287882c18cb79a
+  version: bc96e9251952e80de14b88579b2e2e7d022ca939
   subpackages:
   - gensupport
   - googleapi

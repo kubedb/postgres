@@ -1,13 +1,11 @@
-package snapshot
+package job
 
 import (
 	"fmt"
 	"time"
 
 	"github.com/appscode/go/log"
-	core_util "github.com/appscode/kutil/core/v1"
-	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
-	"github.com/kubedb/apimachinery/client/typed/kubedb/v1alpha1/util"
+	batch "k8s.io/api/batch/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	rt "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/runtime"
@@ -20,7 +18,7 @@ import (
 func (c *Controller) initWatcher() {
 
 	// create the workqueue
-	c.queue = workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "snapshot")
+	c.queue = workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "job")
 
 	// Watch with label selector
 	lw := &cache.ListWatch{
@@ -33,39 +31,34 @@ func (c *Controller) initWatcher() {
 	}
 
 	// Bind the workqueue to a cache with the help of an informer. This way we make sure that
-	// whenever the cache is updated, the Snapshot key is added to the workqueue.
+	// whenever the cache is updated, the Job key is added to the workqueue.
 	// Note that when we finally process the item from the workqueue, we might see a newer version
-	// of the Snapshot than the version which was responsible for triggering the update.
-	c.indexer, c.informer = cache.NewIndexerInformer(lw, &api.Snapshot{}, c.syncPeriod, cache.ResourceEventHandlerFuncs{
-		AddFunc: func(obj interface{}) {
-			snapshot, ok := obj.(*api.Snapshot)
+	// of the Job than the version which was responsible for triggering the update.
+	c.indexer, c.informer = cache.NewIndexerInformer(lw, &batch.Job{}, c.syncPeriod, cache.ResourceEventHandlerFuncs{
+		DeleteFunc: func(obj interface{}) {
+			job, ok := obj.(*batch.Job)
 			if !ok {
-				log.Errorln("Invalid Snapshot object")
+				log.Errorln("Invalid Job object")
 				return
 			}
-			if snapshot.Status.StartTime == nil {
-				key, err := cache.MetaNamespaceKeyFunc(obj)
+
+			if len(job.Status.Conditions) == 0 {
+				// IndexerInformer uses a delta queue, therefore for deletes we have to use this
+				// key function.
+				key, err := cache.DeletionHandlingMetaNamespaceKeyFunc(obj)
 				if err == nil {
 					c.queue.Add(key)
 				}
 			}
 		},
-		DeleteFunc: func(obj interface{}) {
-			// IndexerInformer uses a delta queue, therefore for deletes we have to use this
-			// key function.
-			key, err := cache.DeletionHandlingMetaNamespaceKeyFunc(obj)
-			if err == nil {
-				c.queue.Add(key)
-			}
-		},
 		UpdateFunc: func(_, obj interface{}) {
-			snapshot, ok := obj.(*api.Snapshot)
+			job, ok := obj.(*batch.Job)
 			if !ok {
-				log.Errorln("Invalid Snapshot object")
+				log.Errorln("Invalid Job object")
 				return
 			}
-			if snapshot.DeletionTimestamp != nil {
-				key, err := cache.MetaNamespaceKeyFunc(snapshot)
+			if len(job.Status.Conditions) != 0 {
+				key, err := cache.MetaNamespaceKeyFunc(obj)
 				if err == nil {
 					c.queue.Add(key)
 				}
@@ -79,7 +72,7 @@ func (c *Controller) runWatcher(threadiness int, stopCh chan struct{}) {
 
 	// Let the workers stop when we are done
 	defer c.queue.ShutDown()
-	log.Infoln("Starting Snapshot Controller")
+	log.Infoln("Starting Job Controller")
 
 	go c.informer.Run(stopCh)
 
@@ -94,7 +87,7 @@ func (c *Controller) runWatcher(threadiness int, stopCh chan struct{}) {
 	}
 
 	<-stopCh
-	log.Infoln("Stopping Snapshot Controller")
+	log.Infoln("Stopping Job Controller")
 }
 
 func (c *Controller) runWorker() {
@@ -109,12 +102,12 @@ func (c *Controller) processNextItem() bool {
 		return false
 	}
 	// Tell the queue that we are done with processing this key. This unblocks the key for other workers
-	// This allows safe parallel processing because two Snapshots with the same key are never processed in
+	// This allows safe parallel processing because two Jobs with the same key are never processed in
 	// parallel.
 	defer c.queue.Done(key)
 
 	// Invoke the method containing the business logic
-	err := c.runSnapshot(key.(string))
+	err := c.runJob(key.(string))
 	if err == nil {
 		// Forget about the #AddRateLimited history of the key on every successful synchronization.
 		// This ensures that future processing of updates for this key is not delayed because of
@@ -123,7 +116,7 @@ func (c *Controller) processNextItem() bool {
 		log.Debugf("Finished Processing key: %v\n", key)
 		return true
 	}
-	log.Errorf("Failed to process Snapshot %v. Reason: %s\n", key, err)
+	log.Errorf("Failed to process Job %v. Reason: %s\n", key, err)
 
 	// This Controller retries 5 times if something goes wrong. After that, it stops trying.
 	if c.queue.NumRequeues(key) < c.maxNumRequests {
@@ -139,11 +132,11 @@ func (c *Controller) processNextItem() bool {
 	log.Debugf("Finished Processing key: %v\n", key)
 	// Report to an external entity that, even after several retries, we could not successfully process this key
 	runtime.HandleError(err)
-	log.Infof("Dropping Snapshot %q out of the queue: %v\n", key, err)
+	log.Infof("Dropping Job %q out of the queue: %v\n", key, err)
 	return true
 }
 
-func (c *Controller) runSnapshot(key string) error {
+func (c *Controller) runJob(key string) error {
 	log.Debugf("started processing, key: %v\n", key)
 	obj, exists, err := c.indexer.GetByKey(key)
 	if err != nil {
@@ -152,34 +145,14 @@ func (c *Controller) runSnapshot(key string) error {
 	}
 
 	if !exists {
-		log.Debugf("Snapshot %s does not exist anymore\n", key)
+		log.Debugf("Job %s does not exist anymore\n", key)
 	} else {
 		// Note that you also have to check the uid if you have a local controlled resource, which
-		// is dependent on the actual instance, to detect that a Snapshot was recreated with the same name
-		snapshot := obj.(*api.Snapshot).DeepCopy()
-		if snapshot.DeletionTimestamp != nil {
-			if core_util.HasFinalizer(snapshot.ObjectMeta, "kubedb.com") {
-				util.AssignTypeKind(snapshot)
-				if err := c.delete(snapshot); err != nil {
-					log.Errorln(err)
-					return err
-				}
-				snapshot, _, err = util.PatchSnapshot(c.ExtClient, snapshot, func(in *api.Snapshot) *api.Snapshot {
-					in.ObjectMeta = core_util.RemoveFinalizer(in.ObjectMeta, "kubedb.com")
-					return in
-				})
-				return err
-			}
-		} else {
-			snapshot, _, err = util.PatchSnapshot(c.ExtClient, snapshot, func(in *api.Snapshot) *api.Snapshot {
-				in.ObjectMeta = core_util.AddFinalizer(in.ObjectMeta, "kubedb.com")
-				return in
-			})
-			util.AssignTypeKind(snapshot)
-			if err := c.create(snapshot); err != nil {
-				log.Errorln(err)
-				return err
-			}
+		// is dependent on the actual instance, to detect that a Job was recreated with the same name
+		job := obj.(*batch.Job).DeepCopy()
+		if err := c.completeJob(job); err != nil {
+			log.Errorln(err)
+			return err
 		}
 	}
 	return nil

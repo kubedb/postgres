@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/appscode/go/crypto/rand"
+	"github.com/appscode/go/log"
 	"github.com/appscode/kutil/tools/analytics"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/kubedb/apimachinery/pkg/storage"
@@ -18,11 +19,15 @@ const (
 )
 
 func (c *Controller) createRestoreJob(postgres *api.Postgres, snapshot *api.Snapshot) (*batch.Job, error) {
-	jobName := rand.WithUniqSuffix(snapshot.OffshootName())
+	jobName := snapshot.OffshootName()
 	jobLabel := map[string]string{
+		api.LabelDatabaseKind: api.ResourceKindPostgres,
 		api.LabelDatabaseName: postgres.OffshootName(),
-		api.LabelJobType:      snapshotProcessRestore,
 	}
+	jobAnnotation := map[string]string{
+		api.AnnotationJobType: snapshotProcessRestore,
+	}
+
 	backupSpec := snapshot.Spec.SnapshotStorageSpec
 	bucket, err := backupSpec.Container()
 	if err != nil {
@@ -40,8 +45,15 @@ func (c *Controller) createRestoreJob(postgres *api.Postgres, snapshot *api.Snap
 
 	job := &batch.Job{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:   jobName,
-			Labels: jobLabel,
+			Name:        jobName,
+			Labels:      jobLabel,
+			Annotations: jobAnnotation,
+			OwnerReferences: []metav1.OwnerReference{
+				{
+					Kind: snapshot.Kind,
+					Name: snapshot.OffshootName(),
+				},
+			},
 		},
 		Spec: batch.JobSpec{
 			Template: core.PodTemplateSpec{
@@ -113,6 +125,7 @@ func (c *Controller) createRestoreJob(postgres *api.Postgres, snapshot *api.Snap
 			},
 		},
 	}
+
 	if snapshot.Spec.SnapshotStorageSpec.Local != nil {
 		job.Spec.Template.Spec.Containers[0].VolumeMounts = append(job.Spec.Template.Spec.Containers[0].VolumeMounts, core.VolumeMount{
 			Name:      "local",
@@ -125,7 +138,31 @@ func (c *Controller) createRestoreJob(postgres *api.Postgres, snapshot *api.Snap
 		}
 		job.Spec.Template.Spec.Volumes = append(job.Spec.Template.Spec.Volumes, volume)
 	}
-	return c.Client.BatchV1().Jobs(postgres.Namespace).Create(job)
+	job, err = c.Client.BatchV1().Jobs(postgres.Namespace).Create(job)
+	if err != nil {
+		return nil, err
+	}
+
+	if persistentVolume.PersistentVolumeClaim != nil {
+		pvc, err := c.Client.CoreV1().PersistentVolumeClaims(job.Namespace).Get(job.Name, metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+		pvc.SetOwnerReferences([]metav1.OwnerReference{
+			{
+				APIVersion: job.APIVersion,
+				Kind:       job.Kind,
+				Name:       job.Name,
+				UID:        job.UID,
+			},
+		})
+		_, err = c.Client.CoreV1().PersistentVolumeClaims(job.Namespace).Update(pvc)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return job, nil
 }
 
 func (c *Controller) GetSnapshotter(snapshot *api.Snapshot) (*batch.Job, error) {
@@ -135,8 +172,11 @@ func (c *Controller) GetSnapshotter(snapshot *api.Snapshot) (*batch.Job, error) 
 	}
 	jobName := rand.WithUniqSuffix(snapshot.OffshootName())
 	jobLabel := map[string]string{
+		api.LabelDatabaseKind: api.ResourceKindPostgres,
 		api.LabelDatabaseName: postgres.OffshootName(),
-		api.LabelJobType:      snapshotProcessBackup,
+	}
+	jobAnnotation := map[string]string{
+		api.AnnotationJobType: snapshotProcessBackup,
 	}
 	backupSpec := snapshot.Spec.SnapshotStorageSpec
 	bucket, err := backupSpec.Container()
@@ -154,8 +194,15 @@ func (c *Controller) GetSnapshotter(snapshot *api.Snapshot) (*batch.Job, error) 
 	folderName, _ := snapshot.Location()
 	job := &batch.Job{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:   jobName,
-			Labels: jobLabel,
+			Name:        jobName,
+			Labels:      jobLabel,
+			Annotations: jobAnnotation,
+			OwnerReferences: []metav1.OwnerReference{
+				{
+					Kind: snapshot.Kind,
+					Name: snapshot.OffshootName(),
+				},
+			},
 		},
 		Spec: batch.JobSpec{
 			Template: core.PodTemplateSpec{
@@ -240,4 +287,42 @@ func (c *Controller) GetSnapshotter(snapshot *api.Snapshot) (*batch.Job, error) 
 		})
 	}
 	return job, nil
+}
+
+func (c *Controller) getVolumeForSnapshot(pvcSpec *core.PersistentVolumeClaimSpec, jobName, namespace string) (*core.Volume, error) {
+	volume := &core.Volume{
+		Name: "tools",
+	}
+	if pvcSpec != nil {
+		if len(pvcSpec.AccessModes) == 0 {
+			pvcSpec.AccessModes = []core.PersistentVolumeAccessMode{
+				core.ReadWriteOnce,
+			}
+			log.Infof(`Using "%v" as AccessModes in "%v"`, core.ReadWriteOnce, *pvcSpec)
+		}
+
+		claim := &core.PersistentVolumeClaim{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      jobName,
+				Namespace: namespace,
+			},
+			Spec: *pvcSpec,
+		}
+		if pvcSpec.StorageClassName != nil {
+			claim.Annotations = map[string]string{
+				"volume.beta.kubernetes.io/storage-class": *pvcSpec.StorageClassName,
+			}
+		}
+
+		if _, err := c.Client.CoreV1().PersistentVolumeClaims(claim.Namespace).Create(claim); err != nil {
+			return nil, err
+		}
+
+		volume.PersistentVolumeClaim = &core.PersistentVolumeClaimVolumeSource{
+			ClaimName: claim.Name,
+		}
+	} else {
+		volume.EmptyDir = &core.EmptyDirVolumeSource{}
+	}
+	return volume, nil
 }

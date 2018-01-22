@@ -143,7 +143,7 @@ func (s *snapshotInvoker) validateScheduler(checkDuration time.Duration) error {
 			}
 		}
 
-		if snapshot.Status.Phase == api.SnapshotPhaseSuccessed {
+		if snapshot.Status.Phase == api.SnapshotPhaseSucceeded {
 			snapshotSuccess = true
 			break
 		}

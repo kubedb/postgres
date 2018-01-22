@@ -137,23 +137,10 @@ func (c *Controller) watchSnapshot() {
 	labelMap := map[string]string{
 		api.LabelDatabaseKind: api.ResourceKindPostgres,
 	}
-	// Watch with label selector
-	lw := &cache.ListWatch{
-		ListFunc: func(opts metav1.ListOptions) (runtime.Object, error) {
-			return c.ExtClient.Snapshots(metav1.NamespaceAll).List(
-				metav1.ListOptions{
-					LabelSelector: labels.SelectorFromSet(labelMap).String(),
-				})
-		},
-		WatchFunc: func(options metav1.ListOptions) (watch.Interface, error) {
-			return c.ExtClient.Snapshots(metav1.NamespaceAll).Watch(
-				metav1.ListOptions{
-					LabelSelector: labels.SelectorFromSet(labelMap).String(),
-				})
-		},
+	labelSelector := metav1.ListOptions{
+		LabelSelector: labels.SelectorFromSet(labelMap).String(),
 	}
-
-	snapc.NewController(c.Controller, c, lw, c.syncPeriod).Run()
+	snapc.NewController(c.Controller, c, labelSelector, c.syncPeriod).Run()
 }
 
 func (c *Controller) watchDormantDatabase() {

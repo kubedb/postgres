@@ -118,7 +118,7 @@ func (m *migrator) deleteTPRs(runtimeObjs ...api.ResourceInfo) error {
 	deleteTPR := func(runtime api.ResourceInfo) error {
 		name := runtime.ResourceName() + "." + api.SchemeGroupVersion.Group
 		if err := tprClient.Delete(name, &metav1.DeleteOptions{}); err != nil && !kerr.IsNotFound(err) {
-			return fmt.Errorf(`Failed to delete TPR "%s"`, name)
+			return fmt.Errorf(`failed to delete TPR "%s"`, name)
 		}
 		return nil
 	}
@@ -163,7 +163,7 @@ func (m *migrator) createCRD(runtime api.ResourceInfo) error {
 	crdClient := m.apiExtKubeClient.CustomResourceDefinitions()
 
 	if _, err := crdClient.Create(crd); err != nil && !kerr.IsAlreadyExists(err) {
-		return fmt.Errorf(`Failed to create CRD "%v"`, crd.Spec.Names.Kind)
+		return fmt.Errorf(`failed to create CRD "%v"`, crd.Spec.Names.Kind)
 	}
 
 	err := wait.Poll(500*time.Millisecond, 60*time.Second, func() (bool, error) {
@@ -183,7 +183,7 @@ func (m *migrator) createCRD(runtime api.ResourceInfo) error {
 				}
 			}
 		}
-		return false, fmt.Errorf(`Failed to get CustomResourceDefinition "%v"`, runtime.ResourceKind())
+		return false, fmt.Errorf(`failed to get CustomResourceDefinition "%v"`, runtime.ResourceKind())
 	})
 
 	return err
@@ -206,7 +206,7 @@ func (m *migrator) waitForCRDsReady(expectedCRD int) error {
 			return true, nil
 		}
 
-		return false, errors.New("Failed to get all CustomResourceDefinitions")
+		return false, errors.New("failed to get all CustomResourceDefinitions")
 	})
 }
 
@@ -227,7 +227,7 @@ func (m *migrator) rollback(runtimeObjs ...api.ResourceInfo) error {
 		log.Debugln("Creating TPRs.")
 		err := m.CreateTPRs()
 		if err != nil {
-			return fmt.Errorf("Failed to recreate TPR. Error: %v", err.Error())
+			return fmt.Errorf("failed to recreate TPR. Error: %v", err.Error())
 		}
 
 		err = m.WaitForTPRsReady(len(runtimeObjs))
@@ -245,7 +245,7 @@ func (m *migrator) deleteCRDs(runtimeObjs ...api.ResourceInfo) error {
 	deleteCRD := func(runtime api.ResourceInfo) error {
 		name := runtime.ResourceType() + "." + api.SchemeGroupVersion.Group
 		if err := crdClient.Delete(name, &metav1.DeleteOptions{}); err != nil && !kerr.IsNotFound(err) {
-			return fmt.Errorf(`Failed to delete CRD "%s""`, name)
+			return fmt.Errorf(`failed to delete CRD "%s""`, name)
 		}
 		return nil
 	}
@@ -318,6 +318,6 @@ func (m *migrator) WaitForTPRsReady(expectedTPR int) error {
 			return true, nil
 		}
 
-		return false, errors.New("Failed to get all ThirdPartyResources")
+		return false, errors.New("failed to get all ThirdPartyResources")
 	})
 }
