@@ -1,13 +1,14 @@
 package controller
 
 import (
-	"encoding/json"
 	"fmt"
 	"reflect"
 
 	"github.com/appscode/go/log"
 	mon_api "github.com/appscode/kube-mon/api"
 	"github.com/appscode/kutil"
+	core_util "github.com/appscode/kutil/core/v1"
+	meta_util "github.com/appscode/kutil/meta"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	kutildb "github.com/kubedb/apimachinery/client/typed/kubedb/v1alpha1/util"
 	"github.com/kubedb/apimachinery/pkg/docker"
@@ -103,8 +104,9 @@ func (c *Controller) create(postgres *api.Postgres) error {
 		)
 	}
 
-	initSpec := postgres.Annotations[api.AnnotationInitialized]
-	if initSpec == "" && postgres.Spec.Init != nil && postgres.Spec.Init.SnapshotSource != nil {
+	if _, err := meta_util.GetString(postgres.Annotations, api.AnnotationInitialized); err == kutil.ErrNotFound &&
+		postgres.Spec.Init != nil &&
+		postgres.Spec.Init.SnapshotSource != nil {
 		pg, _, err := kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
 			in.Status.Phase = api.DatabasePhaseInitializing
 			return in
@@ -136,24 +138,8 @@ func (c *Controller) create(postgres *api.Postgres) error {
 		postgres.Status = pg.Status
 	}
 
-	if postgres.Spec.Init != nil {
-		pg, _, err := kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
-			if in.Annotations == nil {
-				in.Annotations = make(map[string]string)
-			}
-
-			if err == nil {
-				in.Annotations[api.AnnotationInitialized] = "true"
-			}
-			in.Spec.Init = nil
-			return in
-		})
-		if err != nil {
-			c.recorder.Eventf(postgres.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
-			return err
-		}
-		postgres.Annotations = pg.Annotations
-		postgres.Spec.Init = pg.Spec.Init
+	if err := c.setInitializedAnnotation(postgres); err != nil {
+		return err
 	}
 
 	// Ensure Schedule backup
@@ -169,6 +155,23 @@ func (c *Controller) create(postgres *api.Postgres) error {
 		)
 		log.Errorln(err)
 		return nil
+	}
+	return nil
+}
+
+func (c *Controller) setInitializedAnnotation(postgres *api.Postgres) error {
+	if _, err := meta_util.GetString(postgres.Annotations, api.AnnotationInitialized); err == kutil.ErrNotFound &&
+		postgres.Spec.Init != nil {
+		pg, _, err := kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
+			in.Annotations = core_util.UpsertMap(in.Annotations, map[string]string{
+				api.AnnotationInitialized: "",
+			})
+			return in
+		})
+		if err != nil {
+			return err
+		}
+		postgres.Annotations = pg.Annotations
 	}
 	return nil
 }
@@ -237,34 +240,22 @@ func (c *Controller) matchDormantDatabase(postgres *api.Postgres) error {
 			postgres.Name, dormantDb.Name))
 	}
 
-	// Check InitSpec
-	initSpecAnnotationStr := dormantDb.Annotations[api.AnnotationInitialized]
-	if initSpecAnnotationStr != "" {
-		var initSpecAnnotation *api.InitSpec
-		if err := json.Unmarshal([]byte(initSpecAnnotationStr), &initSpecAnnotation); err != nil {
-			return sendEvent(err.Error())
-		}
-
-		if postgres.Spec.Init != nil {
-			if !reflect.DeepEqual(initSpecAnnotation, postgres.Spec.Init) {
-				return sendEvent("InitSpec mismatches with DormantDatabase annotation")
-			}
-		}
-	}
-
 	// Check Origin Spec
 	drmnOriginSpec := dormantDb.Spec.Origin.Spec.Postgres
 	originalSpec := postgres.Spec
-	originalSpec.Init = nil
 
 	if originalSpec.DatabaseSecret == nil {
 		originalSpec.DatabaseSecret = &core.SecretVolumeSource{
 			SecretName: postgres.Name + "-auth",
 		}
 	}
-
 	if !reflect.DeepEqual(drmnOriginSpec, &originalSpec) {
 		return sendEvent("Postgres spec mismatches with OriginSpec in DormantDatabases")
+	}
+
+	if err := c.setInitializedAnnotation(postgres); err != nil {
+		c.recorder.Eventf(postgres.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
+		return err
 	}
 
 	return kutildb.DeleteDormantDatabase(c.ExtClient, dormantDb.ObjectMeta)

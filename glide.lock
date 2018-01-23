@@ -1,5 +1,5 @@
-hash: f4698a348e905b76599ae2452494aecb1ee47c8aaf8e307e7eff17e20e2008fd
-updated: 2018-01-23T10:49:09.969965425+06:00
+hash: 91c50b2afc1d71f2f2234badd0f11659f2f6b485bca12b802df7ebd07da1743d
+updated: 2018-01-23T12:38:51.598279413+06:00
 imports:
 - name: cloud.google.com/go
   version: fe3d41e1ecb2ce36ad3a979037c9b9a2b726226f
@@ -234,7 +234,7 @@ imports:
 - name: github.com/juju/ratelimit
   version: 5b9ff866471762aa2ab2dced63c9fb6f53921342
 - name: github.com/kubedb/apimachinery
-  version: e11ff0f438c3da3535882294c26e94c391970f49
+  version: a76ad4331cea306b6996c488e0855f79552b2f2a
   subpackages:
   - apis/kubedb
   - apis/kubedb/v1alpha1
@@ -255,7 +255,7 @@ imports:
   subpackages:
   - pkg/conversion
 - name: github.com/lib/pq
-  version: 27ea5d92de30060e7121ddd543fe14e9a327e0cc
+  version: 61fe37aa2ee24fabcdbe5c4ac1d4ac566f88f345
   subpackages:
   - oid
 - name: github.com/mailru/easyjson

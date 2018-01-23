@@ -3,7 +3,6 @@ package e2e_test
 import (
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/appscode/go/types"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
@@ -214,7 +213,7 @@ var _ = Describe("Postgres", func() {
 				f.CreateSnapshot(snapshot)
 
 				By("Check for Succeeded snapshot")
-				f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(api.SnapshotPhaseSuccessed))
+				f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(api.SnapshotPhaseSucceeded))
 
 				if !skipSnapshotDataChecking {
 					By("Check for snapshot data")
@@ -343,7 +342,7 @@ var _ = Describe("Postgres", func() {
 					f.CreateSnapshot(snapshot)
 
 					By("Check for Succeeded snapshot")
-					f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(api.SnapshotPhaseSuccessed))
+					f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(api.SnapshotPhaseSucceeded))
 
 					By("Check for snapshot data")
 					f.EventuallySnapshotDataFound(snapshot).Should(BeTrue())
@@ -373,9 +372,9 @@ var _ = Describe("Postgres", func() {
 		})
 
 		Context("Resume", func() {
-			var usedInitSpec bool
+			var usedInitialized bool
 			BeforeEach(func() {
-				usedInitSpec = false
+				usedInitialized = false
 			})
 
 			var shouldResumeSuccessfully = func() {
@@ -404,9 +403,9 @@ var _ = Describe("Postgres", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				*postgres = *pg
-				if usedInitSpec {
-					Expect(postgres.Spec.Init).Should(BeNil())
-					Expect(postgres.Annotations[api.GenericInitSpec]).ShouldNot(BeEmpty())
+				if usedInitialized {
+					_, ok := postgres.Annotations[api.AnnotationInitialized]
+					Expect(ok).Should(BeTrue())
 				}
 			}
 
@@ -416,7 +415,7 @@ var _ = Describe("Postgres", func() {
 
 			Context("With Init", func() {
 				BeforeEach(func() {
-					usedInitSpec = true
+					usedInitialized = true
 					postgres.Spec.Init = &api.InitSpec{
 						ScriptSource: &api.ScriptSourceSpec{
 							VolumeSource: core.VolumeSource{
@@ -462,7 +461,7 @@ var _ = Describe("Postgres", func() {
 				})
 				Context("with init", func() {
 					BeforeEach(func() {
-						usedInitSpec = true
+						usedInitialized = true
 						postgres.Spec.Init = &api.InitSpec{
 							ScriptSource: &api.ScriptSourceSpec{
 								ScriptPath: "postgres-init-scripts/run.sh",
@@ -636,8 +635,6 @@ var _ = Describe("Postgres", func() {
 
 				// Create Postgres
 				createAndWaitForRunning()
-
-				time.Sleep(time.Hour)
 
 				By("Creating Table")
 				f.EventuallyCreateTable(postgres.ObjectMeta, 3).Should(BeTrue())
