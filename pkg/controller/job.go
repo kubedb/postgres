@@ -3,7 +3,6 @@ package controller
 import (
 	"fmt"
 
-	"github.com/appscode/go/crypto/rand"
 	"github.com/appscode/go/log"
 	"github.com/appscode/kutil/tools/analytics"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
@@ -19,10 +18,9 @@ const (
 )
 
 func (c *Controller) createRestoreJob(postgres *api.Postgres, snapshot *api.Snapshot) (*batch.Job, error) {
-	jobName := snapshot.OffshootName()
+	jobName := fmt.Sprintf("%s-%s", api.DatabaseNamePrefix, snapshot.OffshootName())
 	jobLabel := map[string]string{
 		api.LabelDatabaseKind: api.ResourceKindPostgres,
-		api.LabelDatabaseName: postgres.OffshootName(),
 	}
 	jobAnnotation := map[string]string{
 		api.AnnotationJobType: snapshotProcessRestore,
@@ -50,8 +48,10 @@ func (c *Controller) createRestoreJob(postgres *api.Postgres, snapshot *api.Snap
 			Annotations: jobAnnotation,
 			OwnerReferences: []metav1.OwnerReference{
 				{
-					Kind: snapshot.Kind,
-					Name: snapshot.OffshootName(),
+					APIVersion: api.SchemeGroupVersion.String(),
+					Kind:       api.ResourceKindSnapshot,
+					Name:       snapshot.Name,
+					UID:        snapshot.UID,
 				},
 			},
 		},
@@ -138,31 +138,7 @@ func (c *Controller) createRestoreJob(postgres *api.Postgres, snapshot *api.Snap
 		}
 		job.Spec.Template.Spec.Volumes = append(job.Spec.Template.Spec.Volumes, volume)
 	}
-	job, err = c.Client.BatchV1().Jobs(postgres.Namespace).Create(job)
-	if err != nil {
-		return nil, err
-	}
-
-	if persistentVolume.PersistentVolumeClaim != nil {
-		pvc, err := c.Client.CoreV1().PersistentVolumeClaims(job.Namespace).Get(job.Name, metav1.GetOptions{})
-		if err != nil {
-			return nil, err
-		}
-		pvc.SetOwnerReferences([]metav1.OwnerReference{
-			{
-				APIVersion: job.APIVersion,
-				Kind:       job.Kind,
-				Name:       job.Name,
-				UID:        job.UID,
-			},
-		})
-		_, err = c.Client.CoreV1().PersistentVolumeClaims(job.Namespace).Update(pvc)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return job, nil
+	return c.Client.BatchV1().Jobs(postgres.Namespace).Create(job)
 }
 
 func (c *Controller) GetSnapshotter(snapshot *api.Snapshot) (*batch.Job, error) {
@@ -170,10 +146,9 @@ func (c *Controller) GetSnapshotter(snapshot *api.Snapshot) (*batch.Job, error) 
 	if err != nil {
 		return nil, err
 	}
-	jobName := rand.WithUniqSuffix(snapshot.OffshootName())
+	jobName := fmt.Sprintf("%s-%s", api.DatabaseNamePrefix, snapshot.OffshootName())
 	jobLabel := map[string]string{
 		api.LabelDatabaseKind: api.ResourceKindPostgres,
-		api.LabelDatabaseName: postgres.OffshootName(),
 	}
 	jobAnnotation := map[string]string{
 		api.AnnotationJobType: snapshotProcessBackup,
@@ -199,8 +174,10 @@ func (c *Controller) GetSnapshotter(snapshot *api.Snapshot) (*batch.Job, error) 
 			Annotations: jobAnnotation,
 			OwnerReferences: []metav1.OwnerReference{
 				{
-					Kind: snapshot.Kind,
-					Name: snapshot.OffshootName(),
+					APIVersion: api.SchemeGroupVersion.String(),
+					Kind:       api.ResourceKindSnapshot,
+					Name:       snapshot.Name,
+					UID:        snapshot.UID,
 				},
 			},
 		},

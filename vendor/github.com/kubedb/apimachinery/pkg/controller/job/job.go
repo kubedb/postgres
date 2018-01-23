@@ -13,8 +13,17 @@ import (
 )
 
 func (c *Controller) completeJob(job *batch.Job) error {
+	var snapshotName string
+	for _, o := range job.OwnerReferences {
+		if o.Kind == api.ResourceKindSnapshot {
+			snapshotName = o.Name
+		}
+	}
+	if snapshotName == "" {
+		return fmt.Errorf(`resource Job "%s/%s" doesn't have any OwnerReference for Snapshot`, job.Namespace, job.Name)
+	}
 
-	snapshot, err := c.ExtClient.Snapshots(job.Namespace).Get(job.Name, metav1.GetOptions{})
+	snapshot, err := c.ExtClient.Snapshots(job.Namespace).Get(snapshotName, metav1.GetOptions{})
 	if err != nil {
 		return err
 	}

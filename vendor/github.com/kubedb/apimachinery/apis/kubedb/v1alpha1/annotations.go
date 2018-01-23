@@ -17,9 +17,8 @@ const (
 	SnapshotKey         = ResourceTypeSnapshot + "." + GenericKey
 	LabelSnapshotStatus = SnapshotKey + "/status"
 
-	GenericInitSpec = GenericKey + "/init"
-
-	AnnotationJobType = GenericKey + "/job-type"
+	AnnotationInitialized = GenericKey + "/initialized"
+	AnnotationJobType     = GenericKey + "/job-type"
 
 	PrometheusExporterPortNumber = 56790
 	PrometheusExporterPortName   = "prom-http"

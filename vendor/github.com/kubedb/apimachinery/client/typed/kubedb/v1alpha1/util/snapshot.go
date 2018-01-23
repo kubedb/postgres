@@ -79,7 +79,7 @@ func TryUpdateSnapshot(c cs.KubedbV1alpha1Interface, meta metav1.ObjectMeta, tra
 
 func WaitUntilSnapshotCompletion(c cs.KubedbV1alpha1Interface, meta metav1.ObjectMeta) (result *api.Snapshot, err error) {
 	err = wait.PollImmediate(kutil.RetryInterval, kutil.ReadinessTimeout, func() (bool, error) {
-		result, err := c.Snapshots(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
+		result, err = c.Snapshots(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
 		if err != nil {
 			return false, err
 		}

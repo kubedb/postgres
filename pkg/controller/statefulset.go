@@ -66,7 +66,7 @@ func (c *Controller) ensureStatefulSet(
 			}
 		}
 
-		initSpec := postgres.Annotations[api.GenericInitSpec]
+		initSpec := postgres.Annotations[api.AnnotationInitialized]
 		if initSpec == "" {
 			if postgres.Spec.Init != nil && postgres.Spec.Init.PostgresWAL != nil {
 				in = upsertInitWalSecret(in, postgres.Spec.Init.PostgresWAL.StorageSecretName)

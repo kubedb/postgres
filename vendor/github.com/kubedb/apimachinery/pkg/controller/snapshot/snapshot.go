@@ -17,11 +17,10 @@ import (
 
 const (
 	durationCheckSnapshotJob = time.Minute * 30
-	sleepDuration            = time.Second
 )
 
 func (c *Controller) create(snapshot *api.Snapshot) error {
-	_, _, err := util.PatchSnapshot(c.ExtClient, snapshot, func(in *api.Snapshot) *api.Snapshot {
+	snap, _, err := util.PatchSnapshot(c.ExtClient, snapshot, func(in *api.Snapshot) *api.Snapshot {
 		t := metav1.Now()
 		in.Status.StartTime = &t
 		return in
@@ -30,6 +29,7 @@ func (c *Controller) create(snapshot *api.Snapshot) error {
 		c.eventRecorder.Eventf(snapshot.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
 		return err
 	}
+	snapshot.Status = snap.Status
 
 	// Validate DatabaseSnapshot spec
 	if err := c.snapshotter.ValidateSnapshot(snapshot); err != nil {
@@ -48,19 +48,6 @@ func (c *Controller) create(snapshot *api.Snapshot) error {
 		c.eventRecorder.Event(snapshot.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToGet, err.Error())
 		return err
 	}
-
-	snap, _, err := util.PatchSnapshot(c.ExtClient, snapshot, func(in *api.Snapshot) *api.Snapshot {
-		in.Labels[api.LabelDatabaseName] = snapshot.Spec.DatabaseName
-		in.Labels[api.LabelSnapshotStatus] = string(api.SnapshotPhaseRunning)
-		in.Status.Phase = api.SnapshotPhaseRunning
-		return in
-	})
-	if err != nil {
-		c.eventRecorder.Eventf(snapshot.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
-		return err
-	}
-	snapshot.Labels = snap.Labels
-	snapshot.Status = snap.Status
 
 	c.eventRecorder.Event(api.ObjectReferenceFor(runtimeObj), core.EventTypeNormal, eventer.EventReasonStarting, "Backup running")
 	c.eventRecorder.Event(snapshot.ObjectReference(), core.EventTypeNormal, eventer.EventReasonStarting, "Backup running")
@@ -87,12 +74,30 @@ func (c *Controller) create(snapshot *api.Snapshot) error {
 		c.eventRecorder.Event(snapshot.ObjectReference(), core.EventTypeWarning, eventer.EventReasonSnapshotFailed, message)
 		return err
 	}
-	if _, err := c.Client.BatchV1().Jobs(snapshot.Namespace).Create(job); err != nil {
+	job, err = c.Client.BatchV1().Jobs(snapshot.Namespace).Create(job)
+	if err != nil {
 		message := fmt.Sprintf("Failed to take snapshot. Reason: %v", err)
 		c.eventRecorder.Event(api.ObjectReferenceFor(runtimeObj), core.EventTypeWarning, eventer.EventReasonSnapshotFailed, message)
 		c.eventRecorder.Event(snapshot.ObjectReference(), core.EventTypeWarning, eventer.EventReasonSnapshotFailed, message)
 		return err
 	}
+
+	if err := c.SetJobOwnerReference(snapshot, job); err != nil {
+		return err
+	}
+
+	snap, _, err = util.PatchSnapshot(c.ExtClient, snapshot, func(in *api.Snapshot) *api.Snapshot {
+		in.Labels[api.LabelDatabaseName] = snapshot.Spec.DatabaseName
+		in.Labels[api.LabelSnapshotStatus] = string(api.SnapshotPhaseRunning)
+		in.Status.Phase = api.SnapshotPhaseRunning
+		return in
+	})
+	if err != nil {
+		c.eventRecorder.Eventf(snapshot.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
+		return err
+	}
+	snapshot.Labels = snap.Labels
+	snapshot.Status = snap.Status
 
 	snap, err = util.WaitUntilSnapshotCompletion(c.ExtClient, snapshot.ObjectMeta)
 	if err != nil {

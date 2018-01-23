@@ -8,7 +8,6 @@ import (
 	"github.com/appscode/go/log"
 	mon_api "github.com/appscode/kube-mon/api"
 	"github.com/appscode/kutil"
-	core_util "github.com/appscode/kutil/core/v1"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	kutildb "github.com/kubedb/apimachinery/client/typed/kubedb/v1alpha1/util"
 	"github.com/kubedb/apimachinery/pkg/docker"
@@ -104,7 +103,7 @@ func (c *Controller) create(postgres *api.Postgres) error {
 		)
 	}
 
-	initSpec := postgres.Annotations[api.GenericInitSpec]
+	initSpec := postgres.Annotations[api.AnnotationInitialized]
 	if initSpec == "" && postgres.Spec.Init != nil && postgres.Spec.Init.SnapshotSource != nil {
 		pg, _, err := kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
 			in.Status.Phase = api.DatabasePhaseInitializing
@@ -143,9 +142,8 @@ func (c *Controller) create(postgres *api.Postgres) error {
 				in.Annotations = make(map[string]string)
 			}
 
-			initSpec, err := json.Marshal(postgres.Spec.Init)
 			if err == nil {
-				in.Annotations[api.GenericInitSpec] = string(initSpec)
+				in.Annotations[api.AnnotationInitialized] = "true"
 			}
 			in.Spec.Init = nil
 			return in
@@ -240,7 +238,7 @@ func (c *Controller) matchDormantDatabase(postgres *api.Postgres) error {
 	}
 
 	// Check InitSpec
-	initSpecAnnotationStr := dormantDb.Annotations[api.GenericInitSpec]
+	initSpecAnnotationStr := dormantDb.Annotations[api.AnnotationInitialized]
 	if initSpecAnnotationStr != "" {
 		var initSpecAnnotation *api.InitSpec
 		if err := json.Unmarshal([]byte(initSpecAnnotationStr), &initSpecAnnotation); err != nil {
@@ -362,35 +360,7 @@ func (c *Controller) initialize(postgres *api.Postgres) error {
 		return err
 	}
 
-	_, _, err = core_util.PatchSecret(c.Client, secret, func(in *core.Secret) *core.Secret {
-		in.SetOwnerReferences([]metav1.OwnerReference{
-			{
-				APIVersion: job.APIVersion,
-				Kind:       job.Kind,
-				Name:       job.Name,
-				UID:        job.UID,
-			},
-		})
-		return in
-	})
-	if err != nil {
-		return err
-	}
-
-	pvc, err := c.Client.CoreV1().PersistentVolumeClaims(job.Namespace).Get(job.Name, metav1.GetOptions{})
-	if err != nil && !kerr.IsNotFound(err) {
-		return err
-	}
-	pvc.SetOwnerReferences([]metav1.OwnerReference{
-		{
-			APIVersion: job.APIVersion,
-			Kind:       job.Kind,
-			Name:       job.Name,
-			UID:        job.UID,
-		},
-	})
-	_, err = c.Client.CoreV1().PersistentVolumeClaims(job.Namespace).Update(pvc)
-	if err != nil {
+	if err := c.SetJobOwnerReference(snapshot, job); err != nil {
 		return err
 	}
 

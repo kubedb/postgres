@@ -57,7 +57,7 @@ func NewController(
 		listOption:     listOption,
 		eventRecorder:  eventer.NewEventRecorder(controller.Client, "Snapshot Controller"),
 		syncPeriod:     syncPeriod,
-		maxNumRequests: 2,
+		maxNumRequests: 1,
 	}
 }
 
@@ -82,6 +82,6 @@ func (c *Controller) watchSnapshot() {
 	stop := make(chan struct{})
 	defer close(stop)
 
-	c.runWatcher(1, stop)
+	c.runWatcher(5, stop)
 	select {}
 }
