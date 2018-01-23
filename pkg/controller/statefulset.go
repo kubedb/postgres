@@ -10,6 +10,7 @@ import (
 	"github.com/appscode/kutil"
 	app_util "github.com/appscode/kutil/apps/v1beta1"
 	core_util "github.com/appscode/kutil/core/v1"
+	meta_util "github.com/appscode/kutil/meta"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/kubedb/apimachinery/pkg/eventer"
 	apps "k8s.io/api/apps/v1beta1"
@@ -66,8 +67,7 @@ func (c *Controller) ensureStatefulSet(
 			}
 		}
 
-		initSpec := postgres.Annotations[api.AnnotationInitialized]
-		if initSpec == "" {
+		if _, err := meta_util.GetString(postgres.Annotations, api.AnnotationInitialized); err == kutil.ErrNotFound {
 			if postgres.Spec.Init != nil && postgres.Spec.Init.PostgresWAL != nil {
 				in = upsertInitWalSecret(in, postgres.Spec.Init.PostgresWAL.StorageSecretName)
 			}
