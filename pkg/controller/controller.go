@@ -137,10 +137,10 @@ func (c *Controller) watchSnapshot() {
 	labelMap := map[string]string{
 		api.LabelDatabaseKind: api.ResourceKindPostgres,
 	}
-	labelSelector := metav1.ListOptions{
+	listOptions := metav1.ListOptions{
 		LabelSelector: labels.SelectorFromSet(labelMap).String(),
 	}
-	snapc.NewController(c.Controller, c, labelSelector, c.syncPeriod).Run()
+	snapc.NewController(c.Controller, c, listOptions, c.syncPeriod).Run()
 }
 
 func (c *Controller) watchDormantDatabase() {
