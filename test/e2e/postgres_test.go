@@ -571,7 +571,7 @@ var _ = Describe("Postgres", func() {
 			})
 		})
 
-		FContext("Archive with wal-g", func() {
+		Context("Archive with wal-g", func() {
 			BeforeEach(func() {
 				secret = f.SecretForS3Backend()
 				postgres.Spec.Archiver = &api.PostgresArchiverSpec{
