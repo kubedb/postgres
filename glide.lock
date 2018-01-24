@@ -1,5 +1,5 @@
-hash: 91c50b2afc1d71f2f2234badd0f11659f2f6b485bca12b802df7ebd07da1743d
-updated: 2018-01-23T12:38:51.598279413+06:00
+hash: f4698a348e905b76599ae2452494aecb1ee47c8aaf8e307e7eff17e20e2008fd
+updated: 2018-01-24T17:07:48.359494935+06:00
 imports:
 - name: cloud.google.com/go
   version: fe3d41e1ecb2ce36ad3a979037c9b9a2b726226f
@@ -32,7 +32,7 @@ imports:
   - agents/prometheusbuiltin
   - api
 - name: github.com/appscode/kutil
-  version: de69f2e242cc9e4df5dcf41d0d314e5fce818154
+  version: e5498017a554e4d6c848eaef0d2f29c4b59e31b9
   subpackages:
   - apiextensions/v1beta1
   - apps/v1beta1
@@ -234,7 +234,7 @@ imports:
 - name: github.com/juju/ratelimit
   version: 5b9ff866471762aa2ab2dced63c9fb6f53921342
 - name: github.com/kubedb/apimachinery
-  version: a76ad4331cea306b6996c488e0855f79552b2f2a
+  version: 53bde9a62678246cf44643af79b191570da5b5db
   subpackages:
   - apis/kubedb
   - apis/kubedb/v1alpha1
@@ -255,7 +255,7 @@ imports:
   subpackages:
   - pkg/conversion
 - name: github.com/lib/pq
-  version: 61fe37aa2ee24fabcdbe5c4ac1d4ac566f88f345
+  version: 19c8e9ad00952ce0c64489b60e8df88bb16dd514
   subpackages:
   - oid
 - name: github.com/mailru/easyjson
@@ -351,7 +351,7 @@ imports:
 - name: github.com/sirupsen/logrus
   version: f006c2ac4710855cf0f916dd6b77acf6b048dc6e
 - name: github.com/spf13/cobra
-  version: 0c34d16c3123764e413b9ed982ada58b1c3d53ea
+  version: f91529fc609202eededff4de2dc0ba2f662240a3
   subpackages:
   - doc
 - name: github.com/spf13/pflag
@@ -413,7 +413,7 @@ imports:
   - unicode/norm
   - width
 - name: google.golang.org/api
-  version: 65b0d8655182691ad23b4fac11e6f7b897d9b634
+  version: adc96e7cd85a1474b9ffb0c47dbc327d0e7ce5fb
   subpackages:
   - gensupport
   - googleapi

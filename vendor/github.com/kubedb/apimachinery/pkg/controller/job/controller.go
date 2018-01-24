@@ -3,16 +3,31 @@ package job
 import (
 	"time"
 
+	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	amc "github.com/kubedb/apimachinery/pkg/controller"
 	"github.com/kubedb/apimachinery/pkg/eventer"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/client-go/util/workqueue"
 )
 
+type SnapshotDoer interface {
+	GetDatabase(metav1.ObjectMeta) (runtime.Object, error)
+	SetDatabaseStatus(metav1.ObjectMeta, api.DatabasePhase, string) error
+}
+
+type ControllerInterface interface {
+	// client interface
+	amc.ClientInterface
+	// helper method for Job watcher
+	SnapshotDoer
+}
+
 type Controller struct {
-	*amc.Controller
+	ControllerInterface
+
 	// ListOptions for watcher
 	listOption metav1.ListOptions
 	// Event Recorder
@@ -29,18 +44,18 @@ type Controller struct {
 
 // NewController creates a new Controller
 func NewController(
-	controller *amc.Controller,
+	controller ControllerInterface,
 	listOption metav1.ListOptions,
 	syncPeriod time.Duration,
-) *Controller {
+) amc.ControllerInterface {
 
 	// return new DormantDatabase Controller
 	return &Controller{
-		Controller:     controller,
-		listOption:     listOption,
-		eventRecorder:  eventer.NewEventRecorder(controller.Client, "Job Controller"),
-		syncPeriod:     syncPeriod,
-		maxNumRequests: 2,
+		ControllerInterface: controller,
+		listOption:          listOption,
+		eventRecorder:       eventer.NewEventRecorder(controller.Client(), "Job Controller"),
+		syncPeriod:          syncPeriod,
+		maxNumRequests:      5,
 	}
 }
 

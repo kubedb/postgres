@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/appscode/go/log"
+	"github.com/appscode/go/types"
 	batch "k8s.io/api/batch/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	rt "k8s.io/apimachinery/pkg/runtime"
@@ -23,10 +24,10 @@ func (c *Controller) initWatcher() {
 	// Watch with label selector
 	lw := &cache.ListWatch{
 		ListFunc: func(opts metav1.ListOptions) (rt.Object, error) {
-			return c.Client.BatchV1().Jobs(metav1.NamespaceAll).List(c.listOption)
+			return c.Client().BatchV1().Jobs(metav1.NamespaceAll).List(c.listOption)
 		},
 		WatchFunc: func(options metav1.ListOptions) (watch.Interface, error) {
-			return c.Client.BatchV1().Jobs(metav1.NamespaceAll).Watch(c.listOption)
+			return c.Client().BatchV1().Jobs(metav1.NamespaceAll).Watch(c.listOption)
 		},
 	}
 
@@ -35,6 +36,22 @@ func (c *Controller) initWatcher() {
 	// Note that when we finally process the item from the workqueue, we might see a newer version
 	// of the Job than the version which was responsible for triggering the update.
 	c.indexer, c.informer = cache.NewIndexerInformer(lw, &batch.Job{}, c.syncPeriod, cache.ResourceEventHandlerFuncs{
+		AddFunc: func(obj interface{}) {
+			job, ok := obj.(*batch.Job)
+			if !ok {
+				log.Errorln("Invalid Job object")
+				return
+			}
+
+			if job.Status.Succeeded > 0 || job.Status.Failed > types.Int32(job.Spec.BackoffLimit) {
+				// IndexerInformer uses a delta queue, therefore for deletes we have to use this
+				// key function.
+				key, err := cache.MetaNamespaceKeyFunc(obj)
+				if err == nil {
+					c.queue.Add(key)
+				}
+			}
+		},
 		DeleteFunc: func(obj interface{}) {
 			job, ok := obj.(*batch.Job)
 			if !ok {
@@ -42,7 +59,7 @@ func (c *Controller) initWatcher() {
 				return
 			}
 
-			if len(job.Status.Conditions) == 0 {
+			if job.Status.Succeeded == 0 && job.Status.Failed <= types.Int32(job.Spec.BackoffLimit) {
 				// IndexerInformer uses a delta queue, therefore for deletes we have to use this
 				// key function.
 				key, err := cache.DeletionHandlingMetaNamespaceKeyFunc(obj)
@@ -51,20 +68,35 @@ func (c *Controller) initWatcher() {
 				}
 			}
 		},
-		UpdateFunc: func(_, obj interface{}) {
-			job, ok := obj.(*batch.Job)
+		UpdateFunc: func(old, new interface{}) {
+			oldObj, ok := old.(*batch.Job)
 			if !ok {
 				log.Errorln("Invalid Job object")
 				return
 			}
-			if len(job.Status.Conditions) != 0 {
-				key, err := cache.MetaNamespaceKeyFunc(obj)
+			newObj, ok := new.(*batch.Job)
+			if !ok {
+				log.Errorln("Invalid Job object")
+				return
+			}
+			if isJobCompleted(oldObj, newObj) {
+				key, err := cache.MetaNamespaceKeyFunc(new)
 				if err == nil {
 					c.queue.Add(key)
 				}
 			}
 		},
 	}, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc})
+}
+
+func isJobCompleted(old, new *batch.Job) bool {
+	if old.Status.Succeeded == 0 && new.Status.Succeeded > 0 {
+		return true
+	}
+	if old.Status.Failed <= types.Int32(old.Spec.BackoffLimit) && new.Status.Failed > types.Int32(new.Spec.BackoffLimit) {
+		return true
+	}
+	return false
 }
 
 func (c *Controller) runWatcher(threadiness int, stopCh chan struct{}) {

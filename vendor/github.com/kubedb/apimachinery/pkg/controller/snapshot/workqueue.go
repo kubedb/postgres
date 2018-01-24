@@ -25,10 +25,10 @@ func (c *Controller) initWatcher() {
 	// Watch with label selector
 	lw := &cache.ListWatch{
 		ListFunc: func(opts metav1.ListOptions) (rt.Object, error) {
-			return c.ExtClient.Snapshots(metav1.NamespaceAll).List(c.listOption)
+			return c.ExtClient().Snapshots(metav1.NamespaceAll).List(c.listOption)
 		},
 		WatchFunc: func(options metav1.ListOptions) (watch.Interface, error) {
-			return c.ExtClient.Snapshots(metav1.NamespaceAll).Watch(c.listOption)
+			return c.ExtClient().Snapshots(metav1.NamespaceAll).Watch(c.listOption)
 		},
 	}
 
@@ -164,14 +164,14 @@ func (c *Controller) runSnapshot(key string) error {
 					log.Errorln(err)
 					return err
 				}
-				snapshot, _, err = util.PatchSnapshot(c.ExtClient, snapshot, func(in *api.Snapshot) *api.Snapshot {
+				snapshot, _, err = util.PatchSnapshot(c.ExtClient(), snapshot, func(in *api.Snapshot) *api.Snapshot {
 					in.ObjectMeta = core_util.RemoveFinalizer(in.ObjectMeta, "kubedb.com")
 					return in
 				})
 				return err
 			}
 		} else {
-			snapshot, _, err = util.PatchSnapshot(c.ExtClient, snapshot, func(in *api.Snapshot) *api.Snapshot {
+			snapshot, _, err = util.PatchSnapshot(c.ExtClient(), snapshot, func(in *api.Snapshot) *api.Snapshot {
 				in.ObjectMeta = core_util.AddFinalizer(in.ObjectMeta, "kubedb.com")
 				return in
 			})

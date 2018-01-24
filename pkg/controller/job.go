@@ -23,7 +23,7 @@ func (c *Controller) createRestoreJob(postgres *api.Postgres, snapshot *api.Snap
 		api.LabelDatabaseKind: api.ResourceKindPostgres,
 	}
 	jobAnnotation := map[string]string{
-		api.AnnotationJobType: snapshotProcessRestore,
+		api.AnnotationJobType: api.JobTypeRestore,
 	}
 
 	backupSpec := snapshot.Spec.SnapshotStorageSpec
@@ -49,9 +49,9 @@ func (c *Controller) createRestoreJob(postgres *api.Postgres, snapshot *api.Snap
 			OwnerReferences: []metav1.OwnerReference{
 				{
 					APIVersion: api.SchemeGroupVersion.String(),
-					Kind:       api.ResourceKindSnapshot,
-					Name:       snapshot.Name,
-					UID:        snapshot.UID,
+					Kind:       api.ResourceKindPostgres,
+					Name:       postgres.Name,
+					UID:        postgres.UID,
 				},
 			},
 		},
@@ -138,11 +138,11 @@ func (c *Controller) createRestoreJob(postgres *api.Postgres, snapshot *api.Snap
 		}
 		job.Spec.Template.Spec.Volumes = append(job.Spec.Template.Spec.Volumes, volume)
 	}
-	return c.Client.BatchV1().Jobs(postgres.Namespace).Create(job)
+	return c.client.BatchV1().Jobs(postgres.Namespace).Create(job)
 }
 
 func (c *Controller) GetSnapshotter(snapshot *api.Snapshot) (*batch.Job, error) {
-	postgres, err := c.ExtClient.Postgreses(snapshot.Namespace).Get(snapshot.Spec.DatabaseName, metav1.GetOptions{})
+	postgres, err := c.extClient.Postgreses(snapshot.Namespace).Get(snapshot.Spec.DatabaseName, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -151,7 +151,7 @@ func (c *Controller) GetSnapshotter(snapshot *api.Snapshot) (*batch.Job, error) 
 		api.LabelDatabaseKind: api.ResourceKindPostgres,
 	}
 	jobAnnotation := map[string]string{
-		api.AnnotationJobType: snapshotProcessBackup,
+		api.AnnotationJobType: api.JobTypeBackup,
 	}
 	backupSpec := snapshot.Spec.SnapshotStorageSpec
 	bucket, err := backupSpec.Container()
@@ -189,8 +189,8 @@ func (c *Controller) GetSnapshotter(snapshot *api.Snapshot) (*batch.Job, error) 
 				Spec: core.PodSpec{
 					Containers: []core.Container{
 						{
-							Name:            snapshotProcessBackup,
-							Image:           c.opt.Docker.GetToolsImageWithTag(postgres),
+							Name:  snapshotProcessBackup,
+							Image: c.opt.Docker.GetToolsImageWithTag(postgres),
 							Args: []string{
 								snapshotProcessBackup,
 								fmt.Sprintf(`--host=%s`, postgres.PrimaryName()),
@@ -290,7 +290,7 @@ func (c *Controller) getVolumeForSnapshot(pvcSpec *core.PersistentVolumeClaimSpe
 			}
 		}
 
-		if _, err := c.Client.CoreV1().PersistentVolumeClaims(claim.Namespace).Create(claim); err != nil {
+		if _, err := c.client.CoreV1().PersistentVolumeClaims(claim.Namespace).Create(claim); err != nil {
 			return nil, err
 		}
 

@@ -1,7 +1,6 @@
 package snapshot
 
 import (
-	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -9,7 +8,6 @@ import (
 	"github.com/appscode/go/log"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	cs "github.com/kubedb/apimachinery/client/typed/kubedb/v1alpha1"
-	"github.com/kubedb/apimachinery/client/typed/kubedb/v1alpha1/util"
 	"github.com/kubedb/apimachinery/pkg/eventer"
 	"github.com/orcaman/concurrent-map"
 	"gopkg.in/robfig/cron.v2"
@@ -84,10 +82,6 @@ func (c *cronController) ScheduleBackup(
 		eventRecorder: c.eventRecorder,
 	}
 
-	if err := invoker.validateScheduler(durationCheckSnapshotJob); err != nil {
-		return err
-	}
-
 	// Set cron job
 	entryID, err := c.cron.AddFunc(spec.CronExpression, invoker.createScheduledSnapshot)
 	if err != nil {
@@ -118,24 +112,6 @@ type snapshotInvoker struct {
 	om            metav1.ObjectMeta
 	spec          *api.BackupScheduleSpec
 	eventRecorder record.EventRecorder
-}
-
-func (s *snapshotInvoker) validateScheduler(checkDuration time.Duration) error {
-	utc := time.Now().UTC()
-	snapshot, err := s.createSnapshot(fmt.Sprintf("%v-%v", s.om.Name, utc.Format("20060102-150405")))
-	if err != nil {
-		return err
-	}
-	snapshot, err = util.WaitUntilSnapshotCompletion(s.extClient, snapshot.ObjectMeta)
-	if err != nil {
-		return err
-	}
-
-	if snapshot.Status.Phase == api.SnapshotPhaseFailed {
-		return errors.New("failed to complete initial snapshot")
-	}
-
-	return nil
 }
 
 func (s *snapshotInvoker) createScheduledSnapshot() {

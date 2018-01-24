@@ -22,4 +22,7 @@ const (
 
 	PrometheusExporterPortNumber = 56790
 	PrometheusExporterPortName   = "prom-http"
+
+	JobTypeBackup  = "backup"
+	JobTypeRestore = "restore"
 )

@@ -31,7 +31,7 @@ func (c *Controller) create(dormantDb *api.DormantDatabase) error {
 		return nil
 	}
 
-	_, _, err := util.PatchDormantDatabase(c.ExtClient, dormantDb, func(in *api.DormantDatabase) *api.DormantDatabase {
+	_, _, err := util.PatchDormantDatabase(c.ExtClient(), dormantDb, func(in *api.DormantDatabase) *api.DormantDatabase {
 		t := metav1.Now()
 		in.Status.CreationTime = &t
 		return in
@@ -42,7 +42,7 @@ func (c *Controller) create(dormantDb *api.DormantDatabase) error {
 	}
 
 	// Check if DB TPR object exists
-	found, err := c.deleter.Exists(&dormantDb.ObjectMeta)
+	found, err := c.Exists(&dormantDb.ObjectMeta)
 	if err != nil {
 		c.recorder.Eventf(
 			dormantDb.ObjectReference(),
@@ -64,7 +64,7 @@ func (c *Controller) create(dormantDb *api.DormantDatabase) error {
 		)
 
 		// Delete DormantDatabase object
-		if err := c.ExtClient.DormantDatabases(dormantDb.Namespace).Delete(dormantDb.Name, &metav1.DeleteOptions{}); err != nil {
+		if err := c.ExtClient().DormantDatabases(dormantDb.Namespace).Delete(dormantDb.Name, &metav1.DeleteOptions{}); err != nil {
 			c.recorder.Eventf(
 				dormantDb.ObjectReference(),
 				core.EventTypeWarning,
@@ -77,7 +77,7 @@ func (c *Controller) create(dormantDb *api.DormantDatabase) error {
 		return errors.New(message)
 	}
 
-	_, _, err = util.PatchDormantDatabase(c.ExtClient, dormantDb, func(in *api.DormantDatabase) *api.DormantDatabase {
+	_, _, err = util.PatchDormantDatabase(c.ExtClient(), dormantDb, func(in *api.DormantDatabase) *api.DormantDatabase {
 		in.Status.Phase = api.DormantDatabasePhasePausing
 		return in
 	})
@@ -89,7 +89,7 @@ func (c *Controller) create(dormantDb *api.DormantDatabase) error {
 	c.recorder.Event(dormantDb, core.EventTypeNormal, eventer.EventReasonPausing, "Pausing Database")
 
 	// Pause Database workload
-	if err := c.deleter.PauseDatabase(dormantDb); err != nil {
+	if err := c.PauseDatabase(dormantDb); err != nil {
 		c.recorder.Eventf(
 			dormantDb.ObjectReference(),
 			core.EventTypeWarning,
@@ -107,7 +107,7 @@ func (c *Controller) create(dormantDb *api.DormantDatabase) error {
 		"Successfully paused Database workload",
 	)
 
-	_, _, err = util.PatchDormantDatabase(c.ExtClient, dormantDb, func(in *api.DormantDatabase) *api.DormantDatabase {
+	_, _, err = util.PatchDormantDatabase(c.ExtClient(), dormantDb, func(in *api.DormantDatabase) *api.DormantDatabase {
 		t := metav1.Now()
 		in.Status.PausingTime = &t
 		in.Status.Phase = api.DormantDatabasePhasePaused
@@ -123,7 +123,7 @@ func (c *Controller) create(dormantDb *api.DormantDatabase) error {
 
 func (c *Controller) delete(dormantDb *api.DormantDatabase) error {
 
-	exists, err := c.deleter.Exists(&dormantDb.ObjectMeta)
+	exists, err := c.Exists(&dormantDb.ObjectMeta)
 	if err != nil {
 		return err
 	}
@@ -159,7 +159,7 @@ func (c *Controller) delete(dormantDb *api.DormantDatabase) error {
 
 func (c *Controller) wipeOut(dormantDb *api.DormantDatabase) error {
 	// Check if DB TPR object exists
-	found, err := c.deleter.Exists(&dormantDb.ObjectMeta)
+	found, err := c.Exists(&dormantDb.ObjectMeta)
 	if err != nil {
 		c.recorder.Eventf(
 			dormantDb.ObjectReference(),
@@ -181,7 +181,7 @@ func (c *Controller) wipeOut(dormantDb *api.DormantDatabase) error {
 		)
 
 		// Delete DormantDatabase object
-		if err := c.ExtClient.DormantDatabases(dormantDb.Namespace).Delete(dormantDb.Name, &metav1.DeleteOptions{}); err != nil {
+		if err := c.ExtClient().DormantDatabases(dormantDb.Namespace).Delete(dormantDb.Name, &metav1.DeleteOptions{}); err != nil {
 			c.recorder.Eventf(
 				dormantDb.ObjectReference(),
 				core.EventTypeWarning,
@@ -194,7 +194,7 @@ func (c *Controller) wipeOut(dormantDb *api.DormantDatabase) error {
 		return errors.New(message)
 	}
 
-	_, _, err = util.PatchDormantDatabase(c.ExtClient, dormantDb, func(in *api.DormantDatabase) *api.DormantDatabase {
+	_, _, err = util.PatchDormantDatabase(c.ExtClient(), dormantDb, func(in *api.DormantDatabase) *api.DormantDatabase {
 		in.Status.Phase = api.DormantDatabasePhaseWipingOut
 		return in
 	})
@@ -205,7 +205,7 @@ func (c *Controller) wipeOut(dormantDb *api.DormantDatabase) error {
 
 	// Wipe out Database workload
 	c.recorder.Event(dormantDb, core.EventTypeNormal, eventer.EventReasonWipingOut, "Wiping out Database")
-	if err := c.deleter.WipeOutDatabase(dormantDb); err != nil {
+	if err := c.WipeOutDatabase(dormantDb); err != nil {
 		c.recorder.Eventf(
 			dormantDb.ObjectReference(),
 			core.EventTypeWarning,
@@ -223,7 +223,7 @@ func (c *Controller) wipeOut(dormantDb *api.DormantDatabase) error {
 		"Successfully wiped out Database workload",
 	)
 
-	_, _, err = util.PatchDormantDatabase(c.ExtClient, dormantDb, func(in *api.DormantDatabase) *api.DormantDatabase {
+	_, _, err = util.PatchDormantDatabase(c.ExtClient(), dormantDb, func(in *api.DormantDatabase) *api.DormantDatabase {
 		t := metav1.Now()
 		in.Status.WipeOutTime = &t
 		in.Status.Phase = api.DormantDatabasePhaseWipedOut
@@ -246,7 +246,7 @@ func (c *Controller) resume(dormantDb *api.DormantDatabase) error {
 	)
 
 	// Check if DB TPR object exists
-	found, err := c.deleter.Exists(&dormantDb.ObjectMeta)
+	found, err := c.Exists(&dormantDb.ObjectMeta)
 	if err != nil {
 		c.recorder.Eventf(
 			dormantDb.ObjectReference(),
@@ -269,7 +269,7 @@ func (c *Controller) resume(dormantDb *api.DormantDatabase) error {
 		return errors.New(message)
 	}
 
-	_, _, err = util.PatchDormantDatabase(c.ExtClient, dormantDb, func(in *api.DormantDatabase) *api.DormantDatabase {
+	_, _, err = util.PatchDormantDatabase(c.ExtClient(), dormantDb, func(in *api.DormantDatabase) *api.DormantDatabase {
 		in.Status.Phase = api.DormantDatabasePhaseResuming
 		return in
 	})
@@ -278,7 +278,7 @@ func (c *Controller) resume(dormantDb *api.DormantDatabase) error {
 		return err
 	}
 
-	if err = c.ExtClient.DormantDatabases(dormantDb.Namespace).Delete(dormantDb.Name, &metav1.DeleteOptions{}); err != nil {
+	if err = c.ExtClient().DormantDatabases(dormantDb.Namespace).Delete(dormantDb.Name, &metav1.DeleteOptions{}); err != nil {
 		c.recorder.Eventf(
 			dormantDb.ObjectReference(),
 			core.EventTypeWarning,
@@ -289,7 +289,7 @@ func (c *Controller) resume(dormantDb *api.DormantDatabase) error {
 		return err
 	}
 
-	if err = c.deleter.ResumeDatabase(dormantDb); err != nil {
+	if err = c.ResumeDatabase(dormantDb); err != nil {
 		if err := c.reCreateDormantDatabase(dormantDb); err != nil {
 			c.recorder.Eventf(
 				dormantDb.ObjectReference(),
@@ -326,7 +326,7 @@ func (c *Controller) reCreateDormantDatabase(dormantDatabase *api.DormantDatabas
 		Status: dormantDatabase.Status,
 	}
 
-	if _, err := c.ExtClient.DormantDatabases(dormantDb.Namespace).Create(dormantDb); err != nil {
+	if _, err := c.ExtClient().DormantDatabases(dormantDb.Namespace).Create(dormantDb); err != nil {
 		return err
 	}
 

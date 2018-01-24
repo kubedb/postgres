@@ -18,10 +18,11 @@ import (
 	core "k8s.io/api/core/v1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/wait"
 )
 
 func (c *Controller) create(postgres *api.Postgres) error {
-	if err := validator.ValidatePostgres(c.Client, postgres, &c.opt.Docker); err != nil {
+	if err := validator.ValidatePostgres(c.client, postgres, &c.opt.Docker); err != nil {
 		c.recorder.Event(
 			postgres.ObjectReference(),
 			core.EventTypeWarning,
@@ -32,7 +33,7 @@ func (c *Controller) create(postgres *api.Postgres) error {
 	}
 
 	if postgres.Status.CreationTime == nil {
-		es, _, err := kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
+		es, _, err := kutildb.PatchPostgres(c.extClient, postgres, func(in *api.Postgres) *api.Postgres {
 			t := metav1.Now()
 			in.Status.CreationTime = &t
 			in.Status.Phase = api.DatabasePhaseCreating
@@ -107,35 +108,13 @@ func (c *Controller) create(postgres *api.Postgres) error {
 	if _, err := meta_util.GetString(postgres.Annotations, api.AnnotationInitialized); err == kutil.ErrNotFound &&
 		postgres.Spec.Init != nil &&
 		postgres.Spec.Init.SnapshotSource != nil {
-		pg, _, err := kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
-			in.Status.Phase = api.DatabasePhaseInitializing
-			return in
-		})
+		succeeded, err := c.initialize(postgres)
 		if err != nil {
-			c.recorder.Eventf(postgres, core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
-			return err
+			return fmt.Errorf("failed to complete initialization. Reason: %v", err)
 		}
-		postgres.Status = pg.Status
-
-		if err := c.initialize(postgres); err != nil {
-			c.recorder.Eventf(
-				postgres.ObjectReference(),
-				core.EventTypeWarning,
-				eventer.EventReasonFailedToInitialize,
-				"Failed to initialize. Reason: %v",
-				err,
-			)
+		if !succeeded {
+			return nil
 		}
-
-		pg, _, err = kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
-			in.Status.Phase = api.DatabasePhaseRunning
-			return in
-		})
-		if err != nil {
-			c.recorder.Eventf(postgres, core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
-			return err
-		}
-		postgres.Status = pg.Status
 	}
 
 	if err := c.setInitializedAnnotation(postgres); err != nil {
@@ -162,7 +141,7 @@ func (c *Controller) create(postgres *api.Postgres) error {
 func (c *Controller) setInitializedAnnotation(postgres *api.Postgres) error {
 	if _, err := meta_util.GetString(postgres.Annotations, api.AnnotationInitialized); err == kutil.ErrNotFound &&
 		postgres.Spec.Init != nil {
-		pg, _, err := kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
+		pg, _, err := kutildb.PatchPostgres(c.extClient, postgres, func(in *api.Postgres) *api.Postgres {
 			in.Annotations = core_util.UpsertMap(in.Annotations, map[string]string{
 				api.AnnotationInitialized: "",
 			})
@@ -185,7 +164,7 @@ func (c *Controller) setMonitoringPort(postgres *api.Postgres) error {
 			postgres.Spec.Monitor.Prometheus = &mon_api.PrometheusSpec{}
 		}
 		if postgres.Spec.Monitor.Prometheus.Port == 0 {
-			pg, _, err := kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
+			pg, _, err := kutildb.PatchPostgres(c.extClient, postgres, func(in *api.Postgres) *api.Postgres {
 				in.Spec.Monitor.Prometheus.Port = api.PrometheusExporterPortNumber
 				return in
 			})
@@ -207,7 +186,7 @@ func (c *Controller) setMonitoringPort(postgres *api.Postgres) error {
 
 func (c *Controller) matchDormantDatabase(postgres *api.Postgres) error {
 	// Check if DormantDatabase exists or not
-	dormantDb, err := c.ExtClient.DormantDatabases(postgres.Namespace).Get(postgres.Name, metav1.GetOptions{})
+	dormantDb, err := c.extClient.DormantDatabases(postgres.Namespace).Get(postgres.Name, metav1.GetOptions{})
 	if err != nil {
 		if !kerr.IsNotFound(err) {
 			c.recorder.Eventf(
@@ -258,7 +237,7 @@ func (c *Controller) matchDormantDatabase(postgres *api.Postgres) error {
 		return err
 	}
 
-	return kutildb.DeleteDormantDatabase(c.ExtClient, dormantDb.ObjectMeta)
+	return kutildb.DeleteDormantDatabase(c.extClient, dormantDb.ObjectMeta)
 }
 
 func (c *Controller) ensurePostgresNode(postgres *api.Postgres) (kutil.VerbType, error) {
@@ -280,7 +259,7 @@ func (c *Controller) ensurePostgresNode(postgres *api.Postgres) (kutil.VerbType,
 		return kutil.VerbUnchanged, err
 	}
 
-	pg, _, err := kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
+	pg, _, err := kutildb.PatchPostgres(c.extClient, postgres, func(in *api.Postgres) *api.Postgres {
 		in.Status.Phase = api.DatabasePhaseRunning
 		return in
 	})
@@ -313,7 +292,21 @@ func (c *Controller) ensureBackupScheduler(postgres *api.Postgres) {
 	}
 }
 
-func (c *Controller) initialize(postgres *api.Postgres) error {
+func (c *Controller) initialize(postgres *api.Postgres) (bool, error) {
+	pg, _, err := kutildb.PatchPostgres(c.extClient, postgres, func(in *api.Postgres) *api.Postgres {
+		in.Status.Phase = api.DatabasePhaseInitializing
+		return in
+	})
+	if err != nil {
+		c.recorder.Eventf(postgres, core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
+		return false, err
+	}
+	postgres.Status = pg.Status
+
+	if err := docker.CheckDockerImageVersion(c.opt.Docker.GetToolsImage(postgres), string(postgres.Spec.Version)); err != nil {
+		return false, fmt.Errorf(`image %s not found`, c.opt.Docker.GetToolsImageWithTag(postgres))
+	}
+
 	snapshotSource := postgres.Spec.Init.SnapshotSource
 	// Event for notification that kubernetes objects are creating
 	c.recorder.Eventf(
@@ -328,54 +321,66 @@ func (c *Controller) initialize(postgres *api.Postgres) error {
 	if namespace == "" {
 		namespace = postgres.Namespace
 	}
-	snapshot, err := c.ExtClient.Snapshots(namespace).Get(snapshotSource.Name, metav1.GetOptions{})
+	snapshot, err := c.extClient.Snapshots(namespace).Get(snapshotSource.Name, metav1.GetOptions{})
 	if err != nil {
-		return err
+		return false, err
 	}
 
-	if err := docker.CheckDockerImageVersion(c.opt.Docker.GetToolsImage(postgres), string(postgres.Spec.Version)); err != nil {
-		return fmt.Errorf(`image %s not found`, c.opt.Docker.GetToolsImageWithTag(postgres))
-	}
-
-	secret, err := storage.NewOSMSecret(c.Client, snapshot)
+	secret, err := storage.NewOSMSecret(c.client, snapshot)
 	if err != nil {
-		return err
+		return false, err
 	}
-	secret, err = c.Client.CoreV1().Secrets(secret.Namespace).Create(secret)
+	secret, err = c.client.CoreV1().Secrets(secret.Namespace).Create(secret)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	job, err := c.createRestoreJob(postgres, snapshot)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	if err := c.SetJobOwnerReference(snapshot, job); err != nil {
-		return err
+		return false, err
 	}
 
-	snap, err := kutildb.WaitUntilSnapshotCompletion(c.ExtClient, snapshot.ObjectMeta)
-	if err != nil {
-		return err
-	}
+	wait.PollImmediate(kutil.RetryInterval, kutil.ReadinessTimeout, func() (bool, error) {
+		pg, err := c.extClient.Postgreses(postgres.Namespace).Get(postgres.Name, metav1.GetOptions{})
+		if err != nil {
+			return false, nil
+		}
+		if pg.Status.Phase != api.DatabasePhaseInitializing {
+			postgres.Status = pg.Status
+			return true, nil
+		}
+		return false, nil
+	})
 
-	if snap.Status.Phase == api.SnapshotPhaseSucceeded {
+	switch postgres.Status.Phase {
+	case api.DatabasePhaseRunning:
 		c.recorder.Event(
 			postgres.ObjectReference(),
 			core.EventTypeNormal,
 			eventer.EventReasonSuccessfulInitialize,
 			"Successfully completed initialization",
 		)
-	} else {
+		return true, nil
+	case api.DatabasePhaseFailed:
 		c.recorder.Event(
 			postgres.ObjectReference(),
 			core.EventTypeWarning,
 			eventer.EventReasonFailedToInitialize,
 			"Failed to complete initialization",
 		)
+		return false, nil
+	default:
+		kutildb.PatchPostgres(c.extClient, postgres, func(in *api.Postgres) *api.Postgres {
+			in.Status.Phase = api.DatabasePhaseFailed
+			in.Status.Reason = "Failed to complete initialization"
+			return in
+		})
+		return false, nil
 	}
-	return nil
 }
 
 func (c *Controller) pause(postgres *api.Postgres) error {
@@ -417,4 +422,25 @@ func (c *Controller) pause(postgres *api.Postgres) error {
 		}
 	}
 	return nil
+}
+
+func (c *Controller) GetDatabasePhase(meta metav1.ObjectMeta) (api.DatabasePhase, error) {
+	postgres, err := c.extClient.Postgreses(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
+	if err != nil {
+		return "", err
+	}
+	return postgres.Status.Phase, nil
+}
+
+func (c *Controller) SetDatabaseStatus(meta metav1.ObjectMeta, phase api.DatabasePhase, reason string) error {
+	postgres, err := c.extClient.Postgreses(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+	_, _, err = kutildb.PatchPostgres(c.extClient, postgres, func(in *api.Postgres) *api.Postgres {
+		in.Status.Phase = phase
+		in.Status.Reason = reason
+		return in
+	})
+	return err
 }

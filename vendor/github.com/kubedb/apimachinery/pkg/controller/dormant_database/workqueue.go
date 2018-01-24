@@ -160,14 +160,14 @@ func (c *Controller) runDormantDatabase(key string) error {
 					log.Errorln(err)
 					return err
 				}
-				dormantDatabase, _, err = util.PatchDormantDatabase(c.ExtClient, dormantDatabase, func(in *api.DormantDatabase) *api.DormantDatabase {
+				dormantDatabase, _, err = util.PatchDormantDatabase(c.ExtClient(), dormantDatabase, func(in *api.DormantDatabase) *api.DormantDatabase {
 					in.ObjectMeta = core_util.RemoveFinalizer(in.ObjectMeta, "kubedb.com")
 					return in
 				})
 				return err
 			}
 		} else {
-			dormantDatabase, _, err = util.PatchDormantDatabase(c.ExtClient, dormantDatabase, func(in *api.DormantDatabase) *api.DormantDatabase {
+			dormantDatabase, _, err = util.PatchDormantDatabase(c.ExtClient(), dormantDatabase, func(in *api.DormantDatabase) *api.DormantDatabase {
 				in.ObjectMeta = core_util.AddFinalizer(in.ObjectMeta, "kubedb.com")
 				return in
 			})

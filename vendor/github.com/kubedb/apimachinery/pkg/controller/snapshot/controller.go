@@ -19,15 +19,23 @@ import (
 
 type Snapshotter interface {
 	ValidateSnapshot(*api.Snapshot) error
-	GetDatabase(*api.Snapshot) (runtime.Object, error)
+	GetDatabase(metav1.ObjectMeta) (runtime.Object, error)
 	GetSnapshotter(*api.Snapshot) (*batch.Job, error)
 	WipeOutSnapshot(*api.Snapshot) error
 }
 
+type controllerInterface interface {
+	// client interface
+	amc.ClientInterface
+	// helper method for Snapshot watcher
+	Snapshotter
+	SetJobOwnerReference(*api.Snapshot, *batch.Job) error
+}
+
 type Controller struct {
-	*amc.Controller
-	// Snapshotter interface
-	snapshotter Snapshotter
+	controllerInterface
+	// Job Controller
+	jobController amc.ControllerInterface
 	// ListOptions for watcher
 	listOption metav1.ListOptions
 	// Event Recorder
@@ -44,39 +52,41 @@ type Controller struct {
 
 // NewController creates a new Controller
 func NewController(
-	controller *amc.Controller,
-	snapshotter Snapshotter,
+	controller controllerInterface,
+	jobController jobc.ControllerInterface,
 	listOption metav1.ListOptions,
 	syncPeriod time.Duration,
-) *Controller {
+) amc.ControllerInterface {
 
 	// return new DormantDatabase Controller
 	return &Controller{
-		Controller:     controller,
-		snapshotter:    snapshotter,
-		listOption:     listOption,
-		eventRecorder:  eventer.NewEventRecorder(controller.Client, "Snapshot Controller"),
-		syncPeriod:     syncPeriod,
-		maxNumRequests: 1,
+		controllerInterface: controller,
+		jobController:       jobc.NewController(jobController, listOption, syncPeriod),
+		listOption:          listOption,
+		eventRecorder:       eventer.NewEventRecorder(controller.Client(), "Snapshot Controller"),
+		syncPeriod:          syncPeriod,
+		maxNumRequests:      5,
 	}
 }
 
-func (c *Controller) Setup() error {
+func (c *Controller) setup() error {
 	crd := []*crd_api.CustomResourceDefinition{
 		api.Snapshot{}.CustomResourceDefinition(),
 	}
-	return apiext_util.RegisterCRDs(c.ApiExtKubeClient, crd)
+	return apiext_util.RegisterCRDs(c.ApiExtKubeClient(), crd)
 }
 
 func (c *Controller) Run() {
 	// Watch Snapshot with provided ListOption
 	go c.watchSnapshot()
+
+	c.setup()
+
 	// Watch Job with provided ListOption
-	go jobc.NewController(c.Controller, c.listOption, c.syncPeriod).Run()
+	go c.jobController.Run()
 }
 
 func (c *Controller) watchSnapshot() {
-
 	c.initWatcher()
 
 	stop := make(chan struct{})
