@@ -87,9 +87,11 @@ func (c *cronController) ScheduleBackup(
 	if err != nil {
 		return err
 	}
-
 	// Add job entryID
 	c.cronEntryIDs.Set(cronEntryName, entryID)
+
+	invoker.createScheduledSnapshot()
+
 	return nil
 }
 

@@ -249,7 +249,7 @@ var _ = Describe("Postgres", func() {
 				It("should take Snapshot successfully", shouldTakeSnapshot)
 			})
 
-			Context("In GCS", func() {
+			XContext("In GCS", func() {
 				BeforeEach(func() {
 					secret = f.SecretForGCSBackend()
 					snapshot.Spec.StorageSecretName = secret.Name
@@ -261,7 +261,7 @@ var _ = Describe("Postgres", func() {
 				It("should take Snapshot successfully", shouldTakeSnapshot)
 			})
 
-			Context("In Azure", func() {
+			XContext("In Azure", func() {
 				BeforeEach(func() {
 					secret = f.SecretForAzureBackend()
 					snapshot.Spec.StorageSecretName = secret.Name
@@ -273,7 +273,7 @@ var _ = Describe("Postgres", func() {
 				It("should take Snapshot successfully", shouldTakeSnapshot)
 			})
 
-			Context("In Swift", func() {
+			XContext("In Swift", func() {
 				BeforeEach(func() {
 					secret = f.SecretForSwiftBackend()
 					snapshot.Spec.StorageSecretName = secret.Name
@@ -415,7 +415,6 @@ var _ = Describe("Postgres", func() {
 
 			Context("With Init", func() {
 				BeforeEach(func() {
-					usedInitialized = true
 					postgres.Spec.Init = &api.InitSpec{
 						ScriptSource: &api.ScriptSourceSpec{
 							VolumeSource: core.VolumeSource{
@@ -510,10 +509,10 @@ var _ = Describe("Postgres", func() {
 				secret = f.SecretForLocalBackend()
 			})
 
-			Context("With Startup", func() {
+			FContext("With Startup", func() {
 				BeforeEach(func() {
 					postgres.Spec.BackupSchedule = &api.BackupScheduleSpec{
-						CronExpression: "@every 1m",
+						CronExpression: "@every 5m",
 						SnapshotStorageSpec: api.SnapshotStorageSpec{
 							StorageSecretName: secret.Name,
 							Local: &api.LocalSpec{

@@ -114,6 +114,7 @@ func (c *Controller) create(postgres *api.Postgres) error {
 		if postgres.Status.Phase == api.DatabasePhaseInitializing {
 			return nil
 		}
+
 		jobName := fmt.Sprintf("%s-%s", api.DatabaseNamePrefix, snapshotSource.Name)
 		if _, err := c.Client.BatchV1().Jobs(snapshotSource.Namespace).Get(jobName, metav1.GetOptions{}); err != nil {
 			if kerr.IsAlreadyExists(err) {
@@ -128,6 +129,16 @@ func (c *Controller) create(postgres *api.Postgres) error {
 		}
 		return nil
 	}
+
+	pg, _, err := kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
+		in.Status.Phase = api.DatabasePhaseRunning
+		return in
+	})
+	if err != nil {
+		c.recorder.Eventf(postgres.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
+		return err
+	}
+	postgres.Status = pg.Status
 
 	// Ensure Schedule backup
 	c.ensureBackupScheduler(postgres)
@@ -224,7 +235,8 @@ func (c *Controller) matchDormantDatabase(postgres *api.Postgres) error {
 	}
 
 	if _, err := meta_util.GetString(postgres.Annotations, api.AnnotationInitialized); err == kutil.ErrNotFound &&
-		postgres.Spec.Init != nil {
+		postgres.Spec.Init != nil &&
+		postgres.Spec.Init.SnapshotSource != nil {
 		pg, _, err := kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
 			in.Annotations = core_util.UpsertMap(in.Annotations, map[string]string{
 				api.AnnotationInitialized: "",
@@ -258,16 +270,6 @@ func (c *Controller) ensurePostgresNode(postgres *api.Postgres) (kutil.VerbType,
 	if err != nil {
 		return kutil.VerbUnchanged, err
 	}
-
-	pg, _, err := kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
-		in.Status.Phase = api.DatabasePhaseRunning
-		return in
-	})
-	if err != nil {
-		c.recorder.Eventf(postgres.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
-		return kutil.VerbUnchanged, err
-	}
-	postgres.Status = pg.Status
 
 	return vt, nil
 }
