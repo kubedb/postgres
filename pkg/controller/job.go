@@ -138,11 +138,11 @@ func (c *Controller) createRestoreJob(postgres *api.Postgres, snapshot *api.Snap
 		}
 		job.Spec.Template.Spec.Volumes = append(job.Spec.Template.Spec.Volumes, volume)
 	}
-	return c.client.BatchV1().Jobs(postgres.Namespace).Create(job)
+	return c.Client.BatchV1().Jobs(postgres.Namespace).Create(job)
 }
 
 func (c *Controller) GetSnapshotter(snapshot *api.Snapshot) (*batch.Job, error) {
-	postgres, err := c.extClient.Postgreses(snapshot.Namespace).Get(snapshot.Spec.DatabaseName, metav1.GetOptions{})
+	postgres, err := c.ExtClient.Postgreses(snapshot.Namespace).Get(snapshot.Spec.DatabaseName, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -290,7 +290,7 @@ func (c *Controller) getVolumeForSnapshot(pvcSpec *core.PersistentVolumeClaimSpe
 			}
 		}
 
-		if _, err := c.client.CoreV1().PersistentVolumeClaims(claim.Namespace).Create(claim); err != nil {
+		if _, err := c.Client.CoreV1().PersistentVolumeClaims(claim.Namespace).Create(claim); err != nil {
 			return nil, err
 		}
 

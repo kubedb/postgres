@@ -21,10 +21,10 @@ import (
 func (c *Controller) initWatcher() {
 	lw := &cache.ListWatch{
 		ListFunc: func(opts metav1.ListOptions) (rt.Object, error) {
-			return c.extClient.Postgreses(metav1.NamespaceAll).List(metav1.ListOptions{})
+			return c.ExtClient.Postgreses(metav1.NamespaceAll).List(metav1.ListOptions{})
 		},
 		WatchFunc: func(options metav1.ListOptions) (watch.Interface, error) {
-			return c.extClient.Postgreses(metav1.NamespaceAll).Watch(metav1.ListOptions{})
+			return c.ExtClient.Postgreses(metav1.NamespaceAll).Watch(metav1.ListOptions{})
 		},
 	}
 
@@ -75,6 +75,11 @@ func postgresEqual(old, new *api.Postgres) bool {
 	if !meta_util.Equal(old.Spec, new.Spec) {
 		diff := meta_util.Diff(old.Spec, new.Spec)
 		log.Infof("Postgres %s/%s has changed. Diff: %s\n", new.Namespace, new.Name, diff)
+		return false
+	}
+	if !meta_util.Equal(old.Annotations, new.Annotations) {
+		diff := meta_util.Diff(old.Annotations, new.Annotations)
+		log.Infof("Annotations in Postgres %s/%s has changed. Diff: %s\n", new.Namespace, new.Name, diff)
 		return false
 	}
 	return true
@@ -171,14 +176,14 @@ func (c *Controller) runPostgres(key string) error {
 					log.Errorln(err)
 					return err
 				}
-				postgres, _, err = util.PatchPostgres(c.extClient, postgres, func(in *api.Postgres) *api.Postgres {
+				postgres, _, err = util.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
 					in.ObjectMeta = core_util.RemoveFinalizer(in.ObjectMeta, "kubedb.com")
 					return in
 				})
 				return err
 			}
 		} else {
-			postgres, _, err = util.PatchPostgres(c.extClient, postgres, func(in *api.Postgres) *api.Postgres {
+			postgres, _, err = util.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
 				in.ObjectMeta = core_util.AddFinalizer(in.ObjectMeta, "kubedb.com")
 				return in
 			})

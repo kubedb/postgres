@@ -38,7 +38,7 @@ func (c *Controller) ensureStatefulSet(
 		replicas = 1
 	}
 
-	statefulSet, vt, err := app_util.CreateOrPatchStatefulSet(c.client, statefulSetMeta, func(in *apps.StatefulSet) *apps.StatefulSet {
+	statefulSet, vt, err := app_util.CreateOrPatchStatefulSet(c.Client, statefulSetMeta, func(in *apps.StatefulSet) *apps.StatefulSet {
 		in = upsertObjectMeta(in, postgres)
 
 		in.Spec.Replicas = types.Int32P(replicas)
@@ -118,7 +118,7 @@ func (c *Controller) ensureStatefulSet(
 
 func (c *Controller) CheckStatefulSetPodStatus(statefulSet *apps.StatefulSet) error {
 	err := core_util.WaitUntilPodRunningBySelector(
-		c.client,
+		c.Client,
 		statefulSet.Namespace,
 		statefulSet.Spec.Selector,
 		int(types.Int32(statefulSet.Spec.Replicas)),
@@ -193,7 +193,7 @@ func (c *Controller) ensureCombinedNode(postgres *api.Postgres) (kutil.VerbType,
 func (c *Controller) checkStatefulSet(postgres *api.Postgres) error {
 	name := postgres.OffshootName()
 	// SatatefulSet for Postgres database
-	statefulSet, err := c.client.AppsV1beta1().StatefulSets(postgres.Namespace).Get(name, metav1.GetOptions{})
+	statefulSet, err := c.Client.AppsV1beta1().StatefulSets(postgres.Namespace).Get(name, metav1.GetOptions{})
 	if err != nil {
 		if kerr.IsNotFound(err) {
 			return nil

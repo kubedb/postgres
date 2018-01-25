@@ -7,7 +7,7 @@ import (
 )
 
 func (c *Controller) deleteLeaderLockConfigMap(meta metav1.ObjectMeta) error {
-	if err := c.client.CoreV1().ConfigMaps(meta.Namespace).Delete(le.GetLeaderLockName(meta.Name), nil); !kerr.IsNotFound(err) {
+	if err := c.Client.CoreV1().ConfigMaps(meta.Namespace).Delete(le.GetLeaderLockName(meta.Name), nil); !kerr.IsNotFound(err) {
 		return err
 	}
 	return nil

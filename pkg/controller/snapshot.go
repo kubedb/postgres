@@ -7,7 +7,6 @@ import (
 	"github.com/kubedb/apimachinery/pkg/docker"
 	amv "github.com/kubedb/apimachinery/pkg/validator"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 )
 
 func (c *Controller) ValidateSnapshot(snapshot *api.Snapshot) error {
@@ -17,7 +16,7 @@ func (c *Controller) ValidateSnapshot(snapshot *api.Snapshot) error {
 		return fmt.Errorf(`object 'DatabaseName' is missing in '%v'`, snapshot.Spec)
 	}
 
-	postgres, err := c.extClient.Postgreses(snapshot.Namespace).Get(databaseName, metav1.GetOptions{})
+	postgres, err := c.ExtClient.Postgreses(snapshot.Namespace).Get(databaseName, metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
@@ -26,16 +25,7 @@ func (c *Controller) ValidateSnapshot(snapshot *api.Snapshot) error {
 		return fmt.Errorf(`image %s not found`, c.opt.Docker.GetToolsImageWithTag(postgres))
 	}
 
-	return amv.ValidateSnapshotSpec(c.client, snapshot.Spec.SnapshotStorageSpec, snapshot.Namespace)
-}
-
-func (c *Controller) GetDatabase(snapshot *api.Snapshot) (runtime.Object, error) {
-	postgres, err := c.extClient.Postgreses(snapshot.Namespace).Get(snapshot.Spec.DatabaseName, metav1.GetOptions{})
-	if err != nil {
-		return nil, err
-	}
-
-	return postgres, nil
+	return amv.ValidateSnapshotSpec(c.Client, snapshot.Spec.SnapshotStorageSpec, snapshot.Namespace)
 }
 
 func (c *Controller) WipeOutSnapshot(snapshot *api.Snapshot) error {

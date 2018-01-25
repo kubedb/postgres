@@ -16,6 +16,7 @@ import (
 type SnapshotDoer interface {
 	GetDatabase(metav1.ObjectMeta) (runtime.Object, error)
 	SetDatabaseStatus(metav1.ObjectMeta, api.DatabasePhase, string) error
+	UpsertDatabaseAnnotation(metav1.ObjectMeta, map[string]string) error
 }
 
 type Controller struct {

@@ -86,7 +86,7 @@ func (c *Controller) ensureService(postgres *api.Postgres) (kutil.VerbType, erro
 }
 
 func (c *Controller) checkService(postgres *api.Postgres, name string) error {
-	service, err := c.client.CoreV1().Services(postgres.Namespace).Get(name, metav1.GetOptions{})
+	service, err := c.Client.CoreV1().Services(postgres.Namespace).Get(name, metav1.GetOptions{})
 	if err != nil {
 		if kerr.IsNotFound(err) {
 			return nil
@@ -108,7 +108,7 @@ func (c *Controller) createService(postgres *api.Postgres) (kutil.VerbType, erro
 		Namespace: postgres.Namespace,
 	}
 
-	_, ok, err := core_util.CreateOrPatchService(c.client, meta, func(in *core.Service) *core.Service {
+	_, ok, err := core_util.CreateOrPatchService(c.Client, meta, func(in *core.Service) *core.Service {
 		in.Labels = postgres.OffshootLabels()
 		in.Spec.Ports = upsertServicePort(in)
 		in.Spec.Selector = postgres.OffshootLabels()
@@ -144,7 +144,7 @@ func (c *Controller) createPrimaryService(postgres *api.Postgres) (kutil.VerbTyp
 		Namespace: postgres.Namespace,
 	}
 
-	_, ok, err := core_util.CreateOrPatchService(c.client, meta, func(in *core.Service) *core.Service {
+	_, ok, err := core_util.CreateOrPatchService(c.Client, meta, func(in *core.Service) *core.Service {
 		in.Labels = postgres.OffshootLabels()
 		in.Spec.Ports = upsertServicePort(in)
 		in.Spec.Selector = postgres.OffshootLabels()
@@ -155,7 +155,7 @@ func (c *Controller) createPrimaryService(postgres *api.Postgres) (kutil.VerbTyp
 }
 
 func (c *Controller) deleteService(name, namespace string) error {
-	service, err := c.client.CoreV1().Services(namespace).Get(name, metav1.GetOptions{})
+	service, err := c.Client.CoreV1().Services(namespace).Get(name, metav1.GetOptions{})
 	if err != nil {
 		if kerr.IsNotFound(err) {
 			return nil
@@ -168,5 +168,5 @@ func (c *Controller) deleteService(name, namespace string) error {
 		return nil
 	}
 
-	return c.client.CoreV1().Services(namespace).Delete(name, nil)
+	return c.Client.CoreV1().Services(namespace).Delete(name, nil)
 }

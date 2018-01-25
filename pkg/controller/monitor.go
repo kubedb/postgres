@@ -22,7 +22,7 @@ func (c *Controller) newMonitorController(postgres *api.Postgres) (mona.Agent, e
 	}
 
 	if monitorSpec.Prometheus != nil {
-		return agents.New(monitorSpec.Agent, c.client, c.apiExtKubeClient, c.promClient), nil
+		return agents.New(monitorSpec.Agent, c.Client, c.ApiExtKubeClient, c.promClient), nil
 	}
 
 	return nil, fmt.Errorf("monitoring controller not found for %v", monitorSpec)
@@ -45,20 +45,20 @@ func (c *Controller) deleteMonitor(postgres *api.Postgres) (kutil.VerbType, erro
 }
 
 func (c *Controller) getOldAgent(postgres *api.Postgres) mona.Agent {
-	service, err := c.client.CoreV1().Services(postgres.Namespace).Get(postgres.StatsAccessor().ServiceName(), metav1.GetOptions{})
+	service, err := c.Client.CoreV1().Services(postgres.Namespace).Get(postgres.StatsAccessor().ServiceName(), metav1.GetOptions{})
 	if err != nil {
 		return nil
 	}
 	oldAgentType, _ := meta_util.GetString(service.Annotations, mona.KeyAgent)
-	return agents.New(mona.AgentType(oldAgentType), c.client, c.apiExtKubeClient, c.promClient)
+	return agents.New(mona.AgentType(oldAgentType), c.Client, c.ApiExtKubeClient, c.promClient)
 }
 
 func (c *Controller) setNewAgent(postgres *api.Postgres) error {
-	service, err := c.client.CoreV1().Services(postgres.Namespace).Get(postgres.StatsAccessor().ServiceName(), metav1.GetOptions{})
+	service, err := c.Client.CoreV1().Services(postgres.Namespace).Get(postgres.StatsAccessor().ServiceName(), metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
-	_, _, err = core_util.PatchService(c.client, service, func(in *core.Service) *core.Service {
+	_, _, err = core_util.PatchService(c.Client, service, func(in *core.Service) *core.Service {
 		in.Annotations = core_util.UpsertMap(in.Annotations, map[string]string{
 			mona.KeyAgent: string(postgres.Spec.Monitor.Agent),
 		},

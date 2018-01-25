@@ -11,7 +11,6 @@ import (
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	cs "github.com/kubedb/apimachinery/client/typed/kubedb/v1alpha1"
 	kutildb "github.com/kubedb/apimachinery/client/typed/kubedb/v1alpha1/util"
-
 	amc "github.com/kubedb/apimachinery/pkg/controller"
 	drmnc "github.com/kubedb/apimachinery/pkg/controller/dormant_database"
 	jobc "github.com/kubedb/apimachinery/pkg/controller/job"
@@ -52,14 +51,7 @@ type Options struct {
 }
 
 type Controller struct {
-	// Kubernetes client
-	client kubernetes.Interface
-	// Api Extension client
-	apiExtKubeClient crd_cs.ApiextensionsV1beta1Interface
-	// ThirdPartyExtension client
-	extClient cs.KubedbV1alpha1Interface
-	// methods for common interface
-	amc.CommonMethodInterface
+	*amc.Controller
 	// Prometheus client
 	promClient pcm.MonitoringV1Interface
 	// Cron Controller
@@ -90,15 +82,16 @@ func New(
 	opt Options,
 ) *Controller {
 	return &Controller{
-		client:                client,
-		apiExtKubeClient:      apiExtKubeClient,
-		extClient:             extClient,
-		CommonMethodInterface: amc.NewCommon(client, apiExtKubeClient, extClient),
-		promClient:            promClient,
-		cronController:        cronController,
-		recorder:              eventer.NewEventRecorder(client, "Postgres operator"),
-		opt:                   opt,
-		syncPeriod:            time.Minute * 2,
+		Controller: &amc.Controller{
+			Client:           client,
+			ExtClient:        extClient,
+			ApiExtKubeClient: apiExtKubeClient,
+		},
+		promClient:     promClient,
+		cronController: cronController,
+		recorder:       eventer.NewEventRecorder(client, "Postgres operator"),
+		opt:            opt,
+		syncPeriod:     time.Minute * 2,
 	}
 }
 
@@ -110,7 +103,7 @@ func (c *Controller) Setup() error {
 		api.DormantDatabase{}.CustomResourceDefinition(),
 		api.Snapshot{}.CustomResourceDefinition(),
 	}
-	return apiext_util.RegisterCRDs(c.apiExtKubeClient, crds)
+	return apiext_util.RegisterCRDs(c.ApiExtKubeClient, crds)
 }
 
 func (c *Controller) Run() {
@@ -149,7 +142,7 @@ func (c *Controller) watchSnapshot() {
 	listOptions := metav1.ListOptions{
 		LabelSelector: labels.SelectorFromSet(labelMap).String(),
 	}
-	snapc.NewController(c, c, listOptions, c.syncPeriod).Run()
+	snapc.NewController(c.Controller, c, c, listOptions, c.syncPeriod).Run()
 }
 
 func (c *Controller) watchDormantDatabase() {
@@ -159,20 +152,20 @@ func (c *Controller) watchDormantDatabase() {
 	// Watch with label selector
 	lw := &cache.ListWatch{
 		ListFunc: func(opts metav1.ListOptions) (runtime.Object, error) {
-			return c.extClient.DormantDatabases(metav1.NamespaceAll).List(
+			return c.ExtClient.DormantDatabases(metav1.NamespaceAll).List(
 				metav1.ListOptions{
 					LabelSelector: labels.SelectorFromSet(labelMap).String(),
 				})
 		},
 		WatchFunc: func(options metav1.ListOptions) (watch.Interface, error) {
-			return c.extClient.DormantDatabases(metav1.NamespaceAll).Watch(
+			return c.ExtClient.DormantDatabases(metav1.NamespaceAll).Watch(
 				metav1.ListOptions{
 					LabelSelector: labels.SelectorFromSet(labelMap).String(),
 				})
 		},
 	}
 
-	drmnc.NewController(c, c, lw, c.syncPeriod).Run()
+	drmnc.NewController(c.Controller, c, lw, c.syncPeriod).Run()
 }
 
 func (c *Controller) pushFailureEvent(postgres *api.Postgres, reason string) {
@@ -185,7 +178,7 @@ func (c *Controller) pushFailureEvent(postgres *api.Postgres, reason string) {
 		reason,
 	)
 
-	pg, _, err := kutildb.PatchPostgres(c.extClient, postgres, func(in *api.Postgres) *api.Postgres {
+	pg, _, err := kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
 		in.Status.Phase = api.DatabasePhaseFailed
 		in.Status.Reason = reason
 		return in

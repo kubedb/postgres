@@ -10,7 +10,7 @@ import (
 )
 
 func (c *Controller) Exists(om *metav1.ObjectMeta) (bool, error) {
-	postgres, err := c.extClient.Postgreses(om.Namespace).Get(om.Name, metav1.GetOptions{})
+	postgres, err := c.ExtClient.Postgreses(om.Namespace).Get(om.Name, metav1.GetOptions{})
 	if err != nil {
 		if !kerr.IsNotFound(err) {
 			return false, err
@@ -38,7 +38,7 @@ func (c *Controller) PauseDatabase(dormantDb *api.DormantDatabase) error {
 		return err
 	}
 
-	err := apps_util.DeleteStatefulSet(c.client, metav1.ObjectMeta{
+	err := apps_util.DeleteStatefulSet(c.Client, metav1.ObjectMeta{
 		Name:      dormantDb.OffshootName(),
 		Namespace: dormantDb.Namespace,
 	})
@@ -97,7 +97,7 @@ func (c *Controller) ResumeDatabase(dormantDb *api.DormantDatabase) error {
 		Spec: *origin.Spec.Postgres,
 	}
 
-	_, err := c.extClient.Postgreses(postgres.Namespace).Create(postgres)
+	_, err := c.ExtClient.Postgreses(postgres.Namespace).Create(postgres)
 	return err
 }
 
@@ -125,5 +125,5 @@ func (c *Controller) createDormantDatabase(postgres *api.Postgres) (*api.Dormant
 		},
 	}
 
-	return c.extClient.DormantDatabases(dormantDb.Namespace).Create(dormantDb)
+	return c.ExtClient.DormantDatabases(dormantDb.Namespace).Create(dormantDb)
 }

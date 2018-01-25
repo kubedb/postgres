@@ -118,6 +118,15 @@ func (c *Controller) handleRestoreJob(job *batch.Job) error {
 				return err
 			}
 
+			if jobSucceeded {
+				err = c.snapshotDoer.UpsertDatabaseAnnotation(objectMeta, map[string]string{
+					api.AnnotationInitialized: "",
+				})
+				if err != nil {
+					return err
+				}
+			}
+
 			runtimeObj, err := c.snapshotDoer.GetDatabase(objectMeta)
 			if err != nil {
 				return nil

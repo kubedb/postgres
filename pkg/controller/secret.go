@@ -26,7 +26,7 @@ func (c *Controller) ensureDatabaseSecret(postgres *api.Postgres) error {
 		if databaseSecretVolume, err = c.createDatabaseSecret(postgres); err != nil {
 			return err
 		}
-		pg, _, err := kutildb.PatchPostgres(c.extClient, postgres, func(in *api.Postgres) *api.Postgres {
+		pg, _, err := kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
 			in.Spec.DatabaseSecret = databaseSecretVolume
 			return in
 		})
@@ -42,7 +42,7 @@ func (c *Controller) ensureDatabaseSecret(postgres *api.Postgres) error {
 func (c *Controller) findDatabaseSecret(postgres *api.Postgres) (*core.Secret, error) {
 	name := postgres.OffshootName() + "-auth"
 
-	secret, err := c.client.CoreV1().Secrets(postgres.Namespace).Get(name, metav1.GetOptions{})
+	secret, err := c.Client.CoreV1().Secrets(postgres.Namespace).Get(name, metav1.GetOptions{})
 	if err != nil {
 		if kerr.IsNotFound(err) {
 			return nil, nil
@@ -84,7 +84,7 @@ func (c *Controller) createDatabaseSecret(postgres *api.Postgres) (*core.SecretV
 			KeyPostgresPassword: []byte(rand.GeneratePassword()),
 		},
 	}
-	if _, err := c.client.CoreV1().Secrets(postgres.Namespace).Create(secret); err != nil {
+	if _, err := c.Client.CoreV1().Secrets(postgres.Namespace).Create(secret); err != nil {
 		return nil, err
 	}
 
@@ -95,7 +95,7 @@ func (c *Controller) createDatabaseSecret(postgres *api.Postgres) (*core.SecretV
 
 func (c *Controller) deleteSecret(dormantDb *api.DormantDatabase, secretVolume *core.SecretVolumeSource) error {
 	secretFound := false
-	postgresList, err := c.extClient.Postgreses(dormantDb.Namespace).List(metav1.ListOptions{})
+	postgresList, err := c.ExtClient.Postgreses(dormantDb.Namespace).List(metav1.ListOptions{})
 	if err != nil {
 		return err
 	}
@@ -114,7 +114,7 @@ func (c *Controller) deleteSecret(dormantDb *api.DormantDatabase, secretVolume *
 		labelMap := map[string]string{
 			api.LabelDatabaseKind: api.ResourceKindPostgres,
 		}
-		dormantDatabaseList, err := c.extClient.DormantDatabases(dormantDb.Namespace).List(
+		dormantDatabaseList, err := c.ExtClient.DormantDatabases(dormantDb.Namespace).List(
 			metav1.ListOptions{
 				LabelSelector: labels.SelectorFromSet(labelMap).String(),
 			},
@@ -139,7 +139,7 @@ func (c *Controller) deleteSecret(dormantDb *api.DormantDatabase, secretVolume *
 	}
 
 	if !secretFound {
-		if err := c.client.CoreV1().Secrets(dormantDb.Namespace).Delete(secretVolume.SecretName, nil); !kerr.IsNotFound(err) {
+		if err := c.Client.CoreV1().Secrets(dormantDb.Namespace).Delete(secretVolume.SecretName, nil); !kerr.IsNotFound(err) {
 			return err
 		}
 	}
