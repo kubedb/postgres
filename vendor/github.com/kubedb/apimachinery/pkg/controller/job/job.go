@@ -15,7 +15,7 @@ import (
 
 func (c *Controller) completeJob(job *batch.Job) error {
 	deletePolicy := metav1.DeletePropagationBackground
-	err := c.Client().BatchV1().Jobs(job.Namespace).Delete(job.Name, &metav1.DeleteOptions{
+	err := c.Client.BatchV1().Jobs(job.Namespace).Delete(job.Name, &metav1.DeleteOptions{
 		PropagationPolicy: &deletePolicy,
 	})
 
@@ -36,14 +36,14 @@ func (c *Controller) completeJob(job *batch.Job) error {
 func (c *Controller) handleBackupJob(job *batch.Job) error {
 	for _, o := range job.OwnerReferences {
 		if o.Kind == api.ResourceKindSnapshot {
-			snapshot, err := c.ExtClient().Snapshots(job.Namespace).Get(o.Name, metav1.GetOptions{})
+			snapshot, err := c.ExtClient.Snapshots(job.Namespace).Get(o.Name, metav1.GetOptions{})
 			if err != nil {
 				return err
 			}
 
 			jobSucceeded := job.Status.Succeeded > 0
 
-			_, _, err = util.PatchSnapshot(c.ExtClient(), snapshot, func(in *api.Snapshot) *api.Snapshot {
+			_, _, err = util.PatchSnapshot(c.ExtClient, snapshot, func(in *api.Snapshot) *api.Snapshot {
 				if jobSucceeded {
 					in.Status.Phase = api.SnapshotPhaseSucceeded
 				} else {
@@ -59,7 +59,7 @@ func (c *Controller) handleBackupJob(job *batch.Job) error {
 				return err
 			}
 
-			runtimeObj, err := c.GetDatabase(metav1.ObjectMeta{Name: snapshot.Spec.DatabaseName, Namespace: snapshot.Namespace})
+			runtimeObj, err := c.snapshotDoer.GetDatabase(metav1.ObjectMeta{Name: snapshot.Spec.DatabaseName, Namespace: snapshot.Namespace})
 			if err != nil {
 				return nil
 			}
@@ -113,12 +113,12 @@ func (c *Controller) handleRestoreJob(job *batch.Job) error {
 				reason = "Failed to complete initialization"
 			}
 			objectMeta := metav1.ObjectMeta{Name: o.Name, Namespace: job.Namespace}
-			err := c.SetDatabaseStatus(objectMeta, phase, reason)
+			err := c.snapshotDoer.SetDatabaseStatus(objectMeta, phase, reason)
 			if err != nil {
 				return err
 			}
 
-			runtimeObj, err := c.GetDatabase(objectMeta)
+			runtimeObj, err := c.snapshotDoer.GetDatabase(objectMeta)
 			if err != nil {
 				return nil
 			}

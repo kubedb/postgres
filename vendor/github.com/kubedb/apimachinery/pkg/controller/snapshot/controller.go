@@ -24,18 +24,12 @@ type Snapshotter interface {
 	WipeOutSnapshot(*api.Snapshot) error
 }
 
-type controllerInterface interface {
-	// client interface
-	amc.ClientInterface
-	// helper method for Snapshot watcher
-	Snapshotter
-	SetJobOwnerReference(*api.Snapshot, *batch.Job) error
-}
-
 type Controller struct {
-	controllerInterface
+	*amc.Controller
 	// Job Controller
-	jobController amc.ControllerInterface
+	jobController *jobc.Controller
+	// Snapshotter interface
+	snapshotter Snapshotter
 	// ListOptions for watcher
 	listOption metav1.ListOptions
 	// Event Recorder
@@ -52,36 +46,35 @@ type Controller struct {
 
 // NewController creates a new Controller
 func NewController(
-	controller controllerInterface,
-	jobController jobc.ControllerInterface,
+	controller *amc.Controller,
+	snapshotter Snapshotter,
+	snapshotDoer jobc.SnapshotDoer,
 	listOption metav1.ListOptions,
 	syncPeriod time.Duration,
-) amc.ControllerInterface {
+) *Controller {
 
 	// return new DormantDatabase Controller
 	return &Controller{
-		controllerInterface: controller,
-		jobController:       jobc.NewController(jobController, listOption, syncPeriod),
-		listOption:          listOption,
-		eventRecorder:       eventer.NewEventRecorder(controller.Client(), "Snapshot Controller"),
-		syncPeriod:          syncPeriod,
-		maxNumRequests:      5,
+		Controller:     controller,
+		jobController:  jobc.NewController(controller, snapshotDoer, listOption, syncPeriod),
+		snapshotter:    snapshotter,
+		listOption:     listOption,
+		eventRecorder:  eventer.NewEventRecorder(controller.Client, "Snapshot Controller"),
+		syncPeriod:     syncPeriod,
+		maxNumRequests: 5,
 	}
 }
 
-func (c *Controller) setup() error {
+func (c *Controller) Setup() error {
 	crd := []*crd_api.CustomResourceDefinition{
 		api.Snapshot{}.CustomResourceDefinition(),
 	}
-	return apiext_util.RegisterCRDs(c.ApiExtKubeClient(), crd)
+	return apiext_util.RegisterCRDs(c.ApiExtKubeClient, crd)
 }
 
 func (c *Controller) Run() {
 	// Watch Snapshot with provided ListOption
 	go c.watchSnapshot()
-
-	c.setup()
-
 	// Watch Job with provided ListOption
 	go c.jobController.Run()
 }

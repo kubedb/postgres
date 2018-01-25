@@ -15,7 +15,7 @@ import (
 )
 
 func (c *Controller) create(snapshot *api.Snapshot) error {
-	snap, _, err := util.PatchSnapshot(c.ExtClient(), snapshot, func(in *api.Snapshot) *api.Snapshot {
+	snap, _, err := util.PatchSnapshot(c.ExtClient, snapshot, func(in *api.Snapshot) *api.Snapshot {
 		t := metav1.Now()
 		in.Status.StartTime = &t
 		return in
@@ -27,9 +27,9 @@ func (c *Controller) create(snapshot *api.Snapshot) error {
 	snapshot.Status = snap.Status
 
 	// Validate DatabaseSnapshot spec
-	if err := c.ValidateSnapshot(snapshot); err != nil {
+	if err := c.snapshotter.ValidateSnapshot(snapshot); err != nil {
 		c.eventRecorder.Event(snapshot.ObjectReference(), core.EventTypeWarning, eventer.EventReasonInvalid, err.Error())
-		_, _, err = util.PatchSnapshot(c.ExtClient(), snapshot, func(in *api.Snapshot) *api.Snapshot {
+		_, _, err = util.PatchSnapshot(c.ExtClient, snapshot, func(in *api.Snapshot) *api.Snapshot {
 			t := metav1.Now()
 			in.Status.CompletionTime = &t
 			in.Labels[api.LabelDatabaseName] = snapshot.Spec.DatabaseName
@@ -52,7 +52,7 @@ func (c *Controller) create(snapshot *api.Snapshot) error {
 		return err
 	}
 	if running {
-		_, _, err = util.PatchSnapshot(c.ExtClient(), snapshot, func(in *api.Snapshot) *api.Snapshot {
+		_, _, err = util.PatchSnapshot(c.ExtClient, snapshot, func(in *api.Snapshot) *api.Snapshot {
 			t := metav1.Now()
 			in.Status.CompletionTime = &t
 			in.Status.Phase = api.SnapshotPhaseFailed
@@ -66,7 +66,7 @@ func (c *Controller) create(snapshot *api.Snapshot) error {
 		return nil
 	}
 
-	runtimeObj, err := c.GetDatabase(metav1.ObjectMeta{Name: snapshot.Spec.DatabaseName, Namespace: snapshot.Namespace})
+	runtimeObj, err := c.snapshotter.GetDatabase(metav1.ObjectMeta{Name: snapshot.Spec.DatabaseName, Namespace: snapshot.Namespace})
 	if err != nil {
 		c.eventRecorder.Event(snapshot.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToGet, err.Error())
 		return err
@@ -75,14 +75,14 @@ func (c *Controller) create(snapshot *api.Snapshot) error {
 	c.eventRecorder.Event(api.ObjectReferenceFor(runtimeObj), core.EventTypeNormal, eventer.EventReasonStarting, "Backup running")
 	c.eventRecorder.Event(snapshot.ObjectReference(), core.EventTypeNormal, eventer.EventReasonStarting, "Backup running")
 
-	secret, err := storage.NewOSMSecret(c.Client(), snapshot)
+	secret, err := storage.NewOSMSecret(c.Client, snapshot)
 	if err != nil {
 		message := fmt.Sprintf("Failed to generate osm secret. Reason: %v", err)
 		c.eventRecorder.Event(api.ObjectReferenceFor(runtimeObj), core.EventTypeWarning, eventer.EventReasonSnapshotFailed, message)
 		c.eventRecorder.Event(snapshot.ObjectReference(), core.EventTypeWarning, eventer.EventReasonSnapshotFailed, message)
 		return err
 	}
-	_, err = c.Client().CoreV1().Secrets(secret.Namespace).Create(secret)
+	_, err = c.Client.CoreV1().Secrets(secret.Namespace).Create(secret)
 	if err != nil && !kerr.IsAlreadyExists(err) {
 		message := fmt.Sprintf("Failed to create osm secret. Reason: %v", err)
 		c.eventRecorder.Event(api.ObjectReferenceFor(runtimeObj), core.EventTypeWarning, eventer.EventReasonSnapshotFailed, message)
@@ -90,7 +90,7 @@ func (c *Controller) create(snapshot *api.Snapshot) error {
 		return err
 	}
 
-	job, err := c.GetSnapshotter(snapshot)
+	job, err := c.snapshotter.GetSnapshotter(snapshot)
 	if err != nil {
 		message := fmt.Sprintf("Failed to take snapshot. Reason: %v", err)
 		c.eventRecorder.Event(api.ObjectReferenceFor(runtimeObj), core.EventTypeWarning, eventer.EventReasonSnapshotFailed, message)
@@ -98,7 +98,7 @@ func (c *Controller) create(snapshot *api.Snapshot) error {
 		return err
 	}
 
-	_, _, err = util.PatchSnapshot(c.ExtClient(), snapshot, func(in *api.Snapshot) *api.Snapshot {
+	_, _, err = util.PatchSnapshot(c.ExtClient, snapshot, func(in *api.Snapshot) *api.Snapshot {
 		in.Labels[api.LabelDatabaseName] = snapshot.Spec.DatabaseName
 		in.Labels[api.LabelSnapshotStatus] = string(api.SnapshotPhaseRunning)
 		in.Status.Phase = api.SnapshotPhaseRunning
@@ -109,7 +109,7 @@ func (c *Controller) create(snapshot *api.Snapshot) error {
 		return err
 	}
 
-	job, err = c.Client().BatchV1().Jobs(snapshot.Namespace).Create(job)
+	job, err = c.Client.BatchV1().Jobs(snapshot.Namespace).Create(job)
 	if err != nil {
 		message := fmt.Sprintf("Failed to take snapshot. Reason: %v", err)
 		c.eventRecorder.Event(api.ObjectReferenceFor(runtimeObj), core.EventTypeWarning, eventer.EventReasonSnapshotFailed, message)
@@ -125,7 +125,7 @@ func (c *Controller) create(snapshot *api.Snapshot) error {
 }
 
 func (c *Controller) delete(snapshot *api.Snapshot) error {
-	runtimeObj, err := c.GetDatabase(metav1.ObjectMeta{Name: snapshot.Spec.DatabaseName, Namespace: snapshot.Namespace})
+	runtimeObj, err := c.snapshotter.GetDatabase(metav1.ObjectMeta{Name: snapshot.Spec.DatabaseName, Namespace: snapshot.Namespace})
 	if err != nil {
 		if !kerr.IsNotFound(err) {
 			c.eventRecorder.Event(
@@ -148,7 +148,7 @@ func (c *Controller) delete(snapshot *api.Snapshot) error {
 		)
 	}
 
-	if err := c.WipeOutSnapshot(snapshot); err != nil {
+	if err := c.snapshotter.WipeOutSnapshot(snapshot); err != nil {
 		if runtimeObj != nil {
 			c.eventRecorder.Eventf(
 				api.ObjectReferenceFor(runtimeObj),
@@ -180,7 +180,7 @@ func (c *Controller) isSnapshotRunning(snapshot *api.Snapshot) (bool, error) {
 		api.LabelSnapshotStatus: string(api.SnapshotPhaseRunning),
 	}
 
-	snapshotList, err := c.ExtClient().Snapshots(snapshot.Namespace).List(metav1.ListOptions{
+	snapshotList, err := c.ExtClient.Snapshots(snapshot.Namespace).List(metav1.ListOptions{
 		LabelSelector: labels.SelectorFromSet(labelMap).String(),
 	})
 	if err != nil {

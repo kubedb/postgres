@@ -7,39 +7,16 @@ import (
 	_ "github.com/graymeta/stow/google"
 	_ "github.com/graymeta/stow/s3"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
-	cs "github.com/kubedb/apimachinery/client/typed/kubedb/v1alpha1"
 	"github.com/kubedb/apimachinery/pkg/storage"
 	batch "k8s.io/api/batch/v1"
 	core "k8s.io/api/core/v1"
-	crd_cs "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/client-go/kubernetes"
 )
 
-type CommonMethodInterface interface {
-	DeletePersistentVolumeClaims(string, labels.Selector) error
-	DeleteSnapshotData(*api.Snapshot) error
-	DeleteSnapshots(string, labels.Selector) error
-	CreateGoverningService(name, namespace string) error
-	SetJobOwnerReference(*api.Snapshot, *batch.Job) error
-}
-
-func NewCommon(
-	client kubernetes.Interface,
-	apiExtKubeClient crd_cs.ApiextensionsV1beta1Interface,
-	extClient cs.KubedbV1alpha1Interface,
-) CommonMethodInterface {
-	return &Controller{
-		client:           client,
-		apiExtKubeClient: apiExtKubeClient,
-		extClient:        extClient,
-	}
-}
-
 func (c *Controller) DeletePersistentVolumeClaims(namespace string, selector labels.Selector) error {
-	pvcList, err := c.Client().CoreV1().PersistentVolumeClaims(namespace).List(
+	pvcList, err := c.Client.CoreV1().PersistentVolumeClaims(namespace).List(
 		metav1.ListOptions{
 			LabelSelector: selector.String(),
 		},
@@ -49,7 +26,7 @@ func (c *Controller) DeletePersistentVolumeClaims(namespace string, selector lab
 	}
 
 	for _, pvc := range pvcList.Items {
-		if err := c.Client().CoreV1().PersistentVolumeClaims(pvc.Namespace).Delete(pvc.Name, nil); err != nil {
+		if err := c.Client.CoreV1().PersistentVolumeClaims(pvc.Namespace).Delete(pvc.Name, nil); err != nil {
 			return err
 		}
 	}
@@ -57,7 +34,7 @@ func (c *Controller) DeletePersistentVolumeClaims(namespace string, selector lab
 }
 
 func (c *Controller) DeleteSnapshotData(snapshot *api.Snapshot) error {
-	cfg, err := storage.NewOSMContext(c.Client(), snapshot.Spec.SnapshotStorageSpec, snapshot.Namespace)
+	cfg, err := storage.NewOSMContext(c.Client, snapshot.Spec.SnapshotStorageSpec, snapshot.Namespace)
 	if err != nil {
 		return err
 	}
@@ -97,7 +74,7 @@ func (c *Controller) DeleteSnapshotData(snapshot *api.Snapshot) error {
 }
 
 func (c *Controller) DeleteSnapshots(namespace string, selector labels.Selector) error {
-	snapshotList, err := c.ExtClient().Snapshots(namespace).List(
+	snapshotList, err := c.ExtClient.Snapshots(namespace).List(
 		metav1.ListOptions{
 			LabelSelector: selector.String(),
 		},
@@ -107,7 +84,7 @@ func (c *Controller) DeleteSnapshots(namespace string, selector labels.Selector)
 	}
 
 	for _, snapshot := range snapshotList.Items {
-		if err := c.ExtClient().Snapshots(snapshot.Namespace).Delete(snapshot.Name, &metav1.DeleteOptions{}); err != nil {
+		if err := c.ExtClient.Snapshots(snapshot.Namespace).Delete(snapshot.Name, &metav1.DeleteOptions{}); err != nil {
 			return err
 		}
 	}
@@ -115,7 +92,7 @@ func (c *Controller) DeleteSnapshots(namespace string, selector labels.Selector)
 }
 
 func (c *Controller) checkGoverningService(name, namespace string) (bool, error) {
-	_, err := c.Client().CoreV1().Services(namespace).Get(name, metav1.GetOptions{})
+	_, err := c.Client.CoreV1().Services(namespace).Get(name, metav1.GetOptions{})
 	if err != nil {
 		if kerr.IsNotFound(err) {
 			return false, nil
@@ -146,18 +123,18 @@ func (c *Controller) CreateGoverningService(name, namespace string) error {
 			ClusterIP: core.ClusterIPNone,
 		},
 	}
-	_, err = c.Client().CoreV1().Services(namespace).Create(service)
+	_, err = c.Client.CoreV1().Services(namespace).Create(service)
 	return err
 }
 
 func (c *Controller) SetJobOwnerReference(snapshot *api.Snapshot, job *batch.Job) error {
-	secret, err := c.Client().CoreV1().Secrets(snapshot.Namespace).Get(snapshot.OSMSecretName(), metav1.GetOptions{})
+	secret, err := c.Client.CoreV1().Secrets(snapshot.Namespace).Get(snapshot.OSMSecretName(), metav1.GetOptions{})
 	if err != nil {
 		if !kerr.IsNotFound(err) {
 			return err
 		}
 	} else {
-		_, _, err := core_util.PatchSecret(c.Client(), secret, func(in *core.Secret) *core.Secret {
+		_, _, err := core_util.PatchSecret(c.Client, secret, func(in *core.Secret) *core.Secret {
 			in.SetOwnerReferences([]metav1.OwnerReference{
 				{
 					APIVersion: batch.SchemeGroupVersion.String(),
@@ -173,13 +150,13 @@ func (c *Controller) SetJobOwnerReference(snapshot *api.Snapshot, job *batch.Job
 		}
 	}
 
-	pvc, err := c.Client().CoreV1().PersistentVolumeClaims(snapshot.Namespace).Get(snapshot.OffshootName(), metav1.GetOptions{})
+	pvc, err := c.Client.CoreV1().PersistentVolumeClaims(snapshot.Namespace).Get(snapshot.OffshootName(), metav1.GetOptions{})
 	if err != nil {
 		if !kerr.IsNotFound(err) {
 			return err
 		}
 	} else {
-		_, _, err := core_util.PatchPVC(c.Client(), pvc, func(in *core.PersistentVolumeClaim) *core.PersistentVolumeClaim {
+		_, _, err := core_util.PatchPVC(c.Client, pvc, func(in *core.PersistentVolumeClaim) *core.PersistentVolumeClaim {
 			in.SetOwnerReferences([]metav1.OwnerReference{
 				{
 					APIVersion: batch.SchemeGroupVersion.String(),
