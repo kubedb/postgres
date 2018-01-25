@@ -136,14 +136,14 @@ func (c *Controller) handleRestoreJob(job *batch.Job) error {
 					api.ObjectReferenceFor(runtimeObj),
 					core.EventTypeNormal,
 					eventer.EventReasonSuccessfulSnapshot,
-					"Successfully completed snapshot",
+					"Successfully completed initialization",
 				)
 			} else {
 				c.eventRecorder.Event(
 					api.ObjectReferenceFor(runtimeObj),
 					core.EventTypeWarning,
 					eventer.EventReasonSnapshotFailed,
-					"Failed to complete snapshot",
+					"Failed to complete initialization",
 				)
 			}
 			return nil

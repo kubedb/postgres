@@ -311,7 +311,7 @@ var _ = Describe("Postgres", func() {
 
 			})
 
-			FContext("With Snapshot", func() {
+			Context("With Snapshot", func() {
 				BeforeEach(func() {
 					skipSnapshotDataChecking = false
 					secret = f.SecretForS3Backend()

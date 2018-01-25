@@ -13,7 +13,6 @@ import (
 	kutildb "github.com/kubedb/apimachinery/client/typed/kubedb/v1alpha1/util"
 	amc "github.com/kubedb/apimachinery/pkg/controller"
 	drmnc "github.com/kubedb/apimachinery/pkg/controller/dormant_database"
-	jobc "github.com/kubedb/apimachinery/pkg/controller/job"
 	snapc "github.com/kubedb/apimachinery/pkg/controller/snapshot"
 	"github.com/kubedb/apimachinery/pkg/eventer"
 	"github.com/kubedb/postgres/pkg/docker"
@@ -70,7 +69,6 @@ type Controller struct {
 }
 
 var _ snapc.Snapshotter = &Controller{}
-var _ jobc.SnapshotDoer = &Controller{}
 var _ drmnc.Deleter = &Controller{}
 
 func New(
@@ -142,7 +140,7 @@ func (c *Controller) watchSnapshot() {
 	listOptions := metav1.ListOptions{
 		LabelSelector: labels.SelectorFromSet(labelMap).String(),
 	}
-	snapc.NewController(c.Controller, c, c, listOptions, c.syncPeriod).Run()
+	snapc.NewController(c.Controller, c, listOptions, c.syncPeriod).Run()
 }
 
 func (c *Controller) watchDormantDatabase() {

@@ -108,7 +108,21 @@ func (c *Controller) create(postgres *api.Postgres) error {
 	if _, err := meta_util.GetString(postgres.Annotations, api.AnnotationInitialized); err == kutil.ErrNotFound &&
 		postgres.Spec.Init != nil &&
 		postgres.Spec.Init.SnapshotSource != nil {
-		err := c.initialize(postgres)
+
+		snapshotSource := postgres.Spec.Init.SnapshotSource
+
+		if postgres.Status.Phase == api.DatabasePhaseInitializing {
+			return nil
+		}
+		jobName := fmt.Sprintf("%s-%s", api.DatabaseNamePrefix, snapshotSource.Name)
+		if _, err := c.Client.BatchV1().Jobs(snapshotSource.Namespace).Get(jobName, metav1.GetOptions{}); err != nil {
+			if kerr.IsAlreadyExists(err) {
+				return nil
+			} else if !kerr.IsNotFound(err) {
+				return err
+			}
+		}
+		err = c.initialize(postgres)
 		if err != nil {
 			return fmt.Errorf("failed to complete initialization. Reason: %v", err)
 		}
