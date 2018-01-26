@@ -8,28 +8,17 @@ import (
 	amc "github.com/kubedb/apimachinery/pkg/controller"
 	jobc "github.com/kubedb/apimachinery/pkg/controller/job"
 	"github.com/kubedb/apimachinery/pkg/eventer"
-	batch "k8s.io/api/batch/v1"
 	crd_api "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/client-go/util/workqueue"
 )
 
-type Snapshotter interface {
-	ValidateSnapshot(*api.Snapshot) error
-	GetDatabase(metav1.ObjectMeta) (runtime.Object, error)
-	GetSnapshotter(*api.Snapshot) (*batch.Job, error)
-	WipeOutSnapshot(*api.Snapshot) error
-	SetDatabaseStatus(metav1.ObjectMeta, api.DatabasePhase, string) error
-	UpsertDatabaseAnnotation(metav1.ObjectMeta, map[string]string) error
-}
-
 type Controller struct {
 	*amc.Controller
 	// Snapshotter interface
-	snapshotter Snapshotter
+	snapshotter amc.Snapshotter
 	// ListOptions for watcher
 	listOption metav1.ListOptions
 	// Event Recorder
@@ -47,7 +36,7 @@ type Controller struct {
 // NewController creates a new Controller
 func NewController(
 	controller *amc.Controller,
-	snapshotter Snapshotter,
+	snapshotter amc.Snapshotter,
 	listOption metav1.ListOptions,
 	syncPeriod time.Duration,
 ) *Controller {

@@ -19,7 +19,7 @@ import:
   vcs: git
   version: master
 - package: github.com/kubedb/apimachinery
-  version: job
+  version: master
 - package: github.com/spf13/cobra
   version: master
 - package: github.com/spf13/pflag

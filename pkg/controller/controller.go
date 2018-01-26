@@ -68,8 +68,8 @@ type Controller struct {
 	informer cache.Controller
 }
 
-var _ snapc.Snapshotter = &Controller{}
-var _ drmnc.Deleter = &Controller{}
+var _ amc.Snapshotter = &Controller{}
+var _ amc.Deleter = &Controller{}
 
 func New(
 	client kubernetes.Interface,

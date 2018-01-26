@@ -69,11 +69,6 @@ func (c *cronController) ScheduleBackup(
 	// cronEntry name
 	cronEntryName := fmt.Sprintf("%v@%v", om.Name, om.Namespace)
 
-	// Remove previous cron job if exist
-	if id, exists := c.cronEntryIDs.Pop(cronEntryName); exists {
-		c.cron.Remove(id.(cron.EntryID))
-	}
-
 	invoker := &snapshotInvoker{
 		extClient:     c.extClient,
 		runtimeObject: runtimeObj,
@@ -82,15 +77,21 @@ func (c *cronController) ScheduleBackup(
 		eventRecorder: c.eventRecorder,
 	}
 
+	// Remove previous cron job if exist
+	if id, exists := c.cronEntryIDs.Pop(cronEntryName); exists {
+		c.cron.Remove(id.(cron.EntryID))
+	} else {
+		invoker.createScheduledSnapshot()
+	}
+
 	// Set cron job
 	entryID, err := c.cron.AddFunc(spec.CronExpression, invoker.createScheduledSnapshot)
 	if err != nil {
 		return err
 	}
+
 	// Add job entryID
 	c.cronEntryIDs.Set(cronEntryName, entryID)
-
-	invoker.createScheduledSnapshot()
 
 	return nil
 }

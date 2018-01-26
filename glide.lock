@@ -1,5 +1,5 @@
-hash: f4698a348e905b76599ae2452494aecb1ee47c8aaf8e307e7eff17e20e2008fd
-updated: 2018-01-25T15:43:21.357054124+06:00
+hash: 91c50b2afc1d71f2f2234badd0f11659f2f6b485bca12b802df7ebd07da1743d
+updated: 2018-01-26T12:07:47.829912191+06:00
 imports:
 - name: cloud.google.com/go
   version: fe3d41e1ecb2ce36ad3a979037c9b9a2b726226f
@@ -234,7 +234,7 @@ imports:
 - name: github.com/juju/ratelimit
   version: 5b9ff866471762aa2ab2dced63c9fb6f53921342
 - name: github.com/kubedb/apimachinery
-  version: 6a8447f124ac9cef3036770a04957c7c779ce6ca
+  version: e9a30c23ecf5f39c963364e5a229766575193716
   subpackages:
   - apis/kubedb
   - apis/kubedb/v1alpha1
@@ -251,7 +251,7 @@ imports:
   - pkg/storage
   - pkg/validator
 - name: github.com/kubernetes/apimachinery
-  version: 2f1e02d3e57b8fb5206c5326bcb65217edc63a8e
+  version: b621949a1923cee3fce8bca9613e9a83609f0bbc
   subpackages:
   - pkg/conversion
 - name: github.com/lib/pq
@@ -413,7 +413,7 @@ imports:
   - unicode/norm
   - width
 - name: google.golang.org/api
-  version: a27ddaf5ce0ce688be462071a9e55566e60bb59e
+  version: 61a5611191ce37af3dca50af6d9265cb273ccb88
   subpackages:
   - gensupport
   - googleapi

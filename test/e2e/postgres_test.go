@@ -509,10 +509,10 @@ var _ = Describe("Postgres", func() {
 				secret = f.SecretForLocalBackend()
 			})
 
-			FContext("With Startup", func() {
+			Context("With Startup", func() {
 				BeforeEach(func() {
 					postgres.Spec.BackupSchedule = &api.BackupScheduleSpec{
-						CronExpression: "@every 5m",
+						CronExpression: "@every 1m",
 						SnapshotStorageSpec: api.SnapshotStorageSpec{
 							StorageSecretName: secret.Name,
 							Local: &api.LocalSpec{

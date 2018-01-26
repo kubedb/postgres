@@ -59,7 +59,7 @@ func (c *Controller) handleBackupJob(job *batch.Job) error {
 				return err
 			}
 
-			runtimeObj, err := c.snapshotDoer.GetDatabase(metav1.ObjectMeta{Name: snapshot.Spec.DatabaseName, Namespace: snapshot.Namespace})
+			runtimeObj, err := c.snapshotter.GetDatabase(metav1.ObjectMeta{Name: snapshot.Spec.DatabaseName, Namespace: snapshot.Namespace})
 			if err != nil {
 				return nil
 			}
@@ -113,13 +113,13 @@ func (c *Controller) handleRestoreJob(job *batch.Job) error {
 				reason = "Failed to complete initialization"
 			}
 			objectMeta := metav1.ObjectMeta{Name: o.Name, Namespace: job.Namespace}
-			err := c.snapshotDoer.SetDatabaseStatus(objectMeta, phase, reason)
+			err := c.snapshotter.SetDatabaseStatus(objectMeta, phase, reason)
 			if err != nil {
 				return err
 			}
 
 			if jobSucceeded {
-				err = c.snapshotDoer.UpsertDatabaseAnnotation(objectMeta, map[string]string{
+				err = c.snapshotter.UpsertDatabaseAnnotation(objectMeta, map[string]string{
 					api.AnnotationInitialized: "",
 				})
 				if err != nil {
@@ -127,7 +127,7 @@ func (c *Controller) handleRestoreJob(job *batch.Job) error {
 				}
 			}
 
-			runtimeObj, err := c.snapshotDoer.GetDatabase(objectMeta)
+			runtimeObj, err := c.snapshotter.GetDatabase(objectMeta)
 			if err != nil {
 				return nil
 			}
