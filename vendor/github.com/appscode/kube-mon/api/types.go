@@ -1,13 +1,25 @@
 package api
 
-import "github.com/appscode/kutil"
+import (
+	"strings"
+
+	"github.com/appscode/kutil"
+)
 
 type AgentType string
 
 const (
-	AgentPrometheusBuiltin AgentType = "prometheus-builtin"
-	AgentCoreOSPrometheus  AgentType = "coreos-prometheus-operator"
+	KeyAgent   = "monitoring.appscode.com/agent"
+	KeyService = "monitoring.appscode.com/service"
+
+	VendorPrometheus                 = "prometheus.io"
+	AgentPrometheusBuiltin AgentType = VendorPrometheus + "/builtin"
+	AgentCoreOSPrometheus  AgentType = VendorPrometheus + "/coreos-operator"
 )
+
+func (at AgentType) Vendor() string {
+	return strings.SplitN(string(at), "/", 2)[0]
+}
 
 type AgentSpec struct {
 	// Valid values: coreos-prometheus-operator
@@ -33,6 +45,7 @@ type PrometheusSpec struct {
 }
 
 type Agent interface {
+	GetType() AgentType
 	CreateOrUpdate(sp StatsAccessor, spec *AgentSpec) (kutil.VerbType, error)
 	Delete(sp StatsAccessor) (kutil.VerbType, error)
 }
