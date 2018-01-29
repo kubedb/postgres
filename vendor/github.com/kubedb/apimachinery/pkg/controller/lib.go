@@ -150,7 +150,7 @@ func (c *Controller) SetJobOwnerReference(snapshot *api.Snapshot, job *batch.Job
 		}
 	}
 
-	pvc, err := c.Client.CoreV1().PersistentVolumeClaims(snapshot.Namespace).Get(snapshot.OffshootName(), metav1.GetOptions{})
+	pvc, err := c.Client.CoreV1().PersistentVolumeClaims(snapshot.Namespace).Get(job.Name, metav1.GetOptions{})
 	if err != nil {
 		if !kerr.IsNotFound(err) {
 			return err

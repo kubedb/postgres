@@ -11,10 +11,8 @@ import (
 	stringz "github.com/appscode/go/strings"
 	"github.com/appscode/kutil/tools/analytics"
 	pcm "github.com/coreos/prometheus-operator/pkg/client/monitoring/v1"
-	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	cs "github.com/kubedb/apimachinery/client/typed/kubedb/v1alpha1"
 	snapc "github.com/kubedb/apimachinery/pkg/controller/snapshot"
-	"github.com/kubedb/apimachinery/pkg/migrator"
 	"github.com/kubedb/postgres/pkg/controller"
 	"github.com/kubedb/postgres/pkg/docker"
 	"github.com/spf13/cobra"
@@ -77,16 +75,6 @@ func NewCmdRun(version string) *cobra.Command {
 
 			// Ensuring Custom Resource Definitions
 			err = w.Setup()
-			if err != nil {
-				log.Fatalln(err)
-			}
-
-			tprMigrator := migrator.NewMigrator(client, apiExtKubeClient, extClient)
-			err = tprMigrator.RunMigration(
-				&api.Postgres{},
-				&api.Snapshot{},
-				&api.DormantDatabase{},
-			)
 			if err != nil {
 				log.Fatalln(err)
 			}
