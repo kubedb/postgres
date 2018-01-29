@@ -39,8 +39,6 @@ func (c *Controller) ensureStatefulSet(
 	}
 
 	statefulSet, vt, err := app_util.CreateOrPatchStatefulSet(c.Client, statefulSetMeta, func(in *apps.StatefulSet) *apps.StatefulSet {
-		in.Labels = core_util.UpsertMap(in.Labels, postgres.StatefulSetLabels())
-		in.Annotations = core_util.UpsertMap(in.Annotations, postgres.StatefulSetAnnotations())
 		in = upsertObjectMeta(in, postgres)
 
 		in.Spec.Replicas = types.Int32P(replicas)
