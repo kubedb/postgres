@@ -8,7 +8,7 @@ import (
 	"github.com/appscode/go/log/golog"
 	v "github.com/appscode/go/version"
 	"github.com/jpillora/go-ogle-analytics"
-	"github.com/kubedb/apimachinery/client/scheme"
+	"github.com/kubedb/apimachinery/client/clientset/versioned/scheme"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	clientsetscheme "k8s.io/client-go/kubernetes/scheme"
