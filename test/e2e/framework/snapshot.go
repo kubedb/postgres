@@ -135,7 +135,7 @@ func (f *Framework) CleanSnapshot() {
 	}
 	for _, s := range snapshotList.Items {
 		kutildb.PatchSnapshot(f.extClient, &s, func(in *api.Snapshot) *api.Snapshot {
-			in.ObjectMeta = core_util.RemoveFinalizer(in.ObjectMeta, "kubedb.com")
+			in.ObjectMeta = core_util.RemoveFinalizer(in.ObjectMeta, api.GenericKey)
 			return in
 		})
 	}

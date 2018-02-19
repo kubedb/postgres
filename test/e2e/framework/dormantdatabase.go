@@ -69,7 +69,7 @@ func (f *Framework) CleanDormantDatabase() {
 	}
 	for _, d := range dormantDatabaseList.Items {
 		kutildb.PatchDormantDatabase(f.extClient, &d, func(in *api.DormantDatabase) *api.DormantDatabase {
-			in.ObjectMeta = core_util.RemoveFinalizer(in.ObjectMeta, "kubedb.com")
+			in.ObjectMeta = core_util.RemoveFinalizer(in.ObjectMeta, api.GenericKey)
 			return in
 		})
 	}

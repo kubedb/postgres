@@ -106,7 +106,7 @@ func (f *Framework) CleanPostgres() {
 	}
 	for _, e := range postgresList.Items {
 		kutildb.PatchPostgres(f.extClient, &e, func(in *api.Postgres) *api.Postgres {
-			in.ObjectMeta = core_util.RemoveFinalizer(in.ObjectMeta, "kubedb.com")
+			in.ObjectMeta = core_util.RemoveFinalizer(in.ObjectMeta, api.GenericKey)
 			return in
 		})
 	}

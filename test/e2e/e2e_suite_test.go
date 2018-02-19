@@ -65,6 +65,10 @@ var _ = BeforeSuite(func() {
 	By("Using kubeconfig from " + kubeconfigPath)
 	config, err := clientcmd.BuildConfigFromFlags("", kubeconfigPath)
 	Expect(err).NotTo(HaveOccurred())
+	// raise throttling time. ref: https://github.com/appscode/voyager/issues/640
+	config.Burst = 100
+	config.QPS = 100
+
 	// Clients
 	kubeClient := kubernetes.NewForConfigOrDie(config)
 	apiExtKubeClient := crd_cs.NewForConfigOrDie(config)
