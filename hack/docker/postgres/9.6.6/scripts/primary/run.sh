@@ -32,6 +32,8 @@ if [ ! -e "$PGDATA/PG_VERSION" ]; then
         # Push base_backup using wal-g if possible
         push_backup
     fi
+else
+    push_backup
 fi
 
 exec postgres
