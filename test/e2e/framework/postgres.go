@@ -23,7 +23,7 @@ func (i *Invocation) Postgres() *api.Postgres {
 			},
 		},
 		Spec: api.PostgresSpec{
-			Version:  types.StrYo("9.6"),
+			Version:  types.StrYo("10.2"),
 			Replicas: 1,
 		},
 	}
