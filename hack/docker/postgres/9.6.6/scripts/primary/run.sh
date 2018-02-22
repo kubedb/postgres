@@ -33,7 +33,13 @@ if [ ! -e "$PGDATA/PG_VERSION" ]; then
         push_backup
     fi
 else
-    push_backup
+    if [[ -v ARCHIVE ]]; then
+        if [ "$ARCHIVE" == "wal-g" ]; then
+            export WALE_S3_PREFIX=$(echo "$ARCHIVE_S3_PREFIX")
+            set_walg_env "/srv/wal-g/archive/secrets"
+            create_pgpass_file
+        fi
+    fi
 fi
 
 exec postgres
