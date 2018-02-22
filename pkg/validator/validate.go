@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	postgresVersions = sets.NewString("9.6", "9.6.6")
+	postgresVersions = sets.NewString("9.6", "9.6.6", "10.2")
 )
 
 func ValidatePostgres(client kubernetes.Interface, postgres *api.Postgres) error {

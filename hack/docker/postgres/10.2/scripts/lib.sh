@@ -73,7 +73,6 @@ use_standby() {
     echo "# ====== Archiving ======" >> /tmp/postgresql.conf
 
     echo "# ====== WRITE AHEAD LOG ======" >> /tmp/postgresql.conf
-    echo "wal_level = on" >> /tmp/postgresql.conf
     echo "max_wal_senders = 99" >> /tmp/postgresql.conf
     echo "wal_keep_segments = 32" >> /tmp/postgresql.conf
     echo "# ====== WRITE AHEAD LOG ======" >> /tmp/postgresql.conf
@@ -95,10 +94,8 @@ configure_replica_postgres() {
     cp /scripts/primary/postgresql.conf /tmp
 
     if [[ -v STANDBY ]]; then
-        if [ "$STANDBY" == "warm" ]; then
-            use_standby "archive"
-        elif [ "$STANDBY" == "hot" ]; then
-            use_standby "hot_standby"
+        use_standby
+        if [ "$STANDBY" == "hot" ]; then
             echo "hot_standby = on" >> /tmp/postgresql.conf
         fi
     fi
