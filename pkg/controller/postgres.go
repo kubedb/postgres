@@ -233,7 +233,7 @@ func (c *Controller) matchDormantDatabase(postgres *api.Postgres) error {
 	// Skip checking doNotPause
 	drmnOriginSpec.DoNotPause = originalSpec.DoNotPause
 
-	if !meta_util.Equal(drmnOriginSpec, originalSpec) {
+	if !meta_util.Equal(drmnOriginSpec, &originalSpec) {
 		return sendEvent("Postgres spec mismatches with OriginSpec in DormantDatabases")
 	}
 
