@@ -75,6 +75,25 @@ func characters(len int) string {
 	return string(r)
 }
 
+func (f *Framework) EventuallyPingDatabase(meta metav1.ObjectMeta) GomegaAsyncAssertion {
+	return Eventually(
+		func() bool {
+			db, err := f.GetPostgresClient(meta)
+			if err != nil {
+				return false
+			}
+
+			if err := f.CheckPostgres(db); err != nil {
+				return false
+			}
+
+			return true
+		},
+		time.Minute*10,
+		time.Second*5,
+	)
+}
+
 func (f *Framework) EventuallyCreateTable(meta metav1.ObjectMeta, total int) GomegaAsyncAssertion {
 	count := 0
 	return Eventually(

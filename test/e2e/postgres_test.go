@@ -635,6 +635,9 @@ var _ = Describe("Postgres", func() {
 				// Create Postgres
 				createAndWaitForRunning()
 
+				By("Ping Database")
+				f.EventuallyPingDatabase(postgres.ObjectMeta).Should(BeTrue())
+
 				By("Creating Table")
 				f.EventuallyCreateTable(postgres.ObjectMeta, 3).Should(BeTrue())
 
@@ -667,6 +670,9 @@ var _ = Describe("Postgres", func() {
 
 				// Create Postgres
 				createAndWaitForRunning()
+
+				By("Ping Database")
+				f.EventuallyPingDatabase(postgres.ObjectMeta).Should(BeTrue())
 
 				By("Checking Table")
 				f.EventuallyCountTable(postgres.ObjectMeta).Should(Equal(6))

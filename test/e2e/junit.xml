@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-  <testsuite tests="1" failures="1" time="474.202672861">
+  <testsuite tests="1" failures="0" time="1059.85364258">
       <testcase name="Postgres Test General - should run successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
@@ -48,8 +48,5 @@
       <testcase name="Postgres Test SnapshotScheduler With Update should run schedular successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="Postgres Test Archive with wal-g should archive successfully" classname="e2e Suite" time="470.296672884">
-          <failure type="Failure">/home/shahriar/go/src/github.com/kubedb/postgres/test/e2e/postgres_test.go:586&#xA;Timed out after 300.196s.&#xA;Expected&#xA;    &lt;bool&gt;: false&#xA;to be true&#xA;/home/shahriar/go/src/github.com/kubedb/postgres/test/e2e/postgres_test.go:639</failure>
-          <system-out>[BeforeEach] Postgres&#xA;  /home/shahriar/go/src/github.com/kubedb/postgres/test/e2e/postgres_test.go:36&#xA;[BeforeEach] Archive with wal-g&#xA;  /home/shahriar/go/src/github.com/kubedb/postgres/test/e2e/postgres_test.go:574&#xA;[It] should archive successfully&#xA;  /home/shahriar/go/src/github.com/kubedb/postgres/test/e2e/postgres_test.go:586&#xA;�[1mSTEP�[0m: Create Postgres: postgres-s2n5en&#xA;�[1mSTEP�[0m: Wait for Running postgres&#xA;�[1mSTEP�[0m: Creating Schema&#xA;�[1mSTEP�[0m: Creating Table&#xA;�[1mSTEP�[0m: Checking Table&#xA;�[1mSTEP�[0m: Checking Archive&#xA;�[1mSTEP�[0m: Create Postgres: postgres-shblva&#xA;�[1mSTEP�[0m: Wait for Running postgres&#xA;�[1mSTEP�[0m: Creating Table&#xA;[AfterEach] Postgres&#xA;  /home/shahriar/go/src/github.com/kubedb/postgres/test/e2e/postgres_test.go:80&#xA;�[1mSTEP�[0m: Delete postgres: postgres-shblva&#xA;�[1mSTEP�[0m: Wait for postgres to be paused&#xA;�[1mSTEP�[0m: WipeOut postgres: postgres-shblva&#xA;�[1mSTEP�[0m: Wait for postgres to be wipedOut&#xA;�[1mSTEP�[0m: Delete postgres: postgres-s2n5en&#xA;�[1mSTEP�[0m: Wait for postgres to be paused&#xA;�[1mSTEP�[0m: WipeOut postgres: postgres-s2n5en&#xA;�[1mSTEP�[0m: Wait for postgres to be wipedOut&#xA;</system-out>
-      </testcase>
+      <testcase name="Postgres Test Archive with wal-g should archive successfully" classname="e2e Suite" time="1058.934037763"></testcase>
   </testsuite>

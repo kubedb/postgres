@@ -206,27 +206,21 @@ restore_from_walg() {
     echo "restore_command = 'wal-g wal-fetch %f %p'" >> /tmp/recovery.conf
     cp /tmp/recovery.conf "$PGDATA/recovery.conf"
 
+    pg_ctl -D "$PGDATA" -W start >/dev/null
+
     touch '/tmp/pg-failover-trigger'
 
-    # This will start restoring. And will hold until restore completed
-    pg_ctl -D "$PGDATA" -w start >/dev/null
+    # This will hold until restore completed
+    while [ ! -e "$PGDATA/recovery.done" ]
+    do
+        sleep 2
+    done
 
-    # Stop to change configurations
+    postmaster -D "$PGDATA" >/dev/null
+
     pg_ctl -D "$PGDATA" -w stop >/dev/null
-
-    rm "$PGDATA/postgresql.conf" || true
-    rm "$PGDATA/recovery.conf" || true
 
     configure_primary_postgres
 
-    if [[ -v ARCHIVE ]]; then
-        if [ "$ARCHIVE" == "wal-g" ]; then
-            # Start to push backup using wal-g
-            pg_ctl -D "$PGDATA" -w start >/dev/null
-            PGHOST="127.0.0.1" PGPORT="5432" PGUSER="postgres" wal-g backup-push "$PGDATA" >/dev/null
-            echo "Successfully pushed backup"
-            # Finally stop.
-            pg_ctl -D "$PGDATA" -w stop >/dev/null
-        fi
-    fi
+    push_backup
 }
