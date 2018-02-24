@@ -4,8 +4,8 @@ RUN set -x \
   && apk add --update --no-cache ca-certificates
 
 ENV PV /var/pv
-ENV PGDATA /var/pv/data
-ENV PGWAL /var/pgwal
+ENV PGDATA $PV/data
+ENV PGWAL $PGDATA/pg_wal
 ENV INITDB /var/initdb
 ENV WALG_D /etc/wal-g.d/env
 
@@ -14,9 +14,7 @@ COPY wal-g /usr/bin/
 
 COPY scripts /scripts
 
-RUN mkdir -p "$PGWAL" && chown -R postgres:postgres "$PGWAL" && chmod 0700 "$PGWAL"
-
-VOLUME ["$PV", "$PGWAL"]
+VOLUME ["$PV"]
 
 ENV STANDBY warm
 ENV RESTORE false

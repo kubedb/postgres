@@ -47,15 +47,11 @@ set_walg_env() {
 }
 
 use_standby() {
-    echo "Creating wal directory at " "$PGWAL"
-    mkdir -p "$PGWAL"
-    chmod 0700 "$PGWAL"
-
     # Adding additional configuration in /tmp/postgresql.conf
     echo "# ====== Archiving ======" >> /tmp/postgresql.conf
     echo "archive_mode = always" >> /tmp/postgresql.conf
 
-    archive_command="'test ! -f /var/pgwal/%f && cp %p /var/pgwal/%f'"
+    archive_command="'test ! -f $PGWAL/%f && cp %p $PGWAL/%f'"
     archive_timeout=0
 
     if [[ -v ARCHIVE ]]; then
@@ -79,27 +75,17 @@ use_standby() {
 }
 
 configure_primary_postgres() {
-
     cp /scripts/primary/postgresql.conf /tmp
-
-    if [[ -v STANDBY ]]; then
-        use_standby
-    fi
-
+    use_standby
     cp /tmp/postgresql.conf "$PGDATA/postgresql.conf"
 }
 
 configure_replica_postgres() {
-
     cp /scripts/primary/postgresql.conf /tmp
-
-    if [[ -v STANDBY ]]; then
-        use_standby
-        if [ "$STANDBY" == "hot" ]; then
-            echo "hot_standby = on" >> /tmp/postgresql.conf
-        fi
+    use_standby
+    if [ "$STANDBY" == "hot" ]; then
+        echo "hot_standby = on" >> /tmp/postgresql.conf
     fi
-
     cp /tmp/postgresql.conf "$PGDATA/postgresql.conf"
 }
 
@@ -147,7 +133,6 @@ base_backup() {
 }
 
 init_database() {
-
     create_pgpass_file
     psql=( psql -v ON_ERROR_STOP=1 --username "postgres" --dbname "postgres" )
 

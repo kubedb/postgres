@@ -9,7 +9,6 @@ echo "Running as Primary"
 export MODE="primary"
 
 if [ ! -e "$PGDATA/PG_VERSION" ]; then
-
     if [ "$RESTORE" = true ]; then
         echo "Restoring Postgres from base_backup using wal-g"
         restore_from_walg

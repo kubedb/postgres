@@ -47,15 +47,11 @@ set_walg_env() {
 }
 
 use_standby() {
-    echo "Creating wal directory at " "$PGWAL"
-    mkdir -p "$PGWAL"
-    chmod 0700 "$PGWAL"
-
     # Adding additional configuration in /tmp/postgresql.conf
     echo "# ====== Archiving ======" >> /tmp/postgresql.conf
     echo "archive_mode = always" >> /tmp/postgresql.conf
 
-    archive_command="'test ! -f /var/pgwal/%f && cp %p /var/pgwal/%f'"
+    archive_command="'test ! -f $PGWAL/%f && cp %p $PGWAL/%f'"
     archive_timeout=0
 
     if [[ -v ARCHIVE ]]; then
