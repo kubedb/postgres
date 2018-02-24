@@ -49,23 +49,17 @@ set_walg_env() {
 use_standby() {
     # Adding additional configuration in /tmp/postgresql.conf
     echo "# ====== Archiving ======" >> /tmp/postgresql.conf
-    echo "archive_mode = always" >> /tmp/postgresql.conf
-
-    archive_command="'test ! -f $PGWAL/%f && cp %p $PGWAL/%f'"
-    archive_timeout=0
-
+    archive_mode="off"
     if [[ -v ARCHIVE ]]; then
         if [ "$ARCHIVE" == "wal-g" ]; then
             export WALE_S3_PREFIX=$(echo "$ARCHIVE_S3_PREFIX")
             set_walg_env "/srv/wal-g/archive/secrets"
-            archive_timeout=60
-            archive_command="'wal-g wal-push %p'"
+            echo "archive_command = 'wal-g wal-push %p'" >> /tmp/postgresql.conf
+            echo "archive_timeout = 60" >> /tmp/postgresql.conf
+            archive_mode="always"
         fi
     fi
-
-    echo "archive_command = $archive_command" >> /tmp/postgresql.conf
-    echo "archive_timeout = $archive_timeout" >> /tmp/postgresql.conf
-
+    echo "archive_mode = $archive_mode" >> /tmp/postgresql.conf
     echo "# ====== Archiving ======" >> /tmp/postgresql.conf
 
     echo "# ====== WRITE AHEAD LOG ======" >> /tmp/postgresql.conf

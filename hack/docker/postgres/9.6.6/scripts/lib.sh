@@ -49,67 +49,38 @@ set_walg_env() {
 use_standby() {
     # Adding additional configuration in /tmp/postgresql.conf
     echo "# ====== Archiving ======" >> /tmp/postgresql.conf
-    echo "archive_mode = always" >> /tmp/postgresql.conf
-
-    archive_command="'test ! -f $PGWAL/%f && cp %p $PGWAL/%f'"
-    archive_timeout=0
-
+    archive_mode="off"
     if [[ -v ARCHIVE ]]; then
         if [ "$ARCHIVE" == "wal-g" ]; then
             export WALE_S3_PREFIX=$(echo "$ARCHIVE_S3_PREFIX")
             set_walg_env "/srv/wal-g/archive/secrets"
-            archive_timeout=60
-            archive_command="'wal-g wal-push %p'"
+            echo "archive_command = 'wal-g wal-push %p'" >> /tmp/postgresql.conf
+            echo "archive_timeout = 60" >> /tmp/postgresql.conf
+            archive_mode="always"
         fi
     fi
-
-    echo "archive_command = $archive_command" >> /tmp/postgresql.conf
-    echo "archive_timeout = $archive_timeout" >> /tmp/postgresql.conf
-
-     if [[ -v STREAMING ]]; then
-        if [ "$STREAMING" == "synchronous" ]; then
-            echo "synchronous_commit = on" >> /tmp/postgresql.conf
-            echo "synchronous_standby_names = '3 (*)'" >> /tmp/postgresql.conf
-        fi
-    fi
-
+    echo "archive_mode = $archive_mode" >> /tmp/postgresql.conf
     echo "# ====== Archiving ======" >> /tmp/postgresql.conf
 
     echo "# ====== WRITE AHEAD LOG ======" >> /tmp/postgresql.conf
-    echo "wal_level = $1" >> /tmp/postgresql.conf
+    echo "wal_level = replica" >> /tmp/postgresql.conf
     echo "max_wal_senders = 99" >> /tmp/postgresql.conf
     echo "wal_keep_segments = 32" >> /tmp/postgresql.conf
     echo "# ====== WRITE AHEAD LOG ======" >> /tmp/postgresql.conf
 }
 
 configure_primary_postgres() {
-
     cp /scripts/primary/postgresql.conf /tmp
-
-    if [[ -v STANDBY ]]; then
-        if [ "$STANDBY" == "warm" ]; then
-            use_standby "archive"
-        elif [ "$STANDBY" == "hot" ]; then
-            use_standby "hot_standby"
-        fi
-    fi
-
+    use_standby
     cp /tmp/postgresql.conf "$PGDATA/postgresql.conf"
 }
 
 configure_replica_postgres() {
-
     cp /scripts/primary/postgresql.conf /tmp
-
-    if [[ -v STANDBY ]]; then
-        if [ "$STANDBY" == "warm" ]; then
-            use_standby "archive"
-        elif [ "$STANDBY" == "hot" ]; then
-            use_standby "hot_standby"
-            echo "hot_standby = on" >> /tmp/postgresql.conf
-        fi
+    use_standby "archive"
+    if [ "$STANDBY" == "hot" ]; then
+        echo "hot_standby = on" >> /tmp/postgresql.conf
     fi
-
     cp /tmp/postgresql.conf "$PGDATA/postgresql.conf"
 }
 
@@ -157,7 +128,6 @@ base_backup() {
 }
 
 init_database() {
-
     create_pgpass_file
     psql=( psql -v ON_ERROR_STOP=1 --username "postgres" --dbname "postgres" )
 
@@ -216,27 +186,21 @@ restore_from_walg() {
     echo "restore_command = 'wal-g wal-fetch %f %p'" >> /tmp/recovery.conf
     cp /tmp/recovery.conf "$PGDATA/recovery.conf"
 
+    pg_ctl -D "$PGDATA" -W start >/dev/null
+
     touch '/tmp/pg-failover-trigger'
 
-    # This will start restoring. And will hold until restore completed
-    pg_ctl -D "$PGDATA" -w start >/dev/null
+    # This will hold until restore completed
+    while [ ! -e "$PGDATA/recovery.done" ]
+    do
+        sleep 2
+    done
 
-    # Stop to change configurations
+    postmaster -D "$PGDATA" >/dev/null
+
     pg_ctl -D "$PGDATA" -w stop >/dev/null
-
-    rm "$PGDATA/postgresql.conf" || true
-    rm "$PGDATA/recovery.conf" || true
 
     configure_primary_postgres
 
-    if [[ -v ARCHIVE ]]; then
-        if [ "$ARCHIVE" == "wal-g" ]; then
-            # Start to push backup using wal-g
-            pg_ctl -D "$PGDATA" -w start >/dev/null
-            PGHOST="127.0.0.1" PGPORT="5432" PGUSER="postgres" wal-g backup-push "$PGDATA" >/dev/null
-            echo "Successfully pushed backup"
-            # Finally stop.
-            pg_ctl -D "$PGDATA" -w stop >/dev/null
-        fi
-    fi
+    push_backup
 }
