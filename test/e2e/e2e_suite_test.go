@@ -14,7 +14,6 @@ import (
 	"github.com/kubedb/postgres/pkg/controller"
 	"github.com/kubedb/postgres/pkg/docker"
 	"github.com/kubedb/postgres/test/e2e/framework"
-	"github.com/mitchellh/go-homedir"
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/reporters"
 	. "github.com/onsi/gomega"
