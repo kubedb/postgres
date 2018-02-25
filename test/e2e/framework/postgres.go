@@ -24,7 +24,7 @@ func (i *Invocation) Postgres() *api.Postgres {
 			},
 		},
 		Spec: api.PostgresSpec{
-			Version:  jtypes.StrYo("9.6.6"),
+			Version:  jtypes.StrYo("10.2"),
 			Replicas: types.Int32P(1),
 		},
 	}

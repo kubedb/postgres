@@ -4,14 +4,14 @@ mkdir -p "$PGDATA"
 rm -rf "$PGDATA"/*
 chmod 0700 "$PGDATA"
 
-initdb "$PGDATA"
+initdb "$PGDATA" > /dev/null
 
 # setup postgresql.conf
 cp /scripts/primary/postgresql.conf /tmp
 echo "wal_level = replica" >> /tmp/postgresql.conf
 echo "max_wal_senders = 99" >> /tmp/postgresql.conf
 echo "wal_keep_segments = 32" >> /tmp/postgresql.conf
-cp /tmp/postgresql.conf "$PGDATA/postgresql.conf"
+mv /tmp/postgresql.conf "$PGDATA/postgresql.conf"
 
 # setup pg_hba.conf
 { echo; echo 'local all         all                         trust'; }   >> "$PGDATA/pg_hba.conf"
@@ -20,7 +20,7 @@ cp /tmp/postgresql.conf "$PGDATA/postgresql.conf"
 {       echo 'host  replication postgres    0.0.0.0/0       md5'; }     >> "$PGDATA/pg_hba.conf"
 
 # start postgres
-pg_ctl -D "$PGDATA"  -w start
+pg_ctl -D "$PGDATA"  -w start > /dev/null
 
 # alter postgres superuser
 psql --username postgres <<-EOSQL
@@ -40,7 +40,7 @@ for f in "$INITDB"/*; do
 done
 
 # stop server
-pg_ctl -D "$PGDATA" -m fast -w stop
+pg_ctl -D "$PGDATA" -m fast -w stop > /dev/null
 
 
 if [ "$ARCHIVE" == "wal-g" ]; then

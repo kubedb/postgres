@@ -34,7 +34,7 @@ echo "recovery_target_timeline = 'latest'" >> /tmp/recovery.conf
 echo "archive_cleanup_command = 'pg_archivecleanup $PGWAL %r'" >> /tmp/recovery.conf
 # primary_conninfo is used for streaming replication
 echo "primary_conninfo = 'application_name=$HOSTNAME host=$PRIMARY_HOST'" >> /tmp/recovery.conf
-cp /tmp/recovery.conf "$PGDATA/recovery.conf"
+mv /tmp/recovery.conf "$PGDATA/recovery.conf"
 
 # setup postgresql.conf
 cp /scripts/primary/postgresql.conf /tmp
@@ -44,7 +44,7 @@ echo "wal_keep_segments = 32" >> /tmp/postgresql.conf
 if [ "$STANDBY" == "hot" ]; then
     echo "hot_standby = on" >> /tmp/postgresql.conf
 fi
-cp /tmp/postgresql.conf "$PGDATA/postgresql.conf"
+mv /tmp/postgresql.conf "$PGDATA/postgresql.conf"
 
 # push base-backup
 if [ "$ARCHIVE" == "wal-g" ]; then
