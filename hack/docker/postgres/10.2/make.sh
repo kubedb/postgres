@@ -10,7 +10,7 @@ source "$REPO_ROOT/hack/libbuild/common/kubedb_image.sh"
 IMG=postgres
 TAG=10.2
 
-WALG_VER=${WALG_VER:-0.1.7}
+WALG_VER=${WALG_VER:-0.1.3}
 
 DIST="$REPO_ROOT/dist"
 mkdir -p "$DIST"
