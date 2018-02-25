@@ -5,7 +5,7 @@ RUN set -x \
 
 ENV PV /var/pv
 ENV PGDATA $PV/data
-ENV PGWAL $PGDATA/pg_wal
+ENV PGWAL $PGDATA/pg_xlog
 ENV INITDB /var/initdb
 ENV WALG_D /etc/wal-g.d/env
 

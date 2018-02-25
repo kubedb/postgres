@@ -6,9 +6,6 @@ chmod 0700 "$PGDATA"
 
 initdb "$PGDATA"
 
-ls -la $PGDATA
-
-
 # setup postgresql.conf
 cp /scripts/primary/postgresql.conf /tmp
 echo "wal_level = replica" >> /tmp/postgresql.conf

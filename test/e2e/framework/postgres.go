@@ -4,7 +4,8 @@ import (
 	"time"
 
 	"github.com/appscode/go/crypto/rand"
-	"github.com/appscode/go/encoding/json/types"
+	jtypes "github.com/appscode/go/encoding/json/types"
+	"github.com/appscode/go/types"
 	core_util "github.com/appscode/kutil/core/v1"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	kutildb "github.com/kubedb/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1/util"
@@ -23,8 +24,8 @@ func (i *Invocation) Postgres() *api.Postgres {
 			},
 		},
 		Spec: api.PostgresSpec{
-			Version:  types.StrYo("10.2"),
-			Replicas: 1,
+			Version:  jtypes.StrYo("9.6.6"),
+			Replicas: types.Int32P(1),
 		},
 	}
 }

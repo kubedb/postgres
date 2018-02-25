@@ -5,16 +5,16 @@ set -e
 echo "Running as Primary"
 
 # set password ENV
-PGPASSWORD=${POSTGRES_PASSWORD:-postgres}
+export PGPASSWORD=${POSTGRES_PASSWORD:-postgres}
 
-ARCHIVE=${ARCHIVE:-}
+export ARCHIVE=${ARCHIVE:-}
 
 if [ ! -e "$PGDATA/PG_VERSION" ]; then
     if [ "$RESTORE" = true ]; then
         echo "Restoring Postgres from base_backup using wal-g"
-        ./restore.sh
+        /scripts/primary/restore.sh
     else
-        ./start.sh
+        /scripts/primary/start.sh
     fi
 fi
 
@@ -27,7 +27,7 @@ if [ "$ARCHIVE" == "wal-g" ]; then
     export AWS_SECRET_ACCESS_KEY=$(cat "$CRED_PATH/AWS_SECRET_ACCESS_KEY")
 
     pg_ctl -D "$PGDATA"  -w start
-    wal-g backup-push "$PGDATA" >/dev/null
+    PGUSER="postgres" wal-g backup-push "$PGDATA" >/dev/null
     pg_ctl -D "$PGDATA" -m fast -w stop
 fi
 

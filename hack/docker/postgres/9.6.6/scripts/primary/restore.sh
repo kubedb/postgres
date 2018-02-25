@@ -9,6 +9,7 @@ CRED_PATH="/srv/wal-g/restore/secrets"
 export WALE_S3_PREFIX=$(echo "$RESTORE_S3_PREFIX")
 export AWS_ACCESS_KEY_ID=$(cat "$CRED_PATH/AWS_ACCESS_KEY_ID")
 export AWS_SECRET_ACCESS_KEY=$(cat "$CRED_PATH/AWS_SECRET_ACCESS_KEY")
+
 # fetch backup
 wal-g backup-fetch "$PGDATA" "$BACKUP_NAME" >/dev/null
 

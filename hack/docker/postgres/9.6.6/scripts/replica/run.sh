@@ -9,9 +9,9 @@ rm -rf "$PGDATA"/*
 chmod 0700 "$PGDATA"
 
 # set password ENV
-PGPASSWORD=${POSTGRES_PASSWORD:-postgres}
+export PGPASSWORD=${POSTGRES_PASSWORD:-postgres}
 
-ARCHIVE=${ARCHIVE:-}
+export ARCHIVE=${ARCHIVE:-}
 
 # Waiting for running Postgres
 while true; do
@@ -20,13 +20,13 @@ while true; do
     sleep 2
 done
 while true; do
-    psql -h "$PRIMARY_HOST" --no-password --command="select now();" &>/dev/null && break
+    psql -h "$PRIMARY_HOST" --no-password --username=postgres --command="select now();" &>/dev/null && break
     echo "Attempting query on primary"
     sleep 2
 done
 
 # get basebackup
-pg_basebackup -X fetch --no-password --pgdata "$PGDATA" --host="$PRIMARY_HOST"
+pg_basebackup -X fetch --no-password --pgdata "$PGDATA" --username=postgres --host="$PRIMARY_HOST"
 
 # setup recovery.conf
 cp /scripts/replica/recovery.conf /tmp
@@ -48,23 +48,16 @@ cp /tmp/postgresql.conf "$PGDATA/postgresql.conf"
 
 # push base-backup
 if [ "$ARCHIVE" == "wal-g" ]; then
-    # setup recovery.conf
-    echo "restore_command = 'wal-g wal-fetch %f %p'" >> "$PGDATA/recovery.conf"
-
-    # setup postgresql.conf
-    echo "archive_command = 'wal-g wal-push %p'" >> "$PGDATA/postgresql.conf"
-    echo "archive_timeout = 60" >> "$PGDATA/postgresql.conf"
-    echo "archive_mode = always" >> "$PGDATA/postgresql.conf"
-
     # set walg ENV
     CRED_PATH="/srv/wal-g/archive/secrets"
     export WALE_S3_PREFIX=$(echo "$ARCHIVE_S3_PREFIX")
     export AWS_ACCESS_KEY_ID=$(cat "$CRED_PATH/AWS_ACCESS_KEY_ID")
     export AWS_SECRET_ACCESS_KEY=$(cat "$CRED_PATH/AWS_SECRET_ACCESS_KEY")
 
-    pg_ctl -D "$PGDATA"  -w start
-    PGHOST="$PRIMARY_HOST" wal-g backup-push "$PGDATA" >/dev/null
-    pg_ctl -D "$PGDATA" -m fast -w stop
+    # setup postgresql.conf
+    echo "archive_command = 'wal-g wal-push %p'" >> "$PGDATA/postgresql.conf"
+    echo "archive_timeout = 60" >> "$PGDATA/postgresql.conf"
+    echo "archive_mode = always" >> "$PGDATA/postgresql.conf"
 fi
 
 exec postgres
