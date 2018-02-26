@@ -1,5 +1,5 @@
 hash: 3edc1b5b43b5f3a64c53614f58a1f45aac8e2dd9530bd933222de2369e2e5cd6
-updated: 2018-02-26T12:31:10.077446966+06:00
+updated: 2018-02-26T16:49:12.926919995+06:00
 imports:
 - name: cloud.google.com/go
   version: fe3d41e1ecb2ce36ad3a979037c9b9a2b726226f
@@ -35,6 +35,7 @@ imports:
   version: 20ffc2be6a1d88387bc6f6babe7bfe312c58b509
   subpackages:
   - apiextensions/v1beta1
+  - apps/v1
   - apps/v1beta1
   - core/v1
   - meta
@@ -131,7 +132,7 @@ imports:
 - name: github.com/go-openapi/jsonreference
   version: 13c6e3589ad90f49bd3e3bbe2c2cb3d7a4142272
 - name: github.com/go-openapi/spec
-  version: 6aced65f8501fe1217321abf0749d354824ba2ff
+  version: 7abd5745472fff5eb3685386d5fb8bf38683154d
 - name: github.com/go-openapi/swag
   version: f3f9494671f93fcff853e3c6e9e948b3eb71e590
 - name: github.com/go-xorm/builder
