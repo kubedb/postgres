@@ -16,6 +16,14 @@ if [ ! -e "$PGDATA/PG_VERSION" ]; then
     else
         /scripts/primary/start.sh
     fi
+else
+    if [[ -v ARCHIVE ]]; then
+        if [ "$ARCHIVE" == "wal-g" ]; then
+            export WALE_S3_PREFIX=$(echo "$ARCHIVE_S3_PREFIX")
+            set_walg_env "/srv/wal-g/archive/secrets"
+            create_pgpass_file
+        fi
+    fi
 fi
 
 # push base-backup
