@@ -8,7 +8,7 @@ source "$REPO_ROOT/hack/libbuild/common/lib.sh"
 source "$REPO_ROOT/hack/libbuild/common/kubedb_image.sh"
 
 IMG=postgres-tools
-TAG=9.6.6
+TAG=9.6.7
 OSM_VER=${OSM_VER:-0.6.2}
 
 DIST="$REPO_ROOT/dist"

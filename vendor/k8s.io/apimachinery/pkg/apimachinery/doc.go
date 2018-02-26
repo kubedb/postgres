@@ -1,4 +1,5 @@
-Copyright 2011-2016 Canonical Ltd.
+/*
+Copyright 2014 The Kubernetes Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -11,3 +12,9 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
+*/
+
+// Package apimachinery contains the generic API machinery code that
+// is common to both server and clients.
+// This package should never import specific API objects.
+package apimachinery // import "k8s.io/apimachinery/pkg/apimachinery"

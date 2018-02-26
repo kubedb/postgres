@@ -8,7 +8,7 @@ source "$REPO_ROOT/hack/libbuild/common/lib.sh"
 source "$REPO_ROOT/hack/libbuild/common/kubedb_image.sh"
 
 IMG=postgres
-TAG=9.6.6
+TAG=9.6.7
 
 WALG_VER=${WALG_VER:-0.1.3}
 

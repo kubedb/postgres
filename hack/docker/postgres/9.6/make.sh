@@ -3,7 +3,7 @@ set -xeou pipefail
 
 IMG=postgres
 TAG=9.6
-PATCH=9.6.6
+PATCH=9.6.7
 
 docker pull "$DOCKER_REGISTRY/$IMG:$PATCH"
 
