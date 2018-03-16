@@ -4,7 +4,6 @@
 [![Slack](http://slack.kubernetes.io/badge.svg)](http://slack.kubernetes.io)
 [![Twitter](https://img.shields.io/twitter/follow/kubedb.svg?style=social&logo=twitter&label=Follow)](https://twitter.com/intent/follow?screen_name=kubedb)
 
-[Website](https://kubedb.com) • [Slack](http://slack.kubernetes.io) • [Twitter](https://twitter.com/KubeDB)
 
 # postgres
 Run PostgreSQL in Kubernetes
