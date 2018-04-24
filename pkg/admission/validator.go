@@ -185,6 +185,13 @@ func ValidatePostgres(client kubernetes.Interface, extClient kubedbv1alpha1.Kube
 		}
 	}
 
+	if postgres.Spec.Init != nil &&
+		postgres.Spec.Init.SnapshotSource != nil &&
+		databaseSecret == nil {
+		return fmt.Errorf("in Snapshot init, 'spec.databaseSecret.secretName' of %v needs to be similar to older database of snapshot %v",
+			postgres.Name, postgres.Spec.Init.SnapshotSource.Name)
+	}
+
 	if postgres.Spec.Init != nil && postgres.Spec.Init.PostgresWAL != nil {
 		wal := postgres.Spec.Init.PostgresWAL
 		if wal.StorageSecretName == "" {

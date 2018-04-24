@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/appscode/go/types"
+	meta_util "github.com/appscode/kutil/meta"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/kubedb/postgres/test/e2e/framework"
 	"github.com/kubedb/postgres/test/e2e/matcher"
@@ -429,6 +430,116 @@ var _ = Describe("Postgres", func() {
 				})
 
 				It("should resume DormantDatabase successfully", shouldResumeSuccessfully)
+			})
+
+			Context("With Snapshot Init", func() {
+				BeforeEach(func() {
+					skipSnapshotDataChecking = false
+					secret = f.SecretForGCSBackend()
+					snapshot.Spec.StorageSecretName = secret.Name
+					snapshot.Spec.GCS = &api.GCSSpec{
+						Bucket: os.Getenv(GCS_BUCKET_NAME),
+					}
+					snapshot.Spec.DatabaseName = postgres.Name
+				})
+				It("should resume successfully", func() {
+					// Create and wait for running Postgres
+					createAndWaitForRunning()
+
+					By("Creating Schema")
+					f.EventuallyCreateSchema(postgres.ObjectMeta).Should(BeTrue())
+
+					By("Creating Table")
+					f.EventuallyCreateTable(postgres.ObjectMeta, 3).Should(BeTrue())
+
+					By("Checking Table")
+					f.EventuallyCountTable(postgres.ObjectMeta).Should(Equal(3))
+
+					By("Create Secret")
+					f.CreateSecret(secret)
+
+					By("Create Snapshot")
+					f.CreateSnapshot(snapshot)
+
+					By("Check for Succeeded snapshot")
+					f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(api.SnapshotPhaseSucceeded))
+
+					By("Check for snapshot data")
+					f.EventuallySnapshotDataFound(snapshot).Should(BeTrue())
+
+					oldPostgres, err := f.GetPostgres(postgres.ObjectMeta)
+					Expect(err).NotTo(HaveOccurred())
+
+					garbagePostgres.Items = append(garbagePostgres.Items, *oldPostgres)
+
+					By("Create postgres from snapshot")
+					*postgres = *f.Postgres()
+					if f.StorageClass != "" {
+						postgres.Spec.Storage = &core.PersistentVolumeClaimSpec{
+							Resources: core.ResourceRequirements{
+								Requests: core.ResourceList{
+									core.ResourceStorage: resource.MustParse("50Mi"),
+								},
+							},
+							StorageClassName: types.StringP(f.StorageClass),
+						}
+					}
+					postgres.Spec.Init = &api.InitSpec{
+						SnapshotSource: &api.SnapshotSourceSpec{
+							Namespace: snapshot.Namespace,
+							Name:      snapshot.Name,
+						},
+					}
+
+					By("Creating init Snapshot Postgres without secret name" + postgres.Name)
+					err = f.CreatePostgres(postgres)
+					Expect(err).Should(HaveOccurred())
+
+					// for snapshot init, user have to use older secret,
+					postgres.Spec.DatabaseSecret = oldPostgres.Spec.DatabaseSecret
+					// Create and wait for running Postgres
+					createAndWaitForRunning()
+
+					By("Ping Database")
+					f.EventuallyPingDatabase(postgres.ObjectMeta).Should(BeTrue())
+
+					By("Checking Table")
+					f.EventuallyCountTable(postgres.ObjectMeta).Should(Equal(3))
+
+					By("Again delete and resume  " + postgres.Name)
+
+					By("Delete postgres")
+					err = f.DeletePostgres(postgres.ObjectMeta)
+					Expect(err).NotTo(HaveOccurred())
+
+					By("Wait for postgres to be paused")
+					f.EventuallyDormantDatabaseStatus(postgres.ObjectMeta).Should(matcher.HavePaused())
+
+					// Create Postgres object again to resume it
+					By("Create Postgres: " + postgres.Name)
+					err = f.CreatePostgres(postgres)
+					Expect(err).NotTo(HaveOccurred())
+
+					By("Wait for DormantDatabase to be deleted")
+					f.EventuallyDormantDatabase(postgres.ObjectMeta).Should(BeFalse())
+
+					By("Wait for Running postgres")
+					f.EventuallyPostgresRunning(postgres.ObjectMeta).Should(BeTrue())
+
+					postgres, err = f.GetPostgres(postgres.ObjectMeta)
+					Expect(err).NotTo(HaveOccurred())
+
+					By("Ping Database")
+					f.EventuallyPingDatabase(postgres.ObjectMeta).Should(BeTrue())
+
+					By("Checking Table")
+					f.EventuallyCountTable(postgres.ObjectMeta).Should(Equal(3))
+
+					Expect(postgres.Spec.Init).ShouldNot(BeNil())
+					_, err = meta_util.GetString(postgres.Annotations, api.AnnotationInitialized)
+					Expect(err).NotTo(HaveOccurred())
+
+				})
 			})
 
 			Context("Resume Multiple times - with init", func() {

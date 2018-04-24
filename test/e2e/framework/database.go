@@ -143,7 +143,7 @@ func (f *Framework) EventuallyCountTable(meta metav1.ObjectMeta) GomegaAsyncAsse
 
 			return len(res)
 		},
-		time.Minute*5,
+		time.Minute*10,
 		time.Second*5,
 	)
 }

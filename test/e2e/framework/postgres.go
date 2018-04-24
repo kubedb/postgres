@@ -94,7 +94,7 @@ func (f *Framework) EventuallyPostgresRunning(meta metav1.ObjectMeta) GomegaAsyn
 			Expect(err).NotTo(HaveOccurred())
 			return postgres.Status.Phase == api.DatabasePhaseRunning
 		},
-		time.Minute*5,
+		time.Minute*15,
 		time.Second*5,
 	)
 }
