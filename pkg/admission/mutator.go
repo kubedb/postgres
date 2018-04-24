@@ -139,8 +139,6 @@ func setDefaultsFromDormantDB(extClient cs.Interface, postgres *api.Postgres) er
 	// Take dormantDatabaseSecretName
 	if postgres.Spec.DatabaseSecret == nil {
 		postgres.Spec.DatabaseSecret = ddbOriginSpec.DatabaseSecret
-	} else {
-		ddbOriginSpec.DatabaseSecret = postgres.Spec.DatabaseSecret
 	}
 
 	// If Monitoring Spec of new object is not given,
