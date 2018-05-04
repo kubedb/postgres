@@ -1,16 +1,16 @@
 apiVersion: admissionregistration.k8s.io/v1beta1
 kind: ValidatingWebhookConfiguration
 metadata:
-  name: admission.kubedb.com
+  name: validators.kubedb.com
   labels:
     app: kubedb
 webhooks:
-- name: postgres.admission.kubedb.com
+- name: postgres.validators.kubedb.com
   clientConfig:
     service:
       namespace: default
       name: kubernetes
-      path: /apis/admission.kubedb.com/v1alpha1/postgresvalidationreviews
+      path: /apis/validators.kubedb.com/v1alpha1/postgreses
     caBundle: ${KUBE_CA}
   rules:
   - apiGroups: ["kubedb.com"]
@@ -18,12 +18,12 @@ webhooks:
     resources: ["postgreses"]
     operations: ["CREATE", "UPDATE", "DELETE"]
   failurePolicy: Fail
-- name: snapshot.admission.kubedb.com
+- name: snapshot.validators.kubedb.com
   clientConfig:
     service:
       namespace: default
       name: kubernetes
-      path: /apis/admission.kubedb.com/v1alpha1/snapshotreviews
+      path: /apis/validators.kubedb.com/v1alpha1/snapshots
     caBundle: ${KUBE_CA}
   rules:
   - apiGroups: ["kubedb.com"]
@@ -31,12 +31,12 @@ webhooks:
     resources: ["snapshots"]
     operations: ["CREATE", "UPDATE"]
   failurePolicy: Fail
-- name: dormantdatabase.admission.kubedb.com
+- name: dormantdatabase.validators.kubedb.com
   clientConfig:
     service:
       namespace: default
       name: kubernetes
-      path: /apis/admission.kubedb.com/v1alpha1/dormantdatabasereviews
+      path: /apis/validators.kubedb.com/v1alpha1/dormantdatabases
     caBundle: ${KUBE_CA}
   rules:
   - apiGroups: ["kubedb.com"]

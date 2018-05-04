@@ -9,7 +9,7 @@ source "$REPO_ROOT/hack/libbuild/common/kubedb_image.sh"
 
 IMG=postgres-tools
 TAG=9.6.7
-OSM_VER=${OSM_VER:-0.6.3}
+OSM_VER=${OSM_VER:-0.7.0}
 
 DIST="$REPO_ROOT/dist"
 mkdir -p "$DIST"

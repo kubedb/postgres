@@ -34,11 +34,11 @@ var _ hookapi.AdmissionHook = &DormantDatabaseValidator{}
 
 func (a *DormantDatabaseValidator) Resource() (plural schema.GroupVersionResource, singular string) {
 	return schema.GroupVersionResource{
-			Group:    "admission.kubedb.com",
+			Group:    "validators.kubedb.com",
 			Version:  "v1alpha1",
-			Resource: "dormantdatabasereviews",
+			Resource: "dormantdatabases",
 		},
-		"dormantdatabasereview"
+		"dormantdatabase"
 }
 
 func (a *DormantDatabaseValidator) Initialize(config *rest.Config, stopCh <-chan struct{}) error {

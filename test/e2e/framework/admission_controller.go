@@ -21,22 +21,32 @@ var (
 	ProvidedController bool
 )
 
+func (f *Framework) isApiSvcReady(apiSvcName string) error {
+	apiSvc, err := f.kaClient.ApiregistrationV1beta1().APIServices().Get(apiSvcName, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+	for _, cond := range apiSvc.Status.Conditions {
+		if cond.Type == kApi.Available && cond.Status == kApi.ConditionTrue {
+			log.Infof("APIService %v status is true", apiSvcName)
+			return nil
+		}
+	}
+	log.Errorf("APIService %v not ready yet", apiSvcName)
+	return fmt.Errorf("APIService %v not ready yet", apiSvcName)
+}
+
 func (f *Framework) EventuallyAPIServiceReady() GomegaAsyncAssertion {
 	return Eventually(
 		func() error {
-			crd, err := f.kaClient.ApiregistrationV1beta1().APIServices().Get("v1alpha1.admission.kubedb.com", metav1.GetOptions{})
-			if err != nil {
+			if err := f.isApiSvcReady("v1alpha1.mutators.kubedb.com"); err != nil {
 				return err
 			}
-			for _, cond := range crd.Status.Conditions {
-				if cond.Type == kApi.Available && cond.Status == kApi.ConditionTrue {
-					log.Info("APIService status is true")
-					time.Sleep(time.Second * 3) // let the resource become available
-					return nil
-				}
+			if err := f.isApiSvcReady("v1alpha1.validators.kubedb.com"); err != nil {
+				return err
 			}
-			log.Error("APIService not ready yet")
-			return fmt.Errorf("APIService not ready yet")
+			time.Sleep(time.Second * 3) // let the resource become available
+			return nil
 		},
 		time.Minute*2,
 		time.Second*5,
