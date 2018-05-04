@@ -100,6 +100,18 @@ func (c *FakeMemcacheds) Update(memcached *v1alpha1.Memcached) (result *v1alpha1
 	return obj.(*v1alpha1.Memcached), err
 }
 
+// UpdateStatus was generated because the type contains a Status member.
+// Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
+func (c *FakeMemcacheds) UpdateStatus(memcached *v1alpha1.Memcached) (*v1alpha1.Memcached, error) {
+	obj, err := c.Fake.
+		Invokes(testing.NewUpdateSubresourceAction(memcachedsResource, "status", c.ns, memcached), &v1alpha1.Memcached{})
+
+	if obj == nil {
+		return nil, err
+	}
+	return obj.(*v1alpha1.Memcached), err
+}
+
 // Delete takes name of the memcached and deletes it. Returns an error if one occurs.
 func (c *FakeMemcacheds) Delete(name string, options *v1.DeleteOptions) error {
 	_, err := c.Fake.

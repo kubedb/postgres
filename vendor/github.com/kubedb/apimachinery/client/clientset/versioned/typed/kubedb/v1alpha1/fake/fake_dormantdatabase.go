@@ -100,6 +100,18 @@ func (c *FakeDormantDatabases) Update(dormantDatabase *v1alpha1.DormantDatabase)
 	return obj.(*v1alpha1.DormantDatabase), err
 }
 
+// UpdateStatus was generated because the type contains a Status member.
+// Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
+func (c *FakeDormantDatabases) UpdateStatus(dormantDatabase *v1alpha1.DormantDatabase) (*v1alpha1.DormantDatabase, error) {
+	obj, err := c.Fake.
+		Invokes(testing.NewUpdateSubresourceAction(dormantdatabasesResource, "status", c.ns, dormantDatabase), &v1alpha1.DormantDatabase{})
+
+	if obj == nil {
+		return nil, err
+	}
+	return obj.(*v1alpha1.DormantDatabase), err
+}
+
 // Delete takes name of the dormantDatabase and deletes it. Returns an error if one occurs.
 func (c *FakeDormantDatabases) Delete(name string, options *v1.DeleteOptions) error {
 	_, err := c.Fake.

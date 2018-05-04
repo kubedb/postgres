@@ -100,6 +100,18 @@ func (c *FakeMongoDBs) Update(mongoDB *v1alpha1.MongoDB) (result *v1alpha1.Mongo
 	return obj.(*v1alpha1.MongoDB), err
 }
 
+// UpdateStatus was generated because the type contains a Status member.
+// Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
+func (c *FakeMongoDBs) UpdateStatus(mongoDB *v1alpha1.MongoDB) (*v1alpha1.MongoDB, error) {
+	obj, err := c.Fake.
+		Invokes(testing.NewUpdateSubresourceAction(mongodbsResource, "status", c.ns, mongoDB), &v1alpha1.MongoDB{})
+
+	if obj == nil {
+		return nil, err
+	}
+	return obj.(*v1alpha1.MongoDB), err
+}
+
 // Delete takes name of the mongoDB and deletes it. Returns an error if one occurs.
 func (c *FakeMongoDBs) Delete(name string, options *v1.DeleteOptions) error {
 	_, err := c.Fake.

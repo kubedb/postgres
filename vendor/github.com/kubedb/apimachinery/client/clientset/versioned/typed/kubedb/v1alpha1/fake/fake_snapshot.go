@@ -100,6 +100,18 @@ func (c *FakeSnapshots) Update(snapshot *v1alpha1.Snapshot) (result *v1alpha1.Sn
 	return obj.(*v1alpha1.Snapshot), err
 }
 
+// UpdateStatus was generated because the type contains a Status member.
+// Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
+func (c *FakeSnapshots) UpdateStatus(snapshot *v1alpha1.Snapshot) (*v1alpha1.Snapshot, error) {
+	obj, err := c.Fake.
+		Invokes(testing.NewUpdateSubresourceAction(snapshotsResource, "status", c.ns, snapshot), &v1alpha1.Snapshot{})
+
+	if obj == nil {
+		return nil, err
+	}
+	return obj.(*v1alpha1.Snapshot), err
+}
+
 // Delete takes name of the snapshot and deletes it. Returns an error if one occurs.
 func (c *FakeSnapshots) Delete(name string, options *v1.DeleteOptions) error {
 	_, err := c.Fake.

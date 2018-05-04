@@ -100,6 +100,18 @@ func (c *FakeMySQLs) Update(mySQL *v1alpha1.MySQL) (result *v1alpha1.MySQL, err 
 	return obj.(*v1alpha1.MySQL), err
 }
 
+// UpdateStatus was generated because the type contains a Status member.
+// Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
+func (c *FakeMySQLs) UpdateStatus(mySQL *v1alpha1.MySQL) (*v1alpha1.MySQL, error) {
+	obj, err := c.Fake.
+		Invokes(testing.NewUpdateSubresourceAction(mysqlsResource, "status", c.ns, mySQL), &v1alpha1.MySQL{})
+
+	if obj == nil {
+		return nil, err
+	}
+	return obj.(*v1alpha1.MySQL), err
+}
+
 // Delete takes name of the mySQL and deletes it. Returns an error if one occurs.
 func (c *FakeMySQLs) Delete(name string, options *v1.DeleteOptions) error {
 	_, err := c.Fake.
