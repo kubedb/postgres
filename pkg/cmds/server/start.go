@@ -32,6 +32,7 @@ func NewPostgresServerOptions(out, errOut io.Writer) *PostgresServerOptions {
 		StdErr:             errOut,
 	}
 	o.RecommendedOptions.Etcd = nil
+	o.RecommendedOptions.Admission = nil
 
 	return o
 }
