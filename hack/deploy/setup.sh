@@ -36,5 +36,5 @@ if [ "$APPSCODE_ENV" = "dev" ]; then
 fi
 
 echo ""
-echo "${KUBEDB_SCRIPT}hack/deploy/kubedb.sh | bash -s -- --operator-name=mg-operator "$@""
+echo "${KUBEDB_SCRIPT}hack/deploy/kubedb.sh | bash -s -- --operator-name=pg-operator "$@""
 ${KUBEDB_SCRIPT}hack/deploy/kubedb.sh | bash -s -- --operator-name=pg-operator "$@"
