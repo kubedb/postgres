@@ -125,6 +125,7 @@ func (f *Framework) CleanDormantDatabase() {
 	for _, d := range dormantDatabaseList.Items {
 		if _, _, err := kutildb.PatchDormantDatabase(f.extClient, &d, func(in *api.DormantDatabase) *api.DormantDatabase {
 			in.ObjectMeta.Finalizers = nil
+			in.Spec.WipeOut = true
 			return in
 		}); err != nil {
 			fmt.Printf("error Patching DormantDatabase. error: %v", err)

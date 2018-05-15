@@ -30,3 +30,4 @@ dist/
 **/.env
 apiserver.local.config/
 coverage.txt
+junit.xml

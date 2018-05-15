@@ -10,10 +10,8 @@
 
 ```
       --alsologtostderr                  log to standard error as well as files
-      --analytics                        Send analytical events to Google Analytics (default true)
+      --enable-analytics                 Send analytical events to Google Analytics (default true)
   -h, --help                             help for pg-operator
-      --log.format logFormatFlag         Set the log target and format. Example: "logger:syslog?appname=bob&local=7" or "logger:stdout?json=true" (default "logger:stderr")
-      --log.level levelFlag              Only log messages with the given severity or above. Valid levels: [debug, info, warn, error, fatal] (default "info")
       --log_backtrace_at traceLocation   when logging hits line file:N, emit a stack trace (default :0)
       --log_dir string                   If non-empty, write log files in this directory
       --logtostderr                      log to standard error instead of files
@@ -25,6 +23,6 @@
 ### SEE ALSO
 
 * [pg-operator leader_election](pg-operator_leader_election.md)	 - Run leader election for postgres
-* [pg-operator run](pg-operator_run.md)	 - Run Postgres in Kubernetes
+* [pg-operator run](pg-operator_run.md)	 - Launch Postgres server
 * [pg-operator version](pg-operator_version.md)	 - Prints binary version number.
 

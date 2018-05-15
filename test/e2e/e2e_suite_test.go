@@ -34,7 +34,7 @@ func init() {
 	flag.StringVar(&framework.DockerRegistry, "docker-registry", "kubedb", "User provided docker repository")
 	flag.StringVar(&framework.ExporterTag, "exporter-tag", "canary", "Tag of kubedb/operator used as exporter")
 	flag.BoolVar(&framework.EnableRbac, "rbac", true, "Enable RBAC for database workloads")
-	flag.BoolVar(&framework.ProvidedController, "provided-controller", false, "Enable this for provided controller")
+	flag.BoolVar(&framework.SelfHostedOperator, "selfhosted-operator", false, "Enable this for self-hosted operator")
 }
 
 const (
@@ -85,7 +85,7 @@ var _ = BeforeSuite(func() {
 	err = root.CreateNamespace()
 	Expect(err).NotTo(HaveOccurred())
 
-	if !framework.ProvidedController {
+	if !framework.SelfHostedOperator {
 		stopCh := genericapiserver.SetupSignalHandler()
 		go root.RunOperatorAndServer(kubeconfigPath, stopCh)
 	}
@@ -95,8 +95,10 @@ var _ = BeforeSuite(func() {
 })
 
 var _ = AfterSuite(func() {
-	By("Delete Admission Controller Configs")
-	root.CleanAdmissionConfigs()
+	if !framework.SelfHostedOperator {
+		By("Delete Admission Controller Configs")
+		root.CleanAdmissionConfigs()
+	}
 	By("Delete left over Postgres objects")
 	root.CleanPostgres()
 	By("Delete left over Dormant Database objects")

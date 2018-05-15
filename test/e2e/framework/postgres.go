@@ -107,6 +107,7 @@ func (f *Framework) CleanPostgres() {
 	for _, e := range postgresList.Items {
 		if _, _, err := kutildb.PatchPostgres(f.extClient, &e, func(in *api.Postgres) *api.Postgres {
 			in.ObjectMeta.Finalizers = nil
+			in.Spec.DoNotPause = false
 			return in
 		}); err != nil {
 			fmt.Printf("error Patching Postgres. error: %v", err)
