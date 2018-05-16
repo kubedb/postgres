@@ -190,7 +190,7 @@ func (f *Framework) EventuallyCountArchive(meta metav1.ObjectMeta) GomegaAsyncAs
 			}
 			return false
 		},
-		time.Minute*5,
+		time.Minute*10,
 		time.Second*5,
 	)
 }
