@@ -44,7 +44,7 @@ function cleanup {
     # delete docker image on exit
     curl -LO https://raw.githubusercontent.com/appscodelabs/libbuild/master/docker.py || true
     chmod +x docker.py || true
-    ./docker.py del_tag kubedbci my-operator $CUSTOM_OPERATOR_TAG
+    ./docker.py del_tag kubedbci pg-operator $CUSTOM_OPERATOR_TAG
 }
 trap cleanup EXIT
 
