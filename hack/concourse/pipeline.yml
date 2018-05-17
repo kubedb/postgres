@@ -10,14 +10,14 @@ resources:
   type: git
   source:
     uri: https://github.com/kubedb/postgres
-    branch: concourse
+    branch: master
 
 - name: pull-request
   type: pull-request
   source:
     owner: kubedb
     repo: postgres
-    org: appscode
+    label: ok-to-test
     access_token: ((access_token))
 
 - name: creds
