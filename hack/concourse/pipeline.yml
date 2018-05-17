@@ -51,6 +51,13 @@ jobs:
       AZURE_ACCOUNT_NAME: ((azure_account_name))
       AZURE_ACCOUNT_KEY: ((azure_account_key))
       AZURE_CONTAINER_NAME: ((azure_container_name))
+      OS_AUTH_URL: ((os_auth_url))
+      OS_TENANT_ID: ((os_tenant_id))
+      OS_TENANT_NAME: ((os_tenaant_name))
+      OS_USERNAME: ((os_username))
+      OS_PASSWORD: ((os_password))
+      OS_REGION_NAME: ((os_region_name))
+      SWIFT_CONTAINER_NAME: ((swift_container_name))
 
 - name: test-postgres-pr
   plan:
@@ -78,6 +85,13 @@ jobs:
       AZURE_ACCOUNT_NAME: ((azure_account_name))
       AZURE_ACCOUNT_KEY: ((azure_account_key))
       AZURE_CONTAINER_NAME: ((azure_container_name))
+      OS_AUTH_URL: ((os_auth_url))
+      OS_TENANT_ID: ((os_tenant_id))
+      OS_TENANT_NAME: ((os_tenaant_name))
+      OS_USERNAME: ((os_username))
+      OS_PASSWORD: ((os_password))
+      OS_REGION_NAME: ((os_region_name))
+      SWIFT_CONTAINER_NAME: ((swift_container_name))
     on_success:
       put: pull-request
       params: { path: pull-request, status: success}
