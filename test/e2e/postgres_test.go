@@ -208,10 +208,12 @@ var _ = Describe("Postgres", func() {
 				createAndWaitForRunning()
 
 				By("Create Secret")
-				f.CreateSecret(secret)
+				err := f.CreateSecret(secret)
+				Expect(err).NotTo(HaveOccurred())
 
 				By("Create Snapshot")
-				f.CreateSnapshot(snapshot)
+				err = f.CreateSnapshot(snapshot)
+				Expect(err).NotTo(HaveOccurred())
 
 				By("Check for Succeeded snapshot")
 				f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(api.SnapshotPhaseSucceeded))
