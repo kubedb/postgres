@@ -52,7 +52,6 @@ pushd $GOPATH/src/github.com/kubedb/postgres
 
 # name of the cluster
 # nameing is based on repo+commit_hash
-pushd postgres
 NAME=postgres-$(git rev-parse --short HEAD)
 
 ./hack/builddeps.sh
