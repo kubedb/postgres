@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package remotecommand adds support for executing commands in containers,
-// with support for separate stdin, stdout, and stderr streams, as well as
-// TTY.
-package remotecommand // import "k8s.io/client-go/tools/remotecommand"
+// package jsonpath is a template engine using jsonpath syntax,
+// which can be seen at http://goessner.net/articles/JsonPath/.
+// In addition, it has {range} {end} function to iterate list and slice.
+package jsonpath // import "k8s.io/client-go/util/jsonpath"

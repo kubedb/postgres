@@ -139,11 +139,8 @@ func ValidatePostgres(client kubernetes.Interface, extClient kubedbv1alpha1.Kube
 		return fmt.Errorf(`spec.replicas "%v" invalid. Value must be greater than zero`, postgres.Spec.Replicas)
 	}
 
-	if postgres.Spec.Storage != nil {
-		var err error
-		if err = amv.ValidateStorage(client, postgres.Spec.Storage); err != nil {
-			return err
-		}
+	if err := amv.ValidateStorage(client, postgres.Spec.Storage); err != nil {
+		return err
 	}
 
 	if postgres.Spec.StandbyMode != nil {

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/appscode/go/types"
 	meta_util "github.com/appscode/kutil/meta"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/kubedb/postgres/test/e2e/framework"
@@ -12,7 +11,6 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	core "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 )
 
 const (
@@ -99,37 +97,12 @@ var _ = Describe("Postgres", func() {
 		}
 	})
 
-	var shouldSuccessfullyRunning = func() {
-		if skipMessage != "" {
-			Skip(skipMessage)
-		}
-
-		// Create Postgres
-		createAndWaitForRunning()
-	}
-
 	Describe("Test", func() {
 
 		Context("General", func() {
 
-			Context("-", func() {
-				It("should run successfully", shouldSuccessfullyRunning)
-			})
-
 			Context("With PVC", func() {
-				BeforeEach(func() {
-					if f.StorageClass == "" {
-						skipMessage = "Missing StorageClassName. Provide as flag to test this."
-					}
-					postgres.Spec.Storage = &core.PersistentVolumeClaimSpec{
-						Resources: core.ResourceRequirements{
-							Requests: core.ResourceList{
-								core.ResourceStorage: resource.MustParse("5Gi"),
-							},
-						},
-						StorageClassName: types.StringP(f.StorageClass),
-					}
-				})
+
 				It("should run successfully", func() {
 					if skipMessage != "" {
 						Skip(skipMessage)
@@ -474,16 +447,6 @@ var _ = Describe("Postgres", func() {
 
 					By("Create postgres from snapshot")
 					*postgres = *f.Postgres()
-					if f.StorageClass != "" {
-						postgres.Spec.Storage = &core.PersistentVolumeClaimSpec{
-							Resources: core.ResourceRequirements{
-								Requests: core.ResourceList{
-									core.ResourceStorage: resource.MustParse("50Mi"),
-								},
-							},
-							StorageClassName: types.StringP(f.StorageClass),
-						}
-					}
 					postgres.Spec.Init = &api.InitSpec{
 						SnapshotSource: &api.SnapshotSourceSpec{
 							Namespace: snapshot.Namespace,
