@@ -10,7 +10,9 @@ import (
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	kutildb "github.com/kubedb/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1/util"
 	. "github.com/onsi/gomega"
+	core "k8s.io/api/core/v1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -26,6 +28,14 @@ func (i *Invocation) Postgres() *api.Postgres {
 		Spec: api.PostgresSpec{
 			Version:  jtypes.StrYo("10.2"),
 			Replicas: types.Int32P(1),
+			Storage: core.PersistentVolumeClaimSpec{
+				Resources: core.ResourceRequirements{
+					Requests: core.ResourceList{
+						core.ResourceStorage: resource.MustParse("1Gi"),
+					},
+				},
+				StorageClassName: types.StringP(i.StorageClass),
+			},
 		},
 	}
 }

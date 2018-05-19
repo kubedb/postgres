@@ -1,5 +1,5 @@
 hash: eae5242bab48346fe64fb93840f19d96a840e5a09bbcbad58ae5116eea266501
-updated: 2018-05-15T18:08:23.129167336+06:00
+updated: 2018-05-18T16:50:14.180950869+06:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -40,7 +40,7 @@ imports:
   - admission/v1beta1
   - registry/admissionreview/v1beta1
 - name: github.com/appscode/kutil
-  version: c397449684de5caf2de0309e6453eab905901cf8
+  version: 7de9bdd06e30d7ad4df3452d6188a36134bcddee
   subpackages:
   - apiextensions/v1beta1
   - apps/v1
@@ -281,6 +281,15 @@ imports:
   - OpenAPIv2
   - compiler
   - extensions
+- name: github.com/gophercloud/gophercloud
+  version: 6da026c32e2d622cc242d32984259c77237aefe1
+  subpackages:
+  - openstack
+  - openstack/identity/v2/tenants
+  - openstack/identity/v2/tokens
+  - openstack/identity/v3/tokens
+  - openstack/utils
+  - pagination
 - name: github.com/graymeta/stow
   version: 42dc7dbf948d85803a205b39e5d3790470651c73
   repo: https://github.com/appscode/stow.git
@@ -308,7 +317,7 @@ imports:
 - name: github.com/json-iterator/go
   version: 13f86432b882000a51c6e610c620974462691a97
 - name: github.com/kubedb/apimachinery
-  version: ef349e6021d9b4905eb64e0335be83613a2afb7f
+  version: a8071385b2fc35db545bc8a3b516e711217d3cce
   subpackages:
   - apis/kubedb
   - apis/kubedb/v1alpha1
@@ -508,14 +517,14 @@ imports:
   subpackages:
   - rate
 - name: google.golang.org/api
-  version: d7aa31fbd7da4467a8056610e654315a4c1f068e
+  version: aedc137bffcaca05f836e35c6d182fcb7a68b1c0
   subpackages:
   - gensupport
   - googleapi
   - googleapi/internal/uritemplates
   - storage/v1
 - name: google.golang.org/appengine
-  version: 962cbd1200af94a5a35ba8d512e9f91271b4d01a
+  version: b9aad5d628b283f265adf8d3557faae187a8d015
   subpackages:
   - internal
   - internal/app_identity
@@ -644,7 +653,6 @@ imports:
   - pkg/util/mergepatch
   - pkg/util/net
   - pkg/util/rand
-  - pkg/util/remotecommand
   - pkg/util/runtime
   - pkg/util/sets
   - pkg/util/strategicpatch
@@ -881,10 +889,16 @@ imports:
   - pkg/apis/clientauthentication
   - pkg/apis/clientauthentication/v1alpha1
   - pkg/version
+  - plugin/pkg/client/auth
+  - plugin/pkg/client/auth/azure
   - plugin/pkg/client/auth/exec
+  - plugin/pkg/client/auth/gcp
+  - plugin/pkg/client/auth/oidc
+  - plugin/pkg/client/auth/openstack
   - rest
   - rest/watch
   - testing
+  - third_party/forked/golang/template
   - tools/auth
   - tools/cache
   - tools/clientcmd
@@ -898,15 +912,14 @@ imports:
   - tools/portforward
   - tools/record
   - tools/reference
-  - tools/remotecommand
   - transport
   - transport/spdy
   - util/buffer
   - util/cert
-  - util/exec
   - util/flowcontrol
   - util/homedir
   - util/integer
+  - util/jsonpath
   - util/retry
   - util/workqueue
 - name: k8s.io/kube-aggregator
