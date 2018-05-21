@@ -30,6 +30,18 @@ go get -u github.com/pharmer/pharmer
 #popd
 
 function cleanup {
+    # Workload Descriptions if the test fails
+    if [ $? -ne 0 ]; then
+        echo ""
+        kubectl describe deploy -n kube-system -l app=kubedb || true
+        echo ""
+        echo ""
+        kubectl describe replicasets -n kube-system -l app=kubedb || true
+        echo ""
+        echo ""
+        kubectl describe pods -n kube-system -l app=kubedb || true
+    fi
+
     # delete cluster on exit
     pharmer get cluster || true
     pharmer delete cluster $NAME || true
@@ -130,20 +142,9 @@ AZURE_CONTAINER_NAME=$AZURE_CONTAINER_NAME
 SWIFT_CONTAINER_NAME=$SWIFT_CONTAINER_NAME
 EOF
 
-
 # run tests
 source ./hack/deploy/setup.sh --docker-registry=kubedbci
-./hack/make.py test e2e --v=1 --storageclass=standard --selfhosted-operator=true 2> /dev/null
+./hack/make.py test e2e --v=1 --storageclass=standard --selfhosted-operator=true
 
-# Print Workload Descriptions if the test fails
-if [ $? -ne 0 ]; then
-  echo ""
-  kubectl describe deploy -n kube-system -l app=kubedb
-  echo ""
-  echo ""
-  kubectl describe replicasets -n kube-system -l app=kubedb
-  echo ""
-  echo ""
-  kubectl describe pods -n kube-system -l app=kubedb
-  exit 1
-fi
+# state of operator pod
+kubectl describe pods -n kube-system -l app=kubedb || true
