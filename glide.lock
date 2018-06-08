@@ -1,5 +1,5 @@
-hash: 2d2309394ffe6fc354cf555f8fc4f7407f7ea8a5c24172e0f9947e61e005d1a2
-updated: 2018-05-28T03:18:16.444449874-07:00
+hash: d690bf17139ba9ae825ac520b2819c39168b81584b8c37d62a4d1ee95c58881e
+updated: 2018-06-08T00:55:42.640090064-07:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -9,7 +9,7 @@ imports:
   - compute/metadata
   - internal
 - name: github.com/appscode/go
-  version: 230e0e4622c682b5d117db8c28a66404ed874ed5
+  version: 578091d435e848d79527d8b911fdf1dd5423b227
   subpackages:
   - analytics
   - context
@@ -40,7 +40,7 @@ imports:
   - admission/v1beta1
   - registry/admissionreview/v1beta1
 - name: github.com/appscode/kutil
-  version: e04d4d7ed42f54b68fc1e6a5926679883b0e5b56
+  version: f771c672ed25b25dd14cb4435aab6e8b4685907d
   subpackages:
   - apiextensions/v1beta1
   - apps/v1
@@ -58,10 +58,8 @@ imports:
   version: 582393dba2719a1963717b4a99ee9081377487f5
   subpackages:
   - context
-- name: github.com/appscode/pat
-  version: 48ff78925b7955367d8a048fc2b5cec8efadf8d3
 - name: github.com/aws/aws-sdk-go
-  version: f4b2120243b92fc47d6a4af71b854b8d5f4de8b5
+  version: 760741802ad40f49ae9fc4a69ef6706d2527d62e
   subpackages:
   - aws
   - aws/awserr
@@ -79,23 +77,23 @@ imports:
   - aws/request
   - aws/session
   - aws/signer/v4
+  - internal/shareddefaults
   - private/protocol
   - private/protocol/query
   - private/protocol/query/queryutil
   - private/protocol/rest
   - private/protocol/restxml
   - private/protocol/xml/xmlutil
-  - private/waiter
   - service/s3
   - service/s3/s3iface
   - service/s3/s3manager
   - service/sts
 - name: github.com/Azure/azure-sdk-for-go
-  version: 2d49bb8f2cee530cc16f1f1a9f0aae763dee257d
+  version: f111fc2fa3861c5fdced76cae4c9c71821969577
   subpackages:
   - storage
 - name: github.com/Azure/go-autorest
-  version: f6e08fe5e4d45c9a66e40196d3fed5f37331d224
+  version: d4e6b95c12a08b4de2d48b45d5b4d594e5d32fab
   subpackages:
   - autorest
   - autorest/adal
@@ -225,11 +223,11 @@ imports:
 - name: github.com/evanphx/json-patch
   version: 944e07253867aacae43c04b2e6a239005443f33a
 - name: github.com/fsnotify/fsnotify
-  version: f12c6236fe7b5cf6bcf30e5935d08cb079d78334
+  version: c2828203cd70a50dcccfb2761f8b1f8ceef9a8e9
 - name: github.com/ghodss/yaml
   version: 0ca9ea5df5451ffdf184b4428c902747c2c11cd7
 - name: github.com/go-ini/ini
-  version: d3de07a94d22b4a0972deb4b96d790c2c0ce8333
+  version: 300e940a926eb277d3901b20bdfcc54928ad3642
 - name: github.com/go-openapi/jsonpointer
   version: 46af16f9f7b149af66e5d1bd010e3574dc06de98
 - name: github.com/go-openapi/jsonreference
@@ -241,9 +239,9 @@ imports:
 - name: github.com/go-xorm/builder
   version: bad0a612f0d6277b953910822ab5dfb30dd18237
 - name: github.com/go-xorm/core
-  version: 5bf745d7d163f4380e6c2bba8c4afa60534dd087
+  version: c10e21e7e1cec20e09398f2dfae385e58c8df555
 - name: github.com/go-xorm/xorm
-  version: 3c8314e91603f0bfa6a228c1a0fea8a9e298f6d9
+  version: d85bb4911c725a53b135fc12862748a41b6c07da
 - name: github.com/gogo/protobuf
   version: c0656edd0d9eab7c66d1eb0c568f9039345796f7
   subpackages:
@@ -317,7 +315,7 @@ imports:
 - name: github.com/json-iterator/go
   version: 13f86432b882000a51c6e610c620974462691a97
 - name: github.com/kubedb/apimachinery
-  version: d51ba0fa20d1858140458daa4fc7aedaaa993632
+  version: 9ddab74e4b134bf91ba4745b27fbc650f8fc5dfb
   subpackages:
   - apis/kubedb
   - apis/kubedb/v1alpha1
@@ -352,16 +350,20 @@ imports:
   - buffer
   - jlexer
   - jwriter
+- name: github.com/marstr/guid
+  version: 8bdf7d1a087ccc975cf37dd6507da50698fd19ca
 - name: github.com/matttproud/golang_protobuf_extensions
   version: fc2b8d3a73c4867e51861bbdd5ae3c1f0869dd6a
   subpackages:
   - pbutil
+- name: github.com/mitchellh/go-homedir
+  version: 3864e76763d94a6df2f9960b16a20a33da9f9a66
 - name: github.com/ncw/swift
   version: b2a7479cf26fa841ff90dd932d0221cb5c50782d
 - name: github.com/NYTimes/gziphandler
   version: 56545f4a5d46df9a6648819d1664c3a03a13ffdb
 - name: github.com/onsi/ginkgo
-  version: 9eda700730cba42af70d53180f9dcce9266bc2bc
+  version: fa5fabab2a1bfbd924faf4c067d07ae414e2aedf
   subpackages:
   - config
   - internal/codelocation
@@ -381,7 +383,7 @@ imports:
   - reporters/stenographer/support/go-isatty
   - types
 - name: github.com/onsi/gomega
-  version: c893efa28eb45626cdaa76c9f653b62488858837
+  version: 62bff4df71bdbc266561a0caee19f0594b17c240
   subpackages:
   - format
   - internal/assertion
@@ -415,7 +417,7 @@ imports:
   subpackages:
   - go
 - name: github.com/prometheus/common
-  version: 3233b24a36715a2fe36d162260457857a56d672d
+  version: 13ba4ddd0caa9c28ca7b7bffe1dfa9ed8d5ef207
   subpackages:
   - expfmt
   - internal/bitbucket.org/ww/goautoneg
@@ -430,16 +432,14 @@ imports:
   version: 5bd2802263f21d8788851d5305584c82a5c75d7e
 - name: github.com/russross/blackfriday
   version: 300106c228d52c8941d4b3de6054a6062a86dda3
-- name: github.com/satori/uuid
-  version: 5bf94b69c6b68ee1b541973bb8e1144db23a194b
+- name: github.com/satori/go.uuid
+  version: 879c5887cd475cd7864858769793b2ceb0d44feb
 - name: github.com/sergi/go-diff
   version: 97b2266dfe4bd4ea1b81a463322f04f8b724801e
   subpackages:
   - diffmatchpatch
 - name: github.com/shurcooL/sanitized_anchor_name
   version: 10ef21a441db47d8b13ebcc5fd2310f636973c77
-- name: github.com/sirupsen/logrus
-  version: f006c2ac4710855cf0f916dd6b77acf6b048dc6e
 - name: github.com/spf13/cobra
   version: ef82de70bb3f60c65fb8eebacbb2d122ef517385
   subpackages:
@@ -517,7 +517,7 @@ imports:
   subpackages:
   - rate
 - name: google.golang.org/api
-  version: 8180fb51da879301a8ddb7e2ee122ca5862da7f5
+  version: 8e9de5a6de6d356eb08ebb58f6daab313283c6b0
   subpackages:
   - gensupport
   - googleapi
@@ -668,8 +668,7 @@ imports:
   - third_party/forked/golang/netutil
   - third_party/forked/golang/reflect
 - name: k8s.io/apiserver
-  version: 6fdedd7050e542dd8c23fdababac0237aedd7f9e
-  repo: https://github.com/tamalsaha/apiserver.git
+  version: 5ae41ac86efd753e2ba012f097b83a914b268236
   subpackages:
   - pkg/admission
   - pkg/admission/configuration
@@ -940,10 +939,4 @@ imports:
   - pkg/handler
   - pkg/util
   - pkg/util/proto
-- name: k8s.io/kubernetes
-  version: fc32d2f3698e36b93322a3465f63a14e9f0eaead
-testImports:
-- name: github.com/mitchellh/go-homedir
-  version: 3864e76763d94a6df2f9960b16a20a33da9f9a66
-- name: github.com/stretchr/testify
-  version: 69483b4bd14f5845b5a1e55bca19e954e827f1d0
+testImports: []

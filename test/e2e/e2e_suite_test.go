@@ -12,7 +12,6 @@ import (
 	cs "github.com/kubedb/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1"
 	"github.com/kubedb/postgres/pkg/controller"
 	"github.com/kubedb/postgres/test/e2e/framework"
-	"github.com/mitchellh/go-homedir"
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/reporters"
 	. "github.com/onsi/gomega"
@@ -21,6 +20,7 @@ import (
 	clientSetScheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/client-go/util/homedir"
 	ka "k8s.io/kube-aggregator/pkg/client/clientset_generated/clientset"
 )
 
@@ -57,12 +57,8 @@ func TestE2e(t *testing.T) {
 }
 
 var _ = BeforeSuite(func() {
-
-	userHome, err := homedir.Dir()
-	Expect(err).NotTo(HaveOccurred())
-
 	// Kubernetes config
-	kubeconfigPath := filepath.Join(userHome, ".kube/config")
+	kubeconfigPath := filepath.Join(homedir.HomeDir(), ".kube/config")
 	By("Using kubeconfig from " + kubeconfigPath)
 	config, err := clientcmd.BuildConfigFromFlags("", kubeconfigPath)
 	Expect(err).NotTo(HaveOccurred())
