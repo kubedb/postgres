@@ -1,5 +1,5 @@
-hash: d690bf17139ba9ae825ac520b2819c39168b81584b8c37d62a4d1ee95c58881e
-updated: 2018-06-08T00:55:42.640090064-07:00
+hash: fc7527375dcecc267291479bc542cd7a43eabd309604c2bee5a7d07dab222050
+updated: 2018-06-08T01:53:55.60412107-07:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -315,7 +315,7 @@ imports:
 - name: github.com/json-iterator/go
   version: 13f86432b882000a51c6e610c620974462691a97
 - name: github.com/kubedb/apimachinery
-  version: 9ddab74e4b134bf91ba4745b27fbc650f8fc5dfb
+  version: 8d7d7a0b2b8a4337357e065b9da1fd9f796c5236
   subpackages:
   - apis/kubedb
   - apis/kubedb/v1alpha1
@@ -356,8 +356,6 @@ imports:
   version: fc2b8d3a73c4867e51861bbdd5ae3c1f0869dd6a
   subpackages:
   - pbutil
-- name: github.com/mitchellh/go-homedir
-  version: 3864e76763d94a6df2f9960b16a20a33da9f9a66
 - name: github.com/ncw/swift
   version: b2a7479cf26fa841ff90dd932d0221cb5c50782d
 - name: github.com/NYTimes/gziphandler
@@ -409,7 +407,7 @@ imports:
 - name: github.com/pkg/errors
   version: 645ef00459ed84a119197bfb8d8205042c6df63d
 - name: github.com/prometheus/client_golang
-  version: c5b7fccd204277076155f10851dad72b76a49317
+  version: e7e903064f5e9eb5da98208bae10b475d4db0f8c
   subpackages:
   - prometheus
 - name: github.com/prometheus/client_model
@@ -517,7 +515,7 @@ imports:
   subpackages:
   - rate
 - name: google.golang.org/api
-  version: 8e9de5a6de6d356eb08ebb58f6daab313283c6b0
+  version: 4d8a15a217e46f47fb724569d74702bec99852d3
   subpackages:
   - gensupport
   - googleapi
@@ -668,7 +666,8 @@ imports:
   - third_party/forked/golang/netutil
   - third_party/forked/golang/reflect
 - name: k8s.io/apiserver
-  version: 5ae41ac86efd753e2ba012f097b83a914b268236
+  version: 6fdedd7050e542dd8c23fdababac0237aedd7f9e
+  repo: https://github.com/tamalsaha/apiserver.git
   subpackages:
   - pkg/admission
   - pkg/admission/configuration
