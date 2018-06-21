@@ -1,5 +1,5 @@
 # uncomment following line to deploy in development mode.
-# export APPSCODE_ENV=dev
+export APPSCODE_ENV=dev
 
 # kubedb/cli branch to checkout for installer script.
 export CLI_BRANCH="master"
