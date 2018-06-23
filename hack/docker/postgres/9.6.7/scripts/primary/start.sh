@@ -4,13 +4,26 @@ mkdir -p "$PGDATA"
 rm -rf "$PGDATA"/*
 chmod 0700 "$PGDATA"
 
-initdb "$PGDATA" > /dev/null
+export POSTGRES_INITDB_ARGS=${POSTGRES_INITDB_ARGS:-}
+export POSTGRES_INITDB_XLOGDIR=${POSTGRES_INITDB_XLOGDIR:-}
+
+# Create the transaction log directory before initdb is run
+if [ "$POSTGRES_INITDB_XLOGDIR" ]; then
+	mkdir -p "$POSTGRES_INITDB_XLOGDIR"
+	chown -R postgres "$POSTGRES_INITDB_XLOGDIR"
+	chmod 700 "$POSTGRES_INITDB_XLOGDIR"
+
+	export POSTGRES_INITDB_ARGS="$POSTGRES_INITDB_ARGS --xlogdir $POSTGRES_INITDB_XLOGDIR"
+fi
+
+initdb $POSTGRES_INITDB_ARGS --pgdata="$PGDATA" > /dev/null
 
 # setup postgresql.conf
 cp /scripts/primary/postgresql.conf /tmp
 echo "wal_level = replica" >> /tmp/postgresql.conf
 echo "max_wal_senders = 99" >> /tmp/postgresql.conf
 echo "wal_keep_segments = 32" >> /tmp/postgresql.conf
+
 mv /tmp/postgresql.conf "$PGDATA/postgresql.conf"
 
 # setup pg_hba.conf
@@ -22,13 +35,38 @@ mv /tmp/postgresql.conf "$PGDATA/postgresql.conf"
 # start postgres
 pg_ctl -D "$PGDATA"  -w start > /dev/null
 
+export POSTGRES_USER=${POSTGRES_USER:-postgres}
+export POSTGRES_DB=${POSTGRES_DB:-$POSTGRES_USER}
+export POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+
+psql=( psql -v ON_ERROR_STOP=1 )
+
+# create database with specified name
+if [ "$POSTGRES_DB" != "postgres" ]; then
+    "${psql[@]}" --username postgres <<-EOSQL
+		CREATE DATABASE "$POSTGRES_DB" ;
+	EOSQL
+    echo
+fi
+
+if [ "$POSTGRES_USER" = "postgres" ]; then
+    op="ALTER"
+else
+    op="CREATE"
+fi
+
+WITH_POSTGRES_PASSWORD="PASSWORD '$POSTGRES_PASSWORD'"
+
 # alter postgres superuser
-psql --username postgres <<-EOSQL
-ALTER USER postgres WITH SUPERUSER PASSWORD '$PGPASSWORD';
+"${psql[@]}" --username postgres <<-EOSQL
+    $op USER "$POSTGRES_USER" WITH SUPERUSER  $WITH_POSTGRES_PASSWORD;
 EOSQL
+echo
+
+psql+=( --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" )
+echo
 
 # initialize database
-psql=( psql -v ON_ERROR_STOP=1 --username "postgres" --dbname "postgres" )
 for f in "$INITDB"/*; do
     case "$f" in
         *.sh)     echo "$0: running $f"; . "$f" ;;
