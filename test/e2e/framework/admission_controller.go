@@ -22,6 +22,7 @@ var (
 	ExporterTag        string
 	EnableRbac         bool
 	SelfHostedOperator bool
+	DBVersion          string
 )
 
 func (f *Framework) isApiSvcReady(apiSvcName string) error {

@@ -33,6 +33,7 @@ func init() {
 
 	flag.StringVar(&storageClass, "storageclass", "standard", "Kubernetes StorageClass name")
 	flag.StringVar(&framework.DockerRegistry, "docker-registry", "kubedb", "User provided docker repository")
+	flag.StringVar(&framework.DBVersion, "pg-version", "10.2", "Postgres version")
 	flag.StringVar(&framework.ExporterTag, "exporter-tag", "canary", "Tag of kubedb/operator used as exporter")
 	flag.BoolVar(&framework.EnableRbac, "rbac", true, "Enable RBAC for database workloads")
 	flag.BoolVar(&framework.SelfHostedOperator, "selfhosted-operator", false, "Enable this for self-hosted operator")

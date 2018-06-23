@@ -26,7 +26,7 @@ func (i *Invocation) Postgres() *api.Postgres {
 			},
 		},
 		Spec: api.PostgresSpec{
-			Version:  jtypes.StrYo("10.2"),
+			Version:  jtypes.StrYo(DBVersion),
 			Replicas: types.Int32P(1),
 			Storage: core.PersistentVolumeClaimSpec{
 				Resources: core.ResourceRequirements{

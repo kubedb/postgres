@@ -12,6 +12,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	core "k8s.io/api/core/v1"
+	kerr "k8s.io/apimachinery/pkg/api/errors"
 )
 
 const (
@@ -62,7 +63,13 @@ var _ = Describe("Postgres", func() {
 		}
 		By("Delete postgres: " + postgres.Name)
 		err = f.DeletePostgres(postgres.ObjectMeta)
-		Expect(err).NotTo(HaveOccurred())
+		if err != nil {
+			if kerr.IsNotFound(err) {
+				// Postgres was not created. Hence, rest of cleanup is not necessary.
+				return
+			}
+			Expect(err).NotTo(HaveOccurred())
+		}
 
 		By("Wait for postgres to be paused")
 		f.EventuallyDormantDatabaseStatus(postgres.ObjectMeta).Should(matcher.HavePaused())
@@ -76,7 +83,9 @@ var _ = Describe("Postgres", func() {
 
 		By("Delete Dormant Database")
 		err = f.DeleteDormantDatabase(postgres.ObjectMeta)
-		Expect(err).NotTo(HaveOccurred())
+		if !kerr.IsNotFound(err) {
+			Expect(err).NotTo(HaveOccurred())
+		}
 
 		By("Wait for postgres resources to be wipedOut")
 		f.EventuallyWipedOut(postgres.ObjectMeta).Should(Succeed())
@@ -800,7 +809,6 @@ var _ = Describe("Postgres", func() {
 
 					By("Creating Posgres: " + postgres.Name)
 					err = f.CreatePostgres(postgres)
-					fmt.Println(err)
 					Expect(err).To(HaveOccurred())
 				})
 			})
