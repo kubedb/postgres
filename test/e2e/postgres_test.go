@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	core_util "github.com/appscode/kutil/core/v1"
 	meta_util "github.com/appscode/kutil/meta"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/kubedb/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1/util"
@@ -16,12 +17,17 @@ import (
 )
 
 const (
-	S3_BUCKET_NAME       = "S3_BUCKET_NAME"
-	GCS_BUCKET_NAME      = "GCS_BUCKET_NAME"
-	AZURE_CONTAINER_NAME = "AZURE_CONTAINER_NAME"
-	SWIFT_CONTAINER_NAME = "SWIFT_CONTAINER_NAME"
-	POSTGRES_DB          = "POSTGRES_DB"
-	POSTGRES_PASSWORD    = "POSTGRES_PASSWORD"
+	S3_BUCKET_NAME          = "S3_BUCKET_NAME"
+	GCS_BUCKET_NAME         = "GCS_BUCKET_NAME"
+	AZURE_CONTAINER_NAME    = "AZURE_CONTAINER_NAME"
+	SWIFT_CONTAINER_NAME    = "SWIFT_CONTAINER_NAME"
+	POSTGRES_DB             = "POSTGRES_DB"
+	POSTGRES_PASSWORD       = "POSTGRES_PASSWORD"
+	PGDATA                  = "PGDATA"
+	POSTGRES_USER           = "POSTGRES_USER"
+	POSTGRES_INITDB_ARGS    = "POSTGRES_INITDB_ARGS"
+	POSTGRES_INITDB_WALDIR  = "POSTGRES_INITDB_WALDIR"
+	POSTGRES_INITDB_XLOGDIR = "POSTGRES_INITDB_XLOGDIR"
 )
 
 var _ = Describe("Postgres", func() {
@@ -35,6 +41,7 @@ var _ = Describe("Postgres", func() {
 		skipMessage              string
 		skipSnapshotDataChecking bool
 		dbName                   string
+		dbUser                   string
 	)
 
 	BeforeEach(func() {
@@ -46,6 +53,7 @@ var _ = Describe("Postgres", func() {
 		skipMessage = ""
 		skipSnapshotDataChecking = true
 		dbName = "postgres"
+		dbUser = "postgres"
 	})
 
 	var createAndWaitForRunning = func() {
@@ -125,13 +133,13 @@ var _ = Describe("Postgres", func() {
 					createAndWaitForRunning()
 
 					By("Creating Schema")
-					f.EventuallyCreateSchema(postgres.ObjectMeta, dbName).Should(BeTrue())
+					f.EventuallyCreateSchema(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
 
 					By("Creating Table")
-					f.EventuallyCreateTable(postgres.ObjectMeta, dbName, 3).Should(BeTrue())
+					f.EventuallyCreateTable(postgres.ObjectMeta, dbName, dbUser, 3).Should(BeTrue())
 
 					By("Checking Table")
-					f.EventuallyCountTable(postgres.ObjectMeta, dbName).Should(Equal(3))
+					f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
 
 					By("Delete postgres")
 					err = f.DeletePostgres(postgres.ObjectMeta)
@@ -152,7 +160,7 @@ var _ = Describe("Postgres", func() {
 					f.EventuallyPostgresRunning(postgres.ObjectMeta).Should(BeTrue())
 
 					By("Checking Table")
-					f.EventuallyCountTable(postgres.ObjectMeta, dbName).Should(Equal(3))
+					f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
 				})
 			})
 		})
@@ -296,7 +304,7 @@ var _ = Describe("Postgres", func() {
 					createAndWaitForRunning()
 
 					By("Checking Table")
-					f.EventuallyCountTable(postgres.ObjectMeta, dbName).Should(Equal(1))
+					f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(1))
 				})
 
 			})
@@ -317,13 +325,13 @@ var _ = Describe("Postgres", func() {
 					createAndWaitForRunning()
 
 					By("Creating Schema")
-					f.EventuallyCreateSchema(postgres.ObjectMeta, dbName).Should(BeTrue())
+					f.EventuallyCreateSchema(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
 
 					By("Creating Table")
-					f.EventuallyCreateTable(postgres.ObjectMeta, dbName, 3).Should(BeTrue())
+					f.EventuallyCreateTable(postgres.ObjectMeta, dbName, dbUser, 3).Should(BeTrue())
 
 					By("Checking Table")
-					f.EventuallyCountTable(postgres.ObjectMeta, dbName).Should(Equal(3))
+					f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
 
 					By("Create Secret")
 					err = f.CreateSecret(secret)
@@ -358,7 +366,7 @@ var _ = Describe("Postgres", func() {
 					createAndWaitForRunning()
 
 					By("Checking Table")
-					f.EventuallyCountTable(postgres.ObjectMeta, dbName).Should(Equal(3))
+					f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
 				})
 			})
 		})
@@ -436,13 +444,13 @@ var _ = Describe("Postgres", func() {
 					createAndWaitForRunning()
 
 					By("Creating Schema")
-					f.EventuallyCreateSchema(postgres.ObjectMeta, dbName).Should(BeTrue())
+					f.EventuallyCreateSchema(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
 
 					By("Creating Table")
-					f.EventuallyCreateTable(postgres.ObjectMeta, dbName, 3).Should(BeTrue())
+					f.EventuallyCreateTable(postgres.ObjectMeta, dbName, dbUser, 3).Should(BeTrue())
 
 					By("Checking Table")
-					f.EventuallyCountTable(postgres.ObjectMeta, dbName).Should(Equal(3))
+					f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
 
 					By("Create Secret")
 					f.CreateSecret(secret)
@@ -480,10 +488,10 @@ var _ = Describe("Postgres", func() {
 					createAndWaitForRunning()
 
 					By("Ping Database")
-					f.EventuallyPingDatabase(postgres.ObjectMeta, dbName).Should(BeTrue())
+					f.EventuallyPingDatabase(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
 
 					By("Checking Table")
-					f.EventuallyCountTable(postgres.ObjectMeta, dbName).Should(Equal(3))
+					f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
 
 					By("Again delete and resume  " + postgres.Name)
 
@@ -509,10 +517,10 @@ var _ = Describe("Postgres", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					By("Ping Database")
-					f.EventuallyPingDatabase(postgres.ObjectMeta, dbName).Should(BeTrue())
+					f.EventuallyPingDatabase(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
 
 					By("Checking Table")
-					f.EventuallyCountTable(postgres.ObjectMeta, dbName).Should(Equal(3))
+					f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
 
 					Expect(postgres.Spec.Init).ShouldNot(BeNil())
 					_, err = meta_util.GetString(postgres.Annotations, api.AnnotationInitialized)
@@ -654,16 +662,16 @@ var _ = Describe("Postgres", func() {
 				createAndWaitForRunning()
 
 				By("Creating Schema")
-				f.EventuallyCreateSchema(postgres.ObjectMeta, dbName).Should(BeTrue())
+				f.EventuallyCreateSchema(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
 
 				By("Creating Table")
-				f.EventuallyCreateTable(postgres.ObjectMeta, dbName, 3).Should(BeTrue())
+				f.EventuallyCreateTable(postgres.ObjectMeta, dbName, dbUser, 3).Should(BeTrue())
 
 				By("Checking Table")
-				f.EventuallyCountTable(postgres.ObjectMeta, dbName).Should(Equal(3))
+				f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
 
 				By("Checking Archive")
-				f.EventuallyCountArchive(postgres.ObjectMeta, dbName).Should(BeTrue())
+				f.EventuallyCountArchive(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
 
 				oldPostgres, err := f.GetPostgres(postgres.ObjectMeta)
 				Expect(err).NotTo(HaveOccurred())
@@ -698,16 +706,16 @@ var _ = Describe("Postgres", func() {
 				createAndWaitForRunning()
 
 				By("Ping Database")
-				f.EventuallyPingDatabase(postgres.ObjectMeta, dbName).Should(BeTrue())
+				f.EventuallyPingDatabase(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
 
 				By("Creating Table")
-				f.EventuallyCreateTable(postgres.ObjectMeta, dbName, 3).Should(BeTrue())
+				f.EventuallyCreateTable(postgres.ObjectMeta, dbName, dbUser, 3).Should(BeTrue())
 
 				By("Checking Table")
-				f.EventuallyCountTable(postgres.ObjectMeta, dbName).Should(Equal(6))
+				f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(6))
 
 				By("Checking Archive")
-				f.EventuallyCountArchive(postgres.ObjectMeta, dbName).Should(BeTrue())
+				f.EventuallyCountArchive(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
 
 				oldPostgres, err = f.GetPostgres(postgres.ObjectMeta)
 				Expect(err).NotTo(HaveOccurred())
@@ -734,40 +742,74 @@ var _ = Describe("Postgres", func() {
 				createAndWaitForRunning()
 
 				By("Ping Database")
-				f.EventuallyPingDatabase(postgres.ObjectMeta, dbName).Should(BeTrue())
+				f.EventuallyPingDatabase(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
 
 				By("Checking Table")
-				f.EventuallyCountTable(postgres.ObjectMeta, dbName).Should(Equal(6))
+				f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(6))
 			})
 		})
 
 		Context("EnvVars", func() {
 
-			Context("Database Name as EnvVar", func() {
+			Context("With all supported EnvVars", func() {
 
-				It("should create DB with name provided in EvnVar", func() {
+				It("should create DB with provided EvnVars", func() {
 					if skipMessage != "" {
 						Skip(skipMessage)
 					}
 
+					const (
+						dataDir = "/var/pv/pgdata"
+						walDir  = "/var/pv/wal"
+					)
 					dbName = f.App()
+					dbUser = f.App()
 					postgres.Spec.Env = []core.EnvVar{
+						{
+							Name:  PGDATA,
+							Value: dataDir,
+						},
+						{
+							Name:  POSTGRES_USER,
+							Value: dbUser,
+						},
 						{
 							Name:  POSTGRES_DB,
 							Value: dbName,
 						},
+						{
+							Name:  POSTGRES_INITDB_ARGS,
+							Value: "--data-checksums",
+						},
 					}
+
+					walEnv := []core.EnvVar{
+						{
+							Name:  POSTGRES_INITDB_XLOGDIR,
+							Value: walDir,
+						},
+					}
+					if framework.DBVersion == "10.2" {
+						walEnv = []core.EnvVar{
+							{
+								Name:  POSTGRES_INITDB_WALDIR,
+								Value: walDir,
+							},
+						}
+					}
+					postgres.Spec.Env = core_util.UpsertEnvVars(postgres.Spec.Env, walEnv...)
+
 					// Create Postgres
 					createAndWaitForRunning()
 
 					By("Creating Schema")
-					f.EventuallyCreateSchema(postgres.ObjectMeta, dbName).Should(BeTrue())
+					f.EventuallyCreateSchema(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
 
 					By("Creating Table")
-					f.EventuallyCreateTable(postgres.ObjectMeta, dbName, 3).Should(BeTrue())
+					f.EventuallyCreateTable(postgres.ObjectMeta, dbName, dbUser, 3).Should(BeTrue())
 
 					By("Checking Table")
-					f.EventuallyCountTable(postgres.ObjectMeta, dbName).Should(Equal(3))
+					f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
 
 					By("Delete postgres")
 					err = f.DeletePostgres(postgres.ObjectMeta)
@@ -788,7 +830,7 @@ var _ = Describe("Postgres", func() {
 					f.EventuallyPostgresRunning(postgres.ObjectMeta).Should(BeTrue())
 
 					By("Checking Table")
-					f.EventuallyCountTable(postgres.ObjectMeta, dbName).Should(Equal(3))
+					f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
 				})
 			})
 
@@ -831,13 +873,13 @@ var _ = Describe("Postgres", func() {
 					createAndWaitForRunning()
 
 					By("Creating Schema")
-					f.EventuallyCreateSchema(postgres.ObjectMeta, dbName).Should(BeTrue())
+					f.EventuallyCreateSchema(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
 
 					By("Creating Table")
-					f.EventuallyCreateTable(postgres.ObjectMeta, dbName, 3).Should(BeTrue())
+					f.EventuallyCreateTable(postgres.ObjectMeta, dbName, dbUser, 3).Should(BeTrue())
 
 					By("Checking Table")
-					f.EventuallyCountTable(postgres.ObjectMeta, dbName).Should(Equal(3))
+					f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
 
 					By("Delete postgres")
 					err = f.DeletePostgres(postgres.ObjectMeta)
@@ -858,7 +900,7 @@ var _ = Describe("Postgres", func() {
 					f.EventuallyPostgresRunning(postgres.ObjectMeta).Should(BeTrue())
 
 					By("Checking Table")
-					f.EventuallyCountTable(postgres.ObjectMeta, dbName).Should(Equal(3))
+					f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
 
 					By("Patching EnvVar")
 					_, _, err = util.PatchPostgres(f.ExtClient(), postgres, func(in *api.Postgres) *api.Postgres {
