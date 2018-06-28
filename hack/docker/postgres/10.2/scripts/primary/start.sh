@@ -54,11 +54,9 @@ else
     op="CREATE"
 fi
 
-WITH_POSTGRES_PASSWORD="PASSWORD '$POSTGRES_PASSWORD'"
-
 # alter postgres superuser
 "${psql[@]}" --username postgres <<-EOSQL
-    $op USER "$POSTGRES_USER" WITH SUPERUSER  $WITH_POSTGRES_PASSWORD;
+    $op USER "$POSTGRES_USER" WITH SUPERUSER PASSWORD '$POSTGRES_PASSWORD';
 EOSQL
 echo
 
