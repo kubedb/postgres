@@ -73,6 +73,9 @@ type PostgresSpec struct {
 	// If specified, these secrets will be passed to individual puller implementations for them to use.
 	// +optional
 	ImagePullSecrets []core.LocalObjectReference `json:"imagePullSecrets,omitempty"`
+	// ConfigSource is an optional field to provide custom configuration file for database (i.e postgresql.conf).
+	// If specified, this file will be used as configuration file otherwise default configuration file will be used.
+	ConfigSource *core.VolumeSource `json:"configSource,omitempty"`
 	// List of environment variables to set in the container.
 	// Cannot be updated.
 	// +optional

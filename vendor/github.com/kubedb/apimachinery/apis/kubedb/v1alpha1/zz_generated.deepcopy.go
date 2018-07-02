@@ -397,6 +397,15 @@ func (in *ElasticsearchSpec) DeepCopyInto(out *ElasticsearchSpec) {
 		*out = make([]v1.LocalObjectReference, len(*in))
 		copy(*out, *in)
 	}
+	if in.ConfigSource != nil {
+		in, out := &in.ConfigSource, &out.ConfigSource
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(v1.VolumeSource)
+			(*in).DeepCopyInto(*out)
+		}
+	}
 	if in.Env != nil {
 		in, out := &in.Env, &out.Env
 		*out = make([]v1.EnvVar, len(*in))
@@ -819,6 +828,15 @@ func (in *MemcachedSpec) DeepCopyInto(out *MemcachedSpec) {
 		*out = make([]v1.LocalObjectReference, len(*in))
 		copy(*out, *in)
 	}
+	if in.ConfigSource != nil {
+		in, out := &in.ConfigSource, &out.ConfigSource
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(v1.VolumeSource)
+			(*in).DeepCopyInto(*out)
+		}
+	}
 	if in.Env != nil {
 		in, out := &in.Env, &out.Env
 		*out = make([]v1.EnvVar, len(*in))
@@ -1185,6 +1203,15 @@ func (in *MySQLSpec) DeepCopyInto(out *MySQLSpec) {
 		*out = make([]v1.LocalObjectReference, len(*in))
 		copy(*out, *in)
 	}
+	if in.ConfigSource != nil {
+		in, out := &in.ConfigSource, &out.ConfigSource
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(v1.VolumeSource)
+			(*in).DeepCopyInto(*out)
+		}
+	}
 	if in.Env != nil {
 		in, out := &in.Env, &out.Env
 		*out = make([]v1.EnvVar, len(*in))
@@ -1545,6 +1572,15 @@ func (in *PostgresSpec) DeepCopyInto(out *PostgresSpec) {
 		*out = make([]v1.LocalObjectReference, len(*in))
 		copy(*out, *in)
 	}
+	if in.ConfigSource != nil {
+		in, out := &in.ConfigSource, &out.ConfigSource
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(v1.VolumeSource)
+			(*in).DeepCopyInto(*out)
+		}
+	}
 	if in.Env != nil {
 		in, out := &in.Env, &out.Env
 		*out = make([]v1.EnvVar, len(*in))
@@ -1761,6 +1797,15 @@ func (in *RedisSpec) DeepCopyInto(out *RedisSpec) {
 		in, out := &in.ImagePullSecrets, &out.ImagePullSecrets
 		*out = make([]v1.LocalObjectReference, len(*in))
 		copy(*out, *in)
+	}
+	if in.ConfigSource != nil {
+		in, out := &in.ConfigSource, &out.ConfigSource
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(v1.VolumeSource)
+			(*in).DeepCopyInto(*out)
+		}
 	}
 	if in.Env != nil {
 		in, out := &in.Env, &out.Env
