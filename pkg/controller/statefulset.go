@@ -92,6 +92,7 @@ func (c *Controller) ensureStatefulSet(
 		}
 
 		in = upsertDataVolume(in, postgres)
+		in = upsertCustomConfig(in, postgres)
 
 		if c.EnableRBAC {
 			in.Spec.Template.Spec.ServiceAccountName = postgres.OffshootName()
@@ -486,6 +487,33 @@ func upsertDataVolume(statefulSet *apps.StatefulSet, postgres *api.Postgres) *ap
 			statefulSet.Spec.VolumeClaimTemplates = volumeClaims
 
 			break
+		}
+	}
+	return statefulSet
+}
+
+func upsertCustomConfig(statefulSet *apps.StatefulSet, postgres *api.Postgres) *apps.StatefulSet {
+	if postgres.Spec.ConfigFile != nil {
+		for i, container := range statefulSet.Spec.Template.Spec.Containers {
+			if container.Name == api.ResourceSingularPostgres {
+				configVolumeMount := core.VolumeMount{
+					Name:      "custom-config",
+					MountPath: "/var/config",
+				}
+				volumeMounts := container.VolumeMounts
+				volumeMounts = core_util.UpsertVolumeMount(volumeMounts, configVolumeMount)
+				statefulSet.Spec.Template.Spec.Containers[i].VolumeMounts = volumeMounts
+
+				configVolume := core.Volume{
+					Name:         "custom-config",
+					VolumeSource: *postgres.Spec.ConfigFile,
+				}
+
+				volumes := statefulSet.Spec.Template.Spec.Volumes
+				volumes = core_util.UpsertVolume(volumes, configVolume)
+				statefulSet.Spec.Template.Spec.Volumes = volumes
+				break
+			}
 		}
 	}
 	return statefulSet
