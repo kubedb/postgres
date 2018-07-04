@@ -498,7 +498,7 @@ func upsertCustomConfig(statefulSet *apps.StatefulSet, postgres *api.Postgres) *
 			if container.Name == api.ResourceSingularPostgres {
 				configVolumeMount := core.VolumeMount{
 					Name:      "custom-config",
-					MountPath: "/config",
+					MountPath: "/etc/config",
 				}
 				volumeMounts := container.VolumeMounts
 				volumeMounts = core_util.UpsertVolumeMount(volumeMounts, configVolumeMount)
