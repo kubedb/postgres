@@ -918,5 +918,51 @@ var _ = Describe("Postgres", func() {
 			})
 		})
 
+		Context("Custom config", func() {
+
+			customConfigs := []string{
+				"shared_buffers=256MB",
+				"max_connections=300",
+			}
+
+			Context("from configMap", func() {
+				var userConfig *core.ConfigMap
+
+				BeforeEach(func() {
+					userConfig = f.GetCustomConfig(customConfigs)
+				})
+
+				AfterEach(func() {
+					By("Deleting configMap: " + userConfig.Name)
+					f.DeleteConfigMap(userConfig.ObjectMeta)
+				})
+
+				It("should set configuration provided in configMap", func() {
+					if skipMessage != "" {
+						Skip(skipMessage)
+					}
+
+					By("Creating configMap: " + userConfig.Name)
+					err := f.CreateConfigMap(userConfig)
+					Expect(err).NotTo(HaveOccurred())
+
+					postgres.Spec.ConfigFile = &core.VolumeSource{
+						ConfigMap: &core.ConfigMapVolumeSource{
+							LocalObjectReference: core.LocalObjectReference{
+								Name: userConfig.Name,
+							},
+						},
+					}
+
+					// Create Postgres
+					createAndWaitForRunning()
+
+					By("Checking postgres configured from provided custom configuration")
+					for _, cfg := range customConfigs {
+						f.EventuallyPGSettings(postgres.ObjectMeta, cfg).Should(matcher.Use(cfg))
+					}
+				})
+			})
+		})
 	})
 })

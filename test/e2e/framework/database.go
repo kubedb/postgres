@@ -3,6 +3,7 @@ package framework
 import (
 	"crypto/rand"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/appscode/kutil/tools/portforward"
@@ -189,6 +190,31 @@ func (f *Framework) EventuallyCountArchive(meta metav1.ObjectMeta, dbName string
 			return false
 		},
 		time.Minute*10,
+		time.Second*5,
+	)
+}
+
+func (f *Framework) EventuallyPGSettings(meta metav1.ObjectMeta, config string) GomegaAsyncAssertion {
+	configPair := strings.Split(config, "=")
+	sql := fmt.Sprintf("SHOW %s;", configPair[0])
+	return Eventually(
+		func() []map[string][]byte {
+			db, err := f.GetPostgresClient(meta)
+			if err != nil {
+				return nil
+			}
+
+			if err := f.CheckPostgres(db); err != nil {
+				return nil
+			}
+
+			results, err := db.Query(sql)
+			if err != nil {
+				return nil
+			}
+			return results
+		},
+		time.Minute*5,
 		time.Second*5,
 	)
 }
