@@ -10,15 +10,14 @@ export WALE_S3_PREFIX=$(echo "$RESTORE_S3_PREFIX")
 export AWS_ACCESS_KEY_ID=$(cat "$CRED_PATH/AWS_ACCESS_KEY_ID")
 export AWS_SECRET_ACCESS_KEY=$(cat "$CRED_PATH/AWS_SECRET_ACCESS_KEY")
 
-until wal-g backup-list &> /dev/null
-do
-    echo "waiting for archived backup..."
-    sleep 5
+until wal-g backup-list &>/dev/null; do
+  echo "waiting for archived backup..."
+  sleep 5
 done
 
 echo "Fetching archived backup..."
 # fetch backup
-wal-g backup-fetch "$PGDATA" "$BACKUP_NAME" > /dev/null
+wal-g backup-fetch "$PGDATA" "$BACKUP_NAME" >/dev/null
 
 # create missing folders
 mkdir -p "$PGDATA"/{pg_tblspc,pg_twophase,pg_stat,pg_commit_ts}/
@@ -26,41 +25,39 @@ mkdir -p "$PGDATA"/pg_logical/{snapshots,mappings}/
 
 # setup recovery.conf
 cp /scripts/replica/recovery.conf /tmp
-echo "recovery_target_timeline = '$PITR'" >> /tmp/recovery.conf
-echo "restore_command = 'wal-g wal-fetch %f %p'" >> /tmp/recovery.conf
+echo "recovery_target_timeline = '$PITR'" >>/tmp/recovery.conf
+echo "restore_command = 'wal-g wal-fetch %f %p'" >>/tmp/recovery.conf
 mv /tmp/recovery.conf "$PGDATA/recovery.conf"
 
 # setup postgresql.conf
 cp /scripts/primary/postgresql.conf /tmp
-echo "wal_level = replica" >> /tmp/postgresql.conf
-echo "max_wal_senders = 99" >> /tmp/postgresql.conf
-echo "wal_keep_segments = 32" >> /tmp/postgresql.conf
+echo "wal_level = replica" >>/tmp/postgresql.conf
+echo "max_wal_senders = 99" >>/tmp/postgresql.conf
+echo "wal_keep_segments = 32" >>/tmp/postgresql.conf
 mv /tmp/postgresql.conf "$PGDATA/postgresql.conf"
 
 if [ "$ARCHIVE" == "wal-g" ]; then
-    # setup postgresql.conf
-    echo "archive_command = 'wal-g wal-push %p'" >> "$PGDATA/postgresql.conf"
-    echo "archive_timeout = 60" >> "$PGDATA/postgresql.conf"
-    echo "archive_mode = always" >> "$PGDATA/postgresql.conf"
+  # setup postgresql.conf
+  echo "archive_command = 'wal-g wal-push %p'" >>"$PGDATA/postgresql.conf"
+  echo "archive_timeout = 60" >>"$PGDATA/postgresql.conf"
+  echo "archive_mode = always" >>"$PGDATA/postgresql.conf"
 fi
 
-rm "$PGDATA/recovery.done" &> /dev/null
+rm "$PGDATA/recovery.done" &>/dev/null
 
 # start server for recovery process
-pg_ctl -D "$PGDATA" -W start > /dev/null
+pg_ctl -D "$PGDATA" -W start >/dev/null
 
 # this file will trigger recovery
 touch '/tmp/pg-failover-trigger'
 
 # This will hold until recovery completed
-while [ ! -e "$PGDATA/recovery.done" ]
-do
-    echo "replaying wal files..."
-    sleep 5
+while [ ! -e "$PGDATA/recovery.done" ]; do
+  echo "replaying wal files..."
+  sleep 5
 done
 
 # create PID if misssing
-postmaster -D "$PGDATA" &> /dev/null
+postmaster -D "$PGDATA" &>/dev/null
 
-pg_ctl -D "$PGDATA" -w stop > /dev/null
-
+pg_ctl -D "$PGDATA" -w stop >/dev/null
