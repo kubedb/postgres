@@ -50,12 +50,12 @@ func (c *Controller) create(postgres *api.Postgres) error {
 	}
 
 	if postgres.Status.CreationTime == nil {
-		es, _, err := kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
+		pg, err := kutildb.UpdatePostgresStatus(c.ExtClient, postgres, func(in *api.PostgresStatus) *api.PostgresStatus {
 			t := metav1.Now()
-			in.Status.CreationTime = &t
-			in.Status.Phase = api.DatabasePhaseCreating
+			in.CreationTime = &t
+			in.Phase = api.DatabasePhaseCreating
 			return in
-		})
+		}, api.EnableStatusSubresource)
 		if err != nil {
 			if ref, rerr := reference.GetReference(clientsetscheme.Scheme, postgres); rerr == nil {
 				c.recorder.Eventf(
@@ -67,7 +67,7 @@ func (c *Controller) create(postgres *api.Postgres) error {
 			}
 			return err
 		}
-		postgres.Status = es.Status
+		postgres.Status = pg.Status
 	}
 
 	// create Governing Service
@@ -144,10 +144,10 @@ func (c *Controller) create(postgres *api.Postgres) error {
 		return nil
 	}
 
-	pg, _, err := kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
-		in.Status.Phase = api.DatabasePhaseRunning
+	pg, err := kutildb.UpdatePostgresStatus(c.ExtClient, postgres, func(in *api.PostgresStatus) *api.PostgresStatus {
+		in.Phase = api.DatabasePhaseRunning
 		return in
-	})
+	}, api.EnableStatusSubresource)
 	if err != nil {
 		if ref, rerr := reference.GetReference(clientsetscheme.Scheme, postgres); rerr == nil {
 			c.recorder.Eventf(
@@ -225,10 +225,10 @@ func (c *Controller) ensureBackupScheduler(postgres *api.Postgres) {
 }
 
 func (c *Controller) initialize(postgres *api.Postgres) error {
-	pg, _, err := kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
-		in.Status.Phase = api.DatabasePhaseInitializing
+	pg, err := kutildb.UpdatePostgresStatus(c.ExtClient, postgres, func(in *api.PostgresStatus) *api.PostgresStatus {
+		in.Phase = api.DatabasePhaseInitializing
 		return in
-	})
+	}, api.EnableStatusSubresource)
 	if err != nil {
 		if ref, rerr := reference.GetReference(clientsetscheme.Scheme, postgres); rerr == nil {
 			c.recorder.Eventf(
@@ -328,11 +328,11 @@ func (c *Controller) SetDatabaseStatus(meta metav1.ObjectMeta, phase api.Databas
 	if err != nil {
 		return err
 	}
-	_, _, err = kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
-		in.Status.Phase = phase
-		in.Status.Reason = reason
+	_, err = kutildb.UpdatePostgresStatus(c.ExtClient, postgres, func(in *api.PostgresStatus) *api.PostgresStatus {
+		in.Phase = phase
+		in.Reason = reason
 		return in
-	})
+	}, api.EnableStatusSubresource)
 	return err
 }
 
