@@ -62,7 +62,7 @@ func (c *FakeElasticsearches) List(opts v1.ListOptions) (result *v1alpha1.Elasti
 	if label == nil {
 		label = labels.Everything()
 	}
-	list := &v1alpha1.ElasticsearchList{}
+	list := &v1alpha1.ElasticsearchList{ListMeta: obj.(*v1alpha1.ElasticsearchList).ListMeta}
 	for _, item := range obj.(*v1alpha1.ElasticsearchList).Items {
 		if label.Matches(labels.Set(item.Labels)) {
 			list.Items = append(list.Items, item)

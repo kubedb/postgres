@@ -62,7 +62,7 @@ func (c *FakeMySQLs) List(opts v1.ListOptions) (result *v1alpha1.MySQLList, err 
 	if label == nil {
 		label = labels.Everything()
 	}
-	list := &v1alpha1.MySQLList{}
+	list := &v1alpha1.MySQLList{ListMeta: obj.(*v1alpha1.MySQLList).ListMeta}
 	for _, item := range obj.(*v1alpha1.MySQLList).Items {
 		if label.Matches(labels.Set(item.Labels)) {
 			list.Items = append(list.Items, item)

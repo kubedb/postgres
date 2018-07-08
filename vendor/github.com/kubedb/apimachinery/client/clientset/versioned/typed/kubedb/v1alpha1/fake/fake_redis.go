@@ -62,7 +62,7 @@ func (c *FakeRedises) List(opts v1.ListOptions) (result *v1alpha1.RedisList, err
 	if label == nil {
 		label = labels.Everything()
 	}
-	list := &v1alpha1.RedisList{}
+	list := &v1alpha1.RedisList{ListMeta: obj.(*v1alpha1.RedisList).ListMeta}
 	for _, item := range obj.(*v1alpha1.RedisList).Items {
 		if label.Matches(labels.Set(item.Labels)) {
 			list.Items = append(list.Items, item)

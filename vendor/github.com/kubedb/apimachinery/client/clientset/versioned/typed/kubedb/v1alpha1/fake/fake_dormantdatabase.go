@@ -62,7 +62,7 @@ func (c *FakeDormantDatabases) List(opts v1.ListOptions) (result *v1alpha1.Dorma
 	if label == nil {
 		label = labels.Everything()
 	}
-	list := &v1alpha1.DormantDatabaseList{}
+	list := &v1alpha1.DormantDatabaseList{ListMeta: obj.(*v1alpha1.DormantDatabaseList).ListMeta}
 	for _, item := range obj.(*v1alpha1.DormantDatabaseList).Items {
 		if label.Matches(labels.Set(item.Labels)) {
 			list.Items = append(list.Items, item)

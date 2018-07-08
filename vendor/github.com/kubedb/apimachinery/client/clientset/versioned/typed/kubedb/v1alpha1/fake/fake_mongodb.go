@@ -62,7 +62,7 @@ func (c *FakeMongoDBs) List(opts v1.ListOptions) (result *v1alpha1.MongoDBList, 
 	if label == nil {
 		label = labels.Everything()
 	}
-	list := &v1alpha1.MongoDBList{}
+	list := &v1alpha1.MongoDBList{ListMeta: obj.(*v1alpha1.MongoDBList).ListMeta}
 	for _, item := range obj.(*v1alpha1.MongoDBList).Items {
 		if label.Matches(labels.Set(item.Labels)) {
 			list.Items = append(list.Items, item)

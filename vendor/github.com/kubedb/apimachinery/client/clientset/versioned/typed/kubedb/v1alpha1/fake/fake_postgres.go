@@ -62,7 +62,7 @@ func (c *FakePostgreses) List(opts v1.ListOptions) (result *v1alpha1.PostgresLis
 	if label == nil {
 		label = labels.Everything()
 	}
-	list := &v1alpha1.PostgresList{}
+	list := &v1alpha1.PostgresList{ListMeta: obj.(*v1alpha1.PostgresList).ListMeta}
 	for _, item := range obj.(*v1alpha1.PostgresList).Items {
 		if label.Matches(labels.Set(item.Labels)) {
 			list.Items = append(list.Items, item)

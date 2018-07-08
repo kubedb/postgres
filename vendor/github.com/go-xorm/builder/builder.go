@@ -29,6 +29,9 @@ type Builder struct {
 	joins     []join
 	inserts   Eq
 	updates   []Eq
+	orderBy   string
+	groupBy   string
+	having    string
 }
 
 // Select creates a select Builder

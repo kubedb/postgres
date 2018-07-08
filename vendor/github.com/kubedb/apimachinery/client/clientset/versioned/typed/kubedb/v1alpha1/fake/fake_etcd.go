@@ -62,7 +62,7 @@ func (c *FakeEtcds) List(opts v1.ListOptions) (result *v1alpha1.EtcdList, err er
 	if label == nil {
 		label = labels.Everything()
 	}
-	list := &v1alpha1.EtcdList{}
+	list := &v1alpha1.EtcdList{ListMeta: obj.(*v1alpha1.EtcdList).ListMeta}
 	for _, item := range obj.(*v1alpha1.EtcdList).Items {
 		if label.Matches(labels.Set(item.Labels)) {
 			list.Items = append(list.Items, item)
