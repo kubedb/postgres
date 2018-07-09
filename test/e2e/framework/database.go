@@ -194,12 +194,12 @@ func (f *Framework) EventuallyCountArchive(meta metav1.ObjectMeta, dbName string
 	)
 }
 
-func (f *Framework) EventuallyPGSettings(meta metav1.ObjectMeta, config string) GomegaAsyncAssertion {
+func (f *Framework) EventuallyPGSettings(meta metav1.ObjectMeta, dbName string, userName string, config string) GomegaAsyncAssertion {
 	configPair := strings.Split(config, "=")
 	sql := fmt.Sprintf("SHOW %s;", configPair[0])
 	return Eventually(
 		func() []map[string][]byte {
-			db, err := f.GetPostgresClient(meta)
+			db, err := f.GetPostgresClient(meta, dbName, userName)
 			if err != nil {
 				return nil
 			}

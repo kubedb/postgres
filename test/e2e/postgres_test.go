@@ -959,7 +959,7 @@ var _ = Describe("Postgres", func() {
 
 					By("Checking postgres configured from provided custom configuration")
 					for _, cfg := range customConfigs {
-						f.EventuallyPGSettings(postgres.ObjectMeta, cfg).Should(matcher.Use(cfg))
+						f.EventuallyPGSettings(postgres.ObjectMeta, dbName, dbUser, cfg).Should(matcher.Use(cfg))
 					}
 				})
 			})
