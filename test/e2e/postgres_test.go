@@ -946,7 +946,7 @@ var _ = Describe("Postgres", func() {
 					err := f.CreateConfigMap(userConfig)
 					Expect(err).NotTo(HaveOccurred())
 
-					postgres.Spec.ConfigFile = &core.VolumeSource{
+					postgres.Spec.ConfigSource = &core.VolumeSource{
 						ConfigMap: &core.ConfigMapVolumeSource{
 							LocalObjectReference: core.LocalObjectReference{
 								Name: userConfig.Name,

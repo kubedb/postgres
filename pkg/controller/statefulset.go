@@ -493,7 +493,7 @@ func upsertDataVolume(statefulSet *apps.StatefulSet, postgres *api.Postgres) *ap
 }
 
 func upsertCustomConfig(statefulSet *apps.StatefulSet, postgres *api.Postgres) *apps.StatefulSet {
-	if postgres.Spec.ConfigFile != nil {
+	if postgres.Spec.ConfigSource != nil {
 		for i, container := range statefulSet.Spec.Template.Spec.Containers {
 			if container.Name == api.ResourceSingularPostgres {
 				configVolumeMount := core.VolumeMount{
@@ -506,7 +506,7 @@ func upsertCustomConfig(statefulSet *apps.StatefulSet, postgres *api.Postgres) *
 
 				configVolume := core.Volume{
 					Name:         "custom-config",
-					VolumeSource: *postgres.Spec.ConfigFile,
+					VolumeSource: *postgres.Spec.ConfigSource,
 				}
 
 				volumes := statefulSet.Spec.Template.Spec.Volumes
