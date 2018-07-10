@@ -75,17 +75,17 @@ def version():
 
 
 def fmt():
-    libbuild.ungroup_go_imports('*.go', 'pkg', 'test')
-    die(call('goimports -w *.go pkg test'))
-    call('gofmt -s -w *.go pkg test')
+    libbuild.ungroup_go_imports('cmd', 'pkg', 'test')
+    die(call('goimports -w cmd pkg test'))
+    call('gofmt -s -w cmd pkg test')
 
 
 def vet():
-    call('go vet *.go ./pkg/... ./test/...')
+    call('go vet ./cmd/... ./pkg/... ./test/...')
 
 
 def lint():
-    call('golint *.go')
+    call('golint ./cmd/...')
     call('golint ./pkg/...')
     call('golint ./test/...')
 
@@ -96,13 +96,16 @@ def gen():
 
 def build_cmd(name):
     cfg = libbuild.BIN_MATRIX[name]
+    entrypoint = 'cmd/{}/*.go'.format(name)
+    compress = libbuild.ENV in ['prod']
+    upx= False
     if cfg['type'] == 'go':
         if 'distro' in cfg:
             for goos, archs in cfg['distro'].items():
                 for goarch in archs:
-                    libbuild.go_build(name, goos, goarch, main='*.go')
+                    libbuild.go_build(name, goos, goarch, entrypoint, compress, upx)
         else:
-            libbuild.go_build(name, libbuild.GOHOSTOS, libbuild.GOHOSTARCH, main='*.go')
+            libbuild.go_build(name, libbuild.GOHOSTOS, libbuild.GOHOSTARCH, entrypoint, compress, upx)
 
 
 def build_cmds():
@@ -146,13 +149,13 @@ def update_registry():
 
 
 def install():
-    die(call('GO15VENDOREXPERIMENT=1 ' + libbuild.GOC + ' install .'))
+    die(call(libbuild.GOC + ' install ./...'))
 
 
 def default():
     gen()
     fmt()
-    die(call('GO15VENDOREXPERIMENT=1 ' + libbuild.GOC + ' install .'))
+    install()
 
 
 def test(type, *args):
