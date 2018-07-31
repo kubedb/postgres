@@ -583,7 +583,7 @@ var _ = Describe("Postgres", func() {
 				BeforeEach(func() {
 					postgres.Spec.BackupSchedule = &api.BackupScheduleSpec{
 						CronExpression: "@every 1m",
-						SnapshotStorageSpec: api.SnapshotStorageSpec{
+						Backend: api.Backend{
 							StorageSecretName: secret.Name,
 							Local: &api.LocalSpec{
 								MountPath: "/repo",
@@ -619,7 +619,7 @@ var _ = Describe("Postgres", func() {
 					_, err = f.PatchPostgres(postgres.ObjectMeta, func(in *api.Postgres) *api.Postgres {
 						in.Spec.BackupSchedule = &api.BackupScheduleSpec{
 							CronExpression: "@every 1m",
-							SnapshotStorageSpec: api.SnapshotStorageSpec{
+							Backend: api.Backend{
 								StorageSecretName: secret.Name,
 								Local: &api.LocalSpec{
 									MountPath: "/repo",
@@ -644,7 +644,7 @@ var _ = Describe("Postgres", func() {
 			BeforeEach(func() {
 				secret = f.SecretForS3Backend()
 				postgres.Spec.Archiver = &api.PostgresArchiverSpec{
-					Storage: &api.SnapshotStorageSpec{
+					Storage: &api.Backend{
 						StorageSecretName: secret.Name,
 						S3: &api.S3Spec{
 							Bucket: os.Getenv(S3_BUCKET_NAME),
@@ -683,7 +683,7 @@ var _ = Describe("Postgres", func() {
 				// -- > 2nd Postgres < --
 				*postgres = *f.Postgres()
 				postgres.Spec.Archiver = &api.PostgresArchiverSpec{
-					Storage: &api.SnapshotStorageSpec{
+					Storage: &api.Backend{
 						StorageSecretName: secret.Name,
 						S3: &api.S3Spec{
 							Bucket: os.Getenv(S3_BUCKET_NAME),
@@ -692,7 +692,7 @@ var _ = Describe("Postgres", func() {
 				}
 				postgres.Spec.Init = &api.InitSpec{
 					PostgresWAL: &api.PostgresWALSourceSpec{
-						SnapshotStorageSpec: api.SnapshotStorageSpec{
+						Backend: api.Backend{
 							StorageSecretName: secret.Name,
 							S3: &api.S3Spec{
 								Bucket: os.Getenv(S3_BUCKET_NAME),
@@ -728,7 +728,7 @@ var _ = Describe("Postgres", func() {
 				*postgres = *f.Postgres()
 				postgres.Spec.Init = &api.InitSpec{
 					PostgresWAL: &api.PostgresWALSourceSpec{
-						SnapshotStorageSpec: api.SnapshotStorageSpec{
+						Backend: api.Backend{
 							StorageSecretName: secret.Name,
 							S3: &api.S3Spec{
 								Bucket: os.Getenv(S3_BUCKET_NAME),

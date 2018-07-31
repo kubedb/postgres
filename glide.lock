@@ -1,5 +1,5 @@
-hash: 98d6dd813759756680570bc70d329bd53905b1be77b0752a379e56a7d8ac9db6
-updated: 2018-07-30T18:12:35.717875069-07:00
+hash: 23c8193503ce2ffd67ddb53455dc24e1c01b2111cb742295fbaa5204e4b81fce
+updated: 2018-07-31T13:31:52.861361974-07:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -28,13 +28,6 @@ imports:
   - version
 - name: github.com/appscode/jsonpatch
   version: 1359b374de83fa14fd58ab10aa8ea4935f84d249
-- name: github.com/appscode/kube-mon
-  version: 6844d3b8506f97e79663419dfe8a3b7bfe1b3264
-  subpackages:
-  - agents
-  - agents/coreosprometheusoperator
-  - agents/prometheusbuiltin
-  - api
 - name: github.com/appscode/kubernetes-webhook-util
   version: 73ca8be3135ee210b778c7dc19709c24bf3481eb
   subpackages:
@@ -221,11 +214,11 @@ imports:
 - name: github.com/emicklei/go-restful-swagger12
   version: dcef7f55730566d41eae5db10e7d6981829720f6
 - name: github.com/evanphx/json-patch
-  version: afac545df32f2287a079e2dfb7ba2745a643747e
+  version: 94e38aa1586e8a6c8a75770bddf5ff84c48a106b
 - name: github.com/fsnotify/fsnotify
   version: f12c6236fe7b5cf6bcf30e5935d08cb079d78334
 - name: github.com/ghodss/yaml
-  version: 73d445a93680fa1a78ae23a5839bad48f32ba1ee
+  version: 0ca9ea5df5451ffdf184b4428c902747c2c11cd7
 - name: github.com/go-ini/ini
   version: 300e940a926eb277d3901b20bdfcc54928ad3642
 - name: github.com/go-openapi/jsonpointer
@@ -267,7 +260,7 @@ imports:
 - name: github.com/google/btree
   version: 7d79101e329e5a3adf994758c578dab82b90c017
 - name: github.com/google/go-cmp
-  version: 5411ab924f9ffa6566244a9e504bc347edacffd3
+  version: 3af367b6b30c263d47e8895973edcca9a49cf029
   subpackages:
   - cmp
   - cmp/internal/diff
@@ -319,9 +312,9 @@ imports:
 - name: github.com/jpillora/go-ogle-analytics
   version: 14b04e0594ef6a9fd943363b135656f0ec8c9d0e
 - name: github.com/json-iterator/go
-  version: ab8a2e0c74be9d3be70b3184d9acc634935ded82
+  version: f2b4162afba35581b6d4a50d3b8f34e33c144682
 - name: github.com/kubedb/apimachinery
-  version: 5071baa28820a679d1ca16f04c259fddcb10cee1
+  version: e3f101afd0112e3d266359879bc03865d28381f9
   subpackages:
   - apis/kubedb
   - apis/kubedb/v1alpha1
@@ -344,7 +337,6 @@ imports:
   - pkg/controller/job
   - pkg/controller/snapshot
   - pkg/eventer
-  - pkg/storage
   - pkg/validator
 - name: github.com/lib/pq
   version: 90697d60dd844d5ef6ff15135d0203f65d2f53b8
@@ -953,11 +945,27 @@ imports:
   - pkg/client/clientset_generated/clientset/typed/apiregistration/v1
   - pkg/client/clientset_generated/clientset/typed/apiregistration/v1beta1
 - name: k8s.io/kube-openapi
-  version: d8ea2fe547a448256204cfc68dfee7b26c720acb
+  version: e3762e86a74c878ffed47484592986685639c2cd
   subpackages:
   - pkg/builder
   - pkg/common
   - pkg/handler
   - pkg/util
   - pkg/util/proto
+- name: kmodules.xyz/monitoring-agent-api
+  version: 323ed6f2129deea0309979d9396728c613f369d4
+  repo: https://github.com/kmodules/monitoring-agent-api.git
+  vcs: git
+  subpackages:
+  - agents
+  - agents/coreosprometheusoperator
+  - agents/prometheusbuiltin
+  - api
+- name: kmodules.xyz/objectstore-api
+  version: f2d3726e2b0438b0b7264f8bf62edf928e5ca962
+  repo: https://github.com/kmodules/objectstore-api.git
+  vcs: git
+  subpackages:
+  - api
+  - osm
 testImports: []

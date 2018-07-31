@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/appscode/kube-mon/api"
 	crdutils "github.com/appscode/kutil/apiextensions/v1beta1"
 	"github.com/appscode/kutil/meta"
 	apiextensions "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	"kmodules.xyz/monitoring-agent-api/api"
 )
 
 func (e Elasticsearch) OffshootName() string {
