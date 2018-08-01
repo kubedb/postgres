@@ -1,5 +1,5 @@
-hash: 23c8193503ce2ffd67ddb53455dc24e1c01b2111cb742295fbaa5204e4b81fce
-updated: 2018-07-31T13:31:52.861361974-07:00
+hash: e48bbf346065ffa367366bb171243185171453febdc4c3fa5404ab85f393d010
+updated: 2018-08-01T16:49:42.187364496-07:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -314,7 +314,7 @@ imports:
 - name: github.com/json-iterator/go
   version: f2b4162afba35581b6d4a50d3b8f34e33c144682
 - name: github.com/kubedb/apimachinery
-  version: e3f101afd0112e3d266359879bc03865d28381f9
+  version: ab3afc0b572430515cbf1d22c67fb0c767bb0328
   subpackages:
   - apis/kubedb
   - apis/kubedb/v1alpha1
@@ -953,19 +953,25 @@ imports:
   - pkg/util
   - pkg/util/proto
 - name: kmodules.xyz/monitoring-agent-api
-  version: 323ed6f2129deea0309979d9396728c613f369d4
+  version: 2b926a410fbfe224acd3297619e15734eb0ad75d
   repo: https://github.com/kmodules/monitoring-agent-api.git
   vcs: git
   subpackages:
   - agents
   - agents/coreosprometheusoperator
   - agents/prometheusbuiltin
-  - api
+  - api/v1
 - name: kmodules.xyz/objectstore-api
-  version: f2d3726e2b0438b0b7264f8bf62edf928e5ca962
+  version: 5437829d6e1c97de1c3effe5f2dc6cbca2e0bfd4
   repo: https://github.com/kmodules/objectstore-api.git
   vcs: git
   subpackages:
-  - api
+  - api/v1
   - osm
+- name: kmodules.xyz/offshoot-api
+  version: ca509dced59191f2fe70d49a5e238ec92016a8eb
+  repo: https://github.com/kmodules/offshoot-api.git
+  vcs: git
+  subpackages:
+  - api/v1
 testImports: []

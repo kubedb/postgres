@@ -19,7 +19,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/fake"
 	clientSetScheme "k8s.io/client-go/kubernetes/scheme"
-	kubeMon "kmodules.xyz/monitoring-agent-api/api"
+	mona "kmodules.xyz/monitoring-agent-api/api/v1"
 )
 
 func init() {
@@ -289,9 +289,9 @@ func editStatus(old api.Postgres) api.Postgres {
 }
 
 func editSpecMonitor(old api.Postgres) api.Postgres {
-	old.Spec.Monitor = &kubeMon.AgentSpec{
-		Agent: kubeMon.AgentPrometheusBuiltin,
-		Prometheus: &kubeMon.PrometheusSpec{
+	old.Spec.Monitor = &mona.AgentSpec{
+		Agent: mona.AgentPrometheusBuiltin,
+		Prometheus: &mona.PrometheusSpec{
 			Port: 5670,
 		},
 	}
@@ -300,8 +300,8 @@ func editSpecMonitor(old api.Postgres) api.Postgres {
 
 // should be failed because more fields required for COreOS Monitoring
 func editSpecInvalidMonitor(old api.Postgres) api.Postgres {
-	old.Spec.Monitor = &kubeMon.AgentSpec{
-		Agent: kubeMon.AgentCoreOSPrometheus,
+	old.Spec.Monitor = &mona.AgentSpec{
+		Agent: mona.AgentCoreOSPrometheus,
 	}
 	return old
 }
