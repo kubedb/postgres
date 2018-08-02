@@ -2,6 +2,8 @@ package: github.com/kubedb/postgres
 import:
 - package: github.com/appscode/go
   version: master
+- package: github.com/appscode/go-version
+  version: master
 - package: github.com/codeskyblue/go-sh
   version: master
 - package: github.com/coreos/prometheus-operator

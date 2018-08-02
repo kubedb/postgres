@@ -26,6 +26,8 @@ imports:
   - strings
   - types
   - version
+- name: github.com/appscode/go-version
+  version: 0dcf3ac121c7c30e035b41ba9f652d1ce5994242
 - name: github.com/appscode/jsonpatch
   version: 1359b374de83fa14fd58ab10aa8ea4935f84d249
 - name: github.com/appscode/kubernetes-webhook-util

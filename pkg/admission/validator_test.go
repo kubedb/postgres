@@ -130,6 +130,26 @@ var cases = []struct {
 		false,
 		false,
 	},
+	{"Create Valid Custom Postgres",
+		requestKind,
+		"foo",
+		"default",
+		admission.Create,
+		getCustomPostgres(),
+		api.Postgres{},
+		false,
+		true,
+	},
+	{"Create Invalid Postgres",
+		requestKind,
+		"foo",
+		"default",
+		admission.Create,
+		getAwkwardCustomPostgres(),
+		api.Postgres{},
+		false,
+		false,
+	},
 	{"Edit Postgres Spec.DatabaseSecret with Existing Secret",
 		requestKind,
 		"foo",
@@ -264,6 +284,18 @@ func samplePostgres() api.Postgres {
 func getAwkwardPostgres() api.Postgres {
 	postgres := samplePostgres()
 	postgres.Spec.Version = "3.0"
+	return postgres
+}
+
+func getCustomPostgres() api.Postgres {
+	postgres := samplePostgres()
+	postgres.Spec.Version = "10.4-timescaledb9.0"
+	return postgres
+}
+
+func getAwkwardCustomPostgres() api.Postgres {
+	postgres := samplePostgres()
+	postgres.Spec.Version = "3.0-timescaledb9.0"
 	return postgres
 }
 

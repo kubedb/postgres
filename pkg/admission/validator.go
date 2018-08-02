@@ -2,9 +2,11 @@ package admission
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 	"sync"
 
+	"github.com/appscode/go-version"
 	"github.com/appscode/go/log"
 	hookapi "github.com/appscode/kubernetes-webhook-util/admission/v1beta1"
 	meta_util "github.com/appscode/kutil/meta"
@@ -124,7 +126,11 @@ func (a *PostgresValidator) Admit(req *admission.AdmissionRequest) *admission.Ad
 }
 
 var (
-	postgresVersions = sets.NewString("9.6", "9.6.7", "10.2")
+	postgresVersions    = sets.NewString("9.6", "9.6.7", "10.2")
+	majorConstraints, _ = version.NewConstraint(">= 9, < 11")
+	minorConstraints, _ = version.NewConstraint("9.6, 10.2")
+
+	postgresCustomVersion = regexp.MustCompile(`(?P<version>\d+(\.\d+){1,2})-*`) // Matches x.x.x-<own-version> x.x-<own-version>
 )
 
 // ValidatePostgres checks if the object satisfies all the requirements.
@@ -136,7 +142,27 @@ func ValidatePostgres(client kubernetes.Interface, extClient kubedbv1alpha1.Kube
 
 	// Check Postgres version validation
 	if !postgresVersions.Has(string(postgres.Spec.Version)) {
-		return fmt.Errorf(`KubeDB doesn't support Postgres version: %s`, string(postgres.Spec.Version))
+		// Check if the user is using a valid custom postgres image
+		rawVersion, ok := extractCustomVersion(string(postgres.Spec.Version))
+		if !ok {
+			return fmt.Errorf(`KubeDB doesn't support Postgres version: %s`, string(postgres.Spec.Version))
+		}
+		customVersion, err := version.NewVersion(rawVersion)
+		if err != nil || !majorConstraints.Check(customVersion) {
+			return fmt.Errorf(`KubeDB doesn't support Postgres version: %s`, string(postgres.Spec.Version))
+		}
+
+		// Checks if the custom version matches supported minor versions, if not, print a warning message
+		var match = false
+		for _, c := range minorConstraints {
+			if c.Check(customVersion) {
+				match = true
+				break
+			}
+		}
+		if !match {
+			fmt.Printf("KubeDB does not officially support version %s of postgres, tread carefully.", customVersion.String())
+		}
 	}
 
 	if postgres.Spec.Replicas == nil || *postgres.Spec.Replicas < 1 {
@@ -321,4 +347,15 @@ func preconditionFailedError(kind string) error {
 	kind
 	name
 	namespace`, strList}, "\n\t"))
+}
+
+func extractCustomVersion(s string) (string, bool) {
+	result := postgresCustomVersion.FindStringSubmatch(s)
+
+	for i, name := range postgresCustomVersion.SubexpNames() {
+		if name == "version" {
+			return result[i], true
+		}
+	}
+	return "", false
 }
