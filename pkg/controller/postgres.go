@@ -34,6 +34,20 @@ func (c *Controller) create(postgres *api.Postgres) error {
 		return nil // user error so just record error and don't retry.
 	}
 
+	version, err := c.ExtClient.PostgresVersions().Get(string(postgres.Spec.Version), metav1.GetOptions{})
+	if err != nil {
+		if ref, rerr := reference.GetReference(clientsetscheme.Scheme, postgres); rerr == nil {
+			c.recorder.Event(
+				ref,
+				core.EventTypeWarning,
+				eventer.EventReasonInvalid,
+				err.Error(),
+			)
+		}
+		log.Error(err)
+		return nil
+	}
+
 	// Delete Matching DormantDatabase if exists any
 	if err := c.deleteMatchingDormantDatabase(postgres); err != nil {
 		if ref, rerr := reference.GetReference(clientsetscheme.Scheme, postgres); rerr == nil {
@@ -93,7 +107,7 @@ func (c *Controller) create(postgres *api.Postgres) error {
 	}
 
 	// ensure database StatefulSet
-	vt2, err := c.ensurePostgresNode(postgres)
+	vt2, err := c.ensurePostgresNode(postgres, version)
 	if err != nil {
 		return err
 	}
@@ -180,7 +194,7 @@ func (c *Controller) create(postgres *api.Postgres) error {
 	return nil
 }
 
-func (c *Controller) ensurePostgresNode(postgres *api.Postgres) (kutil.VerbType, error) {
+func (c *Controller) ensurePostgresNode(postgres *api.Postgres, postgresVersion *api.PostgresVersion) (kutil.VerbType, error) {
 	var err error
 
 	if err = c.ensureDatabaseSecret(postgres); err != nil {
@@ -194,7 +208,7 @@ func (c *Controller) ensurePostgresNode(postgres *api.Postgres) (kutil.VerbType,
 		}
 	}
 
-	vt, err := c.ensureCombinedNode(postgres)
+	vt, err := c.ensureCombinedNode(postgres, postgresVersion)
 	if err != nil {
 		return kutil.VerbUnchanged, err
 	}

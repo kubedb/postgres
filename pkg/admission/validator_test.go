@@ -38,7 +38,13 @@ func TestPostgresValidator_Admit(t *testing.T) {
 			validator := PostgresValidator{}
 
 			validator.initialized = true
-			validator.extClient = extFake.NewSimpleClientset()
+			validator.extClient = extFake.NewSimpleClientset(
+				&api.PostgresVersion{
+					ObjectMeta: metaV1.ObjectMeta{
+						Name: "9.6",
+					},
+				},
+			)
 			validator.client = fake.NewSimpleClientset(
 				&core.Secret{
 					ObjectMeta: metaV1.ObjectMeta{

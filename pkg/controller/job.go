@@ -18,6 +18,10 @@ const (
 )
 
 func (c *Controller) createRestoreJob(postgres *api.Postgres, snapshot *api.Snapshot) (*batch.Job, error) {
+	postgresVersion, err := c.ExtClient.PostgresVersions().Get(string(postgres.Spec.Version), metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
 	jobName := fmt.Sprintf("%s-%s", api.DatabaseNamePrefix, snapshot.OffshootName())
 	jobLabel := map[string]string{
 		api.LabelDatabaseKind: api.ResourceKindPostgres,
@@ -64,7 +68,7 @@ func (c *Controller) createRestoreJob(postgres *api.Postgres, snapshot *api.Snap
 					Containers: []core.Container{
 						{
 							Name:            snapshotProcessRestore,
-							Image:           c.docker.GetToolsImageWithTag(postgres),
+							Image:           postgresVersion.Spec.Tools.Image,
 							ImagePullPolicy: core.PullIfNotPresent,
 							Args: []string{
 								snapshotProcessRestore,
@@ -146,6 +150,10 @@ func (c *Controller) GetSnapshotter(snapshot *api.Snapshot) (*batch.Job, error) 
 	if err != nil {
 		return nil, err
 	}
+	postgresVersion, err := c.ExtClient.PostgresVersions().Get(string(postgres.Spec.Version), metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
 	jobName := fmt.Sprintf("%s-%s", api.DatabaseNamePrefix, snapshot.OffshootName())
 	jobLabel := map[string]string{
 		api.LabelDatabaseKind: api.ResourceKindPostgres,
@@ -190,7 +198,7 @@ func (c *Controller) GetSnapshotter(snapshot *api.Snapshot) (*batch.Job, error) 
 					Containers: []core.Container{
 						{
 							Name:  snapshotProcessBackup,
-							Image: c.docker.GetToolsImageWithTag(postgres),
+							Image: postgresVersion.Spec.Tools.Image,
 							Args: []string{
 								snapshotProcessBackup,
 								fmt.Sprintf(`--host=%s`, postgres.ServiceName()),

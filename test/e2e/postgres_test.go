@@ -14,6 +14,7 @@ import (
 	. "github.com/onsi/gomega"
 	core "k8s.io/api/core/v1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
+	store "kmodules.xyz/objectstore-api/api/v1"
 )
 
 const (
@@ -36,6 +37,7 @@ var _ = Describe("Postgres", func() {
 		f                        *framework.Invocation
 		postgres                 *api.Postgres
 		garbagePostgres          *api.PostgresList
+		postgresVersion          *api.PostgresVersion
 		snapshot                 *api.Snapshot
 		secret                   *core.Secret
 		skipMessage              string
@@ -47,6 +49,7 @@ var _ = Describe("Postgres", func() {
 	BeforeEach(func() {
 		f = root.Invoke()
 		postgres = f.Postgres()
+		postgresVersion = f.PostgresVersion()
 		garbagePostgres = new(api.PostgresList)
 		snapshot = f.Snapshot()
 		secret = new(core.Secret)
@@ -58,6 +61,9 @@ var _ = Describe("Postgres", func() {
 
 	var createAndWaitForRunning = func() {
 		By("Create Postgres: " + postgres.Name)
+
+		err = f.CreatePostgresVersion(postgresVersion)
+		Expect(err).NotTo(HaveOccurred())
 		err = f.CreatePostgres(postgres)
 		Expect(err).NotTo(HaveOccurred())
 
@@ -116,6 +122,11 @@ var _ = Describe("Postgres", func() {
 
 		if secret != nil {
 			f.DeleteSecret(secret.ObjectMeta)
+		}
+
+		err = f.DeletePostgresVersion(postgresVersion.ObjectMeta)
+		if err != nil && !kerr.IsNotFound(err) {
+			Expect(err).NotTo(HaveOccurred())
 		}
 	})
 
@@ -224,7 +235,7 @@ var _ = Describe("Postgres", func() {
 					skipSnapshotDataChecking = true
 					secret = f.SecretForLocalBackend()
 					snapshot.Spec.StorageSecretName = secret.Name
-					snapshot.Spec.Local = &api.LocalSpec{
+					snapshot.Spec.Local = &store.LocalSpec{
 						MountPath: "/repo",
 						VolumeSource: core.VolumeSource{
 							EmptyDir: &core.EmptyDirVolumeSource{},
@@ -239,7 +250,7 @@ var _ = Describe("Postgres", func() {
 				BeforeEach(func() {
 					secret = f.SecretForS3Backend()
 					snapshot.Spec.StorageSecretName = secret.Name
-					snapshot.Spec.S3 = &api.S3Spec{
+					snapshot.Spec.S3 = &store.S3Spec{
 						Bucket: os.Getenv(S3_BUCKET_NAME),
 					}
 				})
@@ -251,7 +262,7 @@ var _ = Describe("Postgres", func() {
 				BeforeEach(func() {
 					secret = f.SecretForGCSBackend()
 					snapshot.Spec.StorageSecretName = secret.Name
-					snapshot.Spec.GCS = &api.GCSSpec{
+					snapshot.Spec.GCS = &store.GCSSpec{
 						Bucket: os.Getenv(GCS_BUCKET_NAME),
 					}
 				})
@@ -263,7 +274,7 @@ var _ = Describe("Postgres", func() {
 				BeforeEach(func() {
 					secret = f.SecretForAzureBackend()
 					snapshot.Spec.StorageSecretName = secret.Name
-					snapshot.Spec.Azure = &api.AzureSpec{
+					snapshot.Spec.Azure = &store.AzureSpec{
 						Container: os.Getenv(AZURE_CONTAINER_NAME),
 					}
 				})
@@ -275,7 +286,7 @@ var _ = Describe("Postgres", func() {
 				BeforeEach(func() {
 					secret = f.SecretForSwiftBackend()
 					snapshot.Spec.StorageSecretName = secret.Name
-					snapshot.Spec.Swift = &api.SwiftSpec{
+					snapshot.Spec.Swift = &store.SwiftSpec{
 						Container: os.Getenv(SWIFT_CONTAINER_NAME),
 					}
 				})
@@ -314,7 +325,7 @@ var _ = Describe("Postgres", func() {
 					skipSnapshotDataChecking = false
 					secret = f.SecretForGCSBackend()
 					snapshot.Spec.StorageSecretName = secret.Name
-					snapshot.Spec.GCS = &api.GCSSpec{
+					snapshot.Spec.GCS = &store.GCSSpec{
 						Bucket: os.Getenv(GCS_BUCKET_NAME),
 					}
 					snapshot.Spec.DatabaseName = postgres.Name
@@ -434,7 +445,7 @@ var _ = Describe("Postgres", func() {
 					skipSnapshotDataChecking = false
 					secret = f.SecretForGCSBackend()
 					snapshot.Spec.StorageSecretName = secret.Name
-					snapshot.Spec.GCS = &api.GCSSpec{
+					snapshot.Spec.GCS = &store.GCSSpec{
 						Bucket: os.Getenv(GCS_BUCKET_NAME),
 					}
 					snapshot.Spec.DatabaseName = postgres.Name
@@ -583,9 +594,9 @@ var _ = Describe("Postgres", func() {
 				BeforeEach(func() {
 					postgres.Spec.BackupSchedule = &api.BackupScheduleSpec{
 						CronExpression: "@every 1m",
-						Backend: api.Backend{
+						Backend: store.Backend{
 							StorageSecretName: secret.Name,
-							Local: &api.LocalSpec{
+							Local: &store.LocalSpec{
 								MountPath: "/repo",
 								VolumeSource: core.VolumeSource{
 									EmptyDir: &core.EmptyDirVolumeSource{},
@@ -619,9 +630,9 @@ var _ = Describe("Postgres", func() {
 					_, err = f.PatchPostgres(postgres.ObjectMeta, func(in *api.Postgres) *api.Postgres {
 						in.Spec.BackupSchedule = &api.BackupScheduleSpec{
 							CronExpression: "@every 1m",
-							Backend: api.Backend{
+							Backend: store.Backend{
 								StorageSecretName: secret.Name,
-								Local: &api.LocalSpec{
+								Local: &store.LocalSpec{
 									MountPath: "/repo",
 									VolumeSource: core.VolumeSource{
 										EmptyDir: &core.EmptyDirVolumeSource{},
@@ -644,9 +655,9 @@ var _ = Describe("Postgres", func() {
 			BeforeEach(func() {
 				secret = f.SecretForS3Backend()
 				postgres.Spec.Archiver = &api.PostgresArchiverSpec{
-					Storage: &api.Backend{
+					Storage: &store.Backend{
 						StorageSecretName: secret.Name,
-						S3: &api.S3Spec{
+						S3: &store.S3Spec{
 							Bucket: os.Getenv(S3_BUCKET_NAME),
 						},
 					},
@@ -683,18 +694,18 @@ var _ = Describe("Postgres", func() {
 				// -- > 2nd Postgres < --
 				*postgres = *f.Postgres()
 				postgres.Spec.Archiver = &api.PostgresArchiverSpec{
-					Storage: &api.Backend{
+					Storage: &store.Backend{
 						StorageSecretName: secret.Name,
-						S3: &api.S3Spec{
+						S3: &store.S3Spec{
 							Bucket: os.Getenv(S3_BUCKET_NAME),
 						},
 					},
 				}
 				postgres.Spec.Init = &api.InitSpec{
 					PostgresWAL: &api.PostgresWALSourceSpec{
-						Backend: api.Backend{
+						Backend: store.Backend{
 							StorageSecretName: secret.Name,
-							S3: &api.S3Spec{
+							S3: &store.S3Spec{
 								Bucket: os.Getenv(S3_BUCKET_NAME),
 								Prefix: fmt.Sprintf("kubedb/%s/%s/archive/", postgres.Namespace, oldPostgres.Name),
 							},
@@ -728,9 +739,9 @@ var _ = Describe("Postgres", func() {
 				*postgres = *f.Postgres()
 				postgres.Spec.Init = &api.InitSpec{
 					PostgresWAL: &api.PostgresWALSourceSpec{
-						Backend: api.Backend{
+						Backend: store.Backend{
 							StorageSecretName: secret.Name,
-							S3: &api.S3Spec{
+							S3: &store.S3Spec{
 								Bucket: os.Getenv(S3_BUCKET_NAME),
 								Prefix: fmt.Sprintf("kubedb/%s/%s/archive/", postgres.Namespace, oldPostgres.Name),
 							},
@@ -764,7 +775,7 @@ var _ = Describe("Postgres", func() {
 					)
 					dbName = f.App()
 					dbUser = f.App()
-					postgres.Spec.Env = []core.EnvVar{
+					postgres.Spec.PodTemplate.Spec.Env = []core.EnvVar{
 						{
 							Name:  PGDATA,
 							Value: dataDir,
@@ -797,7 +808,7 @@ var _ = Describe("Postgres", func() {
 							},
 						}
 					}
-					postgres.Spec.Env = core_util.UpsertEnvVars(postgres.Spec.Env, walEnv...)
+					postgres.Spec.PodTemplate.Spec.Env = core_util.UpsertEnvVars(postgres.Spec.PodTemplate.Spec.Env, walEnv...)
 
 					// Create Postgres
 					createAndWaitForRunning()
@@ -842,7 +853,7 @@ var _ = Describe("Postgres", func() {
 					}
 
 					dbName = f.App()
-					postgres.Spec.Env = []core.EnvVar{
+					postgres.Spec.PodTemplate.Spec.Env = []core.EnvVar{
 						{
 							Name:  POSTGRES_PASSWORD,
 							Value: "not@secret",
@@ -863,7 +874,7 @@ var _ = Describe("Postgres", func() {
 					}
 
 					dbName = f.App()
-					postgres.Spec.Env = []core.EnvVar{
+					postgres.Spec.PodTemplate.Spec.Env = []core.EnvVar{
 						{
 							Name:  POSTGRES_DB,
 							Value: dbName,
@@ -904,7 +915,7 @@ var _ = Describe("Postgres", func() {
 
 					By("Patching EnvVar")
 					_, _, err = util.PatchPostgres(f.ExtClient(), postgres, func(in *api.Postgres) *api.Postgres {
-						in.Spec.Env = []core.EnvVar{
+						in.Spec.PodTemplate.Spec.Env = []core.EnvVar{
 							{
 								Name:  POSTGRES_DB,
 								Value: "patched-db",

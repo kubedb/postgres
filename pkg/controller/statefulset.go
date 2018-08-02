@@ -23,6 +23,7 @@ import (
 
 func (c *Controller) ensureStatefulSet(
 	postgres *api.Postgres,
+	postgresVersion *api.PostgresVersion,
 	envList []core.EnvVar,
 ) (kutil.VerbType, error) {
 
@@ -59,7 +60,7 @@ func (c *Controller) ensureStatefulSet(
 		in.Spec.ServiceName = c.GoverningService
 		in.Spec.Template.Labels = in.Labels
 
-		in = c.upsertContainer(in, postgres)
+		in = c.upsertContainer(in, postgresVersion)
 		in = upsertEnv(in, postgres, envList)
 		in = upsertUserEnv(in, postgres)
 		in = upsertPort(in)
@@ -74,7 +75,7 @@ func (c *Controller) ensureStatefulSet(
 		in.Spec.Template.Spec.Tolerations = postgres.Spec.Tolerations
 		in.Spec.Template.Spec.ImagePullSecrets = postgres.Spec.ImagePullSecrets
 
-		in = c.upsertMonitoringContainer(in, postgres)
+		in = c.upsertMonitoringContainer(in, postgres, postgresVersion)
 		if postgres.Spec.Archiver != nil {
 			archiverStorage := postgres.Spec.Archiver.Storage
 			if archiverStorage != nil {
@@ -149,7 +150,7 @@ func (c *Controller) CheckStatefulSetPodStatus(statefulSet *apps.StatefulSet) er
 	return nil
 }
 
-func (c *Controller) ensureCombinedNode(postgres *api.Postgres) (kutil.VerbType, error) {
+func (c *Controller) ensureCombinedNode(postgres *api.Postgres, postgresVersion *api.PostgresVersion) (kutil.VerbType, error) {
 	standbyMode := api.WarmStandby
 	streamingMode := api.AsynchronousStreaming
 
@@ -208,7 +209,7 @@ func (c *Controller) ensureCombinedNode(postgres *api.Postgres) (kutil.VerbType,
 		}
 	}
 
-	return c.ensureStatefulSet(postgres, envList)
+	return c.ensureStatefulSet(postgres, postgresVersion, envList)
 }
 
 func (c *Controller) checkStatefulSet(postgres *api.Postgres) error {
@@ -237,10 +238,10 @@ func upsertObjectMeta(statefulSet *apps.StatefulSet, postgres *api.Postgres) *ap
 	return statefulSet
 }
 
-func (c *Controller) upsertContainer(statefulSet *apps.StatefulSet, postgres *api.Postgres) *apps.StatefulSet {
+func (c *Controller) upsertContainer(statefulSet *apps.StatefulSet, postgres *api.PostgresVersion) *apps.StatefulSet {
 	container := core.Container{
 		Name:  api.ResourceSingularPostgres,
-		Image: c.docker.GetImageWithTag(postgres),
+		Image: postgres.Spec.DB.Image,
 		SecurityContext: &core.SecurityContext{
 			Privileged: types.BoolP(false),
 			Capabilities: &core.Capabilities{
@@ -327,7 +328,7 @@ func upsertPort(statefulSet *apps.StatefulSet) *apps.StatefulSet {
 	return statefulSet
 }
 
-func (c *Controller) upsertMonitoringContainer(statefulSet *apps.StatefulSet, postgres *api.Postgres) *apps.StatefulSet {
+func (c *Controller) upsertMonitoringContainer(statefulSet *apps.StatefulSet, postgres *api.Postgres, postgresVersion *api.PostgresVersion) *apps.StatefulSet {
 	if postgres.GetMonitoringVendor() == mona.VendorPrometheus {
 		container := core.Container{
 			Name: "exporter",
@@ -337,7 +338,7 @@ func (c *Controller) upsertMonitoringContainer(statefulSet *apps.StatefulSet, po
 				"--v=3",
 				fmt.Sprintf("--enable-analytics=%v", c.EnableAnalytics),
 			}, c.LoggerOptions.ToFlags()...),
-			Image:           c.docker.GetOperatorImageWithTag(postgres),
+			Image:           postgresVersion.Spec.Exporter.Image,
 			ImagePullPolicy: core.PullIfNotPresent,
 			Ports: []core.ContainerPort{
 				{
