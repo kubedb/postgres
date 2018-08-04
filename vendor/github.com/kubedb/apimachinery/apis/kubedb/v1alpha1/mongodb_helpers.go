@@ -13,7 +13,7 @@ func (p MongoDB) OffshootName() string {
 	return p.Name
 }
 
-func (p MongoDB) OffshootLabels() map[string]string {
+func (p MongoDB) OffshootSelectors() map[string]string {
 	return map[string]string{
 		LabelDatabaseName: p.Name,
 		LabelDatabaseKind: ResourceKindMongoDB,
@@ -21,7 +21,7 @@ func (p MongoDB) OffshootLabels() map[string]string {
 }
 
 func (p MongoDB) StatefulSetLabels() map[string]string {
-	labels := p.OffshootLabels()
+	labels := p.OffshootSelectors()
 	for key, val := range p.Labels {
 		if !strings.HasPrefix(key, GenericKey+"/") && !strings.HasPrefix(key, MongoDBKey+"/") {
 			labels[key] = val

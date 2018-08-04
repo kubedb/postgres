@@ -13,7 +13,7 @@ func (p Postgres) OffshootName() string {
 	return p.Name
 }
 
-func (p Postgres) OffshootLabels() map[string]string {
+func (p Postgres) OffshootSelectors() map[string]string {
 	return map[string]string{
 		LabelDatabaseName: p.Name,
 		LabelDatabaseKind: ResourceKindPostgres,
@@ -21,7 +21,7 @@ func (p Postgres) OffshootLabels() map[string]string {
 }
 
 func (p Postgres) StatefulSetLabels() map[string]string {
-	labels := p.OffshootLabels()
+	labels := p.OffshootSelectors()
 	for key, val := range p.Labels {
 		if !strings.HasPrefix(key, GenericKey+"/") && !strings.HasPrefix(key, PostgresKey+"/") {
 			labels[key] = val

@@ -124,8 +124,8 @@ func (c *Controller) createService(postgres *api.Postgres) (kutil.VerbType, erro
 
 	_, ok, err := core_util.CreateOrPatchService(c.Client, meta, func(in *core.Service) *core.Service {
 		in.ObjectMeta = core_util.EnsureOwnerReference(in.ObjectMeta, ref)
-		in.Labels = postgres.OffshootLabels()
-		in.Spec.Selector = postgres.OffshootLabels()
+		in.Labels = postgres.OffshootSelectors()
+		in.Spec.Selector = postgres.OffshootSelectors()
 		in.Spec.Ports = upsertServicePort(in, postgres)
 		in.Spec.Selector[NodeRole] = "primary"
 		return in
@@ -165,8 +165,8 @@ func (c *Controller) createReplicasService(postgres *api.Postgres) (kutil.VerbTy
 
 	_, ok, err := core_util.CreateOrPatchService(c.Client, meta, func(in *core.Service) *core.Service {
 		in.ObjectMeta = core_util.EnsureOwnerReference(in.ObjectMeta, ref)
-		in.Labels = postgres.OffshootLabels()
-		in.Spec.Selector = postgres.OffshootLabels()
+		in.Labels = postgres.OffshootSelectors()
+		in.Spec.Selector = postgres.OffshootSelectors()
 		in.Spec.Ports = upsertServicePort(in, postgres)
 		return in
 	})

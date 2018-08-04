@@ -13,7 +13,7 @@ func (m MySQL) OffshootName() string {
 	return m.Name
 }
 
-func (m MySQL) OffshootLabels() map[string]string {
+func (m MySQL) OffshootSelectors() map[string]string {
 	return map[string]string{
 		LabelDatabaseName: m.Name,
 		LabelDatabaseKind: ResourceKindMySQL,
@@ -21,7 +21,7 @@ func (m MySQL) OffshootLabels() map[string]string {
 }
 
 func (m MySQL) StatefulSetLabels() map[string]string {
-	labels := m.OffshootLabels()
+	labels := m.OffshootSelectors()
 	for key, val := range m.Labels {
 		if !strings.HasPrefix(key, GenericKey+"/") && !strings.HasPrefix(key, MySQLKey+"/") {
 			labels[key] = val

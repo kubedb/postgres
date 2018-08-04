@@ -13,7 +13,7 @@ func (r Memcached) OffshootName() string {
 	return r.Name
 }
 
-func (r Memcached) OffshootLabels() map[string]string {
+func (r Memcached) OffshootSelectors() map[string]string {
 	return map[string]string{
 		LabelDatabaseName: r.Name,
 		LabelDatabaseKind: ResourceKindMemcached,
@@ -21,7 +21,7 @@ func (r Memcached) OffshootLabels() map[string]string {
 }
 
 func (r Memcached) DeploymentLabels() map[string]string {
-	labels := r.OffshootLabels()
+	labels := r.OffshootSelectors()
 	for key, val := range r.Labels {
 		if !strings.HasPrefix(key, GenericKey+"/") && !strings.HasPrefix(key, MemcachedKey+"/") {
 			labels[key] = val

@@ -14,7 +14,7 @@ func (e Elasticsearch) OffshootName() string {
 	return e.Name
 }
 
-func (e Elasticsearch) OffshootLabels() map[string]string {
+func (e Elasticsearch) OffshootSelectors() map[string]string {
 	return map[string]string{
 		LabelDatabaseKind: ResourceKindElasticsearch,
 		LabelDatabaseName: e.Name,
@@ -22,7 +22,7 @@ func (e Elasticsearch) OffshootLabels() map[string]string {
 }
 
 func (e Elasticsearch) StatefulSetLabels() map[string]string {
-	labels := e.OffshootLabels()
+	labels := e.OffshootSelectors()
 	for key, val := range e.Labels {
 		if !strings.HasPrefix(key, GenericKey+"/") && !strings.HasPrefix(key, ElasticsearchKey+"/") {
 			labels[key] = val

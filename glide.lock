@@ -1,5 +1,5 @@
 hash: e48bbf346065ffa367366bb171243185171453febdc4c3fa5404ab85f393d010
-updated: 2018-08-03T16:58:01.848828069-07:00
+updated: 2018-08-04T15:41:08.225783837-07:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -214,11 +214,11 @@ imports:
 - name: github.com/emicklei/go-restful-swagger12
   version: dcef7f55730566d41eae5db10e7d6981829720f6
 - name: github.com/evanphx/json-patch
-  version: 94e38aa1586e8a6c8a75770bddf5ff84c48a106b
+  version: afac545df32f2287a079e2dfb7ba2745a643747e
 - name: github.com/fsnotify/fsnotify
   version: f12c6236fe7b5cf6bcf30e5935d08cb079d78334
 - name: github.com/ghodss/yaml
-  version: 0ca9ea5df5451ffdf184b4428c902747c2c11cd7
+  version: 73d445a93680fa1a78ae23a5839bad48f32ba1ee
 - name: github.com/go-ini/ini
   version: 300e940a926eb277d3901b20bdfcc54928ad3642
 - name: github.com/go-openapi/jsonpointer
@@ -314,7 +314,7 @@ imports:
 - name: github.com/json-iterator/go
   version: f2b4162afba35581b6d4a50d3b8f34e33c144682
 - name: github.com/kubedb/apimachinery
-  version: 5b5e92b74ba2a50a84409ba8522d090147261a33
+  version: 326a335effbcb4e17454c94c6201cf7bfdafdfb8
   subpackages:
   - apis/kubedb
   - apis/kubedb/v1alpha1
@@ -519,7 +519,7 @@ imports:
   subpackages:
   - rate
 - name: google.golang.org/api
-  version: 6c5c3d4ff96110173c63a6ffea8f2ffc8bb541b4
+  version: f6d94689cbd71030af1108ddac733886fcae1d75
   subpackages:
   - gensupport
   - googleapi
@@ -670,7 +670,7 @@ imports:
   - third_party/forked/golang/netutil
   - third_party/forked/golang/reflect
 - name: k8s.io/apiserver
-  version: 79540596e3b2021b528c4c147fb78cebc29a2f75
+  version: bf4767929ee604e8b2a6ca0322c2b6f12fd6c912
   repo: https://github.com/pharmer/apiserver.git
   vcs: git
   subpackages:

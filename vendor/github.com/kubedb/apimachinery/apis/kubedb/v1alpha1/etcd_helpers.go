@@ -13,7 +13,7 @@ func (p Etcd) OffshootName() string {
 	return p.Name
 }
 
-func (p Etcd) OffshootLabels() map[string]string {
+func (p Etcd) OffshootSelectors() map[string]string {
 	return map[string]string{
 		LabelDatabaseName: p.Name,
 		LabelDatabaseKind: ResourceKindEtcd,
@@ -21,7 +21,7 @@ func (p Etcd) OffshootLabels() map[string]string {
 }
 
 func (p Etcd) StatefulSetLabels() map[string]string {
-	labels := p.OffshootLabels()
+	labels := p.OffshootSelectors()
 	for key, val := range p.Labels {
 		if !strings.HasPrefix(key, GenericKey+"/") && !strings.HasPrefix(key, EtcdKey+"/") {
 			labels[key] = val

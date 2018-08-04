@@ -13,7 +13,7 @@ func (r Redis) OffshootName() string {
 	return r.Name
 }
 
-func (r Redis) OffshootLabels() map[string]string {
+func (r Redis) OffshootSelectors() map[string]string {
 	return map[string]string{
 		LabelDatabaseName: r.Name,
 		LabelDatabaseKind: ResourceKindRedis,
@@ -21,7 +21,7 @@ func (r Redis) OffshootLabels() map[string]string {
 }
 
 func (r Redis) StatefulSetLabels() map[string]string {
-	labels := r.OffshootLabels()
+	labels := r.OffshootSelectors()
 	for key, val := range r.Labels {
 		if !strings.HasPrefix(key, GenericKey+"/") && !strings.HasPrefix(key, RedisKey+"/") {
 			labels[key] = val
