@@ -29,8 +29,8 @@ import (
 type PostgresVersionLister interface {
 	// List lists all PostgresVersions in the indexer.
 	List(selector labels.Selector) (ret []*v1alpha1.PostgresVersion, err error)
-	// PostgresVersions returns an object that can list and get PostgresVersions.
-	PostgresVersions(namespace string) PostgresVersionNamespaceLister
+	// Get retrieves the PostgresVersion from the index for a given name.
+	Get(name string) (*v1alpha1.PostgresVersion, error)
 	PostgresVersionListerExpansion
 }
 
@@ -52,38 +52,9 @@ func (s *postgresVersionLister) List(selector labels.Selector) (ret []*v1alpha1.
 	return ret, err
 }
 
-// PostgresVersions returns an object that can list and get PostgresVersions.
-func (s *postgresVersionLister) PostgresVersions(namespace string) PostgresVersionNamespaceLister {
-	return postgresVersionNamespaceLister{indexer: s.indexer, namespace: namespace}
-}
-
-// PostgresVersionNamespaceLister helps list and get PostgresVersions.
-type PostgresVersionNamespaceLister interface {
-	// List lists all PostgresVersions in the indexer for a given namespace.
-	List(selector labels.Selector) (ret []*v1alpha1.PostgresVersion, err error)
-	// Get retrieves the PostgresVersion from the indexer for a given namespace and name.
-	Get(name string) (*v1alpha1.PostgresVersion, error)
-	PostgresVersionNamespaceListerExpansion
-}
-
-// postgresVersionNamespaceLister implements the PostgresVersionNamespaceLister
-// interface.
-type postgresVersionNamespaceLister struct {
-	indexer   cache.Indexer
-	namespace string
-}
-
-// List lists all PostgresVersions in the indexer for a given namespace.
-func (s postgresVersionNamespaceLister) List(selector labels.Selector) (ret []*v1alpha1.PostgresVersion, err error) {
-	err = cache.ListAllByNamespace(s.indexer, s.namespace, selector, func(m interface{}) {
-		ret = append(ret, m.(*v1alpha1.PostgresVersion))
-	})
-	return ret, err
-}
-
-// Get retrieves the PostgresVersion from the indexer for a given namespace and name.
-func (s postgresVersionNamespaceLister) Get(name string) (*v1alpha1.PostgresVersion, error) {
-	obj, exists, err := s.indexer.GetByKey(s.namespace + "/" + name)
+// Get retrieves the PostgresVersion from the index for a given name.
+func (s *postgresVersionLister) Get(name string) (*v1alpha1.PostgresVersion, error) {
+	obj, exists, err := s.indexer.GetByKey(name)
 	if err != nil {
 		return nil, err
 	}

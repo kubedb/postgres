@@ -1,5 +1,5 @@
 hash: e48bbf346065ffa367366bb171243185171453febdc4c3fa5404ab85f393d010
-updated: 2018-08-01T16:49:42.187364496-07:00
+updated: 2018-08-03T16:58:01.848828069-07:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -34,7 +34,7 @@ imports:
   - admission/v1beta1
   - registry/admissionreview/v1beta1
 - name: github.com/appscode/kutil
-  version: c9b929cfcab96c233c1b0ab59cd4a5ab6a4ff96a
+  version: d31eda1052245a20fb5757fbf12c6c8ace8a12a7
   subpackages:
   - apiextensions/v1beta1
   - apps/v1
@@ -230,7 +230,7 @@ imports:
 - name: github.com/go-openapi/swag
   version: f3f9494671f93fcff853e3c6e9e948b3eb71e590
 - name: github.com/go-xorm/builder
-  version: dc8bf48f58fab2b4da338ffd25191905fd741b8f
+  version: be11132225b8c410f62b9454de157341ca43d849
 - name: github.com/go-xorm/core
   version: c10e21e7e1cec20e09398f2dfae385e58c8df555
 - name: github.com/go-xorm/xorm
@@ -314,7 +314,7 @@ imports:
 - name: github.com/json-iterator/go
   version: f2b4162afba35581b6d4a50d3b8f34e33c144682
 - name: github.com/kubedb/apimachinery
-  version: ab3afc0b572430515cbf1d22c67fb0c767bb0328
+  version: 5b5e92b74ba2a50a84409ba8522d090147261a33
   subpackages:
   - apis/kubedb
   - apis/kubedb/v1alpha1
@@ -519,7 +519,7 @@ imports:
   subpackages:
   - rate
 - name: google.golang.org/api
-  version: 31ca0e01cd791f07750cb23fc99327721f753290
+  version: 6c5c3d4ff96110173c63a6ffea8f2ffc8bb541b4
   subpackages:
   - gensupport
   - googleapi
@@ -969,7 +969,7 @@ imports:
   - api/v1
   - osm
 - name: kmodules.xyz/offshoot-api
-  version: ca509dced59191f2fe70d49a5e238ec92016a8eb
+  version: daec3814cefd06bcb6ca0611ce28df8b92337d8c
   repo: https://github.com/kmodules/offshoot-api.git
   vcs: git
   subpackages:

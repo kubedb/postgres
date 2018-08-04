@@ -10,6 +10,8 @@ const (
 )
 
 // +genclient
+// +genclient:nonNamespaced
+// +genclient:skipVerbs=updateStatus
 // +k8s:openapi-gen=true
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
@@ -17,8 +19,7 @@ const (
 type PostgresVersion struct {
 	metav1.TypeMeta   `json:",inline,omitempty"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
-	Spec              PostgresSpec   `json:"spec,omitempty"`
-	Status            PostgresStatus `json:"status,omitempty"`
+	Spec              PostgresVersionSpec `json:"spec,omitempty"`
 }
 
 // PostgresVersionSpec is the spec for postgres version

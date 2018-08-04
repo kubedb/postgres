@@ -8,7 +8,7 @@ import (
 	core_util "github.com/appscode/kutil/core/v1"
 	meta_util "github.com/appscode/kutil/meta"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
-	kutildb "github.com/kubedb/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1/util"
+	util "github.com/kubedb/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1/util"
 	"github.com/kubedb/apimachinery/pkg/eventer"
 	validator "github.com/kubedb/postgres/pkg/admission"
 	core "k8s.io/api/core/v1"
@@ -50,7 +50,7 @@ func (c *Controller) create(postgres *api.Postgres) error {
 	}
 
 	if postgres.Status.CreationTime == nil {
-		pg, err := kutildb.UpdatePostgresStatus(c.ExtClient, postgres, func(in *api.PostgresStatus) *api.PostgresStatus {
+		pg, err := util.UpdatePostgresStatus(c.ExtClient, postgres, func(in *api.PostgresStatus) *api.PostgresStatus {
 			t := metav1.Now()
 			in.CreationTime = &t
 			in.Phase = api.DatabasePhaseCreating
@@ -144,7 +144,7 @@ func (c *Controller) create(postgres *api.Postgres) error {
 		return nil
 	}
 
-	pg, err := kutildb.UpdatePostgresStatus(c.ExtClient, postgres, func(in *api.PostgresStatus) *api.PostgresStatus {
+	pg, err := util.UpdatePostgresStatus(c.ExtClient, postgres, func(in *api.PostgresStatus) *api.PostgresStatus {
 		in.Phase = api.DatabasePhaseRunning
 		return in
 	}, api.EnableStatusSubresource)
@@ -203,7 +203,6 @@ func (c *Controller) ensurePostgresNode(postgres *api.Postgres) (kutil.VerbType,
 }
 
 func (c *Controller) ensureBackupScheduler(postgres *api.Postgres) {
-	kutildb.AssignTypeKind(postgres)
 	// Setup Schedule backup
 	if postgres.Spec.BackupSchedule != nil {
 		err := c.cronController.ScheduleBackup(postgres, postgres.ObjectMeta, postgres.Spec.BackupSchedule)
@@ -225,7 +224,7 @@ func (c *Controller) ensureBackupScheduler(postgres *api.Postgres) {
 }
 
 func (c *Controller) initialize(postgres *api.Postgres) error {
-	pg, err := kutildb.UpdatePostgresStatus(c.ExtClient, postgres, func(in *api.PostgresStatus) *api.PostgresStatus {
+	pg, err := util.UpdatePostgresStatus(c.ExtClient, postgres, func(in *api.PostgresStatus) *api.PostgresStatus {
 		in.Phase = api.DatabasePhaseInitializing
 		return in
 	}, api.EnableStatusSubresource)
@@ -328,7 +327,7 @@ func (c *Controller) SetDatabaseStatus(meta metav1.ObjectMeta, phase api.Databas
 	if err != nil {
 		return err
 	}
-	_, err = kutildb.UpdatePostgresStatus(c.ExtClient, postgres, func(in *api.PostgresStatus) *api.PostgresStatus {
+	_, err = util.UpdatePostgresStatus(c.ExtClient, postgres, func(in *api.PostgresStatus) *api.PostgresStatus {
 		in.Phase = phase
 		in.Reason = reason
 		return in
@@ -342,7 +341,7 @@ func (c *Controller) UpsertDatabaseAnnotation(meta metav1.ObjectMeta, annotation
 		return err
 	}
 
-	_, _, err = kutildb.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
+	_, _, err = util.PatchPostgres(c.ExtClient, postgres, func(in *api.Postgres) *api.Postgres {
 		in.Annotations = core_util.UpsertMap(postgres.Annotations, annotation)
 		return in
 	})

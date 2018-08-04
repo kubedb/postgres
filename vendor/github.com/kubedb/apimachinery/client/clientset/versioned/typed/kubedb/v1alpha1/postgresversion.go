@@ -30,14 +30,13 @@ import (
 // PostgresVersionsGetter has a method to return a PostgresVersionInterface.
 // A group's client should implement this interface.
 type PostgresVersionsGetter interface {
-	PostgresVersions(namespace string) PostgresVersionInterface
+	PostgresVersions() PostgresVersionInterface
 }
 
 // PostgresVersionInterface has methods to work with PostgresVersion resources.
 type PostgresVersionInterface interface {
 	Create(*v1alpha1.PostgresVersion) (*v1alpha1.PostgresVersion, error)
 	Update(*v1alpha1.PostgresVersion) (*v1alpha1.PostgresVersion, error)
-	UpdateStatus(*v1alpha1.PostgresVersion) (*v1alpha1.PostgresVersion, error)
 	Delete(name string, options *v1.DeleteOptions) error
 	DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error
 	Get(name string, options v1.GetOptions) (*v1alpha1.PostgresVersion, error)
@@ -50,14 +49,12 @@ type PostgresVersionInterface interface {
 // postgresVersions implements PostgresVersionInterface
 type postgresVersions struct {
 	client rest.Interface
-	ns     string
 }
 
 // newPostgresVersions returns a PostgresVersions
-func newPostgresVersions(c *KubedbV1alpha1Client, namespace string) *postgresVersions {
+func newPostgresVersions(c *KubedbV1alpha1Client) *postgresVersions {
 	return &postgresVersions{
 		client: c.RESTClient(),
-		ns:     namespace,
 	}
 }
 
@@ -65,7 +62,6 @@ func newPostgresVersions(c *KubedbV1alpha1Client, namespace string) *postgresVer
 func (c *postgresVersions) Get(name string, options v1.GetOptions) (result *v1alpha1.PostgresVersion, err error) {
 	result = &v1alpha1.PostgresVersion{}
 	err = c.client.Get().
-		Namespace(c.ns).
 		Resource("postgresversions").
 		Name(name).
 		VersionedParams(&options, scheme.ParameterCodec).
@@ -78,7 +74,6 @@ func (c *postgresVersions) Get(name string, options v1.GetOptions) (result *v1al
 func (c *postgresVersions) List(opts v1.ListOptions) (result *v1alpha1.PostgresVersionList, err error) {
 	result = &v1alpha1.PostgresVersionList{}
 	err = c.client.Get().
-		Namespace(c.ns).
 		Resource("postgresversions").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Do().
@@ -90,7 +85,6 @@ func (c *postgresVersions) List(opts v1.ListOptions) (result *v1alpha1.PostgresV
 func (c *postgresVersions) Watch(opts v1.ListOptions) (watch.Interface, error) {
 	opts.Watch = true
 	return c.client.Get().
-		Namespace(c.ns).
 		Resource("postgresversions").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Watch()
@@ -100,7 +94,6 @@ func (c *postgresVersions) Watch(opts v1.ListOptions) (watch.Interface, error) {
 func (c *postgresVersions) Create(postgresVersion *v1alpha1.PostgresVersion) (result *v1alpha1.PostgresVersion, err error) {
 	result = &v1alpha1.PostgresVersion{}
 	err = c.client.Post().
-		Namespace(c.ns).
 		Resource("postgresversions").
 		Body(postgresVersion).
 		Do().
@@ -112,25 +105,8 @@ func (c *postgresVersions) Create(postgresVersion *v1alpha1.PostgresVersion) (re
 func (c *postgresVersions) Update(postgresVersion *v1alpha1.PostgresVersion) (result *v1alpha1.PostgresVersion, err error) {
 	result = &v1alpha1.PostgresVersion{}
 	err = c.client.Put().
-		Namespace(c.ns).
 		Resource("postgresversions").
 		Name(postgresVersion.Name).
-		Body(postgresVersion).
-		Do().
-		Into(result)
-	return
-}
-
-// UpdateStatus was generated because the type contains a Status member.
-// Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-
-func (c *postgresVersions) UpdateStatus(postgresVersion *v1alpha1.PostgresVersion) (result *v1alpha1.PostgresVersion, err error) {
-	result = &v1alpha1.PostgresVersion{}
-	err = c.client.Put().
-		Namespace(c.ns).
-		Resource("postgresversions").
-		Name(postgresVersion.Name).
-		SubResource("status").
 		Body(postgresVersion).
 		Do().
 		Into(result)
@@ -140,7 +116,6 @@ func (c *postgresVersions) UpdateStatus(postgresVersion *v1alpha1.PostgresVersio
 // Delete takes name of the postgresVersion and deletes it. Returns an error if one occurs.
 func (c *postgresVersions) Delete(name string, options *v1.DeleteOptions) error {
 	return c.client.Delete().
-		Namespace(c.ns).
 		Resource("postgresversions").
 		Name(name).
 		Body(options).
@@ -151,7 +126,6 @@ func (c *postgresVersions) Delete(name string, options *v1.DeleteOptions) error 
 // DeleteCollection deletes a collection of objects.
 func (c *postgresVersions) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
 	return c.client.Delete().
-		Namespace(c.ns).
 		Resource("postgresversions").
 		VersionedParams(&listOptions, scheme.ParameterCodec).
 		Body(options).
@@ -163,7 +137,6 @@ func (c *postgresVersions) DeleteCollection(options *v1.DeleteOptions, listOptio
 func (c *postgresVersions) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1alpha1.PostgresVersion, err error) {
 	result = &v1alpha1.PostgresVersion{}
 	err = c.client.Patch(pt).
-		Namespace(c.ns).
 		Resource("postgresversions").
 		SubResource(subresources...).
 		Name(name).

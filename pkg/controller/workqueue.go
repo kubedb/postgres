@@ -50,7 +50,6 @@ func (c *Controller) runPostgres(key string) error {
 		postgres := obj.(*api.Postgres).DeepCopy()
 		if postgres.DeletionTimestamp != nil {
 			if core_util.HasFinalizer(postgres.ObjectMeta, api.GenericKey) {
-				util.AssignTypeKind(postgres)
 				if err := c.pause(postgres); err != nil {
 					log.Errorln(err)
 					return err
@@ -69,7 +68,6 @@ func (c *Controller) runPostgres(key string) error {
 			if err != nil {
 				return err
 			}
-			util.AssignTypeKind(postgres)
 			if err := c.create(postgres); err != nil {
 				log.Errorln(err)
 				c.pushFailureEvent(postgres, err.Error())

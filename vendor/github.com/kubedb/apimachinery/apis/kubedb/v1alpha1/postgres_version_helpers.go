@@ -72,5 +72,5 @@ func (p PostgresVersion) CustomResourceDefinition() *apiextensions.CustomResourc
 				JSONPath: ".metadata.creationTimestamp",
 			},
 		},
-	}, setNameSchema)
+	})
 }

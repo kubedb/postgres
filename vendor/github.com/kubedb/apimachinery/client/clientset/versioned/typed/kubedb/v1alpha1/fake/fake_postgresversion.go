@@ -31,7 +31,6 @@ import (
 // FakePostgresVersions implements PostgresVersionInterface
 type FakePostgresVersions struct {
 	Fake *FakeKubedbV1alpha1
-	ns   string
 }
 
 var postgresversionsResource = schema.GroupVersionResource{Group: "kubedb.com", Version: "v1alpha1", Resource: "postgresversions"}
@@ -41,8 +40,7 @@ var postgresversionsKind = schema.GroupVersionKind{Group: "kubedb.com", Version:
 // Get takes name of the postgresVersion, and returns the corresponding postgresVersion object, and an error if there is any.
 func (c *FakePostgresVersions) Get(name string, options v1.GetOptions) (result *v1alpha1.PostgresVersion, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewGetAction(postgresversionsResource, c.ns, name), &v1alpha1.PostgresVersion{})
-
+		Invokes(testing.NewRootGetAction(postgresversionsResource, name), &v1alpha1.PostgresVersion{})
 	if obj == nil {
 		return nil, err
 	}
@@ -52,8 +50,7 @@ func (c *FakePostgresVersions) Get(name string, options v1.GetOptions) (result *
 // List takes label and field selectors, and returns the list of PostgresVersions that match those selectors.
 func (c *FakePostgresVersions) List(opts v1.ListOptions) (result *v1alpha1.PostgresVersionList, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewListAction(postgresversionsResource, postgresversionsKind, c.ns, opts), &v1alpha1.PostgresVersionList{})
-
+		Invokes(testing.NewRootListAction(postgresversionsResource, postgresversionsKind, opts), &v1alpha1.PostgresVersionList{})
 	if obj == nil {
 		return nil, err
 	}
@@ -74,15 +71,13 @@ func (c *FakePostgresVersions) List(opts v1.ListOptions) (result *v1alpha1.Postg
 // Watch returns a watch.Interface that watches the requested postgresVersions.
 func (c *FakePostgresVersions) Watch(opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
-		InvokesWatch(testing.NewWatchAction(postgresversionsResource, c.ns, opts))
-
+		InvokesWatch(testing.NewRootWatchAction(postgresversionsResource, opts))
 }
 
 // Create takes the representation of a postgresVersion and creates it.  Returns the server's representation of the postgresVersion, and an error, if there is any.
 func (c *FakePostgresVersions) Create(postgresVersion *v1alpha1.PostgresVersion) (result *v1alpha1.PostgresVersion, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewCreateAction(postgresversionsResource, c.ns, postgresVersion), &v1alpha1.PostgresVersion{})
-
+		Invokes(testing.NewRootCreateAction(postgresversionsResource, postgresVersion), &v1alpha1.PostgresVersion{})
 	if obj == nil {
 		return nil, err
 	}
@@ -92,20 +87,7 @@ func (c *FakePostgresVersions) Create(postgresVersion *v1alpha1.PostgresVersion)
 // Update takes the representation of a postgresVersion and updates it. Returns the server's representation of the postgresVersion, and an error, if there is any.
 func (c *FakePostgresVersions) Update(postgresVersion *v1alpha1.PostgresVersion) (result *v1alpha1.PostgresVersion, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewUpdateAction(postgresversionsResource, c.ns, postgresVersion), &v1alpha1.PostgresVersion{})
-
-	if obj == nil {
-		return nil, err
-	}
-	return obj.(*v1alpha1.PostgresVersion), err
-}
-
-// UpdateStatus was generated because the type contains a Status member.
-// Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-func (c *FakePostgresVersions) UpdateStatus(postgresVersion *v1alpha1.PostgresVersion) (*v1alpha1.PostgresVersion, error) {
-	obj, err := c.Fake.
-		Invokes(testing.NewUpdateSubresourceAction(postgresversionsResource, "status", c.ns, postgresVersion), &v1alpha1.PostgresVersion{})
-
+		Invokes(testing.NewRootUpdateAction(postgresversionsResource, postgresVersion), &v1alpha1.PostgresVersion{})
 	if obj == nil {
 		return nil, err
 	}
@@ -115,14 +97,13 @@ func (c *FakePostgresVersions) UpdateStatus(postgresVersion *v1alpha1.PostgresVe
 // Delete takes name of the postgresVersion and deletes it. Returns an error if one occurs.
 func (c *FakePostgresVersions) Delete(name string, options *v1.DeleteOptions) error {
 	_, err := c.Fake.
-		Invokes(testing.NewDeleteAction(postgresversionsResource, c.ns, name), &v1alpha1.PostgresVersion{})
-
+		Invokes(testing.NewRootDeleteAction(postgresversionsResource, name), &v1alpha1.PostgresVersion{})
 	return err
 }
 
 // DeleteCollection deletes a collection of objects.
 func (c *FakePostgresVersions) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
-	action := testing.NewDeleteCollectionAction(postgresversionsResource, c.ns, listOptions)
+	action := testing.NewRootDeleteCollectionAction(postgresversionsResource, listOptions)
 
 	_, err := c.Fake.Invokes(action, &v1alpha1.PostgresVersionList{})
 	return err
@@ -131,8 +112,7 @@ func (c *FakePostgresVersions) DeleteCollection(options *v1.DeleteOptions, listO
 // Patch applies the patch and returns the patched postgresVersion.
 func (c *FakePostgresVersions) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1alpha1.PostgresVersion, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewPatchSubresourceAction(postgresversionsResource, c.ns, name, data, subresources...), &v1alpha1.PostgresVersion{})
-
+		Invokes(testing.NewRootPatchSubresourceAction(postgresversionsResource, name, data, subresources...), &v1alpha1.PostgresVersion{})
 	if obj == nil {
 		return nil, err
 	}

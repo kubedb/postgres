@@ -34,7 +34,6 @@ func (c *Controller) runSnapshot(key string) error {
 		snapshot := obj.(*api.Snapshot).DeepCopy()
 		if snapshot.DeletionTimestamp != nil {
 			if core_util.HasFinalizer(snapshot.ObjectMeta, api.GenericKey) {
-				util.AssignTypeKind(snapshot)
 				if err := c.delete(snapshot); err != nil {
 					log.Errorln(err)
 					return err
@@ -50,7 +49,6 @@ func (c *Controller) runSnapshot(key string) error {
 				in.ObjectMeta = core_util.AddFinalizer(in.ObjectMeta, api.GenericKey)
 				return in
 			})
-			util.AssignTypeKind(snapshot)
 			if err := c.create(snapshot); err != nil {
 				log.Errorln(err)
 				return err
