@@ -2,7 +2,6 @@ package v1alpha1
 
 import (
 	"fmt"
-	"strings"
 
 	crdutils "github.com/appscode/kutil/apiextensions/v1beta1"
 	apiextensions "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
@@ -20,24 +19,8 @@ func (p Postgres) OffshootSelectors() map[string]string {
 	}
 }
 
-func (p Postgres) StatefulSetLabels() map[string]string {
-	labels := p.OffshootSelectors()
-	for key, val := range p.Labels {
-		if !strings.HasPrefix(key, GenericKey+"/") && !strings.HasPrefix(key, PostgresKey+"/") {
-			labels[key] = val
-		}
-	}
-	return labels
-}
-
-func (p Postgres) StatefulSetAnnotations() map[string]string {
-	annotations := make(map[string]string)
-	for key, val := range p.Annotations {
-		if !strings.HasPrefix(key, GenericKey+"/") && !strings.HasPrefix(key, PostgresKey+"/") {
-			annotations[key] = val
-		}
-	}
-	return annotations
+func (p Postgres) OffshootLabels() map[string]string {
+	return filterTags(p.OffshootSelectors(), p.Labels)
 }
 
 var _ ResourceInfo = &Postgres{}

@@ -2,7 +2,6 @@ package v1alpha1
 
 import (
 	"fmt"
-	"strings"
 
 	crdutils "github.com/appscode/kutil/apiextensions/v1beta1"
 	apiextensions "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
@@ -20,24 +19,8 @@ func (r Redis) OffshootSelectors() map[string]string {
 	}
 }
 
-func (r Redis) StatefulSetLabels() map[string]string {
-	labels := r.OffshootSelectors()
-	for key, val := range r.Labels {
-		if !strings.HasPrefix(key, GenericKey+"/") && !strings.HasPrefix(key, RedisKey+"/") {
-			labels[key] = val
-		}
-	}
-	return labels
-}
-
-func (r Redis) StatefulSetAnnotations() map[string]string {
-	annotations := make(map[string]string)
-	for key, val := range r.Annotations {
-		if !strings.HasPrefix(key, GenericKey+"/") && !strings.HasPrefix(key, RedisKey+"/") {
-			annotations[key] = val
-		}
-	}
-	return annotations
+func (r Redis) OffshootLabels() map[string]string {
+	return filterTags(r.OffshootSelectors(), r.Labels)
 }
 
 func (r Redis) ResourceShortCode() string {

@@ -2,7 +2,6 @@ package v1alpha1
 
 import (
 	"fmt"
-	"strings"
 
 	crdutils "github.com/appscode/kutil/apiextensions/v1beta1"
 	"github.com/appscode/kutil/meta"
@@ -21,24 +20,8 @@ func (e Elasticsearch) OffshootSelectors() map[string]string {
 	}
 }
 
-func (e Elasticsearch) StatefulSetLabels() map[string]string {
-	labels := e.OffshootSelectors()
-	for key, val := range e.Labels {
-		if !strings.HasPrefix(key, GenericKey+"/") && !strings.HasPrefix(key, ElasticsearchKey+"/") {
-			labels[key] = val
-		}
-	}
-	return labels
-}
-
-func (e Elasticsearch) StatefulSetAnnotations() map[string]string {
-	annotations := make(map[string]string)
-	for key, val := range e.Annotations {
-		if !strings.HasPrefix(key, GenericKey+"/") && !strings.HasPrefix(key, ElasticsearchKey+"/") {
-			annotations[key] = val
-		}
-	}
-	return annotations
+func (e Elasticsearch) OffshootLabels() map[string]string {
+	return filterTags(e.OffshootSelectors(), e.Labels)
 }
 
 var _ ResourceInfo = &Elasticsearch{}

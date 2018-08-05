@@ -2,7 +2,6 @@ package v1alpha1
 
 import (
 	"fmt"
-	"strings"
 
 	crdutils "github.com/appscode/kutil/apiextensions/v1beta1"
 	apiextensions "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
@@ -20,24 +19,8 @@ func (p MongoDB) OffshootSelectors() map[string]string {
 	}
 }
 
-func (p MongoDB) StatefulSetLabels() map[string]string {
-	labels := p.OffshootSelectors()
-	for key, val := range p.Labels {
-		if !strings.HasPrefix(key, GenericKey+"/") && !strings.HasPrefix(key, MongoDBKey+"/") {
-			labels[key] = val
-		}
-	}
-	return labels
-}
-
-func (p MongoDB) StatefulSetAnnotations() map[string]string {
-	annotations := make(map[string]string)
-	for key, val := range p.Annotations {
-		if !strings.HasPrefix(key, GenericKey+"/") && !strings.HasPrefix(key, MongoDBKey+"/") {
-			annotations[key] = val
-		}
-	}
-	return annotations
+func (p MongoDB) OffshootLabels() map[string]string {
+	return filterTags(p.OffshootSelectors(), p.Labels)
 }
 
 func (p MongoDB) ResourceShortCode() string {

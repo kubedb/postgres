@@ -79,6 +79,14 @@ func UpsertContainer(containers []core.Container, upsert core.Container) []core.
 	return append(containers, upsert)
 }
 
+func UpsertContainers(containers []core.Container, addons []core.Container) []core.Container {
+	var out = containers
+	for _, c := range addons {
+		out = UpsertContainer(out, c)
+	}
+	return out
+}
+
 func UpsertVolume(volumes []core.Volume, nv ...core.Volume) []core.Volume {
 	upsert := func(v core.Volume) {
 		for i, vol := range volumes {

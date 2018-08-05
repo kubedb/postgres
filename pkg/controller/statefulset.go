@@ -47,33 +47,46 @@ func (c *Controller) ensureStatefulSet(
 	}
 
 	statefulSet, vt, err := app_util.CreateOrPatchStatefulSet(c.Client, statefulSetMeta, func(in *apps.StatefulSet) *apps.StatefulSet {
+		in.Labels = postgres.OffshootLabels()
+		in.Annotations = postgres.Spec.PodTemplate.Controller.Annotations
 		in.ObjectMeta = core_util.EnsureOwnerReference(in.ObjectMeta, ref)
-
-		in = upsertObjectMeta(in, postgres)
 
 		in.Spec.Replicas = types.Int32P(replicas)
 
-		in.Spec.Selector = &metav1.LabelSelector{
-			MatchLabels: in.Labels,
-		}
-
 		in.Spec.ServiceName = c.GoverningService
-		in.Spec.Template.Labels = in.Labels
-
-		in = c.upsertContainer(in, postgresVersion)
+		in.Spec.Selector = &metav1.LabelSelector{
+			MatchLabels: postgres.OffshootSelectors(),
+		}
+		in.Spec.Template.Labels = postgres.OffshootSelectors()
+		in.Spec.Template.Annotations = postgres.Spec.PodTemplate.Annotations
+		in.Spec.Template.Spec.InitContainers = core_util.UpsertContainers(in.Spec.Template.Spec.InitContainers, postgres.Spec.PodTemplate.Spec.InitContainers)
+		in.Spec.Template.Spec.Containers = core_util.UpsertContainer(
+			in.Spec.Template.Spec.Containers,
+			core.Container{
+				Name:      api.ResourceSingularPostgres,
+				Image:     postgresVersion.Spec.DB.Image,
+				Resources: postgres.Spec.PodTemplate.Spec.Resources,
+				SecurityContext: &core.SecurityContext{
+					Privileged: types.BoolP(false),
+					Capabilities: &core.Capabilities{
+						Add: []core.Capability{"IPC_LOCK", "SYS_RESOURCE"},
+					},
+				},
+			})
 		in = upsertEnv(in, postgres, envList)
 		in = upsertUserEnv(in, postgres)
 		in = upsertPort(in)
 
-		in.Spec.Template.Spec.NodeSelector = postgres.Spec.NodeSelector
-		in.Spec.Template.Spec.Affinity = postgres.Spec.Affinity
-
-		if postgres.Spec.SchedulerName != "" {
-			in.Spec.Template.Spec.SchedulerName = postgres.Spec.SchedulerName
+		in.Spec.Template.Spec.NodeSelector = postgres.Spec.PodTemplate.Spec.NodeSelector
+		in.Spec.Template.Spec.Affinity = postgres.Spec.PodTemplate.Spec.Affinity
+		if postgres.Spec.PodTemplate.Spec.SchedulerName != "" {
+			in.Spec.Template.Spec.SchedulerName = postgres.Spec.PodTemplate.Spec.SchedulerName
 		}
-
-		in.Spec.Template.Spec.Tolerations = postgres.Spec.Tolerations
-		in.Spec.Template.Spec.ImagePullSecrets = postgres.Spec.ImagePullSecrets
+		in.Spec.Template.Spec.Tolerations = postgres.Spec.PodTemplate.Spec.Tolerations
+		in.Spec.Template.Spec.ImagePullSecrets = postgres.Spec.PodTemplate.Spec.ImagePullSecrets
+		in.Spec.Template.Spec.PriorityClassName = postgres.Spec.PodTemplate.Spec.PriorityClassName
+		in.Spec.Template.Spec.Priority = postgres.Spec.PodTemplate.Spec.Priority
+		in.Spec.Template.Spec.SecurityContext = postgres.Spec.PodTemplate.Spec.SecurityContext
 
 		in = c.upsertMonitoringContainer(in, postgres, postgresVersion)
 		if postgres.Spec.Archiver != nil {
@@ -230,29 +243,6 @@ func (c *Controller) checkStatefulSet(postgres *api.Postgres) error {
 	}
 
 	return nil
-}
-
-func upsertObjectMeta(statefulSet *apps.StatefulSet, postgres *api.Postgres) *apps.StatefulSet {
-	statefulSet.Labels = core_util.UpsertMap(statefulSet.Labels, postgres.StatefulSetLabels())
-	statefulSet.Annotations = core_util.UpsertMap(statefulSet.Annotations, postgres.StatefulSetAnnotations())
-	return statefulSet
-}
-
-func (c *Controller) upsertContainer(statefulSet *apps.StatefulSet, postgres *api.PostgresVersion) *apps.StatefulSet {
-	container := core.Container{
-		Name:  api.ResourceSingularPostgres,
-		Image: postgres.Spec.DB.Image,
-		SecurityContext: &core.SecurityContext{
-			Privileged: types.BoolP(false),
-			Capabilities: &core.Capabilities{
-				Add: []core.Capability{"IPC_LOCK", "SYS_RESOURCE"},
-			},
-		},
-	}
-	containers := statefulSet.Spec.Template.Spec.Containers
-	containers = core_util.UpsertContainer(containers, container)
-	statefulSet.Spec.Template.Spec.Containers = containers
-	return statefulSet
 }
 
 func upsertEnv(statefulSet *apps.StatefulSet, postgres *api.Postgres, envs []core.EnvVar) *apps.StatefulSet {

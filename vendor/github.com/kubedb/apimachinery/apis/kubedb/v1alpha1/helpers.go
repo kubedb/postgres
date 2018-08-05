@@ -1,6 +1,8 @@
 package v1alpha1
 
 import (
+	"strings"
+
 	"github.com/go-openapi/spec"
 	"k8s.io/kube-openapi/pkg/common"
 )
@@ -29,4 +31,28 @@ func setNameSchema(openapiSpec map[string]common.OpenAPIDefinition) {
 			MaxLength:   &maxLength,
 		},
 	}
+}
+
+func filterTags(out, in map[string]string) map[string]string {
+	if in == nil {
+		return nil
+	}
+	if out == nil {
+		out = make(map[string]string, len(in))
+	}
+
+	n := len(GenericKey)
+	var idx int
+	for k, v := range in {
+		idx = strings.IndexRune(k, '/')
+		switch {
+		case idx < n:
+			out[k] = v
+		case idx == n && k[:idx] != GenericKey:
+			out[k] = v
+		case idx > n && k[idx-n-1:idx] != "."+GenericKey:
+			out[k] = v
+		}
+	}
+	return out
 }
