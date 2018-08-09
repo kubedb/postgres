@@ -45,20 +45,32 @@ func (p Postgres) ServiceName() string {
 	return p.OffshootName()
 }
 
-func (p Postgres) ServiceMonitorName() string {
+type postgresStatsService struct {
+	*Postgres
+}
+
+func (p postgresStatsService) GetNamespace() string {
+	return p.Postgres.GetNamespace()
+}
+
+func (p postgresStatsService) ServiceName() string {
+	return p.OffshootName() + "-stats"
+}
+
+func (p postgresStatsService) ServiceMonitorName() string {
 	return fmt.Sprintf("kubedb-%s-%s", p.Namespace, p.Name)
 }
 
-func (p Postgres) Path() string {
+func (p postgresStatsService) Path() string {
 	return fmt.Sprintf("/kubedb.com/v1alpha1/namespaces/%s/%s/%s/metrics", p.Namespace, p.ResourcePlural(), p.Name)
 }
 
-func (p Postgres) Scheme() string {
+func (p postgresStatsService) Scheme() string {
 	return ""
 }
 
-func (p *Postgres) StatsAccessor() mona.StatsAccessor {
-	return p
+func (p Postgres) StatsService() mona.StatsAccessor {
+	return &postgresStatsService{&p}
 }
 
 func (p *Postgres) GetMonitoringVendor() string {

@@ -35,7 +35,7 @@ func setNameSchema(openapiSpec map[string]common.OpenAPIDefinition) {
 
 func filterTags(out, in map[string]string) map[string]string {
 	if in == nil {
-		return nil
+		return out
 	}
 	if out == nil {
 		out = make(map[string]string, len(in))

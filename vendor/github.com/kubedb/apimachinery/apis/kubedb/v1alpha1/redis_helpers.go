@@ -43,20 +43,32 @@ func (r Redis) ServiceName() string {
 	return r.OffshootName()
 }
 
-func (r Redis) ServiceMonitorName() string {
+type redisStatsService struct {
+	*Redis
+}
+
+func (r redisStatsService) GetNamespace() string {
+	return r.Redis.GetNamespace()
+}
+
+func (r redisStatsService) ServiceName() string {
+	return r.OffshootName() + "-stats"
+}
+
+func (r redisStatsService) ServiceMonitorName() string {
 	return fmt.Sprintf("kubedb-%s-%s", r.Namespace, r.Name)
 }
 
-func (r Redis) Path() string {
+func (r redisStatsService) Path() string {
 	return fmt.Sprintf("/kubedb.com/v1alpha1/namespaces/%s/%s/%s/metrics", r.Namespace, r.ResourcePlural(), r.Name)
 }
 
-func (r Redis) Scheme() string {
+func (r redisStatsService) Scheme() string {
 	return ""
 }
 
-func (r *Redis) StatsAccessor() mona.StatsAccessor {
-	return r
+func (r Redis) StatsService() mona.StatsAccessor {
+	return &redisStatsService{&r}
 }
 
 func (r *Redis) GetMonitoringVendor() string {

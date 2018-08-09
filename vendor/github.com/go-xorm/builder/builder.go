@@ -34,6 +34,7 @@ type union struct {
 type Builder struct {
 	optype
 	tableName string
+	subQuery  *Builder
 	cond      Cond
 	selects   []string
 	joins     []join
@@ -75,9 +76,14 @@ func (b *Builder) Where(cond Cond) *Builder {
 	return b
 }
 
-// From sets the table name
-func (b *Builder) From(tableName string) *Builder {
+// From sets the name of table or the sub query's alias and itself
+func (b *Builder) From(tableName string, subQuery ...*Builder) *Builder {
 	b.tableName = tableName
+
+	if len(subQuery) > 0 {
+		b.subQuery = subQuery[0]
+	}
+
 	return b
 }
 

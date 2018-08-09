@@ -1,5 +1,5 @@
 #!/bin/bash
-set -xeou pipefail
+set -eou pipefail
 
 GOPATH=$(go env GOPATH)
 REPO_ROOT=$GOPATH/src/github.com/kubedb/postgres
@@ -49,25 +49,34 @@ while test $# -gt 0; do
   esac
 done
 
-if [ "$DB_UPDATE" -eq 1 ]; then
-  $REPO_ROOT/hack/docker/postgres/9.6.7/make.sh build
-  $REPO_ROOT/hack/docker/postgres/9.6.7/make.sh push
-  $REPO_ROOT/hack/docker/postgres/9.6/make.sh
+dbversions=(
+  9.6.7
+  9.6
+  10.2
+)
 
-  $REPO_ROOT/hack/docker/postgres/10.2/make.sh build
-  $REPO_ROOT/hack/docker/postgres/10.2/make.sh push
+echo ""
+env | sort | grep -e DOCKER_REGISTRY -e APPSCODE_ENV || true
+echo ""
+
+if [ "$DB_UPDATE" -eq 1 ]; then
+  cowsay -f tux "Processing database images" || true
+  for db in "${dbversions[@]}"; do
+    ${REPO_ROOT}/hack/docker/postgres/${db}/make.sh build
+    ${REPO_ROOT}/hack/docker/postgres/${db}/make.sh push
+  done
 fi
 
 if [ "$TOOLS_UPDATE" -eq 1 ]; then
-  $REPO_ROOT/hack/docker/postgres-tools/9.6.7/make.sh build
-  $REPO_ROOT/hack/docker/postgres-tools/9.6.7/make.sh push
-  $REPO_ROOT/hack/docker/postgres-tools/9.6/make.sh
-
-  $REPO_ROOT/hack/docker/postgres-tools/10.2/make.sh build
-  $REPO_ROOT/hack/docker/postgres-tools/10.2/make.sh push
+  cowsay -f tux "Processing database-tools images" || true
+  for db in "${dbversions[@]}"; do
+    ${REPO_ROOT}/hack/docker/postgres-tools/${db}/make.sh build
+    ${REPO_ROOT}/hack/docker/postgres-tools/${db}/make.sh push
+  done
 fi
 
 if [ "$OPERATOR_UPDATE" -eq 1 ]; then
+  cowsay -f tux "Processing Operator images" || true
   $REPO_ROOT/hack/docker/pg-operator/make.sh build
   $REPO_ROOT/hack/docker/pg-operator/make.sh push
 fi

@@ -43,20 +43,32 @@ func (p MongoDB) ServiceName() string {
 	return p.OffshootName()
 }
 
-func (p MongoDB) ServiceMonitorName() string {
-	return fmt.Sprintf("kubedb-%s-%s", p.Namespace, p.Name)
+type mongoDBStatsService struct {
+	*MongoDB
 }
 
-func (p MongoDB) Path() string {
-	return fmt.Sprintf("/kubedb.com/v1alpha1/namespaces/%s/%s/%s/metrics", p.Namespace, p.ResourcePlural(), p.Name)
+func (m mongoDBStatsService) GetNamespace() string {
+	return m.MongoDB.GetNamespace()
 }
 
-func (p MongoDB) Scheme() string {
+func (m mongoDBStatsService) ServiceName() string {
+	return m.OffshootName() + "-stats"
+}
+
+func (m mongoDBStatsService) ServiceMonitorName() string {
+	return fmt.Sprintf("kubedb-%s-%s", m.Namespace, m.Name)
+}
+
+func (m mongoDBStatsService) Path() string {
+	return fmt.Sprintf("/kubedb.com/v1alpha1/namespaces/%s/%s/%s/metrics", m.Namespace, m.ResourcePlural(), m.Name)
+}
+
+func (m mongoDBStatsService) Scheme() string {
 	return ""
 }
 
-func (p *MongoDB) StatsAccessor() mona.StatsAccessor {
-	return p
+func (m MongoDB) StatsService() mona.StatsAccessor {
+	return &mongoDBStatsService{&m}
 }
 
 func (m *MongoDB) GetMonitoringVendor() string {
@@ -88,5 +100,22 @@ func (p MongoDB) CustomResourceDefinition() *apiextensions.CustomResourceDefinit
 		EnableValidation:        true,
 		GetOpenAPIDefinitions:   GetOpenAPIDefinitions,
 		EnableStatusSubresource: EnableStatusSubresource,
+		AdditionalPrinterColumns: []apiextensions.CustomResourceColumnDefinition{
+			{
+				Name:     "Version",
+				Type:     "string",
+				JSONPath: ".spec.version",
+			},
+			{
+				Name:     "Status",
+				Type:     "string",
+				JSONPath: ".status.phase",
+			},
+			{
+				Name:     "Age",
+				Type:     "date",
+				JSONPath: ".metadata.creationTimestamp",
+			},
+		},
 	}, setNameSchema)
 }

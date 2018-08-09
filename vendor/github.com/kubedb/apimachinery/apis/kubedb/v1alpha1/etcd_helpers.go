@@ -8,65 +8,77 @@ import (
 	mona "kmodules.xyz/monitoring-agent-api/api/v1"
 )
 
-func (p Etcd) OffshootName() string {
-	return p.Name
+func (e Etcd) OffshootName() string {
+	return e.Name
 }
 
-func (p Etcd) OffshootSelectors() map[string]string {
+func (e Etcd) OffshootSelectors() map[string]string {
 	return map[string]string{
-		LabelDatabaseName: p.Name,
+		LabelDatabaseName: e.Name,
 		LabelDatabaseKind: ResourceKindEtcd,
 	}
 }
 
-func (p Etcd) OffshootLabels() map[string]string {
-	return filterTags(p.OffshootSelectors(), p.Labels)
+func (e Etcd) OffshootLabels() map[string]string {
+	return filterTags(e.OffshootSelectors(), e.Labels)
 }
 
-func (p Etcd) ResourceShortCode() string {
+func (e Etcd) ResourceShortCode() string {
 	return ResourceCodeEtcd
 }
 
-func (p Etcd) ResourceKind() string {
+func (e Etcd) ResourceKind() string {
 	return ResourceKindEtcd
 }
 
-func (p Etcd) ResourceSingular() string {
+func (e Etcd) ResourceSingular() string {
 	return ResourceSingularEtcd
 }
 
-func (p Etcd) ResourcePlural() string {
+func (e Etcd) ResourcePlural() string {
 	return ResourcePluralEtcd
 }
 
-func (p Etcd) ServiceName() string {
-	return p.OffshootName()
+func (e Etcd) ServiceName() string {
+	return e.OffshootName()
 }
 
-func (p Etcd) ServiceMonitorName() string {
-	return fmt.Sprintf("kubedb-%s-%s", p.Namespace, p.Name)
+type etcdStatsService struct {
+	*Etcd
 }
 
-func (p Etcd) Path() string {
+func (e etcdStatsService) GetNamespace() string {
+	return e.Etcd.GetNamespace()
+}
+
+func (e etcdStatsService) ServiceName() string {
+	return e.OffshootName() + "-stats"
+}
+
+func (e etcdStatsService) ServiceMonitorName() string {
+	return fmt.Sprintf("kubedb-%s-%s", e.Namespace, e.Name)
+}
+
+func (e etcdStatsService) Path() string {
 	return fmt.Sprintf("/metrics")
 }
 
-func (p Etcd) Scheme() string {
+func (e etcdStatsService) Scheme() string {
 	return ""
 }
 
-func (p *Etcd) StatsAccessor() mona.StatsAccessor {
-	return p
+func (e Etcd) StatsService() mona.StatsAccessor {
+	return &etcdStatsService{&e}
 }
 
-func (m *Etcd) GetMonitoringVendor() string {
-	if m.Spec.Monitor != nil {
-		return m.Spec.Monitor.Agent.Vendor()
+func (e *Etcd) GetMonitoringVendor() string {
+	if e.Spec.Monitor != nil {
+		return e.Spec.Monitor.Agent.Vendor()
 	}
 	return ""
 }
 
-func (p Etcd) CustomResourceDefinition() *apiextensions.CustomResourceDefinition {
+func (e Etcd) CustomResourceDefinition() *apiextensions.CustomResourceDefinition {
 	return crdutils.NewCustomResourceDefinition(crdutils.Config{
 		Group:         SchemeGroupVersion.Group,
 		Plural:        ResourcePluralEtcd,

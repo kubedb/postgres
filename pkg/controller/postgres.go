@@ -178,6 +178,22 @@ func (c *Controller) create(postgres *api.Postgres) error {
 	// Ensure Schedule backup
 	c.ensureBackupScheduler(postgres)
 
+	// ensure StatsService for desired monitoring
+	if _, err := c.ensureStatsService(postgres); err != nil {
+		if ref, rerr := reference.GetReference(clientsetscheme.Scheme, postgres); rerr == nil {
+			c.recorder.Eventf(
+				ref,
+				core.EventTypeWarning,
+				eventer.EventReasonFailedToCreate,
+				"Failed to manage monitoring system. Reason: %v",
+				err,
+			)
+		}
+		log.Errorln(err)
+		return nil
+	}
+
+
 	if err := c.manageMonitor(postgres); err != nil {
 		if ref, rerr := reference.GetReference(clientsetscheme.Scheme, postgres); rerr == nil {
 			c.recorder.Eventf(
