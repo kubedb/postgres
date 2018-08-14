@@ -193,7 +193,6 @@ func (c *Controller) create(postgres *api.Postgres) error {
 		return nil
 	}
 
-
 	if err := c.manageMonitor(postgres); err != nil {
 		if ref, rerr := reference.GetReference(clientsetscheme.Scheme, postgres); rerr == nil {
 			c.recorder.Eventf(
