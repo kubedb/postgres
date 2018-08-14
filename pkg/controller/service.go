@@ -198,7 +198,7 @@ func (c *Controller) ensureStatsService(postgres *api.Postgres) (kutil.VerbType,
 		return kutil.VerbUnchanged, rerr
 	}
 
-	// create/patch statsService
+	// reconcile stats service
 	meta := metav1.ObjectMeta{
 		Name:      postgres.StatsService().ServiceName(),
 		Namespace: postgres.Namespace,
@@ -222,7 +222,7 @@ func (c *Controller) ensureStatsService(postgres *api.Postgres) (kutil.VerbType,
 			ref,
 			core.EventTypeWarning,
 			eventer.EventReasonFailedToCreate,
-			"Failed to create stats service. Reason: %v",
+			"Failed to reconcile stats service. Reason: %v",
 			err,
 		)
 		return kutil.VerbUnchanged, err
