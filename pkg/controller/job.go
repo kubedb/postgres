@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/appscode/go/log"
+	core_util "github.com/appscode/kutil/core/v1"
 	"github.com/appscode/kutil/tools/analytics"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	batch "k8s.io/api/batch/v1"
@@ -123,10 +124,13 @@ func (c *Controller) createRestoreJob(postgres *api.Postgres, snapshot *api.Snap
 					Affinity:          snapshot.Spec.PodTemplate.Spec.Affinity,
 					SchedulerName:     snapshot.Spec.PodTemplate.Spec.SchedulerName,
 					Tolerations:       snapshot.Spec.PodTemplate.Spec.Tolerations,
-					ImagePullSecrets:  snapshot.Spec.PodTemplate.Spec.ImagePullSecrets,
 					PriorityClassName: snapshot.Spec.PodTemplate.Spec.PriorityClassName,
 					Priority:          snapshot.Spec.PodTemplate.Spec.Priority,
 					SecurityContext:   snapshot.Spec.PodTemplate.Spec.SecurityContext,
+					ImagePullSecrets: core_util.MergeLocalObjectReferences(
+						snapshot.Spec.PodTemplate.Spec.ImagePullSecrets,
+						postgres.Spec.PodTemplate.Spec.ImagePullSecrets,
+					),
 				},
 			},
 		},
@@ -260,10 +264,13 @@ func (c *Controller) GetSnapshotter(snapshot *api.Snapshot) (*batch.Job, error) 
 					Affinity:          snapshot.Spec.PodTemplate.Spec.Affinity,
 					SchedulerName:     snapshot.Spec.PodTemplate.Spec.SchedulerName,
 					Tolerations:       snapshot.Spec.PodTemplate.Spec.Tolerations,
-					ImagePullSecrets:  snapshot.Spec.PodTemplate.Spec.ImagePullSecrets,
 					PriorityClassName: snapshot.Spec.PodTemplate.Spec.PriorityClassName,
 					Priority:          snapshot.Spec.PodTemplate.Spec.Priority,
 					SecurityContext:   snapshot.Spec.PodTemplate.Spec.SecurityContext,
+					ImagePullSecrets: core_util.MergeLocalObjectReferences(
+						snapshot.Spec.PodTemplate.Spec.ImagePullSecrets,
+						postgres.Spec.PodTemplate.Spec.ImagePullSecrets,
+					),
 				},
 			},
 		},
