@@ -30,6 +30,7 @@ func (p PostgresVersion) CustomResourceDefinition() *apiextensions.CustomResourc
 		Singular:      ResourceSingularPostgresVersion,
 		Kind:          ResourceKindPostgresVersion,
 		ShortNames:    []string{ResourceCodePostgresVersion},
+		Categories:    []string{"datastore", "kubedb", "appscode"},
 		ResourceScope: string(apiextensions.ClusterScoped),
 		Versions: []apiextensions.CustomResourceDefinitionVersion{
 			{

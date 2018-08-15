@@ -56,3 +56,13 @@ func filterTags(out, in map[string]string) map[string]string {
 	}
 	return out
 }
+
+func (e *BackupScheduleSpec) Migrate() {
+	if e == nil {
+		return
+	}
+	if e.Resources != nil {
+		e.PodTemplate.Spec.Resources = *e.Resources
+		e.Resources = nil
+	}
+}

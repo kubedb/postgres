@@ -63,10 +63,8 @@ func (c *Controller) create(postgres *api.Postgres) error {
 		return err
 	}
 
-	if postgres.Status.CreationTime == nil {
+	if postgres.Status.Phase == "" {
 		pg, err := util.UpdatePostgresStatus(c.ExtClient, postgres, func(in *api.PostgresStatus) *api.PostgresStatus {
-			t := metav1.Now()
-			in.CreationTime = &t
 			in.Phase = api.DatabasePhaseCreating
 			return in
 		}, api.EnableStatusSubresource)
@@ -160,6 +158,7 @@ func (c *Controller) create(postgres *api.Postgres) error {
 
 	pg, err := util.UpdatePostgresStatus(c.ExtClient, postgres, func(in *api.PostgresStatus) *api.PostgresStatus {
 		in.Phase = api.DatabasePhaseRunning
+		in.ObservedGeneration = postgres.Generation
 		return in
 	}, api.EnableStatusSubresource)
 	if err != nil {

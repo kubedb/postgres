@@ -2,40 +2,44 @@ package v1alpha1
 
 import (
 	"fmt"
+	"reflect"
 
+	"github.com/appscode/go/log"
 	crdutils "github.com/appscode/kutil/apiextensions/v1beta1"
+	meta_util "github.com/appscode/kutil/meta"
+	"github.com/golang/glog"
 	apiextensions "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	mona "kmodules.xyz/monitoring-agent-api/api/v1"
 )
 
-func (r Memcached) OffshootName() string {
-	return r.Name
+func (m Memcached) OffshootName() string {
+	return m.Name
 }
 
-func (r Memcached) OffshootSelectors() map[string]string {
+func (m Memcached) OffshootSelectors() map[string]string {
 	return map[string]string{
 		LabelDatabaseKind: ResourceKindMemcached,
-		LabelDatabaseName: r.Name,
+		LabelDatabaseName: m.Name,
 	}
 }
 
-func (r Memcached) OffshootLabels() map[string]string {
-	return filterTags(r.OffshootSelectors(), r.Labels)
+func (m Memcached) OffshootLabels() map[string]string {
+	return filterTags(m.OffshootSelectors(), m.Labels)
 }
 
-func (r Memcached) ResourceShortCode() string {
+func (m Memcached) ResourceShortCode() string {
 	return ResourceCodeMemcached
 }
 
-func (r Memcached) ResourceKind() string {
+func (m Memcached) ResourceKind() string {
 	return ResourceKindMemcached
 }
 
-func (r Memcached) ResourceSingular() string {
+func (m Memcached) ResourceSingular() string {
 	return ResourceSingularMemcached
 }
 
-func (r Memcached) ResourcePlural() string {
+func (m Memcached) ResourcePlural() string {
 	return ResourcePluralMemcached
 }
 
@@ -85,6 +89,7 @@ func (m Memcached) CustomResourceDefinition() *apiextensions.CustomResourceDefin
 		Singular:      ResourceSingularMemcached,
 		Kind:          ResourceKindMemcached,
 		ShortNames:    []string{ResourceCodeMemcached},
+		Categories:    []string{"datastore", "kubedb", "appscode"},
 		ResourceScope: string(apiextensions.NamespaceScoped),
 		Versions: []apiextensions.CustomResourceDefinitionVersion{
 			{
@@ -118,4 +123,73 @@ func (m Memcached) CustomResourceDefinition() *apiextensions.CustomResourceDefin
 			},
 		},
 	}, setNameSchema)
+}
+
+func (m *Memcached) Migrate() {
+	if m == nil {
+		return
+	}
+	m.Spec.Migrate()
+}
+
+func (m *MemcachedSpec) Migrate() {
+	if m == nil {
+		return
+	}
+	if len(m.NodeSelector) > 0 {
+		m.PodTemplate.Spec.NodeSelector = m.NodeSelector
+		m.NodeSelector = nil
+	}
+	if m.Resources != nil {
+		m.PodTemplate.Spec.Resources = *m.Resources
+		m.Resources = nil
+	}
+	if m.Affinity != nil {
+		m.PodTemplate.Spec.Affinity = m.Affinity
+		m.Affinity = nil
+	}
+	if len(m.SchedulerName) > 0 {
+		m.PodTemplate.Spec.SchedulerName = m.SchedulerName
+		m.SchedulerName = ""
+	}
+	if len(m.Tolerations) > 0 {
+		m.PodTemplate.Spec.Tolerations = m.Tolerations
+		m.Tolerations = nil
+	}
+	if len(m.ImagePullSecrets) > 0 {
+		m.PodTemplate.Spec.ImagePullSecrets = m.ImagePullSecrets
+		m.ImagePullSecrets = nil
+	}
+}
+
+func (m *Memcached) AlreadyObserved(other *Memcached) bool {
+	if m == nil {
+		return other == nil
+	}
+	if other == nil { // && d != nil
+		return false
+	}
+	if m == other {
+		return true
+	}
+
+	var match bool
+
+	if EnableStatusSubresource {
+		match = m.Status.ObservedGeneration >= m.Generation
+	} else {
+		match = meta_util.Equal(m.Spec, other.Spec)
+	}
+	if match {
+		match = reflect.DeepEqual(m.Labels, other.Labels)
+	}
+	if match {
+		match = reflect.DeepEqual(m.Annotations, other.Annotations)
+	}
+
+	if !match && bool(glog.V(log.LevelDebug)) {
+		diff := meta_util.Diff(other, m)
+		glog.V(log.LevelDebug).Infof("%s %s/%s has changed. Diff: %s", meta_util.GetKind(m), m.Namespace, m.Name, diff)
+	}
+	return match
 }

@@ -92,18 +92,13 @@ func UpdateMongoDBStatus(
 		return nil, errors.Errorf("invalid value passed for useSubresource: %v", useSubresource)
 	}
 
-	apply := func(x *api.MongoDB, copy bool) *api.MongoDB {
-		out := &api.MongoDB{
+	apply := func(x *api.MongoDB) *api.MongoDB {
+		return &api.MongoDB{
 			TypeMeta:   x.TypeMeta,
 			ObjectMeta: x.ObjectMeta,
 			Spec:       x.Spec,
+			Status:     *transform(in.Status.DeepCopy()),
 		}
-		if copy {
-			out.Status = *transform(in.Status.DeepCopy())
-		} else {
-			out.Status = *transform(&in.Status)
-		}
-		return out
 	}
 
 	if len(useSubresource) == 1 && useSubresource[0] {
@@ -112,7 +107,7 @@ func UpdateMongoDBStatus(
 		err = wait.PollImmediate(kutil.RetryInterval, kutil.RetryTimeout, func() (bool, error) {
 			attempt++
 			var e2 error
-			result, e2 = c.MongoDBs(in.Namespace).UpdateStatus(apply(cur, false))
+			result, e2 = c.MongoDBs(in.Namespace).UpdateStatus(apply(cur))
 			if kerr.IsConflict(e2) {
 				latest, e3 := c.MongoDBs(in.Namespace).Get(in.Name, metav1.GetOptions{})
 				switch {
@@ -136,6 +131,6 @@ func UpdateMongoDBStatus(
 		return
 	}
 
-	result, _, err = PatchMongoDBObject(c, in, apply(in, true))
+	result, _, err = PatchMongoDBObject(c, in, apply(in))
 	return
 }

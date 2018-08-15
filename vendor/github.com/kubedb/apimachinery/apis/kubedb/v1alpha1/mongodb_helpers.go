@@ -2,45 +2,49 @@ package v1alpha1
 
 import (
 	"fmt"
+	"reflect"
 
+	"github.com/appscode/go/log"
 	crdutils "github.com/appscode/kutil/apiextensions/v1beta1"
+	meta_util "github.com/appscode/kutil/meta"
+	"github.com/golang/glog"
 	apiextensions "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	mona "kmodules.xyz/monitoring-agent-api/api/v1"
 )
 
-func (p MongoDB) OffshootName() string {
-	return p.Name
+func (m MongoDB) OffshootName() string {
+	return m.Name
 }
 
-func (p MongoDB) OffshootSelectors() map[string]string {
+func (m MongoDB) OffshootSelectors() map[string]string {
 	return map[string]string{
-		LabelDatabaseName: p.Name,
+		LabelDatabaseName: m.Name,
 		LabelDatabaseKind: ResourceKindMongoDB,
 	}
 }
 
-func (p MongoDB) OffshootLabels() map[string]string {
-	return filterTags(p.OffshootSelectors(), p.Labels)
+func (m MongoDB) OffshootLabels() map[string]string {
+	return filterTags(m.OffshootSelectors(), m.Labels)
 }
 
-func (p MongoDB) ResourceShortCode() string {
+func (m MongoDB) ResourceShortCode() string {
 	return ResourceCodeMongoDB
 }
 
-func (p MongoDB) ResourceKind() string {
+func (m MongoDB) ResourceKind() string {
 	return ResourceKindMongoDB
 }
 
-func (p MongoDB) ResourceSingular() string {
+func (m MongoDB) ResourceSingular() string {
 	return ResourceSingularMongoDB
 }
 
-func (p MongoDB) ResourcePlural() string {
+func (m MongoDB) ResourcePlural() string {
 	return ResourcePluralMongoDB
 }
 
-func (p MongoDB) ServiceName() string {
-	return p.OffshootName()
+func (m MongoDB) ServiceName() string {
+	return m.OffshootName()
 }
 
 type mongoDBStatsService struct {
@@ -78,13 +82,14 @@ func (m *MongoDB) GetMonitoringVendor() string {
 	return ""
 }
 
-func (p MongoDB) CustomResourceDefinition() *apiextensions.CustomResourceDefinition {
+func (m MongoDB) CustomResourceDefinition() *apiextensions.CustomResourceDefinition {
 	return crdutils.NewCustomResourceDefinition(crdutils.Config{
 		Group:         SchemeGroupVersion.Group,
 		Plural:        ResourcePluralMongoDB,
 		Singular:      ResourceSingularMongoDB,
 		Kind:          ResourceKindMongoDB,
 		ShortNames:    []string{ResourceCodeMongoDB},
+		Categories:    []string{"datastore", "kubedb", "appscode"},
 		ResourceScope: string(apiextensions.NamespaceScoped),
 		Versions: []apiextensions.CustomResourceDefinitionVersion{
 			{
@@ -118,4 +123,74 @@ func (p MongoDB) CustomResourceDefinition() *apiextensions.CustomResourceDefinit
 			},
 		},
 	}, setNameSchema)
+}
+
+func (m *MongoDB) Migrate() {
+	if m == nil {
+		return
+	}
+	m.Spec.Migrate()
+}
+
+func (m *MongoDBSpec) Migrate() {
+	if m == nil {
+		return
+	}
+	m.BackupSchedule.Migrate()
+	if len(m.NodeSelector) > 0 {
+		m.PodTemplate.Spec.NodeSelector = m.NodeSelector
+		m.NodeSelector = nil
+	}
+	if m.Resources != nil {
+		m.PodTemplate.Spec.Resources = *m.Resources
+		m.Resources = nil
+	}
+	if m.Affinity != nil {
+		m.PodTemplate.Spec.Affinity = m.Affinity
+		m.Affinity = nil
+	}
+	if len(m.SchedulerName) > 0 {
+		m.PodTemplate.Spec.SchedulerName = m.SchedulerName
+		m.SchedulerName = ""
+	}
+	if len(m.Tolerations) > 0 {
+		m.PodTemplate.Spec.Tolerations = m.Tolerations
+		m.Tolerations = nil
+	}
+	if len(m.ImagePullSecrets) > 0 {
+		m.PodTemplate.Spec.ImagePullSecrets = m.ImagePullSecrets
+		m.ImagePullSecrets = nil
+	}
+}
+
+func (m *MongoDB) AlreadyObserved(other *MongoDB) bool {
+	if m == nil {
+		return other == nil
+	}
+	if other == nil { // && d != nil
+		return false
+	}
+	if m == other {
+		return true
+	}
+
+	var match bool
+
+	if EnableStatusSubresource {
+		match = m.Status.ObservedGeneration >= m.Generation
+	} else {
+		match = meta_util.Equal(m.Spec, other.Spec)
+	}
+	if match {
+		match = reflect.DeepEqual(m.Labels, other.Labels)
+	}
+	if match {
+		match = reflect.DeepEqual(m.Annotations, other.Annotations)
+	}
+
+	if !match && bool(glog.V(log.LevelDebug)) {
+		diff := meta_util.Diff(other, m)
+		glog.V(log.LevelDebug).Infof("%s %s/%s has changed. Diff: %s", meta_util.GetKind(m), m.Namespace, m.Name, diff)
+	}
+	return match
 }

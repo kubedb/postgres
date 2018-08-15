@@ -105,18 +105,13 @@ func UpdateSnapshotStatus(
 		return nil, errors.Errorf("invalid value passed for useSubresource: %v", useSubresource)
 	}
 
-	apply := func(x *api.Snapshot, copy bool) *api.Snapshot {
-		out := &api.Snapshot{
+	apply := func(x *api.Snapshot) *api.Snapshot {
+		return &api.Snapshot{
 			TypeMeta:   x.TypeMeta,
 			ObjectMeta: x.ObjectMeta,
 			Spec:       x.Spec,
+			Status:     *transform(in.Status.DeepCopy()),
 		}
-		if copy {
-			out.Status = *transform(in.Status.DeepCopy())
-		} else {
-			out.Status = *transform(&in.Status)
-		}
-		return out
 	}
 
 	if len(useSubresource) == 1 && useSubresource[0] {
@@ -125,7 +120,7 @@ func UpdateSnapshotStatus(
 		err = wait.PollImmediate(kutil.RetryInterval, kutil.RetryTimeout, func() (bool, error) {
 			attempt++
 			var e2 error
-			result, e2 = c.Snapshots(in.Namespace).UpdateStatus(apply(cur, false))
+			result, e2 = c.Snapshots(in.Namespace).UpdateStatus(apply(cur))
 			if kerr.IsConflict(e2) {
 				latest, e3 := c.Snapshots(in.Namespace).Get(in.Name, metav1.GetOptions{})
 				switch {
@@ -149,6 +144,6 @@ func UpdateSnapshotStatus(
 		return
 	}
 
-	result, _, err = PatchSnapshotObject(c, in, apply(in, true))
+	result, _, err = PatchSnapshotObject(c, in, apply(in))
 	return
 }

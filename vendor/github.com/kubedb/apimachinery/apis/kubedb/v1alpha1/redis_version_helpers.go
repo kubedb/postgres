@@ -30,6 +30,7 @@ func (p RedisVersion) CustomResourceDefinition() *apiextensions.CustomResourceDe
 		Singular:      ResourceSingularRedisVersion,
 		Kind:          ResourceKindRedisVersion,
 		ShortNames:    []string{ResourceCodeRedisVersion},
+		Categories:    []string{"datastore", "kubedb", "appscode"},
 		ResourceScope: string(apiextensions.ClusterScoped),
 		Versions: []apiextensions.CustomResourceDefinitionVersion{
 			{

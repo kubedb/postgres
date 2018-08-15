@@ -30,6 +30,7 @@ func (p MySQLVersion) CustomResourceDefinition() *apiextensions.CustomResourceDe
 		Singular:      ResourceSingularMySQLVersion,
 		Kind:          ResourceKindMySQLVersion,
 		ShortNames:    []string{ResourceCodeMySQLVersion},
+		Categories:    []string{"datastore", "kubedb", "appscode"},
 		ResourceScope: string(apiextensions.ClusterScoped),
 		Versions: []apiextensions.CustomResourceDefinitionVersion{
 			{

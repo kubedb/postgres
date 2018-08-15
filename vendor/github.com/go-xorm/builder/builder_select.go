@@ -9,6 +9,12 @@ import (
 	"fmt"
 )
 
+// Select creates a select Builder
+func Select(cols ...string) *Builder {
+	builder := &Builder{cond: NewCond()}
+	return builder.Select(cols...)
+}
+
 func (b *Builder) selectWriteTo(w Writer) error {
 	if len(b.tableName) <= 0 {
 		return errors.New("no table indicated")

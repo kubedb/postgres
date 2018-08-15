@@ -4,10 +4,6 @@
 
 package builder
 
-import (
-	"fmt"
-)
-
 type optype byte
 
 const (
@@ -44,30 +40,6 @@ type Builder struct {
 	orderBy   string
 	groupBy   string
 	having    string
-}
-
-// Select creates a select Builder
-func Select(cols ...string) *Builder {
-	builder := &Builder{cond: NewCond()}
-	return builder.Select(cols...)
-}
-
-// Insert creates an insert Builder
-func Insert(eq Eq) *Builder {
-	builder := &Builder{cond: NewCond()}
-	return builder.Insert(eq)
-}
-
-// Update creates an update Builder
-func Update(updates ...Eq) *Builder {
-	builder := &Builder{cond: NewCond()}
-	return builder.Update(updates...)
-}
-
-// Delete creates a delete Builder
-func Delete(conds ...Cond) *Builder {
-	builder := &Builder{cond: NewCond()}
-	return builder.Delete(conds...)
 }
 
 // Where sets where SQL
@@ -186,7 +158,12 @@ func (b *Builder) Insert(eq Eq) *Builder {
 
 // Update sets update SQL
 func (b *Builder) Update(updates ...Eq) *Builder {
-	b.updates = updates
+	b.updates = make([]Eq, 0, len(updates))
+	for _, update := range updates {
+		if update.IsValid() {
+			b.updates = append(b.updates, update)
+		}
+	}
 	b.optype = updateType
 	return b
 }
@@ -228,40 +205,12 @@ func (b *Builder) ToSQL() (string, []interface{}, error) {
 	return w.writer.String(), w.args, nil
 }
 
-// ConvertPlaceholder replaces ? to $1, $2 ... or :1, :2 ... according prefix
-func ConvertPlaceholder(sql, prefix string) (string, error) {
-	buf := StringBuilder{}
-	var j, start = 0, 0
-	for i := 0; i < len(sql); i++ {
-		if sql[i] == '?' {
-			_, err := buf.WriteString(sql[start:i])
-			if err != nil {
-				return "", err
-			}
-			start = i + 1
-
-			_, err = buf.WriteString(prefix)
-			if err != nil {
-				return "", err
-			}
-
-			j = j + 1
-			_, err = buf.WriteString(fmt.Sprintf("%d", j))
-			if err != nil {
-				return "", err
-			}
-		}
+// ToBindedSQL
+func (b *Builder) ToBindedSQL() (string, error) {
+	w := NewWriter()
+	if err := b.WriteTo(w); err != nil {
+		return "", err
 	}
-	return buf.String(), nil
-}
 
-// ToSQL convert a builder or condtions to SQL and args
-func ToSQL(cond interface{}) (string, []interface{}, error) {
-	switch cond.(type) {
-	case Cond:
-		return condToSQL(cond.(Cond))
-	case *Builder:
-		return cond.(*Builder).ToSQL()
-	}
-	return "", nil, ErrNotSupportType
+	return ConvertToBindedSQL(w.writer.String(), w.args)
 }

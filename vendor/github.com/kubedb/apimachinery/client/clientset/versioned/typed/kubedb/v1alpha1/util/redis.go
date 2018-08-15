@@ -92,18 +92,13 @@ func UpdateRedisStatus(
 		return nil, errors.Errorf("invalid value passed for useSubresource: %v", useSubresource)
 	}
 
-	apply := func(x *api.Redis, copy bool) *api.Redis {
-		out := &api.Redis{
+	apply := func(x *api.Redis) *api.Redis {
+		return &api.Redis{
 			TypeMeta:   x.TypeMeta,
 			ObjectMeta: x.ObjectMeta,
 			Spec:       x.Spec,
+			Status:     *transform(in.Status.DeepCopy()),
 		}
-		if copy {
-			out.Status = *transform(in.Status.DeepCopy())
-		} else {
-			out.Status = *transform(&in.Status)
-		}
-		return out
 	}
 
 	if len(useSubresource) == 1 && useSubresource[0] {
@@ -112,7 +107,7 @@ func UpdateRedisStatus(
 		err = wait.PollImmediate(kutil.RetryInterval, kutil.RetryTimeout, func() (bool, error) {
 			attempt++
 			var e2 error
-			result, e2 = c.Redises(in.Namespace).UpdateStatus(apply(cur, false))
+			result, e2 = c.Redises(in.Namespace).UpdateStatus(apply(cur))
 			if kerr.IsConflict(e2) {
 				latest, e3 := c.Redises(in.Namespace).Get(in.Name, metav1.GetOptions{})
 				switch {
@@ -136,6 +131,6 @@ func UpdateRedisStatus(
 		return
 	}
 
-	result, _, err = PatchRedisObject(c, in, apply(in, true))
+	result, _, err = PatchRedisObject(c, in, apply(in))
 	return
 }

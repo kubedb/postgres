@@ -123,13 +123,13 @@ func (c *Controller) StartAndRunControllers(stopCh <-chan struct{}) {
 	// Wait for all involved caches to be synced, before processing items from the queue is started
 	for t, v := range c.KubeInformerFactory.WaitForCacheSync(stopCh) {
 		if !v {
-			log.Fatalf("%v timed out waiting for caches to sync\n", t)
+			log.Fatalf("%v timed out waiting for caches to sync", t)
 			return
 		}
 	}
 	for t, v := range c.KubedbInformerFactory.WaitForCacheSync(stopCh) {
 		if !v {
-			log.Fatalf("%v timed out waiting for caches to sync\n", t)
+			log.Fatalf("%v timed out waiting for caches to sync", t)
 			return
 		}
 	}

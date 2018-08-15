@@ -91,18 +91,13 @@ func UpdateMemcachedStatus(
 		return nil, errors.Errorf("invalid value passed for useSubresource: %v", useSubresource)
 	}
 
-	apply := func(x *api.Memcached, copy bool) *api.Memcached {
-		out := &api.Memcached{
+	apply := func(x *api.Memcached) *api.Memcached {
+		return &api.Memcached{
 			TypeMeta:   x.TypeMeta,
 			ObjectMeta: x.ObjectMeta,
 			Spec:       x.Spec,
+			Status:     *transform(in.Status.DeepCopy()),
 		}
-		if copy {
-			out.Status = *transform(in.Status.DeepCopy())
-		} else {
-			out.Status = *transform(&in.Status)
-		}
-		return out
 	}
 
 	if len(useSubresource) == 1 && useSubresource[0] {
@@ -111,7 +106,7 @@ func UpdateMemcachedStatus(
 		err = wait.PollImmediate(kutil.RetryInterval, kutil.RetryTimeout, func() (bool, error) {
 			attempt++
 			var e2 error
-			result, e2 = c.Memcacheds(in.Namespace).UpdateStatus(apply(cur, false))
+			result, e2 = c.Memcacheds(in.Namespace).UpdateStatus(apply(cur))
 			if kerr.IsConflict(e2) {
 				latest, e3 := c.Memcacheds(in.Namespace).Get(in.Name, metav1.GetOptions{})
 				switch {
@@ -135,6 +130,6 @@ func UpdateMemcachedStatus(
 		return
 	}
 
-	result, _, err = PatchMemcachedObject(c, in, apply(in, true))
+	result, _, err = PatchMemcachedObject(c, in, apply(in))
 	return
 }
