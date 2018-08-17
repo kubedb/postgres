@@ -126,11 +126,14 @@ func (a *PostgresValidator) Admit(req *admission.AdmissionRequest) *admission.Ad
 // It is not method of Interface, because it is referenced from controller package too.
 func ValidatePostgres(client kubernetes.Interface, extClient kubedbv1alpha1.KubedbV1alpha1Interface, postgres *api.Postgres) error {
 	if postgres.Spec.Version == "" {
-		return fmt.Errorf(`object 'Version' is missing in '%v'`, postgres.Spec)
+		return errors.New(`'spec.version' is missing`)
 	}
-
 	if _, err := extClient.PostgresVersions().Get(string(postgres.Spec.Version), metav1.GetOptions{}); err != nil {
 		return err
+	}
+
+	if postgres.Spec.StorageType == "" {
+		return fmt.Errorf(`'spec.storageType' is missing`)
 	}
 
 	if postgres.Spec.Replicas == nil || *postgres.Spec.Replicas < 1 {

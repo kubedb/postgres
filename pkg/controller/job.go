@@ -299,7 +299,7 @@ func (c *Controller) getVolumeForSnapshot(st api.StorageType, pvcSpec *core.Pers
 			}
 		}
 		return &core.Volume{
-			Name: jobName,
+			Name: "tools",
 			VolumeSource: core.VolumeSource{
 				EmptyDir: &ed,
 			},
