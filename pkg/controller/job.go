@@ -5,6 +5,7 @@ import (
 
 	"github.com/appscode/go/log"
 	core_util "github.com/appscode/kutil/core/v1"
+	meta_util "github.com/appscode/kutil/meta"
 	"github.com/appscode/kutil/tools/analytics"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	batch "k8s.io/api/batch/v1"
@@ -66,14 +67,14 @@ func (c *Controller) createRestoreJob(postgres *api.Postgres, snapshot *api.Snap
 							Name:            api.JobTypeRestore,
 							Image:           postgresVersion.Spec.Tools.Image,
 							ImagePullPolicy: core.PullIfNotPresent,
-							Args: []string{
+							Args: meta_util.UpsertArgumentList([]string{
 								api.JobTypeRestore,
 								fmt.Sprintf(`--host=%s`, postgres.ServiceName()),
 								fmt.Sprintf(`--bucket=%s`, bucket),
 								fmt.Sprintf(`--folder=%s`, folderName),
 								fmt.Sprintf(`--snapshot=%s`, snapshot.Name),
 								fmt.Sprintf(`--enable-analytics=%v`, c.EnableAnalytics),
-							},
+							}, snapshot.Spec.PodTemplate.Spec.Args, "--enable-analytics"),
 							Env: []core.EnvVar{
 								{
 									Name: KeyPostgresPassword,
@@ -206,14 +207,14 @@ func (c *Controller) GetSnapshotter(snapshot *api.Snapshot) (*batch.Job, error) 
 						{
 							Name:  api.JobTypeBackup,
 							Image: postgresVersion.Spec.Tools.Image,
-							Args: []string{
+							Args: meta_util.UpsertArgumentList([]string{
 								api.JobTypeBackup,
 								fmt.Sprintf(`--host=%s`, postgres.ServiceName()),
 								fmt.Sprintf(`--bucket=%s`, bucket),
 								fmt.Sprintf(`--folder=%s`, folderName),
 								fmt.Sprintf(`--snapshot=%s`, snapshot.Name),
 								fmt.Sprintf(`--enable-analytics=%v`, c.EnableAnalytics),
-							},
+							}, snapshot.Spec.PodTemplate.Spec.Args, "--enable-analytics"),
 							Env: []core.EnvVar{
 								{
 									Name: KeyPostgresPassword,
