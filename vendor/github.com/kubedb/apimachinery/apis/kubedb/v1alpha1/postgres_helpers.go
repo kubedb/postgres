@@ -24,7 +24,7 @@ func (p Postgres) OffshootSelectors() map[string]string {
 }
 
 func (p Postgres) OffshootLabels() map[string]string {
-	return filterTags(p.OffshootSelectors(), p.Labels)
+	return meta_util.FilterKeys(GenericKey, p.OffshootSelectors(), p.Labels)
 }
 
 var _ ResourceInfo = &Postgres{}
@@ -95,7 +95,7 @@ func (p Postgres) CustomResourceDefinition() *apiextensions.CustomResourceDefini
 		Singular:      ResourceSingularPostgres,
 		Kind:          ResourceKindPostgres,
 		ShortNames:    []string{ResourceCodePostgres},
-		Categories:    []string{"datastore", "kubedb", "appscode"},
+		Categories:    []string{"datastore", "kubedb", "appscode", "all"},
 		ResourceScope: string(apiextensions.NamespaceScoped),
 		Versions: []apiextensions.CustomResourceDefinitionVersion{
 			{

@@ -141,7 +141,7 @@ func ValidatePostgres(client kubernetes.Interface, extClient kubedbv1alpha1.Kube
 		return err
 	}
 
-	if err := amv.ValidateStorage(client, postgres.Spec.Storage); err != nil {
+	if err := amv.ValidateStorage(client, postgres.Spec.StorageType, postgres.Spec.Storage); err != nil {
 		return err
 	}
 
@@ -301,6 +301,7 @@ var preconditionSpecFields = []string{
 	"spec.streaming",
 	"spec.archiver",
 	"spec.databaseSecret",
+	"spec.storageType",
 	"spec.storage",
 	"spec.nodeSelector",
 	"spec.init",

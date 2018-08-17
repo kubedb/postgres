@@ -60,7 +60,7 @@ func (s Snapshot) CustomResourceDefinition() *apiextensions.CustomResourceDefini
 		Singular:      ResourceSingularSnapshot,
 		Kind:          ResourceKindSnapshot,
 		ShortNames:    []string{ResourceCodeSnapshot},
-		Categories:    []string{"datastore", "kubedb", "appscode"},
+		Categories:    []string{"datastore", "kubedb", "appscode", "all"},
 		ResourceScope: string(apiextensions.NamespaceScoped),
 		Versions: []apiextensions.CustomResourceDefinitionVersion{
 			{

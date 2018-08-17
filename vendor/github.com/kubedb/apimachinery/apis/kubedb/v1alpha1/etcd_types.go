@@ -34,6 +34,9 @@ type EtcdSpec struct {
 	// Number of instances to deploy for a Etcd database.
 	Replicas *int32 `json:"replicas,omitempty"`
 
+	// StorageType can be durable (default) or ephemeral
+	StorageType StorageType `json:"storageType,omitempty"`
+
 	// Storage spec to specify how storage shall be used.
 	Storage *core.PersistentVolumeClaimSpec `json:"storage,omitempty"`
 

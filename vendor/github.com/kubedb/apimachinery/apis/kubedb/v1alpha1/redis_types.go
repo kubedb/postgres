@@ -34,8 +34,11 @@ type RedisSpec struct {
 	// Number of instances to deploy for a Redis database.
 	Replicas *int32 `json:"replicas,omitempty"`
 
+	// StorageType can be durable (default) or ephemeral
+	StorageType StorageType `json:"storageType,omitempty"`
+
 	// Storage spec to specify how storage shall be used.
-	Storage core.PersistentVolumeClaimSpec `json:"storage"`
+	Storage *core.PersistentVolumeClaimSpec `json:"storage,omitempty"`
 
 	// If DoNotPause is true, controller will prevent to delete this Postgres object.
 	// Controller will create same Postgres object and ignore other process.

@@ -24,7 +24,7 @@ func (r Redis) OffshootSelectors() map[string]string {
 }
 
 func (r Redis) OffshootLabels() map[string]string {
-	return filterTags(r.OffshootSelectors(), r.Labels)
+	return meta_util.FilterKeys(GenericKey, r.OffshootSelectors(), r.Labels)
 }
 
 func (r Redis) ResourceShortCode() string {
@@ -89,7 +89,7 @@ func (r Redis) CustomResourceDefinition() *apiextensions.CustomResourceDefinitio
 		Singular:      ResourceSingularRedis,
 		Kind:          ResourceKindRedis,
 		ShortNames:    []string{ResourceCodeRedis},
-		Categories:    []string{"datastore", "kubedb", "appscode"},
+		Categories:    []string{"datastore", "kubedb", "appscode", "all"},
 		ResourceScope: string(apiextensions.NamespaceScoped),
 		Versions: []apiextensions.CustomResourceDefinitionVersion{
 			{

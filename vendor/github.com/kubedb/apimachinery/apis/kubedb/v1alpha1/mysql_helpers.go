@@ -24,7 +24,7 @@ func (m MySQL) OffshootSelectors() map[string]string {
 }
 
 func (m MySQL) OffshootLabels() map[string]string {
-	return filterTags(m.OffshootSelectors(), m.Labels)
+	return meta_util.FilterKeys(GenericKey, m.OffshootSelectors(), m.Labels)
 }
 
 var _ ResourceInfo = &MySQL{}
@@ -91,7 +91,7 @@ func (m MySQL) CustomResourceDefinition() *apiextensions.CustomResourceDefinitio
 		Singular:      ResourceSingularMySQL,
 		Kind:          ResourceKindMySQL,
 		ShortNames:    []string{ResourceCodeMySQL},
-		Categories:    []string{"datastore", "kubedb", "appscode"},
+		Categories:    []string{"datastore", "kubedb", "appscode", "all"},
 		ResourceScope: string(apiextensions.NamespaceScoped),
 		Versions: []apiextensions.CustomResourceDefinitionVersion{
 			{

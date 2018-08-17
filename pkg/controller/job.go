@@ -33,7 +33,7 @@ func (c *Controller) createRestoreJob(postgres *api.Postgres, snapshot *api.Snap
 	}
 
 	// Get PersistentVolume object for Backup Util pod.
-	persistentVolume, err := c.getVolumeForSnapshot(postgres.Spec.Storage, jobName, postgres.Namespace)
+	persistentVolume, err := c.getVolumeForSnapshot(postgres.Spec.StorageType, postgres.Spec.Storage, jobName, postgres.Namespace)
 	if err != nil {
 		return nil, err
 	}
@@ -175,7 +175,7 @@ func (c *Controller) GetSnapshotter(snapshot *api.Snapshot) (*batch.Job, error) 
 	}
 
 	// Get PersistentVolume object for Backup Util pod.
-	persistentVolume, err := c.getVolumeForSnapshot(postgres.Spec.Storage, jobName, snapshot.Namespace)
+	persistentVolume, err := c.getVolumeForSnapshot(postgres.Spec.StorageType, postgres.Spec.Storage, jobName, snapshot.Namespace)
 	if err != nil {
 		return nil, err
 	}
@@ -290,7 +290,22 @@ func (c *Controller) GetSnapshotter(snapshot *api.Snapshot) (*batch.Job, error) 
 	return job, nil
 }
 
-func (c *Controller) getVolumeForSnapshot(pvcSpec core.PersistentVolumeClaimSpec, jobName, namespace string) (*core.Volume, error) {
+func (c *Controller) getVolumeForSnapshot(st api.StorageType, pvcSpec *core.PersistentVolumeClaimSpec, jobName, namespace string) (*core.Volume, error) {
+	if st == api.StorageTypeEphemeral {
+		ed := core.EmptyDirVolumeSource{}
+		if pvcSpec != nil {
+			if sz, found := pvcSpec.Resources.Requests[core.ResourceStorage]; found {
+				ed.SizeLimit = &sz
+			}
+		}
+		return &core.Volume{
+			Name: jobName,
+			VolumeSource: core.VolumeSource{
+				EmptyDir: &ed,
+			},
+		}, nil
+	}
+
 	volume := &core.Volume{
 		Name: "tools",
 	}
@@ -306,7 +321,7 @@ func (c *Controller) getVolumeForSnapshot(pvcSpec core.PersistentVolumeClaimSpec
 			Name:      jobName,
 			Namespace: namespace,
 		},
-		Spec: pvcSpec,
+		Spec: *pvcSpec,
 	}
 	if pvcSpec.StorageClassName != nil {
 		claim.Annotations = map[string]string{

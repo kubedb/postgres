@@ -37,7 +37,7 @@ func (d DormantDatabase) CustomResourceDefinition() *apiextensions.CustomResourc
 		Singular:      ResourceSingularDormantDatabase,
 		Kind:          ResourceKindDormantDatabase,
 		ShortNames:    []string{ResourceCodeDormantDatabase},
-		Categories:    []string{"datastore", "kubedb", "appscode"},
+		Categories:    []string{"datastore", "kubedb", "appscode", "all"},
 		ResourceScope: string(apiextensions.NamespaceScoped),
 		Versions: []apiextensions.CustomResourceDefinitionVersion{
 			{

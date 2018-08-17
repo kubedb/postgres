@@ -189,6 +189,24 @@ func (a *DormantDatabaseValidator) setOwnerReferenceToObjects(dormantDatabase *a
 		}
 	}
 
+	// Set owner Reference to ConfigMap
+	cfgList, err := a.client.CoreV1().ConfigMaps(dormantDatabase.Namespace).List(
+		metav1.ListOptions{
+			LabelSelector: labelSelector.String(),
+		},
+	)
+	if err != nil {
+		return err
+	}
+	for _, cfg := range cfgList.Items {
+		if _, _, err := core_util.PatchConfigMap(a.client, &cfg, func(in *coreV1.ConfigMap) *coreV1.ConfigMap {
+			in.ObjectMeta = core_util.EnsureOwnerReference(in.ObjectMeta, ref)
+			return in
+		}); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -269,6 +287,25 @@ func (a *DormantDatabaseValidator) removeOwnerReferenceFromObjects(dormantDataba
 			return err
 		}
 	}
+
+	// Remove owner reference from configMaps
+	cfgList, err := a.client.CoreV1().ConfigMaps(dormantDatabase.Namespace).List(
+		metav1.ListOptions{
+			LabelSelector: labelSelector.String(),
+		},
+	)
+	if err != nil {
+		return err
+	}
+	for _, cfg := range cfgList.Items {
+		if _, _, err := core_util.PatchConfigMap(a.client, &cfg, func(in *coreV1.ConfigMap) *coreV1.ConfigMap {
+			in.ObjectMeta = core_util.RemoveOwnerReference(in.ObjectMeta, ref)
+			return in
+		}); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -278,7 +315,13 @@ func getDatabaseSecretName(dormantDatabase *api.DormantDatabase, dbKind string) 
 	}
 	switch dbKind {
 	case api.ResourceKindMongoDB:
-		return []*coreV1.SecretVolumeSource{dormantDatabase.Spec.Origin.Spec.MongoDB.DatabaseSecret}
+		secretVol := []*coreV1.SecretVolumeSource{
+			dormantDatabase.Spec.Origin.Spec.MongoDB.DatabaseSecret,
+		}
+		if dormantDatabase.Spec.Origin.Spec.MongoDB.ReplicaSet != nil {
+			secretVol = append(secretVol, dormantDatabase.Spec.Origin.Spec.MongoDB.ReplicaSet.KeyFile)
+		}
+		return secretVol
 	case api.ResourceKindMySQL:
 		return []*coreV1.SecretVolumeSource{dormantDatabase.Spec.Origin.Spec.MySQL.DatabaseSecret}
 	case api.ResourceKindPostgres:

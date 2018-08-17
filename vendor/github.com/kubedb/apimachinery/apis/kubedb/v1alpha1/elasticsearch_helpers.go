@@ -25,7 +25,7 @@ func (e Elasticsearch) OffshootSelectors() map[string]string {
 }
 
 func (e Elasticsearch) OffshootLabels() map[string]string {
-	return filterTags(e.OffshootSelectors(), e.Labels)
+	return meta_util.FilterKeys(GenericKey, e.OffshootSelectors(), e.Labels)
 }
 
 var _ ResourceInfo = &Elasticsearch{}
@@ -96,7 +96,7 @@ func (e Elasticsearch) CustomResourceDefinition() *apiextensions.CustomResourceD
 		Singular:      ResourceSingularElasticsearch,
 		Kind:          ResourceKindElasticsearch,
 		ShortNames:    []string{ResourceCodeElasticsearch},
-		Categories:    []string{"datastore", "kubedb", "appscode"},
+		Categories:    []string{"datastore", "kubedb", "appscode", "all"},
 		ResourceScope: string(apiextensions.NamespaceScoped),
 		Versions: []apiextensions.CustomResourceDefinitionVersion{
 			{

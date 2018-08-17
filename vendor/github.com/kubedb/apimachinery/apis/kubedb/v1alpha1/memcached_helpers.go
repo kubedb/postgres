@@ -24,7 +24,7 @@ func (m Memcached) OffshootSelectors() map[string]string {
 }
 
 func (m Memcached) OffshootLabels() map[string]string {
-	return filterTags(m.OffshootSelectors(), m.Labels)
+	return meta_util.FilterKeys(GenericKey, m.OffshootSelectors(), m.Labels)
 }
 
 func (m Memcached) ResourceShortCode() string {
@@ -89,7 +89,7 @@ func (m Memcached) CustomResourceDefinition() *apiextensions.CustomResourceDefin
 		Singular:      ResourceSingularMemcached,
 		Kind:          ResourceKindMemcached,
 		ShortNames:    []string{ResourceCodeMemcached},
-		Categories:    []string{"datastore", "kubedb", "appscode"},
+		Categories:    []string{"datastore", "kubedb", "appscode", "all"},
 		ResourceScope: string(apiextensions.NamespaceScoped),
 		Versions: []apiextensions.CustomResourceDefinitionVersion{
 			{
