@@ -1,7 +1,6 @@
 package dormantdatabase
 
 import (
-	"fmt"
 	"sync"
 
 	hookapi "github.com/appscode/kubernetes-webhook-util/admission/v1beta1"
@@ -100,7 +99,7 @@ func (a *DormantDatabaseValidator) Admit(req *admission.AdmissionRequest) *admis
 			return hookapi.StatusBadRequest(err)
 		}
 		if err := plugin.ValidateUpdate(obj, OldObj, req.Kind.Kind); err != nil {
-			return hookapi.StatusBadRequest(fmt.Errorf("%v", err))
+			return hookapi.StatusBadRequest(err)
 		}
 	}
 

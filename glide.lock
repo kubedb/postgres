@@ -1,5 +1,5 @@
 hash: b9c14cfb7a25f578a6a062b09dc1a6a073a96ff936e26b8f1264f6ccbb653734
-updated: 2018-08-17T04:48:46.791888404-07:00
+updated: 2018-08-17T16:04:00.604394016-07:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -214,11 +214,11 @@ imports:
 - name: github.com/emicklei/go-restful-swagger12
   version: dcef7f55730566d41eae5db10e7d6981829720f6
 - name: github.com/evanphx/json-patch
-  version: afac545df32f2287a079e2dfb7ba2745a643747e
+  version: 94e38aa1586e8a6c8a75770bddf5ff84c48a106b
 - name: github.com/fsnotify/fsnotify
   version: f12c6236fe7b5cf6bcf30e5935d08cb079d78334
 - name: github.com/ghodss/yaml
-  version: 73d445a93680fa1a78ae23a5839bad48f32ba1ee
+  version: 0ca9ea5df5451ffdf184b4428c902747c2c11cd7
 - name: github.com/go-ini/ini
   version: 300e940a926eb277d3901b20bdfcc54928ad3642
 - name: github.com/go-openapi/jsonpointer
@@ -312,9 +312,9 @@ imports:
 - name: github.com/jpillora/go-ogle-analytics
   version: 14b04e0594ef6a9fd943363b135656f0ec8c9d0e
 - name: github.com/json-iterator/go
-  version: ab8a2e0c74be9d3be70b3184d9acc634935ded82
+  version: f2b4162afba35581b6d4a50d3b8f34e33c144682
 - name: github.com/kubedb/apimachinery
-  version: d81790df82b5ae1eab2f2c1010f3d8611da33603
+  version: aa6713549f8e4c8ad974e6b167219f3030ae8bba
   subpackages:
   - apis/kubedb
   - apis/kubedb/v1alpha1
@@ -971,7 +971,7 @@ imports:
   - api/v1
   - osm
 - name: kmodules.xyz/offshoot-api
-  version: 71dd2bafc0a452e3eb2d5bc60b2786d1f1843a51
+  version: 5ff9de954aeb2148edc7a831671f3f875aa56f30
   repo: https://github.com/kmodules/offshoot-api.git
   vcs: git
   subpackages:
