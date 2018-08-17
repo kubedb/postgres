@@ -68,6 +68,22 @@ resources:
     secret_access_key: ((s3-secret))
     versioned_file: creds.zip
 
+- name: cncf
+  type: pull-request
+  source:
+    owner: kubedb
+    repo: postgres
+    label: ok-to-test/cncf
+    access_token: ((access_token))
+
+- name: concourse-locks
+  type: pool
+  source:
+    uri: git@github.com:kubedb/concourse-locks.git
+    branch: master
+    pool: kubedb
+    private_key: ((private_key))
+
 jobs:
 - name: test-postgres-master
   plan:
@@ -76,13 +92,56 @@ jobs:
   - get: creds
     params:
       unpack: true
+  - put: concourse-locks
+    params:
+      acquire: true
   - task: test-e2e
     privileged: true
     file: postgres/hack/concourse/task.yml
     params:
-      ClusterProvider: digitalocean
+      ClusterProvider: cncf
       DOCKER_USER: ((docker_user))
       DOCKER_PASS: ((docker_pass))
+    tags: [cncf]
+    ensure:
+      put: concourse-locks
+      params:
+        release: concourse-locks
+
+
+- name: test-postgres-cncf
+  plan:
+  - get: cncf
+    trigger: true
+    version: every
+  - put: cncf
+    params: { path: cncf, status: pending}
+  - get: creds
+    params:
+      unpack: true
+  - put: concourse-locks
+    params:
+      acquire: true
+  - task: test-e2e
+    privileged: true
+    file: cncf/hack/concourse/task.yml
+    input_mapping:
+      postgres: cncf
+    tags: [cncf]
+    params:
+      ClusterProvider: cncf
+      DOCKER_USER: ((docker_user))
+      DOCKER_PASS: ((docker_pass))
+    ensure:
+      put: concourse-locks
+      params:
+        release: concourse-locks
+    on_success:
+      put: cncf
+      params: { path: cncf, status: success}
+    on_failure:
+      put: cncf
+      params: {path: cncf, status: failure}
 
 - name: test-postgres-gke
   plan:
