@@ -306,9 +306,9 @@ var preconditionSpecFields = []string{
 	"spec.databaseSecret",
 	"spec.storageType",
 	"spec.storage",
-	"spec.nodeSelector",
 	"spec.init",
-	"spec.env",
+	"spec.podTemplate.spec.nodeSelector",
+	"spec.podTemplate.spec.env",
 }
 
 func preconditionFailedError(kind string) error {
