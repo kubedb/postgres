@@ -33,5 +33,5 @@ pushd "$GOPATH"/src/github.com/$ORG_NAME/$REPO_NAME
 ./hack/docker/postgres/10.2/make.sh push
 
 # run tests
-source ./hack/deploy/setup.sh --docker-registry=kubedbci
+./hack/deploy/setup.sh --docker-registry=kubedbci
 ./hack/make.py test e2e --v=1 --storageclass=$StorageClass --selfhosted-operator=true --ginkgo.flakeAttempts=2
