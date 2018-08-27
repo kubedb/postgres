@@ -59,6 +59,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.EtcdVersionExporter":          schema_apimachinery_apis_kubedb_v1alpha1_EtcdVersionExporter(ref),
 		"github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.EtcdVersionList":              schema_apimachinery_apis_kubedb_v1alpha1_EtcdVersionList(ref),
 		"github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.EtcdVersionSpec":              schema_apimachinery_apis_kubedb_v1alpha1_EtcdVersionSpec(ref),
+		"github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.EtcdVersionTools":             schema_apimachinery_apis_kubedb_v1alpha1_EtcdVersionTools(ref),
 		"github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.InitSpec":                     schema_apimachinery_apis_kubedb_v1alpha1_InitSpec(ref),
 		"github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.MemberSecret":                 schema_apimachinery_apis_kubedb_v1alpha1_MemberSecret(ref),
 		"github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.Memcached":                    schema_apimachinery_apis_kubedb_v1alpha1_Memcached(ref),
@@ -604,6 +605,12 @@ func schema_apimachinery_apis_kubedb_v1alpha1_DormantDatabaseStatus(ref common.R
 							Format:      "int64",
 						},
 					},
+					"observedGenerationHash": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
 				},
 			},
 		},
@@ -959,6 +966,12 @@ func schema_apimachinery_apis_kubedb_v1alpha1_ElasticsearchStatus(ref common.Ref
 							Format:      "int64",
 						},
 					},
+					"observedGenerationHash": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
 				},
 			},
 		},
@@ -1161,7 +1174,7 @@ func schema_apimachinery_apis_kubedb_v1alpha1_ElasticsearchVersionSpec(ref commo
 						},
 					},
 				},
-				Required: []string{"db", "exporter", "tools"},
+				Required: []string{"version", "db", "exporter", "tools"},
 			},
 		},
 		Dependencies: []string{
@@ -1391,6 +1404,12 @@ func schema_apimachinery_apis_kubedb_v1alpha1_EtcdStatus(ref common.ReferenceCal
 							Format:      "int64",
 						},
 					},
+					"observedGenerationHash": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
 				},
 			},
 		},
@@ -1547,12 +1566,38 @@ func schema_apimachinery_apis_kubedb_v1alpha1_EtcdVersionSpec(ref common.Referen
 							Ref:         ref("github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.EtcdVersionExporter"),
 						},
 					},
+					"tools": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Tools Image",
+							Ref:         ref("github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.EtcdVersionTools"),
+						},
+					},
 				},
-				Required: []string{"db", "exporter"},
+				Required: []string{"version", "db", "exporter", "tools"},
 			},
 		},
 		Dependencies: []string{
-			"github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.EtcdVersionDatabase", "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.EtcdVersionExporter"},
+			"github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.EtcdVersionDatabase", "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.EtcdVersionExporter", "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.EtcdVersionTools"},
+	}
+}
+
+func schema_apimachinery_apis_kubedb_v1alpha1_EtcdVersionTools(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "EtcdVersionTools is the image for the Etcd exporter",
+				Properties: map[string]spec.Schema{
+					"image": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+				},
+				Required: []string{"image"},
+			},
+		},
+		Dependencies: []string{},
 	}
 }
 
@@ -1840,6 +1885,12 @@ func schema_apimachinery_apis_kubedb_v1alpha1_MemcachedStatus(ref common.Referen
 							Format:      "int64",
 						},
 					},
+					"observedGenerationHash": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
 				},
 			},
 		},
@@ -1997,7 +2048,7 @@ func schema_apimachinery_apis_kubedb_v1alpha1_MemcachedVersionSpec(ref common.Re
 						},
 					},
 				},
-				Required: []string{"db", "exporter"},
+				Required: []string{"version", "db", "exporter"},
 			},
 		},
 		Dependencies: []string{
@@ -2297,6 +2348,12 @@ func schema_apimachinery_apis_kubedb_v1alpha1_MongoDBStatus(ref common.Reference
 							Format:      "int64",
 						},
 					},
+					"observedGenerationHash": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
 				},
 			},
 		},
@@ -2460,7 +2517,7 @@ func schema_apimachinery_apis_kubedb_v1alpha1_MongoDBVersionSpec(ref common.Refe
 						},
 					},
 				},
-				Required: []string{"db", "exporter", "tools"},
+				Required: []string{"version", "db", "exporter", "tools"},
 			},
 		},
 		Dependencies: []string{
@@ -2749,6 +2806,12 @@ func schema_apimachinery_apis_kubedb_v1alpha1_MySQLStatus(ref common.ReferenceCa
 							Format:      "int64",
 						},
 					},
+					"observedGenerationHash": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
 				},
 			},
 		},
@@ -2912,7 +2975,7 @@ func schema_apimachinery_apis_kubedb_v1alpha1_MySQLVersionSpec(ref common.Refere
 						},
 					},
 				},
-				Required: []string{"db", "exporter", "tools"},
+				Required: []string{"version", "db", "exporter", "tools"},
 			},
 		},
 		Dependencies: []string{
@@ -3345,6 +3408,12 @@ func schema_apimachinery_apis_kubedb_v1alpha1_PostgresStatus(ref common.Referenc
 							Format:      "int64",
 						},
 					},
+					"observedGenerationHash": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
 				},
 			},
 		},
@@ -3566,7 +3635,7 @@ func schema_apimachinery_apis_kubedb_v1alpha1_PostgresVersionSpec(ref common.Ref
 						},
 					},
 				},
-				Required: []string{"db", "exporter", "tools"},
+				Required: []string{"version", "db", "exporter", "tools"},
 			},
 		},
 		Dependencies: []string{
@@ -3898,6 +3967,12 @@ func schema_apimachinery_apis_kubedb_v1alpha1_RedisStatus(ref common.ReferenceCa
 							Format:      "int64",
 						},
 					},
+					"observedGenerationHash": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
 				},
 			},
 		},
@@ -4055,7 +4130,7 @@ func schema_apimachinery_apis_kubedb_v1alpha1_RedisVersionSpec(ref common.Refere
 						},
 					},
 				},
-				Required: []string{"db", "exporter"},
+				Required: []string{"version", "db", "exporter"},
 			},
 		},
 		Dependencies: []string{
@@ -4559,6 +4634,12 @@ func schema_apimachinery_apis_kubedb_v1alpha1_SnapshotStatus(ref common.Referenc
 							Description: "observedGeneration is the most recent generation observed for this resource. It corresponds to the resource's generation, which is updated on mutation by the API Server.",
 							Type:        []string{"integer"},
 							Format:      "int64",
+						},
+					},
+					"observedGenerationHash": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
 						},
 					},
 				},
