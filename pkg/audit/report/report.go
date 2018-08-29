@@ -43,8 +43,8 @@ func ExportReport(
 		return
 	}
 
-	username := controller.PostgresUser
-	password := string(secret.Data[controller.KeyPostgresPassword])
+	username := string(secret.Data[controller.PostgresUser])
+	password := string(secret.Data[controller.PostgresPassword])
 
 	host := fmt.Sprintf("%v.%v", kubedbName, namespace)
 	port := controller.PostgresPort
