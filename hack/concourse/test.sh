@@ -24,14 +24,15 @@ cp creds/.env $GOPATH/src/github.com/$ORG_NAME/$REPO_NAME/hack/config/.env
 pushd "$GOPATH"/src/github.com/$ORG_NAME/$REPO_NAME
 
 ./hack/builddeps.sh
-./hack/docker/$OPERATOR_NAME/make.sh build
-./hack/docker/$OPERATOR_NAME/make.sh push
-./hack/docker/postgres/9.6.7/make.sh build
-./hack/docker/postgres/9.6.7/make.sh push
-./hack/docker/postgres/9.6/make.sh
-./hack/docker/postgres/10.2/make.sh build
-./hack/docker/postgres/10.2/make.sh push
+./hack/dev/update-docker.sh
+
+# clean the cluster in case previous operator exists
+./hack/deploy/setup.sh --uninstall --purge
 
 # run tests
-./hack/deploy/setup.sh --docker-registry=kubedbci
-./hack/make.py test e2e --v=1 --storageclass=$StorageClass --selfhosted-operator=true --ginkgo.flakeAttempts=2
+./hack/deploy/setup.sh --docker-registry=${DOCKER_REGISTRY}
+./hack/make.py test e2e \
+  --v=1 \
+  --storageclass=${StorageClass:-standard} \
+  --selfhosted-operator=true \
+  --ginkgo.flakeAttempts=2
