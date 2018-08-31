@@ -6,6 +6,13 @@ resource_types:
     repository: appscodeci/github-pr-resource
     tag: latest
 
+- name: github-status
+  type: docker-image
+  tags: [cncf]
+  source:
+    repository: dpb587/github-status-resource
+    tag: master
+
 resources:
 - name: postgres
   type: git
@@ -13,6 +20,23 @@ resources:
   source:
     uri: https://github.com/kubedb/postgres
     branch: master
+
+- name: repo-status
+  type: github-status
+  tags: [cncf]
+  source:
+    repository: kubedb/postgres
+    access_token: ((access_token))
+
+- name: cncf
+  type: pull-request
+  tags: [cncf]
+  source:
+    owner: kubedb
+    repo: postgres
+    label: ok-to-test/cncf
+    # org: kubedb
+    access_token: ((access_token))
 
 - name: gke
   type: pull-request
@@ -76,16 +100,6 @@ resources:
     secret_access_key: ((s3-secret))
     versioned_file: creds.zip
 
-- name: cncf
-  type: pull-request
-  tags: [cncf]
-  source:
-    owner: kubedb
-    repo: postgres
-    label: ok-to-test/cncf
-    org: kubedb
-    access_token: ((access_token))
-
 - name: concourse-locks
   type: pool
   tags: [cncf]
@@ -96,7 +110,7 @@ resources:
     private_key: ((private_key))
 
 jobs:
-- name: test-postgres-master
+- name: test-master
   plan:
   - get: postgres
     trigger: true
@@ -106,6 +120,11 @@ jobs:
   - put: concourse-locks
     params:
       acquire: true
+  - put: repo-status
+    params:
+      state: pending
+      commit: postgres
+      description: "concourse-ci"
   - task: test-e2e
     privileged: true
     file: postgres/hack/concourse/task.yml
@@ -114,13 +133,24 @@ jobs:
       DOCKER_USER: ((docker_user))
       DOCKER_PASS: ((docker_pass))
     tags: [cncf]
+    on_success:
+      put: repo-status
+      params:
+        state: success
+        commit: postgres
+        description: "concourse-ci"
+    on_failure:
+      put: repo-status
+      params:
+        state: failure
+        commit: postgres
+        description: "concourse-ci"
     ensure:
       put: concourse-locks
       params:
         release: concourse-locks
 
-
-- name: test-postgres-cncf
+- name: test-cncf
   plan:
   - get: cncf
     trigger: true
@@ -154,7 +184,7 @@ jobs:
       put: cncf
       params: {path: cncf, status: failure}
 
-- name: test-postgres-gke
+- name: test-gke
   plan:
   - get: gke
     trigger: true
@@ -180,7 +210,7 @@ jobs:
       put: gke
       params: {path: gke, status: failure}
 
-- name: test-postgres-aws
+- name: test-aws
   plan:
   - get: aws
     version: every
@@ -208,7 +238,7 @@ jobs:
       put: aws
       params: {path: aws, status: failure}
 
-- name: test-azure-aks
+- name: test-azur-aks
   plan:
   - get: azure-aks
     version: every
@@ -266,7 +296,7 @@ jobs:
       put: azure-acs
       params: {path: azure-acs, status: failure}
 
-- name: test-postgres-do
+- name: test-do
   plan:
   - get: do
     version: every
@@ -292,7 +322,7 @@ jobs:
       put: do
       params: {path: do, status: failure}
 
-- name: test-postgres-kubespray
+- name: test-kubespray
   plan:
   - get: kubespray
     version: every
