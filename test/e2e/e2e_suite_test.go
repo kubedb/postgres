@@ -85,7 +85,7 @@ var _ = BeforeSuite(func() {
 
 	if !framework.SelfHostedOperator {
 		stopCh := genericapiserver.SetupSignalHandler()
-		go root.RunOperatorAndServer(kubeconfigPath, stopCh)
+		go root.RunOperatorAndServer(config, kubeconfigPath, stopCh)
 	}
 
 	root.EventuallyCRD().Should(Succeed())
