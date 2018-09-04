@@ -78,7 +78,12 @@ type ElasticsearchSpec struct {
 	PodTemplate ofst.PodTemplateSpec `json:"podTemplate,omitempty"`
 
 	// ServiceTemplate is an optional configuration for service used to expose database
+	// +optional
 	ServiceTemplate ofst.ServiceTemplateSpec `json:"serviceTemplate,omitempty"`
+
+	// TerminationPolicy controls the delete operation for database
+	// +optional
+	TerminationPolicy TerminationPolicy `json"terminationPolicy,omitempty"`
 
 	// -------------------------------------------------------------------------
 

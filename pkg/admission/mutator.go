@@ -105,6 +105,10 @@ func setDefaultValues(client kubernetes.Interface, extClient cs.Interface, postg
 		postgres.Spec.StorageType = api.StorageTypeDurable
 	}
 
+	if postgres.Spec.TerminationPolicy == "" {
+		postgres.Spec.TerminationPolicy = api.TerminationPolicyPause
+	}
+
 	if postgres.Spec.Replicas == nil {
 		postgres.Spec.Replicas = types.Int32P(1)
 	}

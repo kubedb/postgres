@@ -264,6 +264,7 @@ func samplePostgres() api.Postgres {
 					},
 				},
 			},
+			TerminationPolicy: api.TerminationPolicyPause,
 		},
 	}
 }

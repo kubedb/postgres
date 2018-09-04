@@ -1,5 +1,5 @@
-hash: 82badf8989799f7928bf8e89e8313118e6800aa44569b99292fc1d0c434979c7
-updated: 2018-09-04T01:08:28.523000652-07:00
+hash: 419d319914482ca568d935f0feb19c36486bfcfed4dbc166bf76dddfeb6ab7e2
+updated: 2018-09-04T13:22:00.650542578-07:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -217,13 +217,13 @@ imports:
 - name: github.com/emicklei/go-restful-swagger12
   version: dcef7f55730566d41eae5db10e7d6981829720f6
 - name: github.com/evanphx/json-patch
-  version: afac545df32f2287a079e2dfb7ba2745a643747e
+  version: 94e38aa1586e8a6c8a75770bddf5ff84c48a106b
 - name: github.com/fatih/structs
   version: ebf56d35bba727c68ac77f56f2fcf90b181851aa
 - name: github.com/fsnotify/fsnotify
   version: f12c6236fe7b5cf6bcf30e5935d08cb079d78334
 - name: github.com/ghodss/yaml
-  version: 73d445a93680fa1a78ae23a5839bad48f32ba1ee
+  version: 0ca9ea5df5451ffdf184b4428c902747c2c11cd7
 - name: github.com/go-ini/ini
   version: 300e940a926eb277d3901b20bdfcc54928ad3642
 - name: github.com/go-openapi/jsonpointer
@@ -326,7 +326,7 @@ imports:
 - name: github.com/json-iterator/go
   version: 1624edc4454b8682399def8740d46db5e4362ba4
 - name: github.com/kubedb/apimachinery
-  version: 47d981b293ceda5827bafd9fa1ba0425fd1f3d88
+  version: 1e34763325582740fdd60fb127a594093c3daa49
   subpackages:
   - apis/kubedb
   - apis/kubedb/v1alpha1
@@ -350,6 +350,8 @@ imports:
   - pkg/controller/snapshot
   - pkg/eventer
   - pkg/validator
+- name: github.com/kubedb/cli
+  version: 0683d715b05a368131280047f01f6a9e6c1c2352
 - name: github.com/lib/pq
   version: 4ded0e9383f75c197b3a2aaa6d590ac52df6fd79
   subpackages:

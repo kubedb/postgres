@@ -881,6 +881,13 @@ func schema_apimachinery_apis_kubedb_v1alpha1_ElasticsearchSpec(ref common.Refer
 							Ref:         ref("kmodules.xyz/offshoot-api/api/v1.ServiceTemplateSpec"),
 						},
 					},
+					"TerminationPolicy": {
+						SchemaProps: spec.SchemaProps{
+							Description: "TerminationPolicy controls the delete operation for database",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
 					"nodeSelector": {
 						SchemaProps: spec.SchemaProps{
 							Description: "NodeSelector is a selector which must be true for the pod to fit on a node Deprecated: Use podTemplate.spec.nodeSelector",
@@ -1372,6 +1379,13 @@ func schema_apimachinery_apis_kubedb_v1alpha1_EtcdSpec(ref common.ReferenceCallb
 							Ref:         ref("kmodules.xyz/offshoot-api/api/v1.ServiceTemplateSpec"),
 						},
 					},
+					"TerminationPolicy": {
+						SchemaProps: spec.SchemaProps{
+							Description: "TerminationPolicy controls the delete operation for database",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
 				},
 				Required: []string{"version"},
 			},
@@ -1786,6 +1800,13 @@ func schema_apimachinery_apis_kubedb_v1alpha1_MemcachedSpec(ref common.Reference
 						SchemaProps: spec.SchemaProps{
 							Description: "ServiceTemplate is an optional configuration for service used to expose database",
 							Ref:         ref("kmodules.xyz/offshoot-api/api/v1.ServiceTemplateSpec"),
+						},
+					},
+					"TerminationPolicy": {
+						SchemaProps: spec.SchemaProps{
+							Description: "TerminationPolicy controls the delete operation for database",
+							Type:        []string{"string"},
+							Format:      "",
 						},
 					},
 					"nodeSelector": {
@@ -2245,6 +2266,13 @@ func schema_apimachinery_apis_kubedb_v1alpha1_MongoDBSpec(ref common.ReferenceCa
 							Ref:         ref("kmodules.xyz/offshoot-api/api/v1.ServiceTemplateSpec"),
 						},
 					},
+					"TerminationPolicy": {
+						SchemaProps: spec.SchemaProps{
+							Description: "TerminationPolicy controls the delete operation for database",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
 					"nodeSelector": {
 						SchemaProps: spec.SchemaProps{
 							Description: "NodeSelector is a selector which must be true for the pod to fit on a node Deprecated: Use podTemplate.spec.nodeSelector",
@@ -2695,6 +2723,13 @@ func schema_apimachinery_apis_kubedb_v1alpha1_MySQLSpec(ref common.ReferenceCall
 						SchemaProps: spec.SchemaProps{
 							Description: "ServiceTemplate is an optional configuration for service used to expose database",
 							Ref:         ref("kmodules.xyz/offshoot-api/api/v1.ServiceTemplateSpec"),
+						},
+					},
+					"TerminationPolicy": {
+						SchemaProps: spec.SchemaProps{
+							Description: "TerminationPolicy controls the delete operation for database",
+							Type:        []string{"string"},
+							Format:      "",
 						},
 					},
 					"nodeSelector": {
@@ -3293,6 +3328,13 @@ func schema_apimachinery_apis_kubedb_v1alpha1_PostgresSpec(ref common.ReferenceC
 							Ref:         ref("kmodules.xyz/offshoot-api/api/v1.ServiceTemplateSpec"),
 						},
 					},
+					"TerminationPolicy": {
+						SchemaProps: spec.SchemaProps{
+							Description: "TerminationPolicy controls the delete operation for database",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
 					"nodeSelector": {
 						SchemaProps: spec.SchemaProps{
 							Description: "NodeSelector is a selector which must be true for the pod to fit on a node Deprecated: Use podTemplate.spec.nodeSelector",
@@ -3844,6 +3886,13 @@ func schema_apimachinery_apis_kubedb_v1alpha1_RedisSpec(ref common.ReferenceCall
 						SchemaProps: spec.SchemaProps{
 							Description: "ServiceTemplate is an optional configuration for service used to expose database",
 							Ref:         ref("kmodules.xyz/offshoot-api/api/v1.ServiceTemplateSpec"),
+						},
+					},
+					"TerminationPolicy": {
+						SchemaProps: spec.SchemaProps{
+							Description: "TerminationPolicy controls the delete operation for database",
+							Type:        []string{"string"},
+							Format:      "",
 						},
 					},
 					"nodeSelector": {

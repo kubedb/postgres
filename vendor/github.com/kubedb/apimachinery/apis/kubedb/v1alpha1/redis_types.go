@@ -61,6 +61,10 @@ type RedisSpec struct {
 	// +optional
 	ServiceTemplate ofst.ServiceTemplateSpec `json:"serviceTemplate,omitempty"`
 
+	// TerminationPolicy controls the delete operation for database
+	// +optional
+	TerminationPolicy TerminationPolicy `json"terminationPolicy,omitempty"`
+
 	// -------------------------------------------------------------------------
 
 	// NodeSelector is a selector which must be true for the pod to fit on a node

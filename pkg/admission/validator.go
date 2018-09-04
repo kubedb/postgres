@@ -137,6 +137,10 @@ func ValidatePostgres(client kubernetes.Interface, extClient kubedbv1alpha1.Kube
 		return fmt.Errorf(`'spec.storageType' is missing`)
 	}
 
+	if postgres.Spec.TerminationPolicy == "" {
+		return fmt.Errorf(`'spec.terminationPolicy' is missing`)
+	}
+
 	if postgres.Spec.Replicas == nil || *postgres.Spec.Replicas < 1 {
 		return fmt.Errorf(`spec.replicas "%v" invalid. Value must be greater than zero`, postgres.Spec.Replicas)
 	}
