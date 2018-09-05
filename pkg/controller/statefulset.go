@@ -112,7 +112,7 @@ func (c *Controller) ensureStatefulSet(
 			in.Spec.Template.Spec.ServiceAccountName = postgres.OffshootName()
 		}
 
-		in.Spec.UpdateStrategy.Type = apps.RollingUpdateStatefulSetStrategyType
+		in.Spec.UpdateStrategy = postgres.Spec.UpdateStrategy
 
 		return in
 	})

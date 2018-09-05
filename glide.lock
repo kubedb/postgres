@@ -1,5 +1,5 @@
-hash: 419d319914482ca568d935f0feb19c36486bfcfed4dbc166bf76dddfeb6ab7e2
-updated: 2018-09-04T13:22:00.650542578-07:00
+hash: 0aeb2e0fd5382953888a6649606131c70df3e7422ee47dd9462001adbe7482f4
+updated: 2018-09-05T13:55:48.281167884-07:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -225,7 +225,7 @@ imports:
 - name: github.com/ghodss/yaml
   version: 0ca9ea5df5451ffdf184b4428c902747c2c11cd7
 - name: github.com/go-ini/ini
-  version: 300e940a926eb277d3901b20bdfcc54928ad3642
+  version: 20b96f641a5ea98f2f8619ff4f3e061cff4833bd
 - name: github.com/go-openapi/jsonpointer
   version: 46af16f9f7b149af66e5d1bd010e3574dc06de98
 - name: github.com/go-openapi/jsonreference
@@ -235,7 +235,7 @@ imports:
 - name: github.com/go-openapi/swag
   version: f3f9494671f93fcff853e3c6e9e948b3eb71e590
 - name: github.com/go-xorm/builder
-  version: 377feedb49e3aab9537dcb7e428b74f06635fb54
+  version: 145c9968bfe732a56d7160439d25154c5aaa2f35
 - name: github.com/go-xorm/core
   version: c10e21e7e1cec20e09398f2dfae385e58c8df555
 - name: github.com/go-xorm/xorm
@@ -274,7 +274,7 @@ imports:
 - name: github.com/google/gofuzz
   version: 44d81051d367757e1c7c6a5a86423ece9afcf63c
 - name: github.com/google/uuid
-  version: 8c31c18f31ede9fc8eae72290a7e7a8064e9b3e3
+  version: d460ce9f8df2e77fb1ba55ca87fafed96c607494
 - name: github.com/googleapis/gnostic
   version: 0c5108395e2debce0d731cf0287ddf7242066aba
   subpackages:
@@ -326,7 +326,7 @@ imports:
 - name: github.com/json-iterator/go
   version: 1624edc4454b8682399def8740d46db5e4362ba4
 - name: github.com/kubedb/apimachinery
-  version: 1e34763325582740fdd60fb127a594093c3daa49
+  version: a6122c1cee7a49ef4b44e77dd5f73b40e45d7584
   subpackages:
   - apis/kubedb
   - apis/kubedb/v1alpha1
@@ -491,6 +491,8 @@ imports:
   - lex/httplex
   - trace
   - websocket
+- name: golang.org/x/net/websocket
+  version: 1c05540f6879653db88113bc4a2b70aec4bd491f
 - name: golang.org/x/oauth2
   version: a6bd8cefa1811bd24b86f8902872e4e8225f74c4
   subpackages:
@@ -589,7 +591,7 @@ imports:
 - name: gopkg.in/tomb.v1
   version: c131134a1947e9afd9cecfe11f4c6dff0732ae58
 - name: gopkg.in/yaml.v2
-  version: 670d4cfef0544295bc27a114dbac37980d83185a
+  version: 5420a8b6744d3b0345ab293f6fcba19c978f1183
 - name: k8s.io/api
   version: 072894a440bdee3a891dea811fe42902311cd2a3
   subpackages:
@@ -987,7 +989,7 @@ imports:
   - api/v1
   - osm
 - name: kmodules.xyz/offshoot-api
-  version: 5ff9de954aeb2148edc7a831671f3f875aa56f30
+  version: 53af0446a528dbf697541ec39bd6408871743d06
   repo: https://github.com/kmodules/offshoot-api.git
   vcs: git
   subpackages:
