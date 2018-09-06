@@ -1,5 +1,5 @@
-hash: 419d319914482ca568d935f0feb19c36486bfcfed4dbc166bf76dddfeb6ab7e2
-updated: 2018-09-04T13:22:00.650542578-07:00
+hash: 0aeb2e0fd5382953888a6649606131c70df3e7422ee47dd9462001adbe7482f4
+updated: 2018-09-06T11:10:49.30791029+06:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -221,7 +221,7 @@ imports:
 - name: github.com/fatih/structs
   version: ebf56d35bba727c68ac77f56f2fcf90b181851aa
 - name: github.com/fsnotify/fsnotify
-  version: f12c6236fe7b5cf6bcf30e5935d08cb079d78334
+  version: c2828203cd70a50dcccfb2761f8b1f8ceef9a8e9
 - name: github.com/ghodss/yaml
   version: 0ca9ea5df5451ffdf184b4428c902747c2c11cd7
 - name: github.com/go-ini/ini
@@ -326,7 +326,7 @@ imports:
 - name: github.com/json-iterator/go
   version: 1624edc4454b8682399def8740d46db5e4362ba4
 - name: github.com/kubedb/apimachinery
-  version: 1e34763325582740fdd60fb127a594093c3daa49
+  version: a6122c1cee7a49ef4b44e77dd5f73b40e45d7584
   subpackages:
   - apis/kubedb
   - apis/kubedb/v1alpha1
@@ -533,7 +533,7 @@ imports:
   subpackages:
   - rate
 - name: google.golang.org/api
-  version: 0ad5a633fea1d4b64bf5e6a01e30d1fc466038e5
+  version: 49a9310a91459e9e5d4187bfb5a591434de572f7
   subpackages:
   - gensupport
   - googleapi
@@ -987,7 +987,7 @@ imports:
   - api/v1
   - osm
 - name: kmodules.xyz/offshoot-api
-  version: 5ff9de954aeb2148edc7a831671f3f875aa56f30
+  version: 53af0446a528dbf697541ec39bd6408871743d06
   repo: https://github.com/kmodules/offshoot-api.git
   vcs: git
   subpackages:

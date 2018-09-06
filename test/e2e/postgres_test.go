@@ -69,6 +69,9 @@ var _ = Describe("Postgres", func() {
 
 		By("Wait for Running postgres")
 		f.EventuallyPostgresRunning(postgres.ObjectMeta).Should(BeTrue())
+
+		By("Waiting for database to be ready")
+		f.EventuallyPingDatabase(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
 	}
 
 	var deleteTestResource = func() {
@@ -231,19 +234,58 @@ var _ = Describe("Postgres", func() {
 			}
 
 			Context("In Local", func() {
+
 				BeforeEach(func() {
 					skipSnapshotDataChecking = true
 					secret = f.SecretForLocalBackend()
 					snapshot.Spec.StorageSecretName = secret.Name
-					snapshot.Spec.Local = &store.LocalSpec{
-						MountPath: "/repo",
-						VolumeSource: core.VolumeSource{
-							EmptyDir: &core.EmptyDirVolumeSource{},
-						},
-					}
 				})
 
-				It("should take Snapshot successfully", shouldTakeSnapshot)
+				Context("With EmptyDir as Snapshot's backend", func() {
+					BeforeEach(func() {
+						snapshot.Spec.Local = &store.LocalSpec{
+							MountPath: "/repo",
+							VolumeSource: core.VolumeSource{
+								EmptyDir: &core.EmptyDirVolumeSource{},
+							},
+						}
+					})
+
+					It("should take Snapshot successfully", shouldTakeSnapshot)
+				})
+
+				Context("With PVC as Snapshot's backend", func() {
+					var snapPVC *core.PersistentVolumeClaim
+
+					BeforeEach(func() {
+						snapPVC = f.GetPersistentVolumeClaim()
+						err := f.CreatePersistentVolumeClaim(snapPVC)
+						Expect(err).NotTo(HaveOccurred())
+
+						snapshot.Spec.Local = &store.LocalSpec{
+							MountPath: "/repo",
+							VolumeSource: core.VolumeSource{
+								PersistentVolumeClaim: &core.PersistentVolumeClaimVolumeSource{
+									ClaimName: snapPVC.Name,
+								},
+							},
+						}
+					})
+
+					AfterEach(func() {
+						f.DeletePersistentVolumeClaim(snapPVC.ObjectMeta)
+					})
+
+					It("should delete Snapshot successfully", func() {
+						shouldTakeSnapshot()
+
+						By("Deleting Snapshot")
+						f.DeleteSnapshot(snapshot.ObjectMeta)
+
+						By("Waiting Snapshot to be deleted")
+						f.EventuallySnapshotDeleted(snapshot.ObjectMeta).Should(BeTrue())
+					})
+				})
 			})
 
 			Context("In S3", func() {
@@ -762,9 +804,44 @@ var _ = Describe("Postgres", func() {
 
 		Context("EnvVars", func() {
 
+			var shouldRunSuccessfullyWithProvidedEnvVars = func() {
+				// Create Postgres
+				createAndWaitForRunning()
+
+				By("Creating Schema")
+				f.EventuallyCreateSchema(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
+
+				By("Creating Table")
+				f.EventuallyCreateTable(postgres.ObjectMeta, dbName, dbUser, 3).Should(BeTrue())
+
+				By("Checking Table")
+				f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
+
+				By("Delete postgres")
+				err = f.DeletePostgres(postgres.ObjectMeta)
+				Expect(err).NotTo(HaveOccurred())
+
+				By("Wait for postgres to be paused")
+				f.EventuallyDormantDatabaseStatus(postgres.ObjectMeta).Should(matcher.HavePaused())
+
+				// Create Postgres object again to resume it
+				By("Create Postgres: " + postgres.Name)
+				err = f.CreatePostgres(postgres)
+				Expect(err).NotTo(HaveOccurred())
+
+				By("Wait for DormantDatabase to be deleted")
+				f.EventuallyDormantDatabase(postgres.ObjectMeta).Should(BeFalse())
+
+				By("Wait for Running postgres")
+				f.EventuallyPostgresRunning(postgres.ObjectMeta).Should(BeTrue())
+
+				By("Checking Table")
+				f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
+			}
+
 			Context("With all supported EnvVars", func() {
 
-				It("should create DB with provided EvnVars", func() {
+				It("should create DB with provided EnvVars", func() {
 					if skipMessage != "" {
 						Skip(skipMessage)
 					}
@@ -810,38 +887,8 @@ var _ = Describe("Postgres", func() {
 					}
 					postgres.Spec.PodTemplate.Spec.Env = core_util.UpsertEnvVars(postgres.Spec.PodTemplate.Spec.Env, walEnv...)
 
-					// Create Postgres
-					createAndWaitForRunning()
-
-					By("Creating Schema")
-					f.EventuallyCreateSchema(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
-
-					By("Creating Table")
-					f.EventuallyCreateTable(postgres.ObjectMeta, dbName, dbUser, 3).Should(BeTrue())
-
-					By("Checking Table")
-					f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
-
-					By("Delete postgres")
-					err = f.DeletePostgres(postgres.ObjectMeta)
-					Expect(err).NotTo(HaveOccurred())
-
-					By("Wait for postgres to be paused")
-					f.EventuallyDormantDatabaseStatus(postgres.ObjectMeta).Should(matcher.HavePaused())
-
-					// Create Postgres object again to resume it
-					By("Create Postgres: " + postgres.Name)
-					err = f.CreatePostgres(postgres)
-					Expect(err).NotTo(HaveOccurred())
-
-					By("Wait for DormantDatabase to be deleted")
-					f.EventuallyDormantDatabase(postgres.ObjectMeta).Should(BeFalse())
-
-					By("Wait for Running postgres")
-					f.EventuallyPostgresRunning(postgres.ObjectMeta).Should(BeTrue())
-
-					By("Checking Table")
-					f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
+					// Run Postgres with provided Environment Variables
+					shouldRunSuccessfullyWithProvidedEnvVars()
 				})
 			})
 
@@ -868,7 +915,7 @@ var _ = Describe("Postgres", func() {
 
 			Context("Update EnvVar", func() {
 
-				It("should reject to update EvnVar", func() {
+				It("should reject to update EnvVar", func() {
 					if skipMessage != "" {
 						Skip(skipMessage)
 					}
@@ -880,38 +927,9 @@ var _ = Describe("Postgres", func() {
 							Value: dbName,
 						},
 					}
-					// Create Postgres
-					createAndWaitForRunning()
 
-					By("Creating Schema")
-					f.EventuallyCreateSchema(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
-
-					By("Creating Table")
-					f.EventuallyCreateTable(postgres.ObjectMeta, dbName, dbUser, 3).Should(BeTrue())
-
-					By("Checking Table")
-					f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
-
-					By("Delete postgres")
-					err = f.DeletePostgres(postgres.ObjectMeta)
-					Expect(err).NotTo(HaveOccurred())
-
-					By("Wait for postgres to be paused")
-					f.EventuallyDormantDatabaseStatus(postgres.ObjectMeta).Should(matcher.HavePaused())
-
-					// Create Postgres object again to resume it
-					By("Create Postgres: " + postgres.Name)
-					err = f.CreatePostgres(postgres)
-					Expect(err).NotTo(HaveOccurred())
-
-					By("Wait for DormantDatabase to be deleted")
-					f.EventuallyDormantDatabase(postgres.ObjectMeta).Should(BeFalse())
-
-					By("Wait for Running postgres")
-					f.EventuallyPostgresRunning(postgres.ObjectMeta).Should(BeTrue())
-
-					By("Checking Table")
-					f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
+					// Run Postgres with provided Environment Variables
+					shouldRunSuccessfullyWithProvidedEnvVars()
 
 					By("Patching EnvVar")
 					_, _, err = util.PatchPostgres(f.ExtClient(), postgres, func(in *api.Postgres) *api.Postgres {
