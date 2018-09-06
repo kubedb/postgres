@@ -45,6 +45,7 @@ CREATE SCHEMA "data" AUTHORIZATION "%s";`, userName)
 			if err != nil {
 				return false
 			}
+			defer db.Close()
 
 			if err := f.CheckPostgres(db); err != nil {
 				return false
@@ -81,6 +82,7 @@ func (f *Framework) EventuallyPingDatabase(meta metav1.ObjectMeta, dbName string
 			if err != nil {
 				return false
 			}
+			defer db.Close()
 
 			if err := f.CheckPostgres(db); err != nil {
 				return false
@@ -101,6 +103,7 @@ func (f *Framework) EventuallyCreateTable(meta metav1.ObjectMeta, dbName string,
 			if err != nil {
 				return false
 			}
+			defer db.Close()
 
 			if err := f.CheckPostgres(db); err != nil {
 				return false
@@ -130,6 +133,7 @@ func (f *Framework) EventuallyCountTable(meta metav1.ObjectMeta, dbName string, 
 			if err != nil {
 				return -1
 			}
+			defer db.Close()
 
 			if err := f.CheckPostgres(db); err != nil {
 				return -1
@@ -168,6 +172,7 @@ func (f *Framework) EventuallyCountArchive(meta metav1.ObjectMeta, dbName string
 			if err != nil {
 				return false
 			}
+			defer db.Close()
 
 			if err := f.CheckPostgres(db); err != nil {
 				return false
@@ -203,6 +208,7 @@ func (f *Framework) EventuallyPGSettings(meta metav1.ObjectMeta, dbName string, 
 			if err != nil {
 				return nil
 			}
+			defer db.Close()
 
 			if err := f.CheckPostgres(db); err != nil {
 				return nil

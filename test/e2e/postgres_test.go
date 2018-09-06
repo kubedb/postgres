@@ -648,7 +648,7 @@ var _ = Describe("Postgres", func() {
 					}
 				})
 
-				It("should run schedular successfully", func() {
+				It("should run scheduler successfully", func() {
 					By("Create Secret")
 					f.CreateSecret(secret)
 
@@ -660,8 +660,8 @@ var _ = Describe("Postgres", func() {
 				})
 			})
 
-			Context("With Update", func() {
-				It("should run schedular successfully", func() {
+			FContext("With Update", func() {
+				It("should run scheduler successfully", func() {
 					// Create and wait for running Postgres
 					createAndWaitForRunning()
 
@@ -802,7 +802,7 @@ var _ = Describe("Postgres", func() {
 			})
 		})
 
-		Context("EnvVars", func() {
+		FContext("EnvVars", func() {
 
 			var shouldRunSuccessfullyWithProvidedEnvVars = func() {
 				// Create Postgres
@@ -851,15 +851,10 @@ var _ = Describe("Postgres", func() {
 						walDir  = "/var/pv/wal"
 					)
 					dbName = f.App()
-					dbUser = f.App()
 					postgres.Spec.PodTemplate.Spec.Env = []core.EnvVar{
 						{
 							Name:  PGDATA,
 							Value: dataDir,
-						},
-						{
-							Name:  POSTGRES_USER,
-							Value: dbUser,
 						},
 						{
 							Name:  POSTGRES_DB,
@@ -947,7 +942,7 @@ var _ = Describe("Postgres", func() {
 			})
 		})
 
-		Context("Custom config", func() {
+		FContext("Custom config", func() {
 
 			customConfigs := []string{
 				"shared_buffers=256MB",
