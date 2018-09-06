@@ -14,7 +14,6 @@ import (
 	cs "github.com/kubedb/apimachinery/client/clientset/versioned"
 	"github.com/pkg/errors"
 	admission "k8s.io/api/admission/v1beta1"
-	apps "k8s.io/api/apps/v1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -105,28 +104,15 @@ func setDefaultValues(client kubernetes.Interface, extClient cs.Interface, postg
 	if postgres.Spec.Replicas == nil {
 		postgres.Spec.Replicas = types.Int32P(1)
 	}
+	postgres.SetDefaults()
 
 	if err := setDefaultsFromDormantDB(extClient, postgres); err != nil {
 		return nil, err
 	}
 
-	if postgres.Spec.StorageType == "" {
-		postgres.Spec.StorageType = api.StorageTypeDurable
-	}
-
-	if postgres.Spec.UpdateStrategy.Type == "" {
-		postgres.Spec.UpdateStrategy.Type = apps.RollingUpdateStatefulSetStrategyType
-	}
-
-	if postgres.Spec.TerminationPolicy == "" {
-		postgres.Spec.TerminationPolicy = api.TerminationPolicyPause
-	}
-
 	// If monitoring spec is given without port,
 	// set default Listening port
 	setMonitoringPort(postgres)
-
-	postgres.Migrate()
 
 	return postgres, nil
 }
@@ -149,18 +135,7 @@ func setDefaultsFromDormantDB(extClient cs.Interface, postgres *api.Postgres) er
 
 	// Check Origin Spec
 	ddbOriginSpec := dormantDb.Spec.Origin.Spec.Postgres
-
-	if postgres.Spec.StorageType == "" {
-		postgres.Spec.StorageType = ddbOriginSpec.StorageType
-	}
-
-	if postgres.Spec.UpdateStrategy.Type == "" {
-		postgres.Spec.UpdateStrategy = ddbOriginSpec.UpdateStrategy
-	}
-
-	if postgres.Spec.TerminationPolicy == "" {
-		postgres.Spec.TerminationPolicy = ddbOriginSpec.TerminationPolicy
-	}
+	ddbOriginSpec.SetDefaults()
 
 	// If DatabaseSecret of new object is not given,
 	// Take dormantDatabaseSecretName

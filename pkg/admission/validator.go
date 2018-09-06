@@ -258,6 +258,7 @@ func matchWithDormantDatabase(extClient kubedbv1alpha1.KubedbV1alpha1Interface, 
 
 	// Check Origin Spec
 	drmnOriginSpec := dormantDb.Spec.Origin.Spec.Postgres
+	drmnOriginSpec.SetDefaults()
 	originalSpec := postgres.Spec
 
 	// Skip checking doNotPause
