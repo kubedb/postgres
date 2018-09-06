@@ -5,6 +5,7 @@ import (
 
 	crdutils "github.com/appscode/kutil/apiextensions/v1beta1"
 	meta_util "github.com/appscode/kutil/meta"
+	apps "k8s.io/api/apps/v1"
 	apiextensions "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	mona "kmodules.xyz/monitoring-agent-api/api/v1"
 )
@@ -128,18 +129,29 @@ func (p Postgres) CustomResourceDefinition() *apiextensions.CustomResourceDefini
 	}, setNameSchema)
 }
 
-func (p *Postgres) Migrate() {
+func (p *Postgres) SetDefaults() {
 	if p == nil {
 		return
 	}
-	p.Spec.Migrate()
+	p.Spec.SetDefaults()
 }
 
-func (p *PostgresSpec) Migrate() {
+func (p *PostgresSpec) SetDefaults() {
 	if p == nil {
 		return
 	}
-	p.BackupSchedule.Migrate()
+	if p.StorageType == "" {
+		p.StorageType = StorageTypeDurable
+	}
+	if p.UpdateStrategy.Type == "" {
+		p.UpdateStrategy.Type = apps.RollingUpdateStatefulSetStrategyType
+	}
+	if p.TerminationPolicy == "" {
+		p.TerminationPolicy = TerminationPolicyPause
+	}
+
+	// migrations
+	p.BackupSchedule.SetDefaults()
 	if len(p.NodeSelector) > 0 {
 		p.PodTemplate.Spec.NodeSelector = p.NodeSelector
 		p.NodeSelector = nil
@@ -164,4 +176,16 @@ func (p *PostgresSpec) Migrate() {
 		p.PodTemplate.Spec.ImagePullSecrets = p.ImagePullSecrets
 		p.ImagePullSecrets = nil
 	}
+}
+
+func (e *PostgresSpec) GetSecrets() []string {
+	if e == nil {
+		return nil
+	}
+
+	var secrets []string
+	if e.DatabaseSecret != nil {
+		secrets = append(secrets, e.DatabaseSecret.SecretName)
+	}
+	return secrets
 }

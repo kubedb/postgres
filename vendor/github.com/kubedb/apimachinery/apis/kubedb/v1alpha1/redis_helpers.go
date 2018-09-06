@@ -5,6 +5,7 @@ import (
 
 	crdutils "github.com/appscode/kutil/apiextensions/v1beta1"
 	meta_util "github.com/appscode/kutil/meta"
+	apps "k8s.io/api/apps/v1"
 	apiextensions "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	mona "kmodules.xyz/monitoring-agent-api/api/v1"
 )
@@ -122,17 +123,28 @@ func (r Redis) CustomResourceDefinition() *apiextensions.CustomResourceDefinitio
 	}, setNameSchema)
 }
 
-func (r *Redis) Migrate() {
+func (r *Redis) SetDefault() {
 	if r == nil {
 		return
 	}
-	r.Spec.Migrate()
+	r.Spec.SetDefault()
 }
 
-func (r *RedisSpec) Migrate() {
+func (r *RedisSpec) SetDefault() {
 	if r == nil {
 		return
 	}
+	if r.StorageType == "" {
+		r.StorageType = StorageTypeDurable
+	}
+	if r.UpdateStrategy.Type == "" {
+		r.UpdateStrategy.Type = apps.RollingUpdateStatefulSetStrategyType
+	}
+	if r.TerminationPolicy == "" {
+		r.TerminationPolicy = TerminationPolicyPause
+	}
+
+	// migrations
 	if len(r.NodeSelector) > 0 {
 		r.PodTemplate.Spec.NodeSelector = r.NodeSelector
 		r.NodeSelector = nil
@@ -157,4 +169,8 @@ func (r *RedisSpec) Migrate() {
 		r.PodTemplate.Spec.ImagePullSecrets = r.ImagePullSecrets
 		r.ImagePullSecrets = nil
 	}
+}
+
+func (e *RedisSpec) GetSecrets() []string {
+	return nil
 }
