@@ -660,7 +660,7 @@ var _ = Describe("Postgres", func() {
 				})
 			})
 
-			FContext("With Update", func() {
+			Context("With Update", func() {
 				It("should run scheduler successfully", func() {
 					// Create and wait for running Postgres
 					createAndWaitForRunning()
@@ -802,7 +802,7 @@ var _ = Describe("Postgres", func() {
 			})
 		})
 
-		FContext("EnvVars", func() {
+		Context("EnvVars", func() {
 
 			var shouldRunSuccessfullyWithProvidedEnvVars = func() {
 				// Create Postgres
@@ -942,7 +942,7 @@ var _ = Describe("Postgres", func() {
 			})
 		})
 
-		FContext("Custom config", func() {
+		Context("Custom config", func() {
 
 			customConfigs := []string{
 				"shared_buffers=256MB",
