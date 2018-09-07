@@ -22,7 +22,7 @@ func (i *Invocation) PostgresVersion() *api.PostgresVersion {
 				Image: fmt.Sprintf("%s/postgres:%s", DockerRegistry, DBVersion),
 			},
 			Exporter: api.PostgresVersionExporter{
-				Image: fmt.Sprintf("%s/operator:%s", DockerRegistry, ExporterTag),
+				Image: fmt.Sprintf("%s/postgres_exporter:%s", DockerRegistry, ExporterTag),
 			},
 			Tools: api.PostgresVersionTools{
 				Image: fmt.Sprintf("%s/postgres-tools:%s", DockerRegistry, DBVersion),

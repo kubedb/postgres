@@ -140,17 +140,8 @@ func (p *PostgresSpec) SetDefaults() {
 	if p == nil {
 		return
 	}
-	if p.StorageType == "" {
-		p.StorageType = StorageTypeDurable
-	}
-	if p.UpdateStrategy.Type == "" {
-		p.UpdateStrategy.Type = apps.RollingUpdateStatefulSetStrategyType
-	}
-	if p.TerminationPolicy == "" {
-		p.TerminationPolicy = TerminationPolicyPause
-	}
 
-	// migrations
+	// migrate first to avoid incorrect defaulting
 	p.BackupSchedule.SetDefaults()
 	if len(p.NodeSelector) > 0 {
 		p.PodTemplate.Spec.NodeSelector = p.NodeSelector
@@ -175,6 +166,17 @@ func (p *PostgresSpec) SetDefaults() {
 	if len(p.ImagePullSecrets) > 0 {
 		p.PodTemplate.Spec.ImagePullSecrets = p.ImagePullSecrets
 		p.ImagePullSecrets = nil
+	}
+
+	// perform defaulting
+	if p.StorageType == "" {
+		p.StorageType = StorageTypeDurable
+	}
+	if p.UpdateStrategy.Type == "" {
+		p.UpdateStrategy.Type = apps.RollingUpdateStatefulSetStrategyType
+	}
+	if p.TerminationPolicy == "" {
+		p.TerminationPolicy = TerminationPolicyPause
 	}
 }
 

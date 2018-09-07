@@ -153,17 +153,8 @@ func (e *ElasticsearchSpec) SetDefaults() {
 	if e == nil {
 		return
 	}
-	if e.StorageType == "" {
-		e.StorageType = StorageTypeDurable
-	}
-	if e.UpdateStrategy.Type == "" {
-		e.UpdateStrategy.Type = apps.RollingUpdateStatefulSetStrategyType
-	}
-	if e.TerminationPolicy == "" {
-		e.TerminationPolicy = TerminationPolicyPause
-	}
 
-	// migrations
+	// migrate first to avoid incorrect defaulting
 	e.BackupSchedule.SetDefaults()
 	if len(e.NodeSelector) > 0 {
 		e.PodTemplate.Spec.NodeSelector = e.NodeSelector
@@ -188,6 +179,17 @@ func (e *ElasticsearchSpec) SetDefaults() {
 	if len(e.ImagePullSecrets) > 0 {
 		e.PodTemplate.Spec.ImagePullSecrets = e.ImagePullSecrets
 		e.ImagePullSecrets = nil
+	}
+
+	// perform defaulting
+	if e.StorageType == "" {
+		e.StorageType = StorageTypeDurable
+	}
+	if e.UpdateStrategy.Type == "" {
+		e.UpdateStrategy.Type = apps.RollingUpdateStatefulSetStrategyType
+	}
+	if e.TerminationPolicy == "" {
+		e.TerminationPolicy = TerminationPolicyPause
 	}
 }
 

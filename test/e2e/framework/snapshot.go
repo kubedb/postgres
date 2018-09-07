@@ -9,6 +9,7 @@ import (
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	kutildb "github.com/kubedb/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1/util"
 	. "github.com/onsi/gomega"
+	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	storage "kmodules.xyz/objectstore-api/osm"
@@ -82,6 +83,24 @@ func (f *Framework) EventuallySnapshotCount(meta metav1.ObjectMeta) GomegaAsyncA
 			return len(snapshotList.Items)
 		},
 		time.Minute*10,
+		time.Second*5,
+	)
+}
+
+func (f *Framework) EventuallySnapshotDeleted(meta metav1.ObjectMeta) GomegaAsyncAssertion {
+
+	return Eventually(
+		func() bool {
+			_, err := f.extClient.Snapshots(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
+			if err != nil {
+				if kerr.IsNotFound(err) {
+					return true
+				}
+				Expect(err).NotTo(HaveOccurred())
+			}
+			return false
+		},
+		time.Minute*5,
 		time.Second*5,
 	)
 }
