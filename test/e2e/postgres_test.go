@@ -60,10 +60,12 @@ var _ = Describe("Postgres", func() {
 	})
 
 	var createAndWaitForRunning = func() {
-		By("Create Postgres: " + postgres.Name)
 
+		By("Ensuring PostgresVersion crd")
 		err = f.CreatePostgresVersion(postgresVersion)
 		Expect(err).NotTo(HaveOccurred())
+
+		By("Creating Postgres: " + postgres.Name)
 		err = f.CreatePostgres(postgres)
 		Expect(err).NotTo(HaveOccurred())
 

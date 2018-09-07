@@ -35,4 +35,5 @@ pushd "$GOPATH"/src/github.com/$ORG_NAME/$REPO_NAME
   --v=1 \
   --storageclass=${StorageClass:-standard} \
   --selfhosted-operator=true \
+  --docker-registry=${DOCKER_REGISTRY} \
   --ginkgo.flakeAttempts=2
