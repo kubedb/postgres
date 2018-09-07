@@ -123,28 +123,19 @@ func (r Redis) CustomResourceDefinition() *apiextensions.CustomResourceDefinitio
 	}, setNameSchema)
 }
 
-func (r *Redis) SetDefault() {
+func (r *Redis) SetDefaults() {
 	if r == nil {
 		return
 	}
-	r.Spec.SetDefault()
+	r.Spec.SetDefaults()
 }
 
-func (r *RedisSpec) SetDefault() {
+func (r *RedisSpec) SetDefaults() {
 	if r == nil {
 		return
 	}
-	if r.StorageType == "" {
-		r.StorageType = StorageTypeDurable
-	}
-	if r.UpdateStrategy.Type == "" {
-		r.UpdateStrategy.Type = apps.RollingUpdateStatefulSetStrategyType
-	}
-	if r.TerminationPolicy == "" {
-		r.TerminationPolicy = TerminationPolicyPause
-	}
 
-	// migrations
+	// migrate first to avoid incorrect defaulting
 	if len(r.NodeSelector) > 0 {
 		r.PodTemplate.Spec.NodeSelector = r.NodeSelector
 		r.NodeSelector = nil
@@ -168,6 +159,17 @@ func (r *RedisSpec) SetDefault() {
 	if len(r.ImagePullSecrets) > 0 {
 		r.PodTemplate.Spec.ImagePullSecrets = r.ImagePullSecrets
 		r.ImagePullSecrets = nil
+	}
+
+	// perform defaulting
+	if r.StorageType == "" {
+		r.StorageType = StorageTypeDurable
+	}
+	if r.UpdateStrategy.Type == "" {
+		r.UpdateStrategy.Type = apps.RollingUpdateStatefulSetStrategyType
+	}
+	if r.TerminationPolicy == "" {
+		r.TerminationPolicy = TerminationPolicyPause
 	}
 }
 

@@ -4,6 +4,11 @@
 
 package builder
 
+import (
+	sql2 "database/sql"
+	"fmt"
+)
+
 type optype byte
 
 const (
@@ -62,6 +67,31 @@ type Builder struct {
 func Dialect(dialect string) *Builder {
 	builder := &Builder{cond: NewCond(), dialect: dialect}
 	return builder
+}
+
+// MySQL is shortcut of Dialect(MySQL)
+func MySQL() *Builder {
+	return Dialect(MYSQL)
+}
+
+// MsSQL is shortcut of Dialect(MsSQL)
+func MsSQL() *Builder {
+	return Dialect(MSSQL)
+}
+
+// Oracle is shortcut of Dialect(Oracle)
+func Oracle() *Builder {
+	return Dialect(ORACLE)
+}
+
+// Postgres is shortcut of Dialect(Postgres)
+func Postgres() *Builder {
+	return Dialect(POSTGRES)
+}
+
+// SQLite is shortcut of Dialect(SQLITE)
+func SQLite() *Builder {
+	return Dialect(SQLITE)
 }
 
 // Where sets where SQL
@@ -142,7 +172,10 @@ func (b *Builder) Union(unionTp string, unionCond *Builder) *Builder {
 	}
 
 	if unionCond != nil {
-		unionCond.dialect = builder.dialect
+		if unionCond.dialect == "" && builder.dialect != "" {
+			unionCond.dialect = builder.dialect
+		}
+
 		builder.unions = append(builder.unions, union{unionTp, unionCond})
 	}
 
@@ -257,7 +290,40 @@ func (b *Builder) ToSQL() (string, []interface{}, error) {
 		return "", nil, err
 	}
 
-	return w.writer.String(), w.args, nil
+	// in case of sql.NamedArg in args
+	for e := range w.args {
+		if namedArg, ok := w.args[e].(sql2.NamedArg); ok {
+			w.args[e] = namedArg.Value
+		}
+	}
+
+	var sql = w.writer.String()
+	var err error
+
+	switch b.dialect {
+	case ORACLE, MSSQL:
+		// This is for compatibility with different sql drivers
+		for e := range w.args {
+			w.args[e] = sql2.Named(fmt.Sprintf("p%d", e+1), w.args[e])
+		}
+
+		var prefix string
+		if b.dialect == ORACLE {
+			prefix = ":p"
+		} else {
+			prefix = "@p"
+		}
+
+		if sql, err = ConvertPlaceholder(sql, prefix); err != nil {
+			return "", nil, err
+		}
+	case POSTGRES:
+		if sql, err = ConvertPlaceholder(sql, "$"); err != nil {
+			return "", nil, err
+		}
+	}
+
+	return sql, w.args, nil
 }
 
 // ToBoundSQL

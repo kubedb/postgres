@@ -152,7 +152,7 @@ func (a *DormantDatabaseValidator) setOwnerReferenceToObjects(dormantDatabase *a
 	if err := dynamic_util.EnsureOwnerReferenceForSelector(
 		a.dc,
 		core.SchemeGroupVersion.WithResource("persistentvolumeclaims"),
-		"", // non-namespaced
+		dormantDatabase.Namespace,
 		selector,
 		ref); err != nil {
 		return nil
@@ -196,7 +196,7 @@ func (a *DormantDatabaseValidator) removeOwnerReferenceFromObjects(dormantDataba
 	if err := dynamic_util.RemoveOwnerReferenceForSelector(
 		a.dc,
 		core.SchemeGroupVersion.WithResource("persistentvolumeclaims"),
-		"", // non-namespaced
+		dormantDatabase.Namespace,
 		selector,
 		ref); err != nil {
 		return nil

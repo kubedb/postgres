@@ -99,7 +99,7 @@ func (d *DormantDatabase) SetDefaults() {
 	d.Spec.Origin.Spec.Postgres.SetDefaults()
 	d.Spec.Origin.Spec.MySQL.SetDefaults()
 	d.Spec.Origin.Spec.MongoDB.SetDefaults()
-	d.Spec.Origin.Spec.Redis.SetDefault()
+	d.Spec.Origin.Spec.Redis.SetDefaults()
 	d.Spec.Origin.Spec.Memcached.SetDefaults()
 	d.Spec.Origin.Spec.Etcd.SetDefaults()
 }
