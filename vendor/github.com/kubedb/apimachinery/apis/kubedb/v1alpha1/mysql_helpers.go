@@ -136,17 +136,8 @@ func (m *MySQLSpec) SetDefaults() {
 	if m == nil {
 		return
 	}
-	if m.StorageType == "" {
-		m.StorageType = StorageTypeDurable
-	}
-	if m.UpdateStrategy.Type == "" {
-		m.UpdateStrategy.Type = apps.RollingUpdateStatefulSetStrategyType
-	}
-	if m.TerminationPolicy == "" {
-		m.TerminationPolicy = TerminationPolicyPause
-	}
 
-	// migrations
+	// migrate first to avoid incorrect defaulting
 	m.BackupSchedule.SetDefaults()
 	if len(m.NodeSelector) > 0 {
 		m.PodTemplate.Spec.NodeSelector = m.NodeSelector
@@ -171,6 +162,17 @@ func (m *MySQLSpec) SetDefaults() {
 	if len(m.ImagePullSecrets) > 0 {
 		m.PodTemplate.Spec.ImagePullSecrets = m.ImagePullSecrets
 		m.ImagePullSecrets = nil
+	}
+
+	// perform defaulting
+	if m.StorageType == "" {
+		m.StorageType = StorageTypeDurable
+	}
+	if m.UpdateStrategy.Type == "" {
+		m.UpdateStrategy.Type = apps.RollingUpdateStatefulSetStrategyType
+	}
+	if m.TerminationPolicy == "" {
+		m.TerminationPolicy = TerminationPolicyPause
 	}
 }
 

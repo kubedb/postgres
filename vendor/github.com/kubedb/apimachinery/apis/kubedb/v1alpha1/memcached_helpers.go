@@ -134,14 +134,8 @@ func (m *MemcachedSpec) SetDefaults() {
 	if m == nil {
 		return
 	}
-	if m.UpdateStrategy.Type == "" {
-		m.UpdateStrategy.Type = apps.RollingUpdateStatefulSetStrategyType
-	}
-	if m.TerminationPolicy == "" {
-		m.TerminationPolicy = TerminationPolicyPause
-	}
 
-	// migrations
+	// migrate first to avoid incorrect defaulting
 	if len(m.NodeSelector) > 0 {
 		m.PodTemplate.Spec.NodeSelector = m.NodeSelector
 		m.NodeSelector = nil
@@ -165,6 +159,14 @@ func (m *MemcachedSpec) SetDefaults() {
 	if len(m.ImagePullSecrets) > 0 {
 		m.PodTemplate.Spec.ImagePullSecrets = m.ImagePullSecrets
 		m.ImagePullSecrets = nil
+	}
+
+	// perform defaulting
+	if m.UpdateStrategy.Type == "" {
+		m.UpdateStrategy.Type = apps.RollingUpdateStatefulSetStrategyType
+	}
+	if m.TerminationPolicy == "" {
+		m.TerminationPolicy = TerminationPolicyPause
 	}
 }
 

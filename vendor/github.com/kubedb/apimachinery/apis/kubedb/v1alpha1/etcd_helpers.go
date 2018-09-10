@@ -138,6 +138,8 @@ func (e *EtcdSpec) SetDefaults() {
 	if e == nil {
 		return
 	}
+
+	// perform defaulting
 	if e.StorageType == "" {
 		e.StorageType = StorageTypeDurable
 	}
