@@ -1,5 +1,5 @@
-hash: 5b4a9d7f9a9c376f52404d27980542b4e19e572ad6e9389dd5e5f03bf94342ad
-updated: 2018-09-10T16:03:19.769265047-07:00
+hash: 0a8adf1b4d9d0caaa95c41e6be5406008b2a25f304a668be072db55aa0eb881e
+updated: 2018-09-11T13:27:11.835835825-07:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -29,14 +29,14 @@ imports:
 - name: github.com/appscode/go-version
   version: 0dcf3ac121c7c30e035b41ba9f652d1ce5994242
 - name: github.com/appscode/jsonpatch
-  version: 1359b374de83fa14fd58ab10aa8ea4935f84d249
+  version: 5af499cf01c842bfdd7761a433fc90525ccd6836
 - name: github.com/appscode/kubernetes-webhook-util
   version: cb010279d0a6d1885e6316f78cf3ef682fca7a42
   subpackages:
   - admission/v1beta1
   - registry/admissionreview/v1beta1
 - name: github.com/appscode/kutil
-  version: 6a61b0d2df81e2d5b4764bee574eb43a9a954a5a
+  version: 58a89a000f0c44560e97537d989ec6d2fba95f64
   subpackages:
   - apiextensions/v1beta1
   - apps/v1
@@ -218,13 +218,13 @@ imports:
 - name: github.com/emicklei/go-restful-swagger12
   version: dcef7f55730566d41eae5db10e7d6981829720f6
 - name: github.com/evanphx/json-patch
-  version: afac545df32f2287a079e2dfb7ba2745a643747e
+  version: 94e38aa1586e8a6c8a75770bddf5ff84c48a106b
 - name: github.com/fatih/structs
   version: ebf56d35bba727c68ac77f56f2fcf90b181851aa
 - name: github.com/fsnotify/fsnotify
   version: f12c6236fe7b5cf6bcf30e5935d08cb079d78334
 - name: github.com/ghodss/yaml
-  version: 73d445a93680fa1a78ae23a5839bad48f32ba1ee
+  version: 0ca9ea5df5451ffdf184b4428c902747c2c11cd7
 - name: github.com/go-ini/ini
   version: 300e940a926eb277d3901b20bdfcc54928ad3642
 - name: github.com/go-openapi/jsonpointer
@@ -266,7 +266,7 @@ imports:
 - name: github.com/google/btree
   version: 7d79101e329e5a3adf994758c578dab82b90c017
 - name: github.com/google/go-cmp
-  version: 2006917edc5a27cd174dbc4baba31a137d6cb9ff
+  version: 3af367b6b30c263d47e8895973edcca9a49cf029
   subpackages:
   - cmp
   - cmp/internal/diff
@@ -327,7 +327,7 @@ imports:
 - name: github.com/json-iterator/go
   version: 1624edc4454b8682399def8740d46db5e4362ba4
 - name: github.com/kubedb/apimachinery
-  version: b708c5206e4e9fdb0753d18036b5b17dac5d8b5c
+  version: 389e0d09df92218ff79fcbf1010deda9b0d36390
   subpackages:
   - apis/kubedb
   - apis/kubedb/v1alpha1
@@ -352,7 +352,7 @@ imports:
   - pkg/eventer
   - pkg/validator
 - name: github.com/kubedb/cli
-  version: 00b10e666e6798a68cbf48fe5cb4d9d509c75a28
+  version: e81575d9d935fd0326f5029b84903ca0a2be86c7
 - name: github.com/lib/pq
   version: 4ded0e9383f75c197b3a2aaa6d590ac52df6fd79
   subpackages:
@@ -480,8 +480,6 @@ imports:
 - name: golang.org/x/net
   version: 1c05540f6879653db88113bc4a2b70aec4bd491f
   subpackages:
-  - context
-  - context/ctxhttp
   - html
   - html/atom
   - html/charset
@@ -492,6 +490,10 @@ imports:
   - lex/httplex
   - trace
   - websocket
+- name: golang.org/x/net/context
+  version: 1c05540f6879653db88113bc4a2b70aec4bd491f
+  subpackages:
+  - ctxhttp
 - name: golang.org/x/oauth2
   version: a6bd8cefa1811bd24b86f8902872e4e8225f74c4
   subpackages:
@@ -782,7 +784,9 @@ imports:
   - plugin/pkg/authenticator/token/webhook
   - plugin/pkg/authorizer/webhook
 - name: k8s.io/client-go
-  version: 2cefa64ff137e128daeddbd1775cd775708a05bf
+  version: 805859b028aa45844e5d3b699d1dfad9eed753ad
+  repo: https://github.com/pharmer/client-go.git
+  vcs: git
   subpackages:
   - deprecated-dynamic
   - discovery
