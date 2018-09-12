@@ -44,6 +44,11 @@ echo "wal_keep_segments = 32" >>/tmp/postgresql.conf
 if [ "$STANDBY" == "hot" ]; then
   echo "hot_standby = on" >>/tmp/postgresql.conf
 fi
+if [ "$STREAMING" == "synchronous" ]; then
+   # setup synchronous streaming replication
+   echo "synchronous_commit = remote_write" >>/tmp/postgresql.conf
+   echo "synchronous_standby_names = '*'" >>/tmp/postgresql.conf
+fi
 mv /tmp/postgresql.conf "$PGDATA/postgresql.conf"
 
 # push base-backup

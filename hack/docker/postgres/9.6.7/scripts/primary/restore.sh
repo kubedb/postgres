@@ -34,6 +34,11 @@ cp /scripts/primary/postgresql.conf /tmp
 echo "wal_level = replica" >>/tmp/postgresql.conf
 echo "max_wal_senders = 99" >>/tmp/postgresql.conf
 echo "wal_keep_segments = 32" >>/tmp/postgresql.conf
+if [ "$STREAMING" == "synchronous" ]; then
+   # setup synchronous streaming replication
+   echo "synchronous_commit = remote_write" >>/tmp/postgresql.conf
+   echo "synchronous_standby_names = '*'" >>/tmp/postgresql.conf
+fi
 mv /tmp/postgresql.conf "$PGDATA/postgresql.conf"
 
 if [ "$ARCHIVE" == "wal-g" ]; then

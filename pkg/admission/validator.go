@@ -158,7 +158,7 @@ func ValidatePostgres(client kubernetes.Interface, extClient kubedbv1alpha1.Kube
 	if postgres.Spec.StreamingMode != nil {
 		streamingMode := *postgres.Spec.StreamingMode
 		// TODO: synchronous Streaming is unavailable due to lack of support
-		if streamingMode != api.AsynchronousStreaming {
+                if streamingMode != api.AsynchronousStreaming && streamingMode != api.SynchronousStreaming {
 			return fmt.Errorf(`spec.streamingMode "%s" invalid`, streamingMode)
 		}
 	}
