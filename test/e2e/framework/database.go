@@ -14,11 +14,12 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (f *Framework) GetPostgresClient(meta metav1.ObjectMeta, dbName string, userName string) (*xorm.Engine, error) {
+func (f *Framework) ForwardPort(meta metav1.ObjectMeta) (*portforward.Tunnel, error) {
 	postgres, err := f.GetPostgres(meta)
 	if err != nil {
 		return nil, err
 	}
+
 	clientPodName := fmt.Sprintf("%v-0", postgres.Name)
 	tunnel := portforward.NewTunnel(
 		f.kubeClient.CoreV1().RESTClient(),
@@ -30,7 +31,10 @@ func (f *Framework) GetPostgresClient(meta metav1.ObjectMeta, dbName string, use
 	if err := tunnel.ForwardPort(); err != nil {
 		return nil, err
 	}
+	return tunnel, nil
+}
 
+func (f *Framework) GetPostgresClient(tunnel *portforward.Tunnel, dbName string, userName string) (*xorm.Engine, error) {
 	cnnstr := fmt.Sprintf("user=%s host=127.0.0.1 port=%v dbname=%s sslmode=disable", userName, tunnel.Local, dbName)
 	return xorm.NewEngine("postgres", cnnstr)
 }
@@ -41,10 +45,17 @@ DROP SCHEMA IF EXISTS "data" CASCADE;
 CREATE SCHEMA "data" AUTHORIZATION "%s";`, userName)
 	return Eventually(
 		func() bool {
-			db, err := f.GetPostgresClient(meta, dbName, userName)
+			tunnel, err := f.ForwardPort(meta)
 			if err != nil {
 				return false
 			}
+			defer tunnel.Close()
+
+			db, err := f.GetPostgresClient(tunnel, dbName, userName)
+			if err != nil {
+				return false
+			}
+			defer db.Close()
 
 			if err := f.CheckPostgres(db); err != nil {
 				return false
@@ -77,10 +88,17 @@ func characters(len int) string {
 func (f *Framework) EventuallyPingDatabase(meta metav1.ObjectMeta, dbName string, userName string) GomegaAsyncAssertion {
 	return Eventually(
 		func() bool {
-			db, err := f.GetPostgresClient(meta, dbName, userName)
+			tunnel, err := f.ForwardPort(meta)
 			if err != nil {
 				return false
 			}
+			defer tunnel.Close()
+
+			db, err := f.GetPostgresClient(tunnel, dbName, userName)
+			if err != nil {
+				return false
+			}
+			defer db.Close()
 
 			if err := f.CheckPostgres(db); err != nil {
 				return false
@@ -97,10 +115,17 @@ func (f *Framework) EventuallyCreateTable(meta metav1.ObjectMeta, dbName string,
 	count := 0
 	return Eventually(
 		func() bool {
-			db, err := f.GetPostgresClient(meta, dbName, userName)
+			tunnel, err := f.ForwardPort(meta)
 			if err != nil {
 				return false
 			}
+			defer tunnel.Close()
+
+			db, err := f.GetPostgresClient(tunnel, dbName, userName)
+			if err != nil {
+				return false
+			}
+			defer db.Close()
 
 			if err := f.CheckPostgres(db); err != nil {
 				return false
@@ -126,10 +151,17 @@ func (f *Framework) EventuallyCreateTable(meta metav1.ObjectMeta, dbName string,
 func (f *Framework) EventuallyCountTable(meta metav1.ObjectMeta, dbName string, userName string) GomegaAsyncAssertion {
 	return Eventually(
 		func() int {
-			db, err := f.GetPostgresClient(meta, dbName, userName)
+			tunnel, err := f.ForwardPort(meta)
 			if err != nil {
 				return -1
 			}
+			defer tunnel.Close()
+
+			db, err := f.GetPostgresClient(tunnel, dbName, userName)
+			if err != nil {
+				return -1
+			}
+			defer db.Close()
 
 			if err := f.CheckPostgres(db); err != nil {
 				return -1
@@ -164,10 +196,17 @@ func (f *Framework) EventuallyCountArchive(meta metav1.ObjectMeta, dbName string
 	countSet := false
 	return Eventually(
 		func() bool {
-			db, err := f.GetPostgresClient(meta, dbName, userName)
+			tunnel, err := f.ForwardPort(meta)
 			if err != nil {
 				return false
 			}
+			defer tunnel.Close()
+
+			db, err := f.GetPostgresClient(tunnel, dbName, userName)
+			if err != nil {
+				return false
+			}
+			defer db.Close()
 
 			if err := f.CheckPostgres(db); err != nil {
 				return false
@@ -199,10 +238,17 @@ func (f *Framework) EventuallyPGSettings(meta metav1.ObjectMeta, dbName string, 
 	sql := fmt.Sprintf("SHOW %s;", configPair[0])
 	return Eventually(
 		func() []map[string][]byte {
-			db, err := f.GetPostgresClient(meta, dbName, userName)
+			tunnel, err := f.ForwardPort(meta)
 			if err != nil {
 				return nil
 			}
+			defer tunnel.Close()
+
+			db, err := f.GetPostgresClient(tunnel, dbName, userName)
+			if err != nil {
+				return nil
+			}
+			defer db.Close()
 
 			if err := f.CheckPostgres(db); err != nil {
 				return nil
