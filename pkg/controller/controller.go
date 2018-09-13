@@ -21,10 +21,8 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/kubernetes"
-	clientsetscheme "k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/record"
-	"k8s.io/client-go/tools/reference"
 )
 
 type Controller struct {
@@ -143,16 +141,14 @@ func (c *Controller) StartAndRunControllers(stopCh <-chan struct{}) {
 }
 
 func (c *Controller) pushFailureEvent(postgres *api.Postgres, reason string) {
-	if ref, rerr := reference.GetReference(clientsetscheme.Scheme, postgres); rerr == nil {
-		c.recorder.Eventf(
-			ref,
-			core.EventTypeWarning,
-			eventer.EventReasonFailedToStart,
-			`Fail to be ready Postgres: "%v". Reason: %v`,
-			postgres.Name,
-			reason,
-		)
-	}
+	c.recorder.Eventf(
+		postgres,
+		core.EventTypeWarning,
+		eventer.EventReasonFailedToStart,
+		`Fail to be ready Postgres: "%v". Reason: %v`,
+		postgres.Name,
+		reason,
+	)
 
 	pg, err := kutildb.UpdatePostgresStatus(c.ExtClient, postgres, func(in *api.PostgresStatus) *api.PostgresStatus {
 		in.Phase = api.DatabasePhaseFailed
@@ -161,14 +157,12 @@ func (c *Controller) pushFailureEvent(postgres *api.Postgres, reason string) {
 		return in
 	}, api.EnableStatusSubresource)
 	if err != nil {
-		if ref, rerr := reference.GetReference(clientsetscheme.Scheme, postgres); rerr == nil {
-			c.recorder.Eventf(
-				ref,
-				core.EventTypeWarning,
-				eventer.EventReasonFailedToUpdate,
-				err.Error(),
-			)
-		}
+		c.recorder.Eventf(
+			postgres,
+			core.EventTypeWarning,
+			eventer.EventReasonFailedToUpdate,
+			err.Error(),
+		)
 	}
 	postgres.Status = pg.Status
 }
