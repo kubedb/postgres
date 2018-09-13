@@ -7,15 +7,20 @@ REPO_ROOT=$GOPATH/src/github.com/kubedb/postgres
 source "$REPO_ROOT/hack/libbuild/common/lib.sh"
 source "$REPO_ROOT/hack/libbuild/common/kubedb_image.sh"
 
+DOCKER_REGISTRY=${DOCKER_REGISTRY:-kubedb}
+
 IMG=postgres-tools
-TAG=10.2
+SUFFIX=v1
+DB_VERSION=10.2
+TAG="$DB_VERSION-$SUFFIX"
+
 OSM_VER=${OSM_VER:-0.7.1}
 
 DIST="$REPO_ROOT/dist"
 mkdir -p "$DIST"
 
 build() {
-  pushd "$REPO_ROOT/hack/docker/postgres-tools/$TAG"
+  pushd "$REPO_ROOT/hack/docker/postgres-tools/$DB_VERSION"
 
   # Download osm
   wget https://cdn.appscode.com/binaries/osm/${OSM_VER}/osm-alpine-amd64

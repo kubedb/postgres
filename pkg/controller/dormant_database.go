@@ -37,6 +37,13 @@ func (c *Controller) WaitUntilPaused(drmn *api.DormantDatabase) error {
 	return nil
 }
 
+// WipeOutDatabase is an Interface of *amc.Controller.
+// It verifies and deletes secrets and other left overs of DBs except Snapshot and PVC.
+func (c *Controller) WipeOutDatabase(drmn *api.DormantDatabase) error {
+
+	return nil
+}
+
 func (c *Controller) waitUntilRBACStuffDeleted(meta metav1.ObjectMeta) error {
 	// Delete Existing Role
 	if err := rbac_util.WaitUntillRoleDeleted(c.Client, meta); err != nil {

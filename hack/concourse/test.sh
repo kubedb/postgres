@@ -31,9 +31,11 @@ pushd "$GOPATH"/src/github.com/$ORG_NAME/$REPO_NAME
 
 # run tests
 ./hack/deploy/setup.sh --docker-registry=${DOCKER_REGISTRY}
+
 ./hack/make.py test e2e \
   --v=1 \
   --storageclass=${StorageClass:-standard} \
+  --pg-version=10.2-v1 \
   --selfhosted-operator=true \
   --docker-registry=${DOCKER_REGISTRY} \
   --ginkgo.flakeAttempts=2

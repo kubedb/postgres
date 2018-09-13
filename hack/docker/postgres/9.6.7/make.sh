@@ -7,8 +7,12 @@ REPO_ROOT=$GOPATH/src/github.com/kubedb/postgres
 source "$REPO_ROOT/hack/libbuild/common/lib.sh"
 source "$REPO_ROOT/hack/libbuild/common/kubedb_image.sh"
 
+DOCKER_REGISTRY=${DOCKER_REGISTRY:-kubedb}
+
 IMG=postgres
-TAG=9.6.7
+SUFFIX=v1
+DB_VERSION=9.6.7
+TAG="$DB_VERSION-$SUFFIX"
 
 WALG_VER=${WALG_VER:-v0.1.7}
 
@@ -23,7 +27,7 @@ build_binary() {
 }
 
 build_docker() {
-  pushd "$REPO_ROOT/hack/docker/postgres/$TAG"
+  pushd "$REPO_ROOT/hack/docker/postgres/$DB_VERSION"
 
   # Download wal-g
   wget https://github.com/kubedb/wal-g/releases/download/${WALG_VER}/wal-g-alpine-amd64
