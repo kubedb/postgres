@@ -35,17 +35,21 @@ func (c *Controller) create(postgres *api.Postgres) error {
 		return nil // user error so just record error and don't retry.
 	}
 
-	version, err := c.ExtClient.PostgresVersions().Get(string(postgres.Spec.Version), metav1.GetOptions{})
+	// Check if postgresVersion is deprecated.
+	// If deprecated, add event and return nil (stop processing.)
+	postgresVersion, err := c.ExtClient.PostgresVersions().Get(string(postgres.Spec.Version), metav1.GetOptions{})
 	if err != nil {
-		if ref, rerr := reference.GetReference(clientsetscheme.Scheme, postgres); rerr == nil {
-			c.recorder.Event(
-				ref,
-				core.EventTypeWarning,
-				eventer.EventReasonInvalid,
-				err.Error(),
-			)
-		}
-		log.Error(err)
+		return err
+	}
+	if postgresVersion.Spec.Deprecated {
+		c.recorder.Eventf(
+			postgres,
+			core.EventTypeWarning,
+			eventer.EventReasonInvalid,
+			"DBVersion %v is deprecated. Skipped processing.",
+			postgresVersion.Name,
+		)
+		log.Errorf("DBVersion %v is deprecated. Skipped processing.", postgresVersion.Name)
 		return nil
 	}
 
@@ -106,7 +110,7 @@ func (c *Controller) create(postgres *api.Postgres) error {
 	}
 
 	// ensure database StatefulSet
-	vt2, err := c.ensurePostgresNode(postgres, version)
+	vt2, err := c.ensurePostgresNode(postgres, postgresVersion)
 	if err != nil {
 		return err
 	}
