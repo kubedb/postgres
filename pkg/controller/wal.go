@@ -11,7 +11,13 @@ import (
 )
 
 func WalDataDir(postgres *api.Postgres) string {
-	return filepath.Join(postgres.Spec.Archiver.Storage.S3.Prefix, api.DatabaseNamePrefix, postgres.Namespace, postgres.Name, "archive")
+	return filepath.Join(
+		postgres.Spec.Archiver.Storage.S3.Prefix,
+		api.DatabaseNamePrefix,
+		postgres.Namespace,
+		postgres.Name,
+		"archive",
+	)
 }
 
 func (c *Controller) wipeOutWalData(meta metav1.ObjectMeta, spec *api.PostgresSpec) error {

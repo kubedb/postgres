@@ -50,7 +50,8 @@ func (c *Controller) create(postgres *api.Postgres) error {
 			"PostgresVersion %v is deprecated. Skipped processing.",
 			postgresVersion.Name,
 		)
-		log.Errorf("PostgresVersion %v is deprecated. Skipped processing.", postgresVersion.Name)
+		log.Errorf("Postgres %s/%s is using deprecated version %v. Skipped processing.",
+			postgres.Namespace, postgres.Name, postgresVersion.Name)
 		return nil
 	}
 
