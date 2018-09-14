@@ -57,7 +57,7 @@ var _ = Describe("Postgres", func() {
 		secret = new(core.Secret)
 		skipMessage = ""
 		skipSnapshotDataChecking = true
-		skipWalDataChecking = false
+		skipWalDataChecking = true
 		dbName = "postgres"
 		dbUser = "postgres"
 	})
