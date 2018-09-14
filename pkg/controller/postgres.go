@@ -7,15 +7,20 @@ import (
 	"github.com/appscode/go/log"
 	"github.com/appscode/kutil"
 	core_util "github.com/appscode/kutil/core/v1"
+	dynamic_util "github.com/appscode/kutil/dynamic"
 	meta_util "github.com/appscode/kutil/meta"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/kubedb/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1/util"
 	"github.com/kubedb/apimachinery/pkg/eventer"
 	validator "github.com/kubedb/postgres/pkg/admission"
+	"github.com/pkg/errors"
 	core "k8s.io/api/core/v1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
+	clientsetscheme "k8s.io/client-go/kubernetes/scheme"
+	"k8s.io/client-go/tools/reference"
 	storage "kmodules.xyz/objectstore-api/osm"
 )
 
@@ -42,10 +47,10 @@ func (c *Controller) create(postgres *api.Postgres) error {
 			postgres,
 			core.EventTypeWarning,
 			eventer.EventReasonInvalid,
-			"DBVersion %v is deprecated. Skipped processing.",
+			"PostgresVersion %v is deprecated. Skipped processing.",
 			postgresVersion.Name,
 		)
-		log.Errorf("DBVersion %v is deprecated. Skipped processing.", postgresVersion.Name)
+		log.Errorf("PostgresVersion %v is deprecated. Skipped processing.", postgresVersion.Name)
 		return nil
 	}
 
@@ -289,23 +294,42 @@ func (c *Controller) initialize(postgres *api.Postgres) error {
 	return nil
 }
 
-func (c *Controller) pause(postgres *api.Postgres) error {
+func (c *Controller) terminate(postgres *api.Postgres) error {
+	ref, rerr := reference.GetReference(clientsetscheme.Scheme, postgres)
+	if rerr != nil {
+		return rerr
+	}
 
-	if _, err := c.createDormantDatabase(postgres); err != nil {
-		if kerr.IsAlreadyExists(err) {
-			// if already exists, check if it is database of another Kind and return error in that case.
-			// If the Kind is same, we can safely assume that the DormantDB was not deleted in before,
-			// Probably because, User is more faster (create-delete-create-again-delete...) than operator!
-			// So reuse that DormantDB!
-			ddb, err := c.ExtClient.DormantDatabases(postgres.Namespace).Get(postgres.Name, metav1.GetOptions{})
-			if err != nil {
-				return err
+	// If TerminationPolicy is "pause", keep everything (ie, PVCs,Secrets,Snapshots) intact.
+	// In operator, create dormantdatabase
+	if postgres.Spec.TerminationPolicy == api.TerminationPolicyPause {
+		if err := c.removeOwnerReferenceFromOffshoots(postgres, ref); err != nil {
+			return err
+		}
+
+		if _, err := c.createDormantDatabase(postgres); err != nil {
+			if kerr.IsAlreadyExists(err) {
+				// if already exists, check if it is database of another Kind and return error in that case.
+				// If the Kind is same, we can safely assume that the DormantDB was not deleted in before,
+				// Probably because, User is more faster (create-delete-create-again-delete...) than operator!
+				// So reuse that DormantDB!
+				ddb, err := c.ExtClient.DormantDatabases(postgres.Namespace).Get(postgres.Name, metav1.GetOptions{})
+				if err != nil {
+					return err
+				}
+				if val, _ := meta_util.GetStringValue(ddb.Labels, api.LabelDatabaseKind); val != api.ResourceKindPostgres {
+					return fmt.Errorf(`DormantDatabase "%s/%s" of kind %v already exists`, postgres.Namespace, postgres.Name, val)
+				}
+			} else {
+				return fmt.Errorf(`failed to create DormantDatabase: "%s/%s". Reason: %v`, postgres.Namespace, postgres.Name, err)
 			}
-			if val, _ := meta_util.GetStringValue(ddb.Labels, api.LabelDatabaseKind); val != api.ResourceKindPostgres {
-				return fmt.Errorf(`DormantDatabase "%v" of kind %v already exists`, postgres.Name, val)
-			}
-		} else {
-			return fmt.Errorf(`failed to create DormantDatabase: "%v". Reason: %v`, postgres.Name, err)
+		}
+	} else {
+		// If TerminationPolicy is "wipeOut", delete everything (ie, PVCs,Secrets,Snapshots).
+		// If TerminationPolicy is "delete", delete PVCs and keep snapshots,secrets intact.
+		// In both these cases, don't create dormantdatabase
+		if err := c.setOwnerReferenceToOffshoots(postgres, ref); err != nil {
+			return err
 		}
 	}
 
@@ -316,6 +340,82 @@ func (c *Controller) pause(postgres *api.Postgres) error {
 			log.Errorln(err)
 			return nil
 		}
+	}
+	return nil
+}
+
+func (c *Controller) setOwnerReferenceToOffshoots(postgres *api.Postgres, ref *core.ObjectReference) error {
+	selector := labels.SelectorFromSet(postgres.OffshootSelectors())
+
+	// If TerminationPolicy is "wipeOut", delete snapshots and secrets,
+	// else, keep it intact.
+	if postgres.Spec.TerminationPolicy == api.TerminationPolicyWipeOut {
+		if err := dynamic_util.EnsureOwnerReferenceForSelector(
+			c.DynamicClient,
+			api.SchemeGroupVersion.WithResource(api.ResourcePluralSnapshot),
+			postgres.Namespace,
+			selector,
+			ref); err != nil {
+			return err
+		}
+		if err := c.wipeOutDatabase(postgres.ObjectMeta, postgres.Spec.GetSecrets(), ref); err != nil {
+			return errors.Wrap(err, "error in wiping out database.")
+		}
+	} else {
+		// Make sure snapshot and secret's ownerreference is removed.
+		if err := dynamic_util.RemoveOwnerReferenceForSelector(
+			c.DynamicClient,
+			api.SchemeGroupVersion.WithResource(api.ResourcePluralSnapshot),
+			postgres.Namespace,
+			selector,
+			ref); err != nil {
+			return err
+		}
+		if err := dynamic_util.RemoveOwnerReferenceForItems(
+			c.DynamicClient,
+			core.SchemeGroupVersion.WithResource("secrets"),
+			postgres.Namespace,
+			postgres.Spec.GetSecrets(),
+			ref); err != nil {
+			return err
+		}
+	}
+	// delete PVC for both "wipeOut" and "delete" TerminationPolicy.
+	return dynamic_util.EnsureOwnerReferenceForSelector(
+		c.DynamicClient,
+		core.SchemeGroupVersion.WithResource("persistentvolumeclaims"),
+		postgres.Namespace,
+		selector,
+		ref)
+}
+
+func (c *Controller) removeOwnerReferenceFromOffshoots(postgres *api.Postgres, ref *core.ObjectReference) error {
+	// First, Get LabelSelector for Other Components
+	labelSelector := labels.SelectorFromSet(postgres.OffshootSelectors())
+
+	if err := dynamic_util.RemoveOwnerReferenceForSelector(
+		c.DynamicClient,
+		api.SchemeGroupVersion.WithResource(api.ResourcePluralSnapshot),
+		postgres.Namespace,
+		labelSelector,
+		ref); err != nil {
+		return err
+	}
+	if err := dynamic_util.RemoveOwnerReferenceForSelector(
+		c.DynamicClient,
+		core.SchemeGroupVersion.WithResource("persistentvolumeclaims"),
+		postgres.Namespace,
+		labelSelector,
+		ref); err != nil {
+		return err
+	}
+	if err := dynamic_util.RemoveOwnerReferenceForItems(
+		c.DynamicClient,
+		core.SchemeGroupVersion.WithResource("secrets"),
+		postgres.Namespace,
+		postgres.Spec.GetSecrets(),
+		ref); err != nil {
+		return err
 	}
 	return nil
 }

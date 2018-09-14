@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/appscode/go/log"
 	core_util "github.com/appscode/kutil/core/v1"
 	meta_util "github.com/appscode/kutil/meta"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
@@ -76,6 +77,95 @@ var _ = Describe("Postgres", func() {
 		f.EventuallyPingDatabase(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
 	}
 
+	var testGeneralBehaviour = func() {
+		if skipMessage != "" {
+			Skip(skipMessage)
+		}
+		// Create Postgres
+		createAndWaitForRunning()
+
+		By("Creating Schema")
+		f.EventuallyCreateSchema(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
+
+		By("Creating Table")
+		f.EventuallyCreateTable(postgres.ObjectMeta, dbName, dbUser, 3).Should(BeTrue())
+
+		By("Checking Table")
+		f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
+
+		By("Delete postgres")
+		err = f.DeletePostgres(postgres.ObjectMeta)
+		Expect(err).NotTo(HaveOccurred())
+
+		By("Wait for postgres to be paused")
+		f.EventuallyDormantDatabaseStatus(postgres.ObjectMeta).Should(matcher.HavePaused())
+
+		// Create Postgres object again to resume it
+		By("Create Postgres: " + postgres.Name)
+		err = f.CreatePostgres(postgres)
+		Expect(err).NotTo(HaveOccurred())
+
+		By("Wait for DormantDatabase to be deleted")
+		f.EventuallyDormantDatabase(postgres.ObjectMeta).Should(BeFalse())
+
+		By("Wait for Running postgres")
+		f.EventuallyPostgresRunning(postgres.ObjectMeta).Should(BeTrue())
+
+		By("Checking Table")
+		f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
+	}
+
+	var shouldTakeSnapshot = func() {
+		// Create and wait for running Postgres
+		createAndWaitForRunning()
+
+		By("Create Secret")
+		err := f.CreateSecret(secret)
+		Expect(err).NotTo(HaveOccurred())
+
+		By("Create Snapshot")
+		err = f.CreateSnapshot(snapshot)
+		Expect(err).NotTo(HaveOccurred())
+
+		By("Check for Succeeded snapshot")
+		f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(api.SnapshotPhaseSucceeded))
+
+		if !skipSnapshotDataChecking {
+			By("Check for snapshot data")
+			f.EventuallySnapshotDataFound(snapshot).Should(BeTrue())
+		}
+	}
+
+	var shouldInsertDataAndTakeSnapshot = func() {
+		// Create and wait for running Postgres
+		createAndWaitForRunning()
+
+		By("Creating Schema")
+		f.EventuallyCreateSchema(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
+
+		By("Creating Table")
+		f.EventuallyCreateTable(postgres.ObjectMeta, dbName, dbUser, 3).Should(BeTrue())
+
+		By("Checking Table")
+		f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
+
+		By("Create Secret")
+		err = f.CreateSecret(secret)
+		Expect(err).NotTo(HaveOccurred())
+
+		By("Create Snapshot")
+		err = f.CreateSnapshot(snapshot)
+		Expect(err).NotTo(HaveOccurred())
+
+		By("Check for Succeeded snapshot")
+		f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(api.SnapshotPhaseSucceeded))
+
+		if !skipSnapshotDataChecking {
+			By("Check for snapshot data")
+			f.EventuallySnapshotDataFound(snapshot).Should(BeTrue())
+		}
+	}
+
 	var deleteTestResource = func() {
 		if postgres == nil {
 			Skip("Skipping")
@@ -85,6 +175,7 @@ var _ = Describe("Postgres", func() {
 		if err != nil {
 			if kerr.IsNotFound(err) {
 				// Postgres was not created. Hence, rest of cleanup is not necessary.
+				log.Infof("Skipping rest of cleanup. Reason: Postgres %s is not found.", postgres.Name)
 				return
 			}
 			Expect(err).NotTo(HaveOccurred())
@@ -141,47 +232,12 @@ var _ = Describe("Postgres", func() {
 
 			Context("With PVC", func() {
 
-				It("should run successfully", func() {
-					if skipMessage != "" {
-						Skip(skipMessage)
-					}
-					// Create Postgres
-					createAndWaitForRunning()
-
-					By("Creating Schema")
-					f.EventuallyCreateSchema(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
-
-					By("Creating Table")
-					f.EventuallyCreateTable(postgres.ObjectMeta, dbName, dbUser, 3).Should(BeTrue())
-
-					By("Checking Table")
-					f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
-
-					By("Delete postgres")
-					err = f.DeletePostgres(postgres.ObjectMeta)
-					Expect(err).NotTo(HaveOccurred())
-
-					By("Wait for postgres to be paused")
-					f.EventuallyDormantDatabaseStatus(postgres.ObjectMeta).Should(matcher.HavePaused())
-
-					// Create Postgres object again to resume it
-					By("Create Postgres: " + postgres.Name)
-					err = f.CreatePostgres(postgres)
-					Expect(err).NotTo(HaveOccurred())
-
-					By("Wait for DormantDatabase to be deleted")
-					f.EventuallyDormantDatabase(postgres.ObjectMeta).Should(BeFalse())
-
-					By("Wait for Running postgres")
-					f.EventuallyPostgresRunning(postgres.ObjectMeta).Should(BeTrue())
-
-					By("Checking Table")
-					f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
-				})
+				It("should run successfully", testGeneralBehaviour)
 			})
 		})
 
 		Context("DoNotPause", func() {
+
 			BeforeEach(func() {
 				postgres.Spec.DoNotPause = true
 			})
@@ -209,33 +265,14 @@ var _ = Describe("Postgres", func() {
 		})
 
 		Context("Snapshot", func() {
+
 			BeforeEach(func() {
 				skipSnapshotDataChecking = false
 				snapshot.Spec.DatabaseName = postgres.Name
 			})
 
-			var shouldTakeSnapshot = func() {
-				// Create and wait for running Postgres
-				createAndWaitForRunning()
-
-				By("Create Secret")
-				err := f.CreateSecret(secret)
-				Expect(err).NotTo(HaveOccurred())
-
-				By("Create Snapshot")
-				err = f.CreateSnapshot(snapshot)
-				Expect(err).NotTo(HaveOccurred())
-
-				By("Check for Succeeded snapshot")
-				f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(api.SnapshotPhaseSucceeded))
-
-				if !skipSnapshotDataChecking {
-					By("Check for snapshot data")
-					f.EventuallySnapshotDataFound(snapshot).Should(BeTrue())
-				}
-			}
-
 			Context("In Local", func() {
+
 				BeforeEach(func() {
 					skipSnapshotDataChecking = true
 					secret = f.SecretForLocalBackend()
@@ -252,6 +289,7 @@ var _ = Describe("Postgres", func() {
 			})
 
 			Context("In S3", func() {
+
 				BeforeEach(func() {
 					secret = f.SecretForS3Backend()
 					snapshot.Spec.StorageSecretName = secret.Name
@@ -264,6 +302,7 @@ var _ = Describe("Postgres", func() {
 			})
 
 			Context("In GCS", func() {
+
 				BeforeEach(func() {
 					secret = f.SecretForGCSBackend()
 					snapshot.Spec.StorageSecretName = secret.Name
@@ -276,6 +315,7 @@ var _ = Describe("Postgres", func() {
 			})
 
 			Context("In Azure", func() {
+
 				BeforeEach(func() {
 					secret = f.SecretForAzureBackend()
 					snapshot.Spec.StorageSecretName = secret.Name
@@ -288,6 +328,7 @@ var _ = Describe("Postgres", func() {
 			})
 
 			Context("In Swift", func() {
+
 				BeforeEach(func() {
 					secret = f.SecretForSwiftBackend()
 					snapshot.Spec.StorageSecretName = secret.Name
@@ -301,7 +342,9 @@ var _ = Describe("Postgres", func() {
 		})
 
 		Context("Initialize", func() {
+
 			Context("With Script", func() {
+
 				BeforeEach(func() {
 					postgres.Spec.Init = &api.InitSpec{
 						ScriptSource: &api.ScriptSourceSpec{
@@ -326,6 +369,7 @@ var _ = Describe("Postgres", func() {
 			})
 
 			Context("With Snapshot", func() {
+
 				BeforeEach(func() {
 					skipSnapshotDataChecking = false
 					secret = f.SecretForGCSBackend()
@@ -337,31 +381,8 @@ var _ = Describe("Postgres", func() {
 				})
 
 				It("should run successfully", func() {
-					// Create and wait for running Postgres
-					createAndWaitForRunning()
-
-					By("Creating Schema")
-					f.EventuallyCreateSchema(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
-
-					By("Creating Table")
-					f.EventuallyCreateTable(postgres.ObjectMeta, dbName, dbUser, 3).Should(BeTrue())
-
-					By("Checking Table")
-					f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
-
-					By("Create Secret")
-					err = f.CreateSecret(secret)
-					Expect(err).NotTo(HaveOccurred())
-
-					By("Create Snapshot")
-					err = f.CreateSnapshot(snapshot)
-					Expect(err).NotTo(HaveOccurred())
-
-					By("Check for Succeeded snapshot")
-					f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(api.SnapshotPhaseSucceeded))
-
-					By("Check for snapshot data")
-					f.EventuallySnapshotDataFound(snapshot).Should(BeTrue())
+					// create postgres and take snapshot
+					shouldInsertDataAndTakeSnapshot()
 
 					oldPostgres, err := f.GetPostgres(postgres.ObjectMeta)
 					Expect(err).NotTo(HaveOccurred())
@@ -389,6 +410,7 @@ var _ = Describe("Postgres", func() {
 
 		Context("Resume", func() {
 			var usedInitialized bool
+
 			BeforeEach(func() {
 				usedInitialized = false
 			})
@@ -429,6 +451,7 @@ var _ = Describe("Postgres", func() {
 			})
 
 			Context("With Init", func() {
+
 				BeforeEach(func() {
 					postgres.Spec.Init = &api.InitSpec{
 						ScriptSource: &api.ScriptSourceSpec{
@@ -446,6 +469,7 @@ var _ = Describe("Postgres", func() {
 			})
 
 			Context("With Snapshot Init", func() {
+
 				BeforeEach(func() {
 					skipSnapshotDataChecking = false
 					secret = f.SecretForGCSBackend()
@@ -455,30 +479,10 @@ var _ = Describe("Postgres", func() {
 					}
 					snapshot.Spec.DatabaseName = postgres.Name
 				})
+
 				It("should resume successfully", func() {
-					// Create and wait for running Postgres
-					createAndWaitForRunning()
-
-					By("Creating Schema")
-					f.EventuallyCreateSchema(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
-
-					By("Creating Table")
-					f.EventuallyCreateTable(postgres.ObjectMeta, dbName, dbUser, 3).Should(BeTrue())
-
-					By("Checking Table")
-					f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
-
-					By("Create Secret")
-					f.CreateSecret(secret)
-
-					By("Create Snapshot")
-					f.CreateSnapshot(snapshot)
-
-					By("Check for Succeeded snapshot")
-					f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(api.SnapshotPhaseSucceeded))
-
-					By("Check for snapshot data")
-					f.EventuallySnapshotDataFound(snapshot).Should(BeTrue())
+					// create postgres and take snapshot
+					shouldInsertDataAndTakeSnapshot()
 
 					oldPostgres, err := f.GetPostgres(postgres.ObjectMeta)
 					Expect(err).NotTo(HaveOccurred())
@@ -531,6 +535,7 @@ var _ = Describe("Postgres", func() {
 
 					postgres, err = f.GetPostgres(postgres.ObjectMeta)
 					Expect(err).NotTo(HaveOccurred())
+					Expect(postgres.Spec.Init).ShouldNot(BeNil())
 
 					By("Ping Database")
 					f.EventuallyPingDatabase(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
@@ -538,14 +543,14 @@ var _ = Describe("Postgres", func() {
 					By("Checking Table")
 					f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
 
-					Expect(postgres.Spec.Init).ShouldNot(BeNil())
+					By("Checking postgres crd has kubedb.com/initialized annotation")
 					_, err = meta_util.GetString(postgres.Annotations, api.AnnotationInitialized)
 					Expect(err).NotTo(HaveOccurred())
-
 				})
 			})
 
 			Context("Resume Multiple times - with init", func() {
+
 				BeforeEach(func() {
 					usedInitialized = true
 					postgres.Spec.Init = &api.InitSpec{
@@ -591,11 +596,13 @@ var _ = Describe("Postgres", func() {
 		})
 
 		Context("SnapshotScheduler", func() {
+
 			BeforeEach(func() {
 				secret = f.SecretForLocalBackend()
 			})
 
 			Context("With Startup", func() {
+
 				BeforeEach(func() {
 					postgres.Spec.BackupSchedule = &api.BackupScheduleSpec{
 						CronExpression: "@every 1m",
@@ -657,6 +664,7 @@ var _ = Describe("Postgres", func() {
 		})
 
 		Context("Archive with wal-g", func() {
+
 			BeforeEach(func() {
 				secret = f.SecretForS3Backend()
 				postgres.Spec.Archiver = &api.PostgresArchiverSpec{
@@ -669,7 +677,7 @@ var _ = Describe("Postgres", func() {
 				}
 			})
 
-			It("should archive successfully", func() {
+			It("should archive and should resume from archive successfully", func() {
 				// -- > 1st Postgres < --
 				err := f.CreateSecret(secret)
 				Expect(err).NotTo(HaveOccurred())
@@ -694,7 +702,7 @@ var _ = Describe("Postgres", func() {
 
 				garbagePostgres.Items = append(garbagePostgres.Items, *oldPostgres)
 
-				// -- > 1st Postgres < --
+				// -- > 1st Postgres end < --
 
 				// -- > 2nd Postgres < --
 				*postgres = *f.Postgres()
@@ -706,6 +714,7 @@ var _ = Describe("Postgres", func() {
 						},
 					},
 				}
+
 				postgres.Spec.Init = &api.InitSpec{
 					PostgresWAL: &api.PostgresWALSourceSpec{
 						Backend: store.Backend{
@@ -738,7 +747,7 @@ var _ = Describe("Postgres", func() {
 
 				garbagePostgres.Items = append(garbagePostgres.Items, *oldPostgres)
 
-				// -- > 2nd Postgres < --
+				// -- > 2nd Postgres end < --
 
 				// -- > 3rd Postgres < --
 				*postgres = *f.Postgres()
@@ -765,42 +774,136 @@ var _ = Describe("Postgres", func() {
 			})
 		})
 
+		Context("Termination Policy", func() {
+
+			BeforeEach(func() {
+				skipSnapshotDataChecking = false
+				secret = f.SecretForGCSBackend()
+				snapshot.Spec.StorageSecretName = secret.Name
+				snapshot.Spec.GCS = &store.GCSSpec{
+					Bucket: os.Getenv(GCS_BUCKET_NAME),
+				}
+				snapshot.Spec.DatabaseName = postgres.Name
+			})
+
+			Context("with TerminationPolicyPause (default)", func() {
+
+				It("should create DormantDatabase and resume from it", func() {
+					// Run Postgres and take snapshot
+					shouldInsertDataAndTakeSnapshot()
+
+					By("Deleting Postgres crd")
+					err = f.DeletePostgres(postgres.ObjectMeta)
+					Expect(err).NotTo(HaveOccurred())
+
+					// DormantDatabase.Status= paused, means postgres object is deleted
+					By("Waiting for postgres to be paused")
+					f.EventuallyDormantDatabaseStatus(postgres.ObjectMeta).Should(matcher.HavePaused())
+
+					By("Checking PVC hasn't been deleted")
+					f.EventuallyPVCCount(postgres.ObjectMeta).Should(Equal(1))
+
+					By("Checking Secret hasn't been deleted")
+					f.EventuallyDBSecretCount(postgres.ObjectMeta).Should(Equal(1))
+
+					By("Checking snapshot hasn't been deleted")
+					f.EventuallySnapshot(snapshot.ObjectMeta).Should(BeTrue())
+
+					if !skipSnapshotDataChecking {
+						By("Check for snapshot data")
+						f.EventuallySnapshotDataFound(snapshot).Should(BeTrue())
+					}
+
+					// Create Postgres object again to resume it
+					By("Create (resume) Postgres: " + postgres.Name)
+					err = f.CreatePostgres(postgres)
+					Expect(err).NotTo(HaveOccurred())
+
+					By("Wait for DormantDatabase to be deleted")
+					f.EventuallyDormantDatabase(postgres.ObjectMeta).Should(BeFalse())
+
+					By("Wait for Running postgres")
+					f.EventuallyPostgresRunning(postgres.ObjectMeta).Should(BeTrue())
+
+					By("Checking Table")
+					f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
+				})
+			})
+
+			Context("with TerminationPolicyDelete", func() {
+
+				BeforeEach(func() {
+					postgres.Spec.TerminationPolicy = api.TerminationPolicyDelete
+				})
+
+				AfterEach(func() {
+					By("Deleting snapshot: " + snapshot.Name)
+					f.DeleteSnapshot(snapshot.ObjectMeta)
+				})
+
+				It("should not create DormantDatabase and should not delete secret and snapshot", func() {
+					// Run Postgres and take snapshot
+					shouldInsertDataAndTakeSnapshot()
+
+					By("Delete postgres")
+					err = f.DeletePostgres(postgres.ObjectMeta)
+					Expect(err).NotTo(HaveOccurred())
+
+					By("wait until postgres is deleted")
+					f.EventuallyPostgres(postgres.ObjectMeta).Should(BeFalse())
+
+					By("Checking DormantDatabase is not created")
+					f.EventuallyDormantDatabase(postgres.ObjectMeta).Should(BeFalse())
+
+					By("Checking PVC has been deleted")
+					f.EventuallyPVCCount(postgres.ObjectMeta).Should(Equal(0))
+
+					By("Checking Secret hasn't been deleted")
+					f.EventuallyDBSecretCount(postgres.ObjectMeta).Should(Equal(1))
+
+					By("Checking Snapshot hasn't been deleted")
+					f.EventuallySnapshot(snapshot.ObjectMeta).Should(BeTrue())
+
+					if !skipSnapshotDataChecking {
+						By("Check for intact snapshot data")
+						f.EventuallySnapshotDataFound(snapshot).Should(BeTrue())
+					}
+				})
+			})
+
+			Context("with TerminationPolicyWipeOut", func() {
+
+				BeforeEach(func() {
+					postgres.Spec.TerminationPolicy = api.TerminationPolicyWipeOut
+				})
+
+				It("should not create DormantDatabase and should wipeOut all", func() {
+					// Run Postgres and take snapshot
+					shouldInsertDataAndTakeSnapshot()
+
+					By("Delete postgres")
+					err = f.DeletePostgres(postgres.ObjectMeta)
+					Expect(err).NotTo(HaveOccurred())
+
+					By("wait until postgres is deleted")
+					f.EventuallyPostgres(postgres.ObjectMeta).Should(BeFalse())
+
+					By("Checking DormantDatabase is not created")
+					f.EventuallyDormantDatabase(postgres.ObjectMeta).Should(BeFalse())
+
+					By("Checking PVCs has been deleted")
+					f.EventuallyPVCCount(postgres.ObjectMeta).Should(Equal(0))
+
+					By("Checking Snapshots has been deleted")
+					f.EventuallySnapshot(snapshot.ObjectMeta).Should(BeFalse())
+
+					By("Checking Secrets has been deleted")
+					f.EventuallyDBSecretCount(postgres.ObjectMeta).Should(Equal(0))
+				})
+			})
+		})
+
 		Context("EnvVars", func() {
-
-			var shouldRunSuccessfullyWithProvidedEnvVars = func() {
-				// Create Postgres
-				createAndWaitForRunning()
-
-				By("Creating Schema")
-				f.EventuallyCreateSchema(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
-
-				By("Creating Table")
-				f.EventuallyCreateTable(postgres.ObjectMeta, dbName, dbUser, 3).Should(BeTrue())
-
-				By("Checking Table")
-				f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
-
-				By("Delete postgres")
-				err = f.DeletePostgres(postgres.ObjectMeta)
-				Expect(err).NotTo(HaveOccurred())
-
-				By("Wait for postgres to be paused")
-				f.EventuallyDormantDatabaseStatus(postgres.ObjectMeta).Should(matcher.HavePaused())
-
-				// Create Postgres object again to resume it
-				By("Create Postgres: " + postgres.Name)
-				err = f.CreatePostgres(postgres)
-				Expect(err).NotTo(HaveOccurred())
-
-				By("Wait for DormantDatabase to be deleted")
-				f.EventuallyDormantDatabase(postgres.ObjectMeta).Should(BeFalse())
-
-				By("Wait for Running postgres")
-				f.EventuallyPostgresRunning(postgres.ObjectMeta).Should(BeTrue())
-
-				By("Checking Table")
-				f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
-			}
 
 			Context("With all supported EnvVars", func() {
 
@@ -835,7 +938,7 @@ var _ = Describe("Postgres", func() {
 							Value: walDir,
 						},
 					}
-					if framework.DBVersion == "10.2" {
+					if framework.DBVersion == "10.2-v1" {
 						walEnv = []core.EnvVar{
 							{
 								Name:  POSTGRES_INITDB_WALDIR,
@@ -846,7 +949,7 @@ var _ = Describe("Postgres", func() {
 					postgres.Spec.PodTemplate.Spec.Env = core_util.UpsertEnvVars(postgres.Spec.PodTemplate.Spec.Env, walEnv...)
 
 					// Run Postgres with provided Environment Variables
-					shouldRunSuccessfullyWithProvidedEnvVars()
+					testGeneralBehaviour()
 				})
 			})
 
@@ -887,7 +990,7 @@ var _ = Describe("Postgres", func() {
 					}
 
 					// Run Postgres with provided Environment Variables
-					shouldRunSuccessfullyWithProvidedEnvVars()
+					testGeneralBehaviour()
 
 					By("Patching EnvVar")
 					_, _, err = util.PatchPostgres(f.ExtClient(), postgres, func(in *api.Postgres) *api.Postgres {
