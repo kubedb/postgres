@@ -43,6 +43,7 @@ var _ = Describe("Postgres", func() {
 		secret                   *core.Secret
 		skipMessage              string
 		skipSnapshotDataChecking bool
+		skipWalDataChecking      bool
 		dbName                   string
 		dbUser                   string
 	)
@@ -56,6 +57,7 @@ var _ = Describe("Postgres", func() {
 		secret = new(core.Secret)
 		skipMessage = ""
 		skipSnapshotDataChecking = true
+		skipWalDataChecking = false
 		dbName = "postgres"
 		dbUser = "postgres"
 	})
@@ -199,6 +201,11 @@ var _ = Describe("Postgres", func() {
 
 		By("Wait for postgres resources to be wipedOut")
 		f.EventuallyWipedOut(postgres.ObjectMeta).Should(Succeed())
+
+		if postgres.Spec.Archiver != nil && !skipWalDataChecking {
+			By("Checking wal data has been removed")
+			f.EventuallyWalDataFound(postgres).Should(BeFalse())
+		}
 	}
 
 	AfterEach(func() {
@@ -220,6 +227,7 @@ var _ = Describe("Postgres", func() {
 			f.DeleteSecret(secret.ObjectMeta)
 		}
 
+		By("Deleting PostgresVersion crd")
 		err = f.DeletePostgresVersion(postgresVersion.ObjectMeta)
 		if err != nil && !kerr.IsNotFound(err) {
 			Expect(err).NotTo(HaveOccurred())
@@ -667,6 +675,7 @@ var _ = Describe("Postgres", func() {
 
 			BeforeEach(func() {
 				secret = f.SecretForS3Backend()
+				skipWalDataChecking = false
 				postgres.Spec.Archiver = &api.PostgresArchiverSpec{
 					Storage: &store.Backend{
 						StorageSecretName: secret.Name,
@@ -677,100 +686,144 @@ var _ = Describe("Postgres", func() {
 				}
 			})
 
-			It("should archive and should resume from archive successfully", func() {
-				// -- > 1st Postgres < --
-				err := f.CreateSecret(secret)
-				Expect(err).NotTo(HaveOccurred())
+			Context("Archive and Initialize from wal archive", func() {
 
-				// Create Postgres
-				createAndWaitForRunning()
+				It("should archive and should resume from archive successfully", func() {
+					// -- > 1st Postgres < --
+					err := f.CreateSecret(secret)
+					Expect(err).NotTo(HaveOccurred())
 
-				By("Creating Schema")
-				f.EventuallyCreateSchema(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
+					// Create Postgres
+					createAndWaitForRunning()
 
-				By("Creating Table")
-				f.EventuallyCreateTable(postgres.ObjectMeta, dbName, dbUser, 3).Should(BeTrue())
+					By("Creating Schema")
+					f.EventuallyCreateSchema(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
 
-				By("Checking Table")
-				f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
+					By("Creating Table")
+					f.EventuallyCreateTable(postgres.ObjectMeta, dbName, dbUser, 3).Should(BeTrue())
 
-				By("Checking Archive")
-				f.EventuallyCountArchive(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
+					By("Checking Table")
+					f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
 
-				oldPostgres, err := f.GetPostgres(postgres.ObjectMeta)
-				Expect(err).NotTo(HaveOccurred())
+					By("Checking Archive")
+					f.EventuallyCountArchive(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
 
-				garbagePostgres.Items = append(garbagePostgres.Items, *oldPostgres)
+					oldPostgres, err := f.GetPostgres(postgres.ObjectMeta)
+					Expect(err).NotTo(HaveOccurred())
 
-				// -- > 1st Postgres end < --
+					garbagePostgres.Items = append(garbagePostgres.Items, *oldPostgres)
 
-				// -- > 2nd Postgres < --
-				*postgres = *f.Postgres()
-				postgres.Spec.Archiver = &api.PostgresArchiverSpec{
-					Storage: &store.Backend{
-						StorageSecretName: secret.Name,
-						S3: &store.S3Spec{
-							Bucket: os.Getenv(S3_BUCKET_NAME),
-						},
-					},
-				}
+					// -- > 1st Postgres end < --
 
-				postgres.Spec.Init = &api.InitSpec{
-					PostgresWAL: &api.PostgresWALSourceSpec{
-						Backend: store.Backend{
+					// -- > 2nd Postgres < --
+					*postgres = *f.Postgres()
+					postgres.Spec.Archiver = &api.PostgresArchiverSpec{
+						Storage: &store.Backend{
 							StorageSecretName: secret.Name,
 							S3: &store.S3Spec{
 								Bucket: os.Getenv(S3_BUCKET_NAME),
-								Prefix: fmt.Sprintf("kubedb/%s/%s/archive/", postgres.Namespace, oldPostgres.Name),
 							},
 						},
-					},
-				}
+					}
 
-				// Create Postgres
-				createAndWaitForRunning()
-
-				By("Ping Database")
-				f.EventuallyPingDatabase(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
-
-				By("Creating Table")
-				f.EventuallyCreateTable(postgres.ObjectMeta, dbName, dbUser, 3).Should(BeTrue())
-
-				By("Checking Table")
-				f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(6))
-
-				By("Checking Archive")
-				f.EventuallyCountArchive(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
-
-				oldPostgres, err = f.GetPostgres(postgres.ObjectMeta)
-				Expect(err).NotTo(HaveOccurred())
-
-				garbagePostgres.Items = append(garbagePostgres.Items, *oldPostgres)
-
-				// -- > 2nd Postgres end < --
-
-				// -- > 3rd Postgres < --
-				*postgres = *f.Postgres()
-				postgres.Spec.Init = &api.InitSpec{
-					PostgresWAL: &api.PostgresWALSourceSpec{
-						Backend: store.Backend{
-							StorageSecretName: secret.Name,
-							S3: &store.S3Spec{
-								Bucket: os.Getenv(S3_BUCKET_NAME),
-								Prefix: fmt.Sprintf("kubedb/%s/%s/archive/", postgres.Namespace, oldPostgres.Name),
+					postgres.Spec.Init = &api.InitSpec{
+						PostgresWAL: &api.PostgresWALSourceSpec{
+							Backend: store.Backend{
+								StorageSecretName: secret.Name,
+								S3: &store.S3Spec{
+									Bucket: os.Getenv(S3_BUCKET_NAME),
+									Prefix: fmt.Sprintf("kubedb/%s/%s/archive/", postgres.Namespace, oldPostgres.Name),
+								},
 							},
 						},
-					},
-				}
+					}
 
-				// Create Postgres
-				createAndWaitForRunning()
+					// Create Postgres
+					createAndWaitForRunning()
 
-				By("Ping Database")
-				f.EventuallyPingDatabase(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
+					By("Ping Database")
+					f.EventuallyPingDatabase(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
 
-				By("Checking Table")
-				f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(6))
+					By("Creating Table")
+					f.EventuallyCreateTable(postgres.ObjectMeta, dbName, dbUser, 3).Should(BeTrue())
+
+					By("Checking Table")
+					f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(6))
+
+					By("Checking Archive")
+					f.EventuallyCountArchive(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
+
+					oldPostgres, err = f.GetPostgres(postgres.ObjectMeta)
+					Expect(err).NotTo(HaveOccurred())
+
+					garbagePostgres.Items = append(garbagePostgres.Items, *oldPostgres)
+
+					// -- > 2nd Postgres end < --
+
+					// -- > 3rd Postgres < --
+					*postgres = *f.Postgres()
+					postgres.Spec.Init = &api.InitSpec{
+						PostgresWAL: &api.PostgresWALSourceSpec{
+							Backend: store.Backend{
+								StorageSecretName: secret.Name,
+								S3: &store.S3Spec{
+									Bucket: os.Getenv(S3_BUCKET_NAME),
+									Prefix: fmt.Sprintf("kubedb/%s/%s/archive/", postgres.Namespace, oldPostgres.Name),
+								},
+							},
+						},
+					}
+
+					// Create Postgres
+					createAndWaitForRunning()
+
+					By("Ping Database")
+					f.EventuallyPingDatabase(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
+
+					By("Checking Table")
+					f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(6))
+				})
+			})
+
+			Context("WipeOut wal data", func() {
+
+				BeforeEach(func() {
+					postgres.Spec.TerminationPolicy = api.TerminationPolicyWipeOut
+				})
+
+				It("should remove wal data from backend", func() {
+
+					err := f.CreateSecret(secret)
+					Expect(err).NotTo(HaveOccurred())
+
+					// Create Postgres
+					createAndWaitForRunning()
+
+					By("Creating Schema")
+					f.EventuallyCreateSchema(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
+
+					By("Creating Table")
+					f.EventuallyCreateTable(postgres.ObjectMeta, dbName, dbUser, 3).Should(BeTrue())
+
+					By("Checking Table")
+					f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
+
+					By("Checking Archive")
+					f.EventuallyCountArchive(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
+
+					By("Checking wal data in backend")
+					f.EventuallyWalDataFound(postgres).Should(BeTrue())
+
+					By("Deleting Postgres crd")
+					err = f.DeletePostgres(postgres.ObjectMeta)
+					Expect(err).NotTo(HaveOccurred())
+
+					By("Checking DormantDatabase is not created")
+					f.EventuallyDormantDatabase(postgres.ObjectMeta).Should(BeFalse())
+
+					By("Checking Wal data removed from backend")
+					f.EventuallyWalDataFound(postgres).Should(BeFalse())
+				})
 			})
 		})
 

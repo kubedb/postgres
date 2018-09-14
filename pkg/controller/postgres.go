@@ -325,8 +325,8 @@ func (c *Controller) terminate(postgres *api.Postgres) error {
 			}
 		}
 	} else {
-		// If TerminationPolicy is "wipeOut", delete everything (ie, PVCs,Secrets,Snapshots).
-		// If TerminationPolicy is "delete", delete PVCs and keep snapshots,secrets intact.
+		// If TerminationPolicy is "wipeOut", delete everything (ie, PVCs,Secrets,Snapshots,WAL-data).
+		// If TerminationPolicy is "delete", delete PVCs and keep snapshots,secrets, wal-data intact.
 		// In both these cases, don't create dormantdatabase
 		if err := c.setOwnerReferenceToOffshoots(postgres, ref); err != nil {
 			return err
@@ -360,6 +360,10 @@ func (c *Controller) setOwnerReferenceToOffshoots(postgres *api.Postgres, ref *c
 		}
 		if err := c.wipeOutDatabase(postgres.ObjectMeta, postgres.Spec.GetSecrets(), ref); err != nil {
 			return errors.Wrap(err, "error in wiping out database.")
+		}
+		// if wal archiver was configured, remove wal data from backend
+		if postgres.Spec.Archiver != nil {
+			return c.wipeOutWalData(postgres.ObjectMeta, &postgres.Spec)
 		}
 	} else {
 		// Make sure snapshot and secret's ownerreference is removed.

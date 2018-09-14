@@ -76,10 +76,14 @@ func (c *Controller) WipeOutDatabase(drmn *api.DormantDatabase) error {
 		return errors.Wrap(err, "error in wiping out database.")
 	}
 
+	// wipe out wall data from backend
+	if err := c.wipeOutWalData(drmn.ObjectMeta, drmn.Spec.Origin.Spec.Postgres); err != nil {
+		return err
+	}
 	return nil
 }
 
-// wipeOutDatabase is a generic function to call from WipeOutDatabase and elasticsearch pause method.
+// wipeOutDatabase is a generic function to call from WipeOutDatabase and postgres pause method.
 func (c *Controller) wipeOutDatabase(meta metav1.ObjectMeta, secrets []string, ref *core.ObjectReference) error {
 	secretUsed, err := c.secretsUsedByPeers(meta)
 	if err != nil {
