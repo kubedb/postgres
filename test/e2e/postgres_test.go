@@ -285,15 +285,53 @@ var _ = Describe("Postgres", func() {
 					skipSnapshotDataChecking = true
 					secret = f.SecretForLocalBackend()
 					snapshot.Spec.StorageSecretName = secret.Name
-					snapshot.Spec.Local = &store.LocalSpec{
-						MountPath: "/repo",
-						VolumeSource: core.VolumeSource{
-							EmptyDir: &core.EmptyDirVolumeSource{},
-						},
-					}
 				})
 
-				It("should take Snapshot successfully", shouldTakeSnapshot)
+				Context("With EmptyDir as Snapshot's backend", func() {
+					BeforeEach(func() {
+						snapshot.Spec.Local = &store.LocalSpec{
+							MountPath: "/repo",
+							VolumeSource: core.VolumeSource{
+								EmptyDir: &core.EmptyDirVolumeSource{},
+							},
+						}
+					})
+
+					It("should take Snapshot successfully", shouldTakeSnapshot)
+				})
+
+				Context("With PVC as Snapshot's backend", func() {
+					var snapPVC *core.PersistentVolumeClaim
+
+					BeforeEach(func() {
+						snapPVC = f.GetPersistentVolumeClaim()
+						err := f.CreatePersistentVolumeClaim(snapPVC)
+						Expect(err).NotTo(HaveOccurred())
+
+						snapshot.Spec.Local = &store.LocalSpec{
+							MountPath: "/repo",
+							VolumeSource: core.VolumeSource{
+								PersistentVolumeClaim: &core.PersistentVolumeClaimVolumeSource{
+									ClaimName: snapPVC.Name,
+								},
+							},
+						}
+					})
+
+					AfterEach(func() {
+						f.DeletePersistentVolumeClaim(snapPVC.ObjectMeta)
+					})
+
+					It("should delete Snapshot successfully", func() {
+						shouldTakeSnapshot()
+
+						By("Deleting Snapshot")
+						f.DeleteSnapshot(snapshot.ObjectMeta)
+
+						By("Waiting Snapshot to be deleted")
+						f.EventuallySnapshot(snapshot.ObjectMeta).Should(BeFalse())
+					})
+				})
 			})
 
 			Context("In S3", func() {
@@ -378,17 +416,7 @@ var _ = Describe("Postgres", func() {
 
 			Context("With Snapshot", func() {
 
-				BeforeEach(func() {
-					skipSnapshotDataChecking = false
-					secret = f.SecretForGCSBackend()
-					snapshot.Spec.StorageSecretName = secret.Name
-					snapshot.Spec.GCS = &store.GCSSpec{
-						Bucket: os.Getenv(GCS_BUCKET_NAME),
-					}
-					snapshot.Spec.DatabaseName = postgres.Name
-				})
-
-				It("should run successfully", func() {
+				var shouldInitializeFromSnapshot = func() {
 					// create postgres and take snapshot
 					shouldInsertDataAndTakeSnapshot()
 
@@ -412,7 +440,56 @@ var _ = Describe("Postgres", func() {
 
 					By("Checking Table")
 					f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
+				}
+
+				Context("From Local backend", func() {
+					var snapPVC *core.PersistentVolumeClaim
+
+					BeforeEach(func() {
+
+						skipSnapshotDataChecking = true
+						snapPVC = f.GetPersistentVolumeClaim()
+						err := f.CreatePersistentVolumeClaim(snapPVC)
+						Expect(err).NotTo(HaveOccurred())
+
+						secret = f.SecretForLocalBackend()
+						snapshot.Spec.DatabaseName = postgres.Name
+						snapshot.Spec.StorageSecretName = secret.Name
+
+						snapshot.Spec.Local = &store.LocalSpec{
+							MountPath: "/repo",
+							VolumeSource: core.VolumeSource{
+								PersistentVolumeClaim: &core.PersistentVolumeClaimVolumeSource{
+									ClaimName: snapPVC.Name,
+								},
+							},
+						}
+					})
+
+					AfterEach(func() {
+						f.DeletePersistentVolumeClaim(snapPVC.ObjectMeta)
+					})
+
+					It("should initialize successfully", shouldInitializeFromSnapshot)
 				})
+
+				Context("From GCS backend", func() {
+
+					BeforeEach(func() {
+
+						skipSnapshotDataChecking = false
+						secret = f.SecretForGCSBackend()
+						snapshot.Spec.StorageSecretName = secret.Name
+						snapshot.Spec.DatabaseName = postgres.Name
+
+						snapshot.Spec.GCS = &store.GCSSpec{
+							Bucket: os.Getenv(GCS_BUCKET_NAME),
+						}
+					})
+
+					It("should run successfully", shouldInitializeFromSnapshot)
+				})
+
 			})
 		})
 
