@@ -64,7 +64,7 @@ var _ = Describe("Postgres", func() {
 
 	var createAndWaitForRunning = func() {
 
-		By("Ensuring PostgresVersion crd")
+		By("Ensuring PostgresVersion crd: " + postgresVersion.Spec.DB.Image)
 		err = f.CreatePostgresVersion(postgresVersion)
 		Expect(err).NotTo(HaveOccurred())
 

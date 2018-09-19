@@ -74,7 +74,8 @@ func (c *Controller) createRestoreJob(postgres *api.Postgres, snapshot *api.Snap
 								fmt.Sprintf(`--folder=%s`, folderName),
 								fmt.Sprintf(`--snapshot=%s`, snapshot.Name),
 								fmt.Sprintf(`--enable-analytics=%v`, c.EnableAnalytics),
-							}, snapshot.Spec.PodTemplate.Spec.Args, "--enable-analytics"),
+								"--",
+							}, postgres.Spec.Init.SnapshotSource.Args, "--enable-analytics"),
 							Env: []core.EnvVar{
 								{
 									Name: PostgresPassword,
@@ -214,6 +215,7 @@ func (c *Controller) GetSnapshotter(snapshot *api.Snapshot) (*batch.Job, error) 
 								fmt.Sprintf(`--folder=%s`, folderName),
 								fmt.Sprintf(`--snapshot=%s`, snapshot.Name),
 								fmt.Sprintf(`--enable-analytics=%v`, c.EnableAnalytics),
+								"--",
 							}, snapshot.Spec.PodTemplate.Spec.Args, "--enable-analytics"),
 							Env: []core.EnvVar{
 								{

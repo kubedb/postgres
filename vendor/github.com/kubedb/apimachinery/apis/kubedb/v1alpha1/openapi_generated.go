@@ -4658,6 +4658,20 @@ func schema_apimachinery_apis_kubedb_v1alpha1_SnapshotSourceSpec(ref common.Refe
 							Format: "",
 						},
 					},
+					"args": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Arguments to the restore job",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
 				},
 				Required: []string{"namespace", "name"},
 			},
