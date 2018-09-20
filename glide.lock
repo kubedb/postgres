@@ -1,5 +1,5 @@
 hash: 0a8adf1b4d9d0caaa95c41e6be5406008b2a25f304a668be072db55aa0eb881e
-updated: 2018-09-14T20:56:21.356477198+06:00
+updated: 2018-09-20T16:58:19.249233471+06:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -327,7 +327,7 @@ imports:
 - name: github.com/json-iterator/go
   version: 1624edc4454b8682399def8740d46db5e4362ba4
 - name: github.com/kubedb/apimachinery
-  version: 870ac65aca2d85b1ff5743e149eef38697bec4ed
+  version: bb2baed87600b4f0b4214ce6c8a488c128880569
   subpackages:
   - apis/kubedb
   - apis/kubedb/v1alpha1
@@ -352,7 +352,7 @@ imports:
   - pkg/eventer
   - pkg/validator
 - name: github.com/kubedb/cli
-  version: 2568bef8ec3f8723fa8bb485a2b08e5d3a6580b2
+  version: 529619853c8f2d9f7ca9ebb01b621d24b0e84ce4
 - name: github.com/lib/pq
   version: 4ded0e9383f75c197b3a2aaa6d590ac52df6fd79
   subpackages:
@@ -532,7 +532,7 @@ imports:
   subpackages:
   - rate
 - name: google.golang.org/api
-  version: 7ca32eb868bf53ea2fc406698eb98583a8073d19
+  version: 19ff8768a5c0b8e46ea281065664787eefc24121
   subpackages:
   - gensupport
   - googleapi
