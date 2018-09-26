@@ -3,7 +3,7 @@ package framework
 import (
 	"fmt"
 
-	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
+	api "github.com/kubedb/apimachinery/apis/catalog/v1alpha1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -32,7 +32,7 @@ func (i *Invocation) PostgresVersion() *api.PostgresVersion {
 }
 
 func (f *Framework) CreatePostgresVersion(obj *api.PostgresVersion) error {
-	_, err := f.extClient.PostgresVersions().Create(obj)
+	_, err := f.extClient.CatalogV1alpha1().PostgresVersions().Create(obj)
 	if err != nil && !kerr.IsAlreadyExists(err) {
 		return err
 	}
@@ -41,5 +41,5 @@ func (f *Framework) CreatePostgresVersion(obj *api.PostgresVersion) error {
 }
 
 func (f *Framework) DeletePostgresVersion(meta metav1.ObjectMeta) error {
-	return f.extClient.PostgresVersions().Delete(meta.Name, &metav1.DeleteOptions{})
+	return f.extClient.CatalogV1alpha1().PostgresVersions().Delete(meta.Name, &metav1.DeleteOptions{})
 }

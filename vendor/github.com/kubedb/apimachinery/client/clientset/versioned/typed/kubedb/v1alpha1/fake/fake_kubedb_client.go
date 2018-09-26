@@ -36,56 +36,28 @@ func (c *FakeKubedbV1alpha1) Elasticsearches(namespace string) v1alpha1.Elastics
 	return &FakeElasticsearches{c, namespace}
 }
 
-func (c *FakeKubedbV1alpha1) ElasticsearchVersions() v1alpha1.ElasticsearchVersionInterface {
-	return &FakeElasticsearchVersions{c}
-}
-
 func (c *FakeKubedbV1alpha1) Etcds(namespace string) v1alpha1.EtcdInterface {
 	return &FakeEtcds{c, namespace}
-}
-
-func (c *FakeKubedbV1alpha1) EtcdVersions() v1alpha1.EtcdVersionInterface {
-	return &FakeEtcdVersions{c}
 }
 
 func (c *FakeKubedbV1alpha1) Memcacheds(namespace string) v1alpha1.MemcachedInterface {
 	return &FakeMemcacheds{c, namespace}
 }
 
-func (c *FakeKubedbV1alpha1) MemcachedVersions() v1alpha1.MemcachedVersionInterface {
-	return &FakeMemcachedVersions{c}
-}
-
 func (c *FakeKubedbV1alpha1) MongoDBs(namespace string) v1alpha1.MongoDBInterface {
 	return &FakeMongoDBs{c, namespace}
-}
-
-func (c *FakeKubedbV1alpha1) MongoDBVersions() v1alpha1.MongoDBVersionInterface {
-	return &FakeMongoDBVersions{c}
 }
 
 func (c *FakeKubedbV1alpha1) MySQLs(namespace string) v1alpha1.MySQLInterface {
 	return &FakeMySQLs{c, namespace}
 }
 
-func (c *FakeKubedbV1alpha1) MySQLVersions() v1alpha1.MySQLVersionInterface {
-	return &FakeMySQLVersions{c}
-}
-
 func (c *FakeKubedbV1alpha1) Postgreses(namespace string) v1alpha1.PostgresInterface {
 	return &FakePostgreses{c, namespace}
 }
 
-func (c *FakeKubedbV1alpha1) PostgresVersions() v1alpha1.PostgresVersionInterface {
-	return &FakePostgresVersions{c}
-}
-
 func (c *FakeKubedbV1alpha1) Redises(namespace string) v1alpha1.RedisInterface {
 	return &FakeRedises{c, namespace}
-}
-
-func (c *FakeKubedbV1alpha1) RedisVersions() v1alpha1.RedisVersionInterface {
-	return &FakeRedisVersions{c}
 }
 
 func (c *FakeKubedbV1alpha1) Snapshots(namespace string) v1alpha1.SnapshotInterface {

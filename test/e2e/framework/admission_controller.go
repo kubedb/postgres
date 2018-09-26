@@ -11,7 +11,7 @@ import (
 	"github.com/appscode/go/log"
 	discovery_util "github.com/appscode/kutil/discovery"
 	shell "github.com/codeskyblue/go-sh"
-	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
+	"github.com/kubedb/apimachinery/apis"
 	"github.com/kubedb/postgres/pkg/cmds/server"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -72,7 +72,7 @@ func (f *Framework) RunOperatorAndServer(config *restclient.Config, kubeconfigPa
 	serverVersion, err := discovery_util.GetBaseVersion(discClient)
 	Expect(err).NotTo(HaveOccurred())
 	if strings.Compare(serverVersion, "1.11") >= 0 {
-		api.EnableStatusSubresource = true
+		apis.EnableStatusSubresource = true
 	}
 
 	sh := shell.NewSession()

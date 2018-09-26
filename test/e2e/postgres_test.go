@@ -7,7 +7,8 @@ import (
 	"github.com/appscode/go/log"
 	core_util "github.com/appscode/kutil/core/v1"
 	meta_util "github.com/appscode/kutil/meta"
-	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
+	catalogapi "github.com/kubedb/apimachinery/apis/catalog/v1alpha1"
+	dbapi "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/kubedb/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1/util"
 	"github.com/kubedb/postgres/test/e2e/framework"
 	"github.com/kubedb/postgres/test/e2e/matcher"
@@ -36,10 +37,10 @@ var _ = Describe("Postgres", func() {
 	var (
 		err                      error
 		f                        *framework.Invocation
-		postgres                 *api.Postgres
-		garbagePostgres          *api.PostgresList
-		postgresVersion          *api.PostgresVersion
-		snapshot                 *api.Snapshot
+		postgres                 *dbapi.Postgres
+		garbagePostgres          *dbapi.PostgresList
+		postgresVersion          *catalogapi.PostgresVersion
+		snapshot                 *dbapi.Snapshot
 		secret                   *core.Secret
 		skipMessage              string
 		skipSnapshotDataChecking bool
@@ -52,7 +53,7 @@ var _ = Describe("Postgres", func() {
 		f = root.Invoke()
 		postgres = f.Postgres()
 		postgresVersion = f.PostgresVersion()
-		garbagePostgres = new(api.PostgresList)
+		garbagePostgres = new(dbapi.PostgresList)
 		snapshot = f.Snapshot()
 		secret = new(core.Secret)
 		skipMessage = ""
@@ -130,7 +131,7 @@ var _ = Describe("Postgres", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		By("Check for Succeeded snapshot")
-		f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(api.SnapshotPhaseSucceeded))
+		f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(dbapi.SnapshotPhaseSucceeded))
 
 		if !skipSnapshotDataChecking {
 			By("Check for snapshot data")
@@ -160,7 +161,7 @@ var _ = Describe("Postgres", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		By("Check for Succeeded snapshot")
-		f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(api.SnapshotPhaseSucceeded))
+		f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(dbapi.SnapshotPhaseSucceeded))
 
 		if !skipSnapshotDataChecking {
 			By("Check for snapshot data")
@@ -187,7 +188,7 @@ var _ = Describe("Postgres", func() {
 		f.EventuallyDormantDatabaseStatus(postgres.ObjectMeta).Should(matcher.HavePaused())
 
 		By("Set DormantDatabase Spec.WipeOut to true")
-		_, err := f.PatchDormantDatabase(postgres.ObjectMeta, func(in *api.DormantDatabase) *api.DormantDatabase {
+		_, err := f.PatchDormantDatabase(postgres.ObjectMeta, func(in *dbapi.DormantDatabase) *dbapi.DormantDatabase {
 			in.Spec.WipeOut = true
 			return in
 		})
@@ -265,7 +266,7 @@ var _ = Describe("Postgres", func() {
 				f.EventuallyPostgresRunning(postgres.ObjectMeta).Should(BeTrue())
 
 				By("Update postgres to set DoNotPause=false")
-				f.PatchPostgres(postgres.ObjectMeta, func(in *api.Postgres) *api.Postgres {
+				f.PatchPostgres(postgres.ObjectMeta, func(in *dbapi.Postgres) *dbapi.Postgres {
 					in.Spec.DoNotPause = false
 					return in
 				})
@@ -392,8 +393,8 @@ var _ = Describe("Postgres", func() {
 			Context("With Script", func() {
 
 				BeforeEach(func() {
-					postgres.Spec.Init = &api.InitSpec{
-						ScriptSource: &api.ScriptSourceSpec{
+					postgres.Spec.Init = &dbapi.InitSpec{
+						ScriptSource: &dbapi.ScriptSourceSpec{
 							VolumeSource: core.VolumeSource{
 								GitRepo: &core.GitRepoVolumeSource{
 									Repository: "https://github.com/kubedb/postgres-init-scripts.git",
@@ -428,8 +429,8 @@ var _ = Describe("Postgres", func() {
 					By("Create postgres from snapshot")
 					*postgres = *f.Postgres()
 					postgres.Spec.DatabaseSecret = oldPostgres.Spec.DatabaseSecret
-					postgres.Spec.Init = &api.InitSpec{
-						SnapshotSource: &api.SnapshotSourceSpec{
+					postgres.Spec.Init = &dbapi.InitSpec{
+						SnapshotSource: &dbapi.SnapshotSourceSpec{
 							Namespace: snapshot.Namespace,
 							Name:      snapshot.Name,
 						},
@@ -526,7 +527,7 @@ var _ = Describe("Postgres", func() {
 
 				*postgres = *pg
 				if usedInitialized {
-					_, ok := postgres.Annotations[api.AnnotationInitialized]
+					_, ok := postgres.Annotations[dbapi.AnnotationInitialized]
 					Expect(ok).Should(BeTrue())
 				}
 			}
@@ -538,8 +539,8 @@ var _ = Describe("Postgres", func() {
 			Context("With Init", func() {
 
 				BeforeEach(func() {
-					postgres.Spec.Init = &api.InitSpec{
-						ScriptSource: &api.ScriptSourceSpec{
+					postgres.Spec.Init = &dbapi.InitSpec{
+						ScriptSource: &dbapi.ScriptSourceSpec{
 							VolumeSource: core.VolumeSource{
 								GitRepo: &core.GitRepoVolumeSource{
 									Repository: "https://github.com/kubedb/postgres-init-scripts.git",
@@ -576,8 +577,8 @@ var _ = Describe("Postgres", func() {
 
 					By("Create postgres from snapshot")
 					*postgres = *f.Postgres()
-					postgres.Spec.Init = &api.InitSpec{
-						SnapshotSource: &api.SnapshotSourceSpec{
+					postgres.Spec.Init = &dbapi.InitSpec{
+						SnapshotSource: &dbapi.SnapshotSourceSpec{
 							Namespace: snapshot.Namespace,
 							Name:      snapshot.Name,
 						},
@@ -629,7 +630,7 @@ var _ = Describe("Postgres", func() {
 					f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
 
 					By("Checking postgres crd has kubedb.com/initialized annotation")
-					_, err = meta_util.GetString(postgres.Annotations, api.AnnotationInitialized)
+					_, err = meta_util.GetString(postgres.Annotations, dbapi.AnnotationInitialized)
 					Expect(err).NotTo(HaveOccurred())
 				})
 			})
@@ -638,8 +639,8 @@ var _ = Describe("Postgres", func() {
 
 				BeforeEach(func() {
 					usedInitialized = true
-					postgres.Spec.Init = &api.InitSpec{
-						ScriptSource: &api.ScriptSourceSpec{
+					postgres.Spec.Init = &dbapi.InitSpec{
+						ScriptSource: &dbapi.ScriptSourceSpec{
 							ScriptPath: "postgres-init-scripts/run.sh",
 							VolumeSource: core.VolumeSource{
 								GitRepo: &core.GitRepoVolumeSource{
@@ -689,7 +690,7 @@ var _ = Describe("Postgres", func() {
 			Context("With Startup", func() {
 
 				BeforeEach(func() {
-					postgres.Spec.BackupSchedule = &api.BackupScheduleSpec{
+					postgres.Spec.BackupSchedule = &dbapi.BackupScheduleSpec{
 						CronExpression: "@every 1m",
 						Backend: store.Backend{
 							StorageSecretName: secret.Name,
@@ -724,8 +725,8 @@ var _ = Describe("Postgres", func() {
 					f.CreateSecret(secret)
 
 					By("Update postgres")
-					_, err = f.PatchPostgres(postgres.ObjectMeta, func(in *api.Postgres) *api.Postgres {
-						in.Spec.BackupSchedule = &api.BackupScheduleSpec{
+					_, err = f.PatchPostgres(postgres.ObjectMeta, func(in *dbapi.Postgres) *dbapi.Postgres {
+						in.Spec.BackupSchedule = &dbapi.BackupScheduleSpec{
 							CronExpression: "@every 1m",
 							Backend: store.Backend{
 								StorageSecretName: secret.Name,
@@ -753,7 +754,7 @@ var _ = Describe("Postgres", func() {
 			BeforeEach(func() {
 				secret = f.SecretForS3Backend()
 				skipWalDataChecking = false
-				postgres.Spec.Archiver = &api.PostgresArchiverSpec{
+				postgres.Spec.Archiver = &dbapi.PostgresArchiverSpec{
 					Storage: &store.Backend{
 						StorageSecretName: secret.Name,
 						S3: &store.S3Spec{
@@ -794,7 +795,7 @@ var _ = Describe("Postgres", func() {
 
 					// -- > 2nd Postgres < --
 					*postgres = *f.Postgres()
-					postgres.Spec.Archiver = &api.PostgresArchiverSpec{
+					postgres.Spec.Archiver = &dbapi.PostgresArchiverSpec{
 						Storage: &store.Backend{
 							StorageSecretName: secret.Name,
 							S3: &store.S3Spec{
@@ -803,8 +804,8 @@ var _ = Describe("Postgres", func() {
 						},
 					}
 
-					postgres.Spec.Init = &api.InitSpec{
-						PostgresWAL: &api.PostgresWALSourceSpec{
+					postgres.Spec.Init = &dbapi.InitSpec{
+						PostgresWAL: &dbapi.PostgresWALSourceSpec{
 							Backend: store.Backend{
 								StorageSecretName: secret.Name,
 								S3: &store.S3Spec{
@@ -839,8 +840,8 @@ var _ = Describe("Postgres", func() {
 
 					// -- > 3rd Postgres < --
 					*postgres = *f.Postgres()
-					postgres.Spec.Init = &api.InitSpec{
-						PostgresWAL: &api.PostgresWALSourceSpec{
+					postgres.Spec.Init = &dbapi.InitSpec{
+						PostgresWAL: &dbapi.PostgresWALSourceSpec{
 							Backend: store.Backend{
 								StorageSecretName: secret.Name,
 								S3: &store.S3Spec{
@@ -865,7 +866,7 @@ var _ = Describe("Postgres", func() {
 			Context("WipeOut wal data", func() {
 
 				BeforeEach(func() {
-					postgres.Spec.TerminationPolicy = api.TerminationPolicyWipeOut
+					postgres.Spec.TerminationPolicy = dbapi.TerminationPolicyWipeOut
 				})
 
 				It("should remove wal data from backend", func() {
@@ -963,7 +964,7 @@ var _ = Describe("Postgres", func() {
 			Context("with TerminationPolicyDelete", func() {
 
 				BeforeEach(func() {
-					postgres.Spec.TerminationPolicy = api.TerminationPolicyDelete
+					postgres.Spec.TerminationPolicy = dbapi.TerminationPolicyDelete
 				})
 
 				AfterEach(func() {
@@ -1004,7 +1005,7 @@ var _ = Describe("Postgres", func() {
 			Context("with TerminationPolicyWipeOut", func() {
 
 				BeforeEach(func() {
-					postgres.Spec.TerminationPolicy = api.TerminationPolicyWipeOut
+					postgres.Spec.TerminationPolicy = dbapi.TerminationPolicyWipeOut
 				})
 
 				It("should not create DormantDatabase and should wipeOut all", func() {
@@ -1123,7 +1124,7 @@ var _ = Describe("Postgres", func() {
 					testGeneralBehaviour()
 
 					By("Patching EnvVar")
-					_, _, err = util.PatchPostgres(f.ExtClient(), postgres, func(in *api.Postgres) *api.Postgres {
+					_, _, err = util.PatchPostgres(f.ExtClient().KubedbV1alpha1(), postgres, func(in *dbapi.Postgres) *dbapi.Postgres {
 						in.Spec.PodTemplate.Spec.Env = []core.EnvVar{
 							{
 								Name:  POSTGRES_DB,

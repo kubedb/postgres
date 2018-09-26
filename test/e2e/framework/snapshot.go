@@ -7,7 +7,7 @@ import (
 	"github.com/appscode/go/crypto/rand"
 	"github.com/graymeta/stow"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
-	kutildb "github.com/kubedb/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1/util"
+	"github.com/kubedb/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1/util"
 	. "github.com/onsi/gomega"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -29,22 +29,22 @@ func (i *Invocation) Snapshot() *api.Snapshot {
 }
 
 func (f *Framework) CreateSnapshot(obj *api.Snapshot) error {
-	_, err := f.extClient.Snapshots(obj.Namespace).Create(obj)
+	_, err := f.extClient.KubedbV1alpha1().Snapshots(obj.Namespace).Create(obj)
 	return err
 }
 
 func (f *Framework) GetSnapshot(meta metav1.ObjectMeta) (*api.Snapshot, error) {
-	return f.extClient.Snapshots(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
+	return f.extClient.KubedbV1alpha1().Snapshots(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
 }
 
 func (f *Framework) DeleteSnapshot(meta metav1.ObjectMeta) error {
-	return f.extClient.Snapshots(meta.Namespace).Delete(meta.Name, &metav1.DeleteOptions{})
+	return f.extClient.KubedbV1alpha1().Snapshots(meta.Namespace).Delete(meta.Name, &metav1.DeleteOptions{})
 }
 
 func (f *Framework) EventuallySnapshotPhase(meta metav1.ObjectMeta) GomegaAsyncAssertion {
 	return Eventually(
 		func() api.SnapshotPhase {
-			snapshot, err := f.extClient.Snapshots(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
+			snapshot, err := f.extClient.KubedbV1alpha1().Snapshots(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(snapshot.Status.Phase).ToNot(Equal(api.SnapshotPhaseFailed))
 			return snapshot.Status.Phase
@@ -69,7 +69,7 @@ func (f *Framework) EventuallySnapshotDataFound(snapshot *api.Snapshot) GomegaAs
 func (f *Framework) EventuallySnapshot(meta metav1.ObjectMeta) GomegaAsyncAssertion {
 	return Eventually(
 		func() bool {
-			_, err := f.extClient.Snapshots(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
+			_, err := f.extClient.KubedbV1alpha1().Snapshots(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
 			if err != nil {
 				if kerr.IsNotFound(err) {
 					return false
@@ -93,7 +93,7 @@ func (f *Framework) EventuallySnapshotCount(meta metav1.ObjectMeta) GomegaAsyncA
 
 	return Eventually(
 		func() int {
-			snapshotList, err := f.extClient.Snapshots(meta.Namespace).List(metav1.ListOptions{
+			snapshotList, err := f.extClient.KubedbV1alpha1().Snapshots(meta.Namespace).List(metav1.ListOptions{
 				LabelSelector: labels.SelectorFromSet(labelMap).String(),
 			})
 			Expect(err).NotTo(HaveOccurred())
@@ -147,19 +147,19 @@ func (f *Framework) checkSnapshotData(snapshot *api.Snapshot) (bool, error) {
 }
 
 func (f *Framework) CleanSnapshot() {
-	snapshotList, err := f.extClient.Snapshots(f.namespace).List(metav1.ListOptions{})
+	snapshotList, err := f.extClient.KubedbV1alpha1().Snapshots(f.namespace).List(metav1.ListOptions{})
 	if err != nil {
 		return
 	}
 	for _, s := range snapshotList.Items {
-		if _, _, err := kutildb.PatchSnapshot(f.extClient, &s, func(in *api.Snapshot) *api.Snapshot {
+		if _, _, err := util.PatchSnapshot(f.extClient.KubedbV1alpha1(), &s, func(in *api.Snapshot) *api.Snapshot {
 			in.ObjectMeta.Finalizers = nil
 			return in
 		}); err != nil {
 			fmt.Printf("error Patching Snapshot. error: %v", err)
 		}
 	}
-	if err := f.extClient.Snapshots(f.namespace).DeleteCollection(deleteInBackground(), metav1.ListOptions{}); err != nil {
+	if err := f.extClient.KubedbV1alpha1().Snapshots(f.namespace).DeleteCollection(deleteInBackground(), metav1.ListOptions{}); err != nil {
 		fmt.Printf("error in deletion of Snapshot. Error: %v", err)
 	}
 }
