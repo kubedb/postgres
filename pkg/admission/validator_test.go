@@ -6,8 +6,8 @@ import (
 
 	"github.com/appscode/go/types"
 	"github.com/appscode/kutil/meta"
-	catalogapi "github.com/kubedb/apimachinery/apis/catalog/v1alpha1"
-	dbapi "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
+	catalog "github.com/kubedb/apimachinery/apis/catalog/v1alpha1"
+	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	extFake "github.com/kubedb/apimachinery/client/clientset/versioned/fake"
 	"github.com/kubedb/apimachinery/client/clientset/versioned/scheme"
 	admission "k8s.io/api/admission/v1beta1"
@@ -29,9 +29,9 @@ func init() {
 }
 
 var requestKind = metaV1.GroupVersionKind{
-	Group:   dbapi.SchemeGroupVersion.Group,
-	Version: dbapi.SchemeGroupVersion.Version,
-	Kind:    dbapi.ResourceKindPostgres,
+	Group:   api.SchemeGroupVersion.Group,
+	Version: api.SchemeGroupVersion.Version,
+	Kind:    api.ResourceKindPostgres,
 }
 
 func TestPostgresValidator_Admit(t *testing.T) {
@@ -41,7 +41,7 @@ func TestPostgresValidator_Admit(t *testing.T) {
 
 			validator.initialized = true
 			validator.extClient = extFake.NewSimpleClientset(
-				&catalogapi.PostgresVersion{
+				&catalog.PostgresVersion{
 					ObjectMeta: metaV1.ObjectMeta{
 						Name: "9.6",
 					},
@@ -61,11 +61,11 @@ func TestPostgresValidator_Admit(t *testing.T) {
 				},
 			)
 
-			objJS, err := meta.MarshalToJson(&c.object, dbapi.SchemeGroupVersion)
+			objJS, err := meta.MarshalToJson(&c.object, api.SchemeGroupVersion)
 			if err != nil {
 				panic(err)
 			}
-			oldObjJS, err := meta.MarshalToJson(&c.oldObject, dbapi.SchemeGroupVersion)
+			oldObjJS, err := meta.MarshalToJson(&c.oldObject, api.SchemeGroupVersion)
 			if err != nil {
 				panic(err)
 			}
@@ -113,8 +113,8 @@ var cases = []struct {
 	objectName string
 	namespace  string
 	operation  admission.Operation
-	object     dbapi.Postgres
-	oldObject  dbapi.Postgres
+	object     api.Postgres
+	oldObject  api.Postgres
 	heatUp     bool
 	result     bool
 }{
@@ -124,7 +124,7 @@ var cases = []struct {
 		"default",
 		admission.Create,
 		samplePostgres(),
-		dbapi.Postgres{},
+		api.Postgres{},
 		false,
 		true,
 	},
@@ -134,7 +134,7 @@ var cases = []struct {
 		"default",
 		admission.Create,
 		getAwkwardPostgres(),
-		dbapi.Postgres{},
+		api.Postgres{},
 		false,
 		false,
 	},
@@ -204,7 +204,7 @@ var cases = []struct {
 		"default",
 		admission.Delete,
 		samplePostgres(),
-		dbapi.Postgres{},
+		api.Postgres{},
 		true,
 		false,
 	},
@@ -214,7 +214,7 @@ var cases = []struct {
 		"default",
 		admission.Delete,
 		editSpecDoNotPause(samplePostgres()),
-		dbapi.Postgres{},
+		api.Postgres{},
 		true,
 		true,
 	},
@@ -223,31 +223,31 @@ var cases = []struct {
 		"foo",
 		"default",
 		admission.Delete,
-		dbapi.Postgres{},
-		dbapi.Postgres{},
+		api.Postgres{},
+		api.Postgres{},
 		false,
 		true,
 	},
 }
 
-func samplePostgres() dbapi.Postgres {
-	return dbapi.Postgres{
+func samplePostgres() api.Postgres {
+	return api.Postgres{
 		TypeMeta: metaV1.TypeMeta{
-			Kind:       dbapi.ResourceKindPostgres,
-			APIVersion: dbapi.SchemeGroupVersion.String(),
+			Kind:       api.ResourceKindPostgres,
+			APIVersion: api.SchemeGroupVersion.String(),
 		},
 		ObjectMeta: metaV1.ObjectMeta{
 			Name:      "foo",
 			Namespace: "default",
 			Labels: map[string]string{
-				dbapi.LabelDatabaseKind: dbapi.ResourceKindPostgres,
+				api.LabelDatabaseKind: api.ResourceKindPostgres,
 			},
 		},
-		Spec: dbapi.PostgresSpec{
+		Spec: api.PostgresSpec{
 			Version:     "9.6",
 			Replicas:    types.Int32P(1),
 			DoNotPause:  true,
-			StorageType: dbapi.StorageTypeDurable,
+			StorageType: api.StorageTypeDurable,
 			Storage: &core.PersistentVolumeClaimSpec{
 				StorageClassName: types.StringP("standard"),
 				Resources: core.ResourceRequirements{
@@ -256,8 +256,8 @@ func samplePostgres() dbapi.Postgres {
 					},
 				},
 			},
-			Init: &dbapi.InitSpec{
-				ScriptSource: &dbapi.ScriptSourceSpec{
+			Init: &api.InitSpec{
+				ScriptSource: &api.ScriptSourceSpec{
 					VolumeSource: core.VolumeSource{
 						GitRepo: &core.GitRepoVolumeSource{
 							Repository: "https://github.com/kubedb/postgres-init-scripts.git",
@@ -269,39 +269,39 @@ func samplePostgres() dbapi.Postgres {
 			UpdateStrategy: apps.StatefulSetUpdateStrategy{
 				Type: apps.RollingUpdateStatefulSetStrategyType,
 			},
-			TerminationPolicy: dbapi.TerminationPolicyPause,
+			TerminationPolicy: api.TerminationPolicyPause,
 		},
 	}
 }
 
-func getAwkwardPostgres() dbapi.Postgres {
+func getAwkwardPostgres() api.Postgres {
 	postgres := samplePostgres()
 	postgres.Spec.Version = "3.0"
 	return postgres
 }
 
-func editExistingSecret(old dbapi.Postgres) dbapi.Postgres {
+func editExistingSecret(old api.Postgres) api.Postgres {
 	old.Spec.DatabaseSecret = &core.SecretVolumeSource{
 		SecretName: "foo-auth",
 	}
 	return old
 }
 
-func editNonExistingSecret(old dbapi.Postgres) dbapi.Postgres {
+func editNonExistingSecret(old api.Postgres) api.Postgres {
 	old.Spec.DatabaseSecret = &core.SecretVolumeSource{
 		SecretName: "foo-auth-fused",
 	}
 	return old
 }
 
-func editStatus(old dbapi.Postgres) dbapi.Postgres {
-	old.Status = dbapi.PostgresStatus{
-		Phase: dbapi.DatabasePhaseCreating,
+func editStatus(old api.Postgres) api.Postgres {
+	old.Status = api.PostgresStatus{
+		Phase: api.DatabasePhaseCreating,
 	}
 	return old
 }
 
-func editSpecMonitor(old dbapi.Postgres) dbapi.Postgres {
+func editSpecMonitor(old api.Postgres) api.Postgres {
 	old.Spec.Monitor = &mona.AgentSpec{
 		Agent: mona.AgentPrometheusBuiltin,
 		Prometheus: &mona.PrometheusSpec{
@@ -312,14 +312,14 @@ func editSpecMonitor(old dbapi.Postgres) dbapi.Postgres {
 }
 
 // should be failed because more fields required for COreOS Monitoring
-func editSpecInvalidMonitor(old dbapi.Postgres) dbapi.Postgres {
+func editSpecInvalidMonitor(old api.Postgres) api.Postgres {
 	old.Spec.Monitor = &mona.AgentSpec{
 		Agent: mona.AgentCoreOSPrometheus,
 	}
 	return old
 }
 
-func editSpecDoNotPause(old dbapi.Postgres) dbapi.Postgres {
+func editSpecDoNotPause(old api.Postgres) api.Postgres {
 	old.Spec.DoNotPause = false
 	return old
 }
