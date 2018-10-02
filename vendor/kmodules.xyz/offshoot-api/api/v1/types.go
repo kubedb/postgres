@@ -128,6 +128,11 @@ type PodSpec struct {
 	// More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes
 	// +optional
 	ReadinessProbe *core.Probe `json:"readinessProbe,omitempty"`
+
+	// Actions that the management system should take in response to container lifecycle events.
+	// Cannot be updated.
+	// +optional
+	Lifecycle *core.Lifecycle `json:"lifecycle,omitempty"`
 }
 
 // ServiceTemplateSpec describes the data a service should have when created from a template
