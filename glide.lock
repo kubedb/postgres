@@ -1,5 +1,5 @@
 hash: 37ffbdf5f7bac807c2b11b378492c4583a6949da8a89c055d80f5163d5845352
-updated: 2018-11-21T14:27:10.379134845+06:00
+updated: 2018-11-27T12:21:33.564998768+06:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -37,7 +37,7 @@ imports:
   - admission/v1beta1
   - registry/admissionreview/v1beta1
 - name: github.com/appscode/kutil
-  version: 68433ef84c41b2028786372f2a128932908f7124
+  version: 5e4dc08e9e6e00fcf397b7186a3918dc4dcb9426
   subpackages:
   - admissionregistration/v1beta1
   - apiextensions/v1beta1
@@ -1038,6 +1038,7 @@ imports:
   - apis/appcatalog/v1alpha1
   - client/clientset/versioned/scheme
   - client/clientset/versioned/typed/appcatalog/v1alpha1
+  - client/clientset/versioned/typed/appcatalog/v1alpha1/util
 - name: kmodules.xyz/monitoring-agent-api
   version: c68fa034fbbaeb8c930c17d1ec0790a4ea46bad3
   repo: https://github.com/kmodules/monitoring-agent-api.git
