@@ -1,5 +1,5 @@
 hash: 8d999564cbd983672ebc801262e9535bb31b401d715a228e946b2a4e6ce2bbe5
-updated: 2018-10-02T17:33:14.072623766-07:00
+updated: 2018-10-02T22:36:40.625127294-07:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -201,7 +201,7 @@ imports:
   subpackages:
   - md2man
 - name: github.com/davecgh/go-spew
-  version: 782f4967f2dc4564575ca782fe2d04090b5faca8
+  version: 5215b55f46b2b919f50a1df0eaa5886afe4e3b3d
   subpackages:
   - spew
 - name: github.com/dgrijalva/jwt-go
@@ -328,7 +328,7 @@ imports:
 - name: github.com/json-iterator/go
   version: 1624edc4454b8682399def8740d46db5e4362ba4
 - name: github.com/kubedb/apimachinery
-  version: 983c7b0e1014256f33bfa30d3131c640d972f2e0
+  version: 639d949f74aeed5fe7ea760dc51c6e6ef537e942
   subpackages:
   - apis
   - apis/catalog
@@ -598,7 +598,7 @@ imports:
 - name: gopkg.in/tomb.v1
   version: c131134a1947e9afd9cecfe11f4c6dff0732ae58
 - name: gopkg.in/yaml.v2
-  version: 670d4cfef0544295bc27a114dbac37980d83185a
+  version: 53feefa2559fb8dfa8d81baad31be332c97d6c77
 - name: k8s.io/api
   version: 4e7be11eab3ffcfc1876898b8272df53785a9504
   subpackages:
@@ -998,7 +998,7 @@ imports:
   - api/v1
   - osm
 - name: kmodules.xyz/offshoot-api
-  version: 2051fc8d05f53e96ac787faa30995278be6721d9
+  version: 19332f50ff9b7d684402d5a9e604815391f5900b
   repo: https://github.com/kmodules/offshoot-api.git
   vcs: git
   subpackages:
