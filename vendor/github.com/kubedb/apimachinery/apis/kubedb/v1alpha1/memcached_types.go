@@ -35,11 +35,6 @@ type MemcachedSpec struct {
 	// Number of instances to deploy for a Memcached database.
 	Replicas *int32 `json:"replicas,omitempty"`
 
-	// If DoNotPause is true, controller will prevent to delete this Postgres object.
-	// Controller will create same Postgres object and ignore other process.
-	// +optional
-	DoNotPause bool `json:"doNotPause,omitempty"`
-
 	// Monitor is used monitor database instance
 	// +optional
 	Monitor *mona.AgentSpec `json:"monitor,omitempty"`

@@ -1,5 +1,5 @@
-hash: 8d999564cbd983672ebc801262e9535bb31b401d715a228e946b2a4e6ce2bbe5
-updated: 2018-10-02T22:36:40.625127294-07:00
+hash: 295499f0b47de098c762155d9c378060ff3f077a417e180bb2e9c59a5a9d0a8d
+updated: 2018-10-03T04:40:57.772383499-07:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -328,27 +328,37 @@ imports:
 - name: github.com/json-iterator/go
   version: 1624edc4454b8682399def8740d46db5e4362ba4
 - name: github.com/kubedb/apimachinery
-  version: 639d949f74aeed5fe7ea760dc51c6e6ef537e942
+  version: fcb7be1a808ff19e75c06a414a13503b1dbd5d8f
   subpackages:
   - apis
+  - apis/authorization
+  - apis/authorization/v1alpha1
   - apis/catalog
   - apis/catalog/v1alpha1
+  - apis/config/v1alpha1
   - apis/kubedb
   - apis/kubedb/v1alpha1
   - client/clientset/versioned
   - client/clientset/versioned/fake
   - client/clientset/versioned/scheme
+  - client/clientset/versioned/typed/authorization/v1alpha1
+  - client/clientset/versioned/typed/authorization/v1alpha1/fake
   - client/clientset/versioned/typed/catalog/v1alpha1
   - client/clientset/versioned/typed/catalog/v1alpha1/fake
+  - client/clientset/versioned/typed/config/v1alpha1
+  - client/clientset/versioned/typed/config/v1alpha1/fake
   - client/clientset/versioned/typed/kubedb/v1alpha1
   - client/clientset/versioned/typed/kubedb/v1alpha1/fake
   - client/clientset/versioned/typed/kubedb/v1alpha1/util
   - client/informers/externalversions
+  - client/informers/externalversions/authorization
+  - client/informers/externalversions/authorization/v1alpha1
   - client/informers/externalversions/catalog
   - client/informers/externalversions/catalog/v1alpha1
   - client/informers/externalversions/internalinterfaces
   - client/informers/externalversions/kubedb
   - client/informers/externalversions/kubedb/v1alpha1
+  - client/listers/authorization/v1alpha1
   - client/listers/catalog/v1alpha1
   - client/listers/kubedb/v1alpha1
   - pkg/admission
@@ -456,15 +466,13 @@ imports:
 - name: github.com/PuerkitoBio/urlesc
   version: 5bd2802263f21d8788851d5305584c82a5c75d7e
 - name: github.com/russross/blackfriday
-  version: 300106c228d52c8941d4b3de6054a6062a86dda3
+  version: 4048872b16cc0fc2c5fd9eacf0ed2c2fedaa0c8c
 - name: github.com/satori/go.uuid
   version: 879c5887cd475cd7864858769793b2ceb0d44feb
 - name: github.com/sergi/go-diff
   version: 97b2266dfe4bd4ea1b81a463322f04f8b724801e
   subpackages:
   - diffmatchpatch
-- name: github.com/shurcooL/sanitized_anchor_name
-  version: 10ef21a441db47d8b13ebcc5fd2310f636973c77
 - name: github.com/spf13/cobra
   version: ef82de70bb3f60c65fb8eebacbb2d122ef517385
   subpackages:
@@ -981,6 +989,17 @@ imports:
   - pkg/handler
   - pkg/util
   - pkg/util/proto
+- name: kmodules.xyz/custom-resources
+  version: 729e3de8c1075db502f1edc332ebdabde7f56d09
+  repo: https://github.com/kmodules/custom-resources.git
+  vcs: git
+  subpackages:
+  - apis
+  - apis/appcatalog
+  - apis/appcatalog/v1alpha1
+  - client/clientset/versioned/scheme
+  - client/clientset/versioned/typed/appcatalog/v1alpha1
+  - client/clientset/versioned/typed/appcatalog/v1alpha1/util
 - name: kmodules.xyz/monitoring-agent-api
   version: 00cac08cb50defd6df8d08483fad35df790d7675
   repo: https://github.com/kmodules/monitoring-agent-api.git

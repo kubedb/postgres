@@ -55,11 +55,6 @@ type RedisSpec struct {
 	// Storage spec to specify how storage shall be used.
 	Storage *core.PersistentVolumeClaimSpec `json:"storage,omitempty"`
 
-	// If DoNotPause is true, controller will prevent to delete this Postgres object.
-	// Controller will create same Postgres object and ignore other process.
-	// +optional
-	DoNotPause bool `json:"doNotPause,omitempty"`
-
 	// Monitor is used monitor database instance
 	// +optional
 	Monitor *mona.AgentSpec `json:"monitor,omitempty"`

@@ -55,11 +55,6 @@ type MongoDBSpec struct {
 	// +optional
 	BackupSchedule *BackupScheduleSpec `json:"backupSchedule,omitempty"`
 
-	// If DoNotPause is true, controller will prevent to delete this Postgres object.
-	// Controller will create same Postgres object and ignore other process.
-	// +optional
-	DoNotPause bool `json:"doNotPause,omitempty"`
-
 	// Monitor is used monitor database instance
 	// +optional
 	Monitor *mona.AgentSpec `json:"monitor,omitempty"`

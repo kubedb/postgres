@@ -246,7 +246,6 @@ func samplePostgres() api.Postgres {
 		Spec: api.PostgresSpec{
 			Version:     "9.6",
 			Replicas:    types.Int32P(1),
-			DoNotPause:  true,
 			StorageType: api.StorageTypeDurable,
 			Storage: &core.PersistentVolumeClaimSpec{
 				StorageClassName: types.StringP("standard"),
@@ -269,7 +268,7 @@ func samplePostgres() api.Postgres {
 			UpdateStrategy: apps.StatefulSetUpdateStrategy{
 				Type: apps.RollingUpdateStatefulSetStrategyType,
 			},
-			TerminationPolicy: api.TerminationPolicyPause,
+			TerminationPolicy: api.TerminationPolicyDoNotTerminate,
 		},
 	}
 }
@@ -320,6 +319,6 @@ func editSpecInvalidMonitor(old api.Postgres) api.Postgres {
 }
 
 func editSpecDoNotPause(old api.Postgres) api.Postgres {
-	old.Spec.DoNotPause = false
+	old.Spec.TerminationPolicy = api.TerminationPolicyPause
 	return old
 }
