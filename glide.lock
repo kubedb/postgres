@@ -1,5 +1,5 @@
 hash: 8d999564cbd983672ebc801262e9535bb31b401d715a228e946b2a4e6ce2bbe5
-updated: 2018-10-02T17:26:50.628103731-07:00
+updated: 2018-10-02T17:33:14.072623766-07:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -353,6 +353,7 @@ imports:
   - client/listers/kubedb/v1alpha1
   - pkg/admission
   - pkg/admission/dormantdatabase
+  - pkg/admission/namespace
   - pkg/admission/snapshot
   - pkg/controller
   - pkg/controller/dormantdatabase
