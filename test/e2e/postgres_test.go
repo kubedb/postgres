@@ -245,10 +245,10 @@ var _ = Describe("Postgres", func() {
 			})
 		})
 
-		Context("DoNotPause", func() {
+		Context("DoNotTerminate", func() {
 
 			BeforeEach(func() {
-				postgres.Spec.DoNotPause = true
+				postgres.Spec.TerminationPolicy = api.TerminationPolicyDoNotTerminate
 			})
 
 			It("should work successfully", func() {
@@ -265,9 +265,9 @@ var _ = Describe("Postgres", func() {
 				By("Check for Running postgres")
 				f.EventuallyPostgresRunning(postgres.ObjectMeta).Should(BeTrue())
 
-				By("Update postgres to set DoNotPause=false")
+				By("Update postgres to set spec.terminationPolicy = Pause")
 				f.PatchPostgres(postgres.ObjectMeta, func(in *api.Postgres) *api.Postgres {
-					in.Spec.DoNotPause = false
+					in.Spec.TerminationPolicy = api.TerminationPolicyPause
 					return in
 				})
 			})

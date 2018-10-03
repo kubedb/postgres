@@ -188,17 +188,17 @@ var cases = []struct {
 		false,
 		false,
 	},
-	{"Edit Spec.DoNotPause",
+	{"Edit Spec.TerminationPolicy",
 		requestKind,
 		"foo",
 		"default",
 		admission.Update,
-		editSpecDoNotPause(samplePostgres()),
+		pauseDatabase(samplePostgres()),
 		samplePostgres(),
 		false,
 		true,
 	},
-	{"Delete Postgres when Spec.DoNotPause=true",
+	{"Delete Postgres when Spec.TerminationPolicy=DoNotTerminate",
 		requestKind,
 		"foo",
 		"default",
@@ -208,12 +208,12 @@ var cases = []struct {
 		true,
 		false,
 	},
-	{"Delete Postgres when Spec.DoNotPause=false",
+	{"Delete Postgres when Spec.TerminationPolicy=Pause",
 		requestKind,
 		"foo",
 		"default",
 		admission.Delete,
-		editSpecDoNotPause(samplePostgres()),
+		pauseDatabase(samplePostgres()),
 		api.Postgres{},
 		true,
 		true,
@@ -318,7 +318,7 @@ func editSpecInvalidMonitor(old api.Postgres) api.Postgres {
 	return old
 }
 
-func editSpecDoNotPause(old api.Postgres) api.Postgres {
+func pauseDatabase(old api.Postgres) api.Postgres {
 	old.Spec.TerminationPolicy = api.TerminationPolicyPause
 	return old
 }
