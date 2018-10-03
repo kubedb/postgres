@@ -117,7 +117,7 @@ func (f *Framework) CleanPostgres() {
 	for _, e := range postgresList.Items {
 		if _, _, err := util.PatchPostgres(f.extClient.KubedbV1alpha1(), &e, func(in *api.Postgres) *api.Postgres {
 			in.ObjectMeta.Finalizers = nil
-			in.Spec.TerminationPolicy = api.TerminationPolicyPause
+			in.Spec.TerminationPolicy = api.TerminationPolicyWipeOut
 			return in
 		}); err != nil {
 			fmt.Printf("error Patching Postgres. error: %v", err)
