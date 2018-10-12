@@ -173,6 +173,17 @@ var _ = Describe("Postgres", func() {
 		if postgres == nil {
 			Skip("Skipping")
 		}
+
+		By("Check if Postgres " + postgres.Name + " exists.")
+		pg, err := f.GetPostgres(postgres.ObjectMeta)
+		if err != nil {
+			if kerr.IsNotFound(err) {
+				// Postgres was not created. Hence, rest of cleanup is not necessary.
+				return
+			}
+			Expect(err).NotTo(HaveOccurred())
+		}
+
 		By("Delete postgres: " + postgres.Name)
 		err = f.DeletePostgres(postgres.ObjectMeta)
 		if err != nil {
@@ -184,20 +195,24 @@ var _ = Describe("Postgres", func() {
 			Expect(err).NotTo(HaveOccurred())
 		}
 
-		By("Wait for postgres to be paused")
-		f.EventuallyDormantDatabaseStatus(postgres.ObjectMeta).Should(matcher.HavePaused())
+		if pg.Spec.TerminationPolicy == api.TerminationPolicyPause {
 
-		By("Set DormantDatabase Spec.WipeOut to true")
-		_, err := f.PatchDormantDatabase(postgres.ObjectMeta, func(in *api.DormantDatabase) *api.DormantDatabase {
-			in.Spec.WipeOut = true
-			return in
-		})
-		Expect(err).NotTo(HaveOccurred())
+			By("Wait for postgres to be paused")
+			f.EventuallyDormantDatabaseStatus(postgres.ObjectMeta).Should(matcher.HavePaused())
 
-		By("Delete Dormant Database")
-		err = f.DeleteDormantDatabase(postgres.ObjectMeta)
-		if !kerr.IsNotFound(err) {
+			By("Set DormantDatabase Spec.WipeOut to true")
+			_, err := f.PatchDormantDatabase(postgres.ObjectMeta, func(in *api.DormantDatabase) *api.DormantDatabase {
+				in.Spec.WipeOut = true
+				return in
+			})
 			Expect(err).NotTo(HaveOccurred())
+
+			By("Delete Dormant Database")
+			err = f.DeleteDormantDatabase(postgres.ObjectMeta)
+			if !kerr.IsNotFound(err) {
+				Expect(err).NotTo(HaveOccurred())
+			}
+
 		}
 
 		By("Wait for postgres resources to be wipedOut")
@@ -242,34 +257,6 @@ var _ = Describe("Postgres", func() {
 			Context("With PVC", func() {
 
 				It("should run successfully", testGeneralBehaviour)
-			})
-		})
-
-		Context("DoNotTerminate", func() {
-
-			BeforeEach(func() {
-				postgres.Spec.TerminationPolicy = api.TerminationPolicyDoNotTerminate
-			})
-
-			It("should work successfully", func() {
-				// Create and wait for running Postgres
-				createAndWaitForRunning()
-
-				By("Delete postgres")
-				err = f.DeletePostgres(postgres.ObjectMeta)
-				Expect(err).Should(HaveOccurred())
-
-				By("Postgres is not paused. Check for postgres")
-				f.EventuallyPostgres(postgres.ObjectMeta).Should(BeTrue())
-
-				By("Check for Running postgres")
-				f.EventuallyPostgresRunning(postgres.ObjectMeta).Should(BeTrue())
-
-				By("Update postgres to set spec.terminationPolicy = Pause")
-				f.PatchPostgres(postgres.ObjectMeta, func(in *api.Postgres) *api.Postgres {
-					in.Spec.TerminationPolicy = api.TerminationPolicyPause
-					return in
-				})
 			})
 		})
 
@@ -917,6 +904,35 @@ var _ = Describe("Postgres", func() {
 				snapshot.Spec.DatabaseName = postgres.Name
 			})
 
+			Context("with TerminationPolicyDoNotTerminate", func() {
+
+				BeforeEach(func() {
+					skipSnapshotDataChecking = true
+					postgres.Spec.TerminationPolicy = api.TerminationPolicyDoNotTerminate
+				})
+
+				It("should work successfully", func() {
+					// Create and wait for running Postgres
+					createAndWaitForRunning()
+
+					By("Delete postgres")
+					err = f.DeletePostgres(postgres.ObjectMeta)
+					Expect(err).Should(HaveOccurred())
+
+					By("Postgres is not paused. Check for postgres")
+					f.EventuallyPostgres(postgres.ObjectMeta).Should(BeTrue())
+
+					By("Check for Running postgres")
+					f.EventuallyPostgresRunning(postgres.ObjectMeta).Should(BeTrue())
+
+					By("Update postgres to set spec.terminationPolicy = Pause")
+					f.PatchPostgres(postgres.ObjectMeta, func(in *api.Postgres) *api.Postgres {
+						in.Spec.TerminationPolicy = api.TerminationPolicyPause
+						return in
+					})
+				})
+			})
+
 			Context("with TerminationPolicyPause (default)", func() {
 
 				It("should create DormantDatabase and resume from it", func() {
@@ -1182,6 +1198,56 @@ var _ = Describe("Postgres", func() {
 					for _, cfg := range customConfigs {
 						f.EventuallyPGSettings(postgres.ObjectMeta, dbName, dbUser, cfg).Should(matcher.Use(cfg))
 					}
+				})
+			})
+		})
+
+		Context("StorageType ", func() {
+
+			var shouldRunSuccessfully = func() {
+				if skipMessage != "" {
+					Skip(skipMessage)
+				}
+				// Create Postgres
+				createAndWaitForRunning()
+
+				By("Creating Schema")
+				f.EventuallyCreateSchema(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
+
+				By("Creating Table")
+				f.EventuallyCreateTable(postgres.ObjectMeta, dbName, dbUser, 3).Should(BeTrue())
+
+				By("Checking Table")
+				f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
+			}
+
+			Context("Ephemeral", func() {
+
+				BeforeEach(func() {
+					postgres.Spec.StorageType = api.StorageTypeEphemeral
+					postgres.Spec.Storage = nil
+				})
+
+				Context("General Behaviour", func() {
+
+					BeforeEach(func() {
+						postgres.Spec.TerminationPolicy = api.TerminationPolicyWipeOut
+					})
+
+					It("should run successfully", shouldRunSuccessfully)
+				})
+
+				Context("With TerminationPolicyPause", func() {
+
+					BeforeEach(func() {
+						postgres.Spec.TerminationPolicy = api.TerminationPolicyPause
+					})
+
+					It("should reject to create Postgres object", func() {
+						By("Creating Postgres: " + postgres.Name)
+						err := f.CreatePostgres(postgres)
+						Expect(err).To(HaveOccurred())
+					})
 				})
 			})
 		})

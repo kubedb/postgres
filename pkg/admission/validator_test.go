@@ -156,7 +156,7 @@ var cases = []struct {
 		editNonExistingSecret(samplePostgres()),
 		samplePostgres(),
 		false,
-		false,
+		true,
 	},
 	{"Edit Status",
 		requestKind,

@@ -76,6 +76,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.PostgresSummary":              schema_apimachinery_apis_kubedb_v1alpha1_PostgresSummary(ref),
 		"github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.PostgresTableInfo":            schema_apimachinery_apis_kubedb_v1alpha1_PostgresTableInfo(ref),
 		"github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.PostgresWALSourceSpec":        schema_apimachinery_apis_kubedb_v1alpha1_PostgresWALSourceSpec(ref),
+		"github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.RecoveryTarget":               schema_apimachinery_apis_kubedb_v1alpha1_RecoveryTarget(ref),
 		"github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.Redis":                        schema_apimachinery_apis_kubedb_v1alpha1_Redis(ref),
 		"github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.RedisClusterSpec":             schema_apimachinery_apis_kubedb_v1alpha1_RedisClusterSpec(ref),
 		"github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.RedisList":                    schema_apimachinery_apis_kubedb_v1alpha1_RedisList(ref),
@@ -91,12 +92,19 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.SnapshotSpec":                 schema_apimachinery_apis_kubedb_v1alpha1_SnapshotSpec(ref),
 		"github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.SnapshotStatus":               schema_apimachinery_apis_kubedb_v1alpha1_SnapshotStatus(ref),
 		"github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.TLSPolicy":                    schema_apimachinery_apis_kubedb_v1alpha1_TLSPolicy(ref),
+		"github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.elasticsearchApp":             schema_apimachinery_apis_kubedb_v1alpha1_elasticsearchApp(ref),
 		"github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.elasticsearchStatsService":    schema_apimachinery_apis_kubedb_v1alpha1_elasticsearchStatsService(ref),
+		"github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.etcdApp":                      schema_apimachinery_apis_kubedb_v1alpha1_etcdApp(ref),
 		"github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.etcdStatsService":             schema_apimachinery_apis_kubedb_v1alpha1_etcdStatsService(ref),
+		"github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.memcachedApp":                 schema_apimachinery_apis_kubedb_v1alpha1_memcachedApp(ref),
 		"github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.memcachedStatsService":        schema_apimachinery_apis_kubedb_v1alpha1_memcachedStatsService(ref),
+		"github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.mongoDBApp":                   schema_apimachinery_apis_kubedb_v1alpha1_mongoDBApp(ref),
 		"github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.mongoDBStatsService":          schema_apimachinery_apis_kubedb_v1alpha1_mongoDBStatsService(ref),
-		"github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.mySQLStatsService":            schema_apimachinery_apis_kubedb_v1alpha1_mySQLStatsService(ref),
+		"github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.mysqlApp":                     schema_apimachinery_apis_kubedb_v1alpha1_mysqlApp(ref),
+		"github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.mysqlStatsService":            schema_apimachinery_apis_kubedb_v1alpha1_mysqlStatsService(ref),
+		"github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.postgresApp":                  schema_apimachinery_apis_kubedb_v1alpha1_postgresApp(ref),
 		"github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.postgresStatsService":         schema_apimachinery_apis_kubedb_v1alpha1_postgresStatsService(ref),
+		"github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.redisApp":                     schema_apimachinery_apis_kubedb_v1alpha1_redisApp(ref),
 		"github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.redisStatsService":            schema_apimachinery_apis_kubedb_v1alpha1_redisStatsService(ref),
 		"k8s.io/api/apps/v1.ControllerRevision":                                            schema_k8sio_api_apps_v1_ControllerRevision(ref),
 		"k8s.io/api/apps/v1.ControllerRevisionList":                                        schema_k8sio_api_apps_v1_ControllerRevisionList(ref),
@@ -884,6 +892,13 @@ func schema_apimachinery_apis_kubedb_v1alpha1_ElasticsearchSpec(ref common.Refer
 							Format:      "",
 						},
 					},
+					"doNotPause": {
+						SchemaProps: spec.SchemaProps{
+							Description: "If DoNotPause is true, controller will prevent to delete this Elasticsearch object. Controller will create same Elasticsearch object and ignore other process. Deprecated: Use terminationPolicy = DoNotTerminate",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
 					"nodeSelector": {
 						SchemaProps: spec.SchemaProps{
 							Description: "NodeSelector is a selector which must be true for the pod to fit on a node Deprecated: Use podTemplate.spec.nodeSelector",
@@ -1435,6 +1450,13 @@ func schema_apimachinery_apis_kubedb_v1alpha1_MemcachedSpec(ref common.Reference
 							Format:      "",
 						},
 					},
+					"doNotPause": {
+						SchemaProps: spec.SchemaProps{
+							Description: "If DoNotPause is true, controller will prevent to delete this Memcached object. Controller will create same Memcached object and ignore other process. Deprecated: Use terminationPolicy = DoNotTerminate",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
 					"nodeSelector": {
 						SchemaProps: spec.SchemaProps{
 							Description: "NodeSelector is a selector which must be true for the pod to fit on a node Deprecated: Use podTemplate.spec.nodeSelector",
@@ -1740,6 +1762,13 @@ func schema_apimachinery_apis_kubedb_v1alpha1_MongoDBSpec(ref common.ReferenceCa
 							Format:      "",
 						},
 					},
+					"doNotPause": {
+						SchemaProps: spec.SchemaProps{
+							Description: "If DoNotPause is true, controller will prevent to delete this MongoDB object. Controller will create same MongoDB object and ignore other process. Deprecated: Use terminationPolicy = DoNotTerminate",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
 					"nodeSelector": {
 						SchemaProps: spec.SchemaProps{
 							Description: "NodeSelector is a selector which must be true for the pod to fit on a node Deprecated: Use podTemplate.spec.nodeSelector",
@@ -2011,6 +2040,13 @@ func schema_apimachinery_apis_kubedb_v1alpha1_MySQLSpec(ref common.ReferenceCall
 						SchemaProps: spec.SchemaProps{
 							Description: "TerminationPolicy controls the delete operation for database",
 							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"doNotPause": {
+						SchemaProps: spec.SchemaProps{
+							Description: "If DoNotPause is true, controller will prevent to delete this Mysql object. Controller will create same Mysql object and ignore other process. Deprecated: Use terminationPolicy = DoNotTerminate",
+							Type:        []string{"boolean"},
 							Format:      "",
 						},
 					},
@@ -2432,6 +2468,13 @@ func schema_apimachinery_apis_kubedb_v1alpha1_PostgresSpec(ref common.ReferenceC
 							Format:      "",
 						},
 					},
+					"doNotPause": {
+						SchemaProps: spec.SchemaProps{
+							Description: "If DoNotPause is true, controller will prevent to delete this Postgres object. Controller will create same Postgres object and ignore other process. Deprecated: Use terminationPolicy = DoNotTerminate",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
 					"nodeSelector": {
 						SchemaProps: spec.SchemaProps{
 							Description: "NodeSelector is a selector which must be true for the pod to fit on a node Deprecated: Use podTemplate.spec.nodeSelector",
@@ -2602,8 +2645,7 @@ func schema_apimachinery_apis_kubedb_v1alpha1_PostgresWALSourceSpec(ref common.R
 					},
 					"pitr": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
+							Ref: ref("github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.RecoveryTarget"),
 						},
 					},
 					"storageSecretName": {
@@ -2646,7 +2688,47 @@ func schema_apimachinery_apis_kubedb_v1alpha1_PostgresWALSourceSpec(ref common.R
 			},
 		},
 		Dependencies: []string{
-			"kmodules.xyz/objectstore-api/api/v1.AzureSpec", "kmodules.xyz/objectstore-api/api/v1.B2Spec", "kmodules.xyz/objectstore-api/api/v1.GCSSpec", "kmodules.xyz/objectstore-api/api/v1.LocalSpec", "kmodules.xyz/objectstore-api/api/v1.S3Spec", "kmodules.xyz/objectstore-api/api/v1.SwiftSpec"},
+			"github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.RecoveryTarget", "kmodules.xyz/objectstore-api/api/v1.AzureSpec", "kmodules.xyz/objectstore-api/api/v1.B2Spec", "kmodules.xyz/objectstore-api/api/v1.GCSSpec", "kmodules.xyz/objectstore-api/api/v1.LocalSpec", "kmodules.xyz/objectstore-api/api/v1.S3Spec", "kmodules.xyz/objectstore-api/api/v1.SwiftSpec"},
+	}
+}
+
+func schema_apimachinery_apis_kubedb_v1alpha1_RecoveryTarget(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Properties: map[string]spec.Schema{
+					"targetTime": {
+						SchemaProps: spec.SchemaProps{
+							Description: "TargetTime specifies the time stamp up to which recovery will proceed.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"targetTimeline": {
+						SchemaProps: spec.SchemaProps{
+							Description: "TargetTimeline specifies recovering into a particular timeline. The default is to recover along the same timeline that was current when the base backup was taken.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"targetXID": {
+						SchemaProps: spec.SchemaProps{
+							Description: "TargetXID specifies the transaction ID up to which recovery will proceed.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"targetInclusive": {
+						SchemaProps: spec.SchemaProps{
+							Description: "TargetInclusive specifies whether to include ongoing transaction in given target point.",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{},
 	}
 }
 
@@ -2843,6 +2925,13 @@ func schema_apimachinery_apis_kubedb_v1alpha1_RedisSpec(ref common.ReferenceCall
 						SchemaProps: spec.SchemaProps{
 							Description: "TerminationPolicy controls the delete operation for database",
 							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"doNotPause": {
+						SchemaProps: spec.SchemaProps{
+							Description: "If DoNotPause is true, controller will prevent to delete this Redis object. Controller will create same Redis object and ignore other process. Deprecated: Use terminationPolicy = DoNotTerminate",
+							Type:        []string{"boolean"},
 							Format:      "",
 						},
 					},
@@ -3488,6 +3577,25 @@ func schema_apimachinery_apis_kubedb_v1alpha1_TLSPolicy(ref common.ReferenceCall
 	}
 }
 
+func schema_apimachinery_apis_kubedb_v1alpha1_elasticsearchApp(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Properties: map[string]spec.Schema{
+					"Elasticsearch": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.Elasticsearch"),
+						},
+					},
+				},
+				Required: []string{"Elasticsearch"},
+			},
+		},
+		Dependencies: []string{
+			"github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.Elasticsearch"},
+	}
+}
+
 func schema_apimachinery_apis_kubedb_v1alpha1_elasticsearchStatsService(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
@@ -3504,6 +3612,25 @@ func schema_apimachinery_apis_kubedb_v1alpha1_elasticsearchStatsService(ref comm
 		},
 		Dependencies: []string{
 			"github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.Elasticsearch"},
+	}
+}
+
+func schema_apimachinery_apis_kubedb_v1alpha1_etcdApp(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Properties: map[string]spec.Schema{
+					"Etcd": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.Etcd"),
+						},
+					},
+				},
+				Required: []string{"Etcd"},
+			},
+		},
+		Dependencies: []string{
+			"github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.Etcd"},
 	}
 }
 
@@ -3526,6 +3653,25 @@ func schema_apimachinery_apis_kubedb_v1alpha1_etcdStatsService(ref common.Refere
 	}
 }
 
+func schema_apimachinery_apis_kubedb_v1alpha1_memcachedApp(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Properties: map[string]spec.Schema{
+					"Memcached": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.Memcached"),
+						},
+					},
+				},
+				Required: []string{"Memcached"},
+			},
+		},
+		Dependencies: []string{
+			"github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.Memcached"},
+	}
+}
+
 func schema_apimachinery_apis_kubedb_v1alpha1_memcachedStatsService(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
@@ -3542,6 +3688,25 @@ func schema_apimachinery_apis_kubedb_v1alpha1_memcachedStatsService(ref common.R
 		},
 		Dependencies: []string{
 			"github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.Memcached"},
+	}
+}
+
+func schema_apimachinery_apis_kubedb_v1alpha1_mongoDBApp(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Properties: map[string]spec.Schema{
+					"MongoDB": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.MongoDB"),
+						},
+					},
+				},
+				Required: []string{"MongoDB"},
+			},
+		},
+		Dependencies: []string{
+			"github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.MongoDB"},
 	}
 }
 
@@ -3564,7 +3729,7 @@ func schema_apimachinery_apis_kubedb_v1alpha1_mongoDBStatsService(ref common.Ref
 	}
 }
 
-func schema_apimachinery_apis_kubedb_v1alpha1_mySQLStatsService(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_apimachinery_apis_kubedb_v1alpha1_mysqlApp(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -3580,6 +3745,44 @@ func schema_apimachinery_apis_kubedb_v1alpha1_mySQLStatsService(ref common.Refer
 		},
 		Dependencies: []string{
 			"github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.MySQL"},
+	}
+}
+
+func schema_apimachinery_apis_kubedb_v1alpha1_mysqlStatsService(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Properties: map[string]spec.Schema{
+					"MySQL": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.MySQL"),
+						},
+					},
+				},
+				Required: []string{"MySQL"},
+			},
+		},
+		Dependencies: []string{
+			"github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.MySQL"},
+	}
+}
+
+func schema_apimachinery_apis_kubedb_v1alpha1_postgresApp(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Properties: map[string]spec.Schema{
+					"Postgres": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.Postgres"),
+						},
+					},
+				},
+				Required: []string{"Postgres"},
+			},
+		},
+		Dependencies: []string{
+			"github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.Postgres"},
 	}
 }
 
@@ -3599,6 +3802,25 @@ func schema_apimachinery_apis_kubedb_v1alpha1_postgresStatsService(ref common.Re
 		},
 		Dependencies: []string{
 			"github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.Postgres"},
+	}
+}
+
+func schema_apimachinery_apis_kubedb_v1alpha1_redisApp(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Properties: map[string]spec.Schema{
+					"Redis": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.Redis"),
+						},
+					},
+				},
+				Required: []string{"Redis"},
+			},
+		},
+		Dependencies: []string{
+			"github.com/kubedb/apimachinery/apis/kubedb/v1alpha1.Redis"},
 	}
 }
 

@@ -1,7 +1,7 @@
 package v1alpha1
 
 import (
-	appcat "kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1"
+	"k8s.io/apimachinery/pkg/runtime"
 )
 
 type AuthManagerType string
@@ -10,9 +10,28 @@ const (
 	AuthManagerTypeVault AuthManagerType = "Vault"
 )
 
-type AuthManager struct {
-	Type       AuthManagerType      `json:"type"`
-	ManagerRef *appcat.AppReference `json:"managerRef"`
+type AuthManagerRef struct {
+	Type AuthManagerType `json:"type"`
+
+	// Optional AppRef fields
+
+	// `namespace` is the namespace of the app.
+	// +optional
+	Namespace *string `json:"namespace,omitempty"`
+
+	// `name` is the name of the app.
+	// +optional
+	Name *string `json:"name,omitempty"`
+
+	// Parameters is a set of the parameters to be used to override default
+	// parameters. The inline YAML/JSON payload to be translated into equivalent
+	// JSON object.
+	//
+	// The Parameters field is NOT secret or secured in any way and should
+	// NEVER be used to hold sensitive information.
+	//
+	// +optional
+	Parameters *runtime.RawExtension `json:"parameters,omitempty"`
 }
 
 // Store specifies where to store credentials

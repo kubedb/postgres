@@ -32,7 +32,7 @@ type PostgresRole struct {
 
 // PostgresRoleSpec contains connection information, postgres role info etc
 type PostgresRoleSpec struct {
-	AuthManager *AuthManager `json:"authManager"`
+	AuthManagerRef AuthManagerRef `json:"authManagerRef"`
 
 	DatabaseRef appcat.AppReference `json:"databaseRef"`
 

@@ -18,4 +18,4 @@ limitations under the License.
 
 package v1alpha1
 
-type AppExpansion interface{}
+type AppBindingExpansion interface{}

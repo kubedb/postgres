@@ -32,7 +32,7 @@ type MongoDBRole struct {
 
 // MongoDBRoleSpec contains connection information, Mongodb role info etc
 type MongoDBRoleSpec struct {
-	AuthManager AuthManager `json:"authManager"`
+	AuthManagerRef AuthManagerRef `json:"authManagerRef"`
 
 	DatabaseRef appcat.AppReference `json:"databaseRef"`
 
