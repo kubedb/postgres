@@ -56,7 +56,9 @@ func (b *Builder) limitWriteTo(w Writer) error {
 		case SQLITE, MYSQL, POSTGRES:
 			// if type UNION, we need to write previous content back to current writer
 			if b.optype == unionType {
-				b.WriteTo(ow)
+				if err := b.WriteTo(ow); err != nil {
+					return err
+				}
 			}
 
 			if limit.offset == 0 {

@@ -27,7 +27,7 @@ import (
 
 type AppcatalogV1alpha1Interface interface {
 	RESTClient() rest.Interface
-	AppsGetter
+	AppBindingsGetter
 }
 
 // AppcatalogV1alpha1Client is used to interact with features provided by the appcatalog.appscode.com group.
@@ -35,8 +35,8 @@ type AppcatalogV1alpha1Client struct {
 	restClient rest.Interface
 }
 
-func (c *AppcatalogV1alpha1Client) Apps(namespace string) AppInterface {
-	return newApps(c, namespace)
+func (c *AppcatalogV1alpha1Client) AppBindings(namespace string) AppBindingInterface {
+	return newAppBindings(c, namespace)
 }
 
 // NewForConfig creates a new AppcatalogV1alpha1Client for the given config.

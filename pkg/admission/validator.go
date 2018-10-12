@@ -143,6 +143,9 @@ func ValidatePostgres(client kubernetes.Interface, extClient cs.Interface, postg
 	if postgres.Spec.StorageType == "" {
 		return fmt.Errorf(`'spec.storageType' is missing`)
 	}
+	if postgres.Spec.StorageType != api.StorageTypeDurable && postgres.Spec.StorageType != api.StorageTypeEphemeral {
+		return fmt.Errorf(`'spec.storageType' %s is invalid`, postgres.Spec.StorageType)
+	}
 	if err := amv.ValidateStorage(client, postgres.Spec.StorageType, postgres.Spec.Storage); err != nil {
 		return err
 	}

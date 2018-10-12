@@ -4,6 +4,12 @@
 
 package builder
 
+import (
+	sql2 "database/sql"
+	"fmt"
+	"sort"
+)
+
 type optype byte
 
 const (
@@ -44,14 +50,16 @@ type Builder struct {
 	optype
 	dialect    string
 	isNested   bool
-	tableName  string
+	into       string
+	from       string
 	subQuery   *Builder
 	cond       Cond
 	selects    []string
 	joins      []join
 	unions     []union
 	limitation *limit
-	inserts    Eq
+	insertCols []string
+	insertVals []interface{}
 	updates    []Eq
 	orderBy    string
 	groupBy    string
@@ -62,6 +70,31 @@ type Builder struct {
 func Dialect(dialect string) *Builder {
 	builder := &Builder{cond: NewCond(), dialect: dialect}
 	return builder
+}
+
+// MySQL is shortcut of Dialect(MySQL)
+func MySQL() *Builder {
+	return Dialect(MYSQL)
+}
+
+// MsSQL is shortcut of Dialect(MsSQL)
+func MsSQL() *Builder {
+	return Dialect(MSSQL)
+}
+
+// Oracle is shortcut of Dialect(Oracle)
+func Oracle() *Builder {
+	return Dialect(ORACLE)
+}
+
+// Postgres is shortcut of Dialect(Postgres)
+func Postgres() *Builder {
+	return Dialect(POSTGRES)
+}
+
+// SQLite is shortcut of Dialect(SQLITE)
+func SQLite() *Builder {
+	return Dialect(SQLITE)
 }
 
 // Where sets where SQL
@@ -81,15 +114,15 @@ func (b *Builder) From(subject interface{}, alias ...string) *Builder {
 		b.subQuery = subject.(*Builder)
 
 		if len(alias) > 0 {
-			b.tableName = alias[0]
+			b.from = alias[0]
 		} else {
 			b.isNested = true
 		}
 	case string:
-		b.tableName = subject.(string)
+		b.from = subject.(string)
 
 		if len(alias) > 0 {
-			b.tableName = b.tableName + " " + alias[0]
+			b.from = b.from + " " + alias[0]
 		}
 	}
 
@@ -98,12 +131,15 @@ func (b *Builder) From(subject interface{}, alias ...string) *Builder {
 
 // TableName returns the table name
 func (b *Builder) TableName() string {
-	return b.tableName
+	if b.optype == insertType {
+		return b.into
+	}
+	return b.from
 }
 
 // Into sets insert table name
 func (b *Builder) Into(tableName string) *Builder {
-	b.tableName = tableName
+	b.into = tableName
 	return b
 }
 
@@ -142,7 +178,10 @@ func (b *Builder) Union(unionTp string, unionCond *Builder) *Builder {
 	}
 
 	if unionCond != nil {
-		unionCond.dialect = builder.dialect
+		if unionCond.dialect == "" && builder.dialect != "" {
+			unionCond.dialect = builder.dialect
+		}
+
 		builder.unions = append(builder.unions, union{unionTp, unionCond})
 	}
 
@@ -188,7 +227,9 @@ func (b *Builder) FullJoin(joinTable string, joinCond interface{}) *Builder {
 // Select sets select SQL
 func (b *Builder) Select(cols ...string) *Builder {
 	b.selects = cols
-	b.optype = selectType
+	if b.optype == condType {
+		b.optype = selectType
+	}
 	return b
 }
 
@@ -205,8 +246,40 @@ func (b *Builder) Or(cond Cond) *Builder {
 }
 
 // Insert sets insert SQL
-func (b *Builder) Insert(eq Eq) *Builder {
-	b.inserts = eq
+func (b *Builder) Insert(eq ...interface{}) *Builder {
+	if len(eq) > 0 {
+		var paramType = -1
+		for _, e := range eq {
+			switch t := e.(type) {
+			case Eq:
+				if paramType == -1 {
+					paramType = 0
+				}
+				if paramType != 0 {
+					break
+				}
+				for k, v := range t {
+					b.insertCols = append(b.insertCols, k)
+					b.insertVals = append(b.insertVals, v)
+				}
+			case string:
+				if paramType == -1 {
+					paramType = 1
+				}
+				if paramType != 1 {
+					break
+				}
+				b.insertCols = append(b.insertCols, t)
+			}
+		}
+	}
+
+	if len(b.insertCols) == len(b.insertVals) {
+		sort.Slice(b.insertVals, func(i, j int) bool {
+			return b.insertCols[i] < b.insertCols[j]
+		})
+		sort.Strings(b.insertCols)
+	}
 	b.optype = insertType
 	return b
 }
@@ -257,7 +330,40 @@ func (b *Builder) ToSQL() (string, []interface{}, error) {
 		return "", nil, err
 	}
 
-	return w.writer.String(), w.args, nil
+	// in case of sql.NamedArg in args
+	for e := range w.args {
+		if namedArg, ok := w.args[e].(sql2.NamedArg); ok {
+			w.args[e] = namedArg.Value
+		}
+	}
+
+	var sql = w.writer.String()
+	var err error
+
+	switch b.dialect {
+	case ORACLE, MSSQL:
+		// This is for compatibility with different sql drivers
+		for e := range w.args {
+			w.args[e] = sql2.Named(fmt.Sprintf("p%d", e+1), w.args[e])
+		}
+
+		var prefix string
+		if b.dialect == ORACLE {
+			prefix = ":p"
+		} else {
+			prefix = "@p"
+		}
+
+		if sql, err = ConvertPlaceholder(sql, prefix); err != nil {
+			return "", nil, err
+		}
+	case POSTGRES:
+		if sql, err = ConvertPlaceholder(sql, "$"); err != nil {
+			return "", nil, err
+		}
+	}
+
+	return sql, w.args, nil
 }
 
 // ToBoundSQL

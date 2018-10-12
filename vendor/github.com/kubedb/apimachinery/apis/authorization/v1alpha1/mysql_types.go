@@ -32,7 +32,7 @@ type MySQLRole struct {
 
 // MySQLRoleSpec contains connection information, mysql role info etc
 type MySQLRoleSpec struct {
-	AuthManager AuthManager `json:"authManager"`
+	AuthManagerRef AuthManagerRef `json:"authManagerRef"`
 
 	DatabaseRef appcat.AppReference `json:"databaseRef"`
 

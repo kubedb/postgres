@@ -61,6 +61,12 @@ type MemcachedSpec struct {
 
 	// -------------------------------------------------------------------------
 
+	// If DoNotPause is true, controller will prevent to delete this Memcached object.
+	// Controller will create same Memcached object and ignore other process.
+	// +optional
+	// Deprecated: Use terminationPolicy = DoNotTerminate
+	DoNotPause bool `json:"doNotPause,omitempty"`
+
 	// NodeSelector is a selector which must be true for the pod to fit on a node
 	// +optional
 	// Deprecated: Use podTemplate.spec.nodeSelector

@@ -35,4 +35,6 @@ var (
 	ErrInvalidLimitation = errors.New("Offset or limit is not correct")
 	// ErrUnnamedDerivedTable Every derived table must have its own alias
 	ErrUnnamedDerivedTable = errors.New("Every derived table must have its own alias")
+	// ErrInconsistentDialect Inconsistent dialect in same builder
+	ErrInconsistentDialect = errors.New("Inconsistent dialect in same builder")
 )

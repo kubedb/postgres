@@ -82,6 +82,12 @@ type RedisSpec struct {
 
 	// -------------------------------------------------------------------------
 
+	// If DoNotPause is true, controller will prevent to delete this Redis object.
+	// Controller will create same Redis object and ignore other process.
+	// +optional
+	// Deprecated: Use terminationPolicy = DoNotTerminate
+	DoNotPause bool `json:"doNotPause,omitempty"`
+
 	// NodeSelector is a selector which must be true for the pod to fit on a node
 	// +optional
 	// Deprecated: Use podTemplate.spec.nodeSelector

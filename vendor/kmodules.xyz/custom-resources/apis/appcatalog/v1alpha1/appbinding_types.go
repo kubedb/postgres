@@ -7,9 +7,9 @@ import (
 )
 
 const (
-	ResourceKindApp = "App"
-	ResourceApps    = "apps"
-	ResourceApp     = "app"
+	ResourceKindApp = "AppBinding"
+	ResourceApps    = "appbindings"
+	ResourceApp     = "appbinding"
 )
 
 // +genclient
@@ -17,21 +17,25 @@ const (
 // +k8s:openapi-gen=true
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// App defines a generic user application.
-type App struct {
+// AppBinding defines a generic user application.
+type AppBinding struct {
 	metav1.TypeMeta   `json:",inline,omitempty"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
-	Spec              AppSpec `json:"spec,omitempty"`
+	Spec              AppBindingSpec `json:"spec,omitempty"`
 }
 
-// AppSpec is the spec for app
-type AppSpec struct {
+// AppBindingSpec is the spec for app
+type AppBindingSpec struct {
+	// Used to facilitate programmatic handling of application.
+	// +optional
+	Type AppType `json:"type,omitempty"`
+
 	// ClientConfig defines how to communicate with the app.
 	// Required
-	ClientConfig AppClientConfig `json:"clientConfig"`
+	ClientConfig ClientConfig `json:"clientConfig"`
 
-	// Secret is the name of the secret to create in the App's
-	// namespace that will hold the credentials associated with the App.
+	// Secret is the name of the secret to create in the AppBinding's
+	// namespace that will hold the credentials associated with the AppBinding.
 	Secret *core.LocalObjectReference `json:"secret,omitempty"`
 
 	// Parameters is a set of the parameters to be used to connect to the
@@ -44,11 +48,18 @@ type AppSpec struct {
 	// in a Secret.
 	//
 	// +optional
-	DefaultParameters *runtime.RawExtension `json:"defaultParameters,omitempty"`
+	Parameters *runtime.RawExtension `json:"parameters,omitempty"`
 }
 
-// AppClientConfig contains the information to make a connection with an app
-type AppClientConfig struct {
+type AppType string
+
+const (
+	// AppTypeOpaque is the default. A generic application.
+	AppTypeOpaque AppType = "Opaque"
+)
+
+// ClientConfig contains the information to make a connection with an app
+type ClientConfig struct {
 	// `url` gives the location of the app, in standard URL form
 	// (`[scheme://]host:port/path`). Exactly one of `url` or `service`
 	// must be specified.
@@ -80,23 +91,26 @@ type AppClientConfig struct {
 
 	// InsecureSkipTLSVerify disables TLS certificate verification when communicating with this app.
 	// This is strongly discouraged.  You should use the CABundle instead.
-	InsecureSkipTLSVerify bool
+	InsecureSkipTLSVerify bool `json:"insecureSkipTLSVerify,omitempty"`
 
 	// CABundle is a PEM encoded CA bundle which will be used to validate the serving certificate of this app.
 	// +optional
-	CABundle []byte
-
-	// The list of ports that are exposed by this app.
-	// +patchMergeKey=port
-	// +patchStrategy=merge
-	Ports []AppPort `json:"ports,omitempty" patchStrategy:"merge" patchMergeKey:"port"`
+	CABundle []byte `json:"caBundle,omitempty"`
 }
 
-// App holds a reference to Service.legacy.k8s.io
+// ServiceReference holds a reference to Service.legacy.k8s.io
 type ServiceReference struct {
+	// Specifies which scheme to use, for example: http, https
+	// If specified, then it will applied as prefix in this format: scheme://
+	// If not specified, then nothing will be prefixed
+	Scheme string `json:"scheme"`
+
 	// `name` is the name of the service.
 	// Required
 	Name string `json:"name"`
+
+	// The port that will be exposed by this app.
+	Port int32 `json:"port"`
 
 	// `path` is an optional URL path which will be sent in any request to
 	// this service.
@@ -104,24 +118,14 @@ type ServiceReference struct {
 	Path *string `json:"path,omitempty"`
 }
 
-// AppPort contains information on app's port.
-type AppPort struct {
-	// The name of this port within the app. All ports within
-	// an AppSpec must have unique names.
-	Name string `json:"name"`
-
-	// The port that will be exposed by this app.
-	Port int32 `json:"port"`
-}
-
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// AppList is a list of Apps
-type AppList struct {
+// AppBindingList is a list of Apps
+type AppBindingList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	// Items is a list of App CRD objects
-	Items []App `json:"items,omitempty"`
+	// Items is a list of AppBinding CRD objects
+	Items []AppBinding `json:"items,omitempty"`
 }
 
 type AppReference struct {
@@ -142,4 +146,9 @@ type AppReference struct {
 	//
 	// +optional
 	Parameters *runtime.RawExtension `json:"parameters,omitempty"`
+}
+
+type AppBindingMeta interface {
+	Name() string
+	Type() AppType
 }
