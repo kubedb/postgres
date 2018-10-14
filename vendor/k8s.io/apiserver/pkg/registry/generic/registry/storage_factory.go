@@ -24,7 +24,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apiserver/pkg/registry/generic"
 	"k8s.io/apiserver/pkg/storage"
-	cacherstorage "k8s.io/apiserver/pkg/storage/cacher"
 	etcdstorage "k8s.io/apiserver/pkg/storage/etcd"
 	"k8s.io/apiserver/pkg/storage/storagebackend"
 	"k8s.io/apiserver/pkg/storage/storagebackend/factory"
@@ -50,7 +49,7 @@ func StorageWithCacher(capacity int) generic.StorageDecorator {
 
 		// TODO: we would change this later to make storage always have cacher and hide low level KV layer inside.
 		// Currently it has two layers of same storage interface -- cacher and low level kv.
-		cacherConfig := cacherstorage.Config{
+		cacherConfig := storage.CacherConfig{
 			CacheCapacity:        capacity,
 			Storage:              s,
 			Versioner:            etcdstorage.APIObjectVersioner{},
@@ -62,7 +61,7 @@ func StorageWithCacher(capacity int) generic.StorageDecorator {
 			TriggerPublisherFunc: triggerFunc,
 			Codec:                storageConfig.Codec,
 		}
-		cacher := cacherstorage.NewCacherFromConfig(cacherConfig)
+		cacher := storage.NewCacherFromConfig(cacherConfig)
 		destroyFunc := func() {
 			cacher.Stop()
 			d()

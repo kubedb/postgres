@@ -229,7 +229,7 @@ func (b *Blob) PutBlockList(blocks []Block, options *PutBlockListOptions) error 
 	if err != nil {
 		return err
 	}
-	defer drainRespBody(resp)
+	defer readAndCloseBody(resp.Body)
 	return checkRespCode(resp, []int{http.StatusCreated})
 }
 

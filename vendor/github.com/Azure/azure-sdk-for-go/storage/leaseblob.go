@@ -53,7 +53,7 @@ func (b *Blob) leaseCommonPut(headers map[string]string, expectedStatus int, opt
 	if err != nil {
 		return nil, err
 	}
-	defer drainRespBody(resp)
+	defer readAndCloseBody(resp.Body)
 
 	if err := checkRespCode(resp, []int{expectedStatus}); err != nil {
 		return nil, err

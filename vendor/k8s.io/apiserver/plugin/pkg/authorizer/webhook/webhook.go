@@ -239,12 +239,8 @@ func convertToSARExtra(extra map[string][]string) map[string]authorization.Extra
 // requests to the exact path specified in the kubeconfig file, so arbitrary non-API servers can be targeted.
 func subjectAccessReviewInterfaceFromKubeconfig(kubeConfigFile string) (authorizationclient.SubjectAccessReviewInterface, error) {
 	localScheme := runtime.NewScheme()
-	if err := scheme.AddToScheme(localScheme); err != nil {
-		return nil, err
-	}
-	if err := localScheme.SetVersionPriority(groupVersions...); err != nil {
-		return nil, err
-	}
+	scheme.AddToScheme(localScheme)
+	localScheme.SetVersionPriority(groupVersions...)
 
 	gw, err := webhook.NewGenericWebhook(localScheme, scheme.Codecs, kubeConfigFile, groupVersions, 0)
 	if err != nil {

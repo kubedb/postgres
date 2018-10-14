@@ -26,9 +26,6 @@ import (
 	"github.com/evanphx/json-patch"
 
 	"k8s.io/apimachinery/pkg/api/errors"
-	metainternalversion "k8s.io/apimachinery/pkg/apis/meta/internalversion"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/validation"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
@@ -40,10 +37,7 @@ import (
 	"k8s.io/apiserver/pkg/audit"
 	"k8s.io/apiserver/pkg/endpoints/handlers/negotiation"
 	"k8s.io/apiserver/pkg/endpoints/request"
-	"k8s.io/apiserver/pkg/features"
 	"k8s.io/apiserver/pkg/registry/rest"
-	"k8s.io/apiserver/pkg/util/dryrun"
-	utilfeature "k8s.io/apiserver/pkg/util/feature"
 	utiltrace "k8s.io/apiserver/pkg/util/trace"
 )
 
@@ -54,8 +48,8 @@ func PatchResource(r rest.Patcher, scope RequestScope, admit admission.Interface
 		trace := utiltrace.New("Patch " + req.URL.Path)
 		defer trace.LogIfLong(500 * time.Millisecond)
 
-		if isDryRun(req.URL) && !utilfeature.DefaultFeatureGate.Enabled(features.DryRun) {
-			scope.err(errors.NewBadRequest("the dryRun alpha feature is disabled"), w, req)
+		if isDryRun(req.URL) {
+			scope.err(errors.NewBadRequest("dryRun is not supported yet"), w, req)
 			return
 		}
 
@@ -94,18 +88,6 @@ func PatchResource(r rest.Patcher, scope RequestScope, admit admission.Interface
 			return
 		}
 
-		options := &metav1.UpdateOptions{}
-		if err := metainternalversion.ParameterCodec.DecodeParameters(req.URL.Query(), scope.MetaGroupVersion, options); err != nil {
-			err = errors.NewBadRequest(err.Error())
-			scope.err(err, w, req)
-			return
-		}
-		if errs := validation.ValidateUpdateOptions(options); len(errs) > 0 {
-			err := errors.NewInvalid(schema.GroupKind{Group: metav1.GroupName, Kind: "UpdateOptions"}, "", errs)
-			scope.err(err, w, req)
-			return
-		}
-
 		ae := request.AuditEventFrom(ctx)
 		admit = admission.WithAudit(admit, ae)
 
@@ -124,33 +106,10 @@ func PatchResource(r rest.Patcher, scope RequestScope, admit admission.Interface
 		)
 
 		userInfo, _ := request.UserFrom(ctx)
-		staticAdmissionAttributes := admission.NewAttributesRecord(
-			nil,
-			nil,
-			scope.Kind,
-			namespace,
-			name,
-			scope.Resource,
-			scope.Subresource,
-			admission.Update,
-			dryrun.IsDryRun(options.DryRun),
-			userInfo,
-		)
+		staticAdmissionAttributes := admission.NewAttributesRecord(nil, nil, scope.Kind, namespace, name, scope.Resource, scope.Subresource, admission.Update, userInfo)
 		admissionCheck := func(updatedObject runtime.Object, currentObject runtime.Object) error {
-			// if we allow create-on-patch, we have this TODO: call the mutating admission chain with the CREATE verb instead of UPDATE
 			if mutatingAdmission, ok := admit.(admission.MutationInterface); ok && admit.Handles(admission.Update) {
-				return mutatingAdmission.Admit(admission.NewAttributesRecord(
-					updatedObject,
-					currentObject,
-					scope.Kind,
-					namespace,
-					name,
-					scope.Resource,
-					scope.Subresource,
-					admission.Update,
-					dryrun.IsDryRun(options.DryRun),
-					userInfo,
-				))
+				return mutatingAdmission.Admit(admission.NewAttributesRecord(updatedObject, currentObject, scope.Kind, namespace, name, scope.Resource, scope.Subresource, admission.Update, userInfo))
 			}
 			return nil
 		}
@@ -170,7 +129,6 @@ func PatchResource(r rest.Patcher, scope RequestScope, admit admission.Interface
 			codec: codec,
 
 			timeout: timeout,
-			options: options,
 
 			restPatcher: r,
 			name:        name,
@@ -226,7 +184,6 @@ type patcher struct {
 	codec runtime.Codec
 
 	timeout time.Duration
-	options *metav1.UpdateOptions
 
 	// Operation information
 	restPatcher rest.Patcher
@@ -313,7 +270,7 @@ func (p *smpPatcher) applyPatchToCurrentObject(currentObject runtime.Object) (ru
 	if err != nil {
 		return nil, err
 	}
-	if err := strategicPatchObject(p.defaulter, currentVersionedObject, p.patchJS, versionedObjToUpdate, p.schemaReferenceObj); err != nil {
+	if err := strategicPatchObject(p.codec, p.defaulter, currentVersionedObject, p.patchJS, versionedObjToUpdate, p.schemaReferenceObj); err != nil {
 		return nil, err
 	}
 	// Convert the object back to unversioned (aka internal version).
@@ -331,6 +288,7 @@ func (p *smpPatcher) applyPatchToCurrentObject(currentObject runtime.Object) (ru
 // <originalObject> and <patchJS>.
 // NOTE: Both <originalObject> and <objToUpdate> are supposed to be versioned.
 func strategicPatchObject(
+	codec runtime.Codec,
 	defaulter runtime.ObjectDefaulter,
 	originalObject runtime.Object,
 	patchJS []byte,
@@ -347,7 +305,7 @@ func strategicPatchObject(
 		return errors.NewBadRequest(err.Error())
 	}
 
-	if err := applyPatchToObject(defaulter, originalObjMap, patchMap, objToUpdate, schemaReferenceObj); err != nil {
+	if err := applyPatchToObject(codec, defaulter, originalObjMap, patchMap, objToUpdate, schemaReferenceObj); err != nil {
 		return err
 	}
 	return nil
@@ -398,7 +356,7 @@ func (p *patcher) patchResource(ctx context.Context) (runtime.Object, error) {
 	}
 	p.updatedObjectInfo = rest.DefaultUpdatedObjectInfo(nil, p.applyPatch, p.applyAdmission)
 	return finishRequest(p.timeout, func() (runtime.Object, error) {
-		updateObject, _, updateErr := p.restPatcher.Update(ctx, p.name, p.updatedObjectInfo, p.createValidation, p.updateValidation, false, p.options)
+		updateObject, _, updateErr := p.restPatcher.Update(ctx, p.name, p.updatedObjectInfo, p.createValidation, p.updateValidation)
 		return updateObject, updateErr
 	})
 }
@@ -407,6 +365,7 @@ func (p *patcher) patchResource(ctx context.Context) (runtime.Object, error) {
 // <originalMap> and stores the result in <objToUpdate>.
 // NOTE: <objToUpdate> must be a versioned object.
 func applyPatchToObject(
+	codec runtime.Codec,
 	defaulter runtime.ObjectDefaulter,
 	originalMap map[string]interface{},
 	patchMap map[string]interface{},

@@ -112,7 +112,7 @@ func (e *Entity) Get(timeout uint, ml MetadataLevel, options *GetEntityOptions) 
 	if err != nil {
 		return err
 	}
-	defer drainRespBody(resp)
+	defer readAndCloseBody(resp.Body)
 
 	if err = checkRespCode(resp, []int{http.StatusOK}); err != nil {
 		return err
@@ -154,7 +154,7 @@ func (e *Entity) Insert(ml MetadataLevel, options *EntityOptions) error {
 	if err != nil {
 		return err
 	}
-	defer drainRespBody(resp)
+	defer readAndCloseBody(resp.Body)
 
 	if ml != EmptyPayload {
 		if err = checkRespCode(resp, []int{http.StatusCreated}); err != nil {
@@ -212,7 +212,7 @@ func (e *Entity) Delete(force bool, options *EntityOptions) error {
 		}
 		return err
 	}
-	defer drainRespBody(resp)
+	defer readAndCloseBody(resp.Body)
 
 	if err = checkRespCode(resp, []int{http.StatusNoContent}); err != nil {
 		return err
@@ -399,7 +399,7 @@ func (e *Entity) insertOr(verb string, options *EntityOptions) error {
 	if err != nil {
 		return err
 	}
-	defer drainRespBody(resp)
+	defer readAndCloseBody(resp.Body)
 
 	if err = checkRespCode(resp, []int{http.StatusNoContent}); err != nil {
 		return err
@@ -428,7 +428,7 @@ func (e *Entity) updateMerge(force bool, verb string, options *EntityOptions) er
 		}
 		return err
 	}
-	defer drainRespBody(resp)
+	defer readAndCloseBody(resp.Body)
 
 	if err = checkRespCode(resp, []int{http.StatusNoContent}); err != nil {
 		return err

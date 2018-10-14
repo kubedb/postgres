@@ -31,6 +31,16 @@ import (
 // PluginName is the name reported in error metrics.
 const PluginName = "buffered"
 
+const (
+	// Default configuration values for ModeBatch.
+	defaultBatchBufferSize = 10000            // Buffer up to 10000 events before starting discarding.
+	defaultBatchMaxSize    = 400              // Only send up to 400 events at a time.
+	defaultBatchMaxWait    = 30 * time.Second // Send events at least twice a minute.
+
+	defaultBatchThrottleQPS   = 10 // Limit the send rate by 10 QPS.
+	defaultBatchThrottleBurst = 15 // Allow up to 15 QPS burst.
+)
+
 // BatchConfig represents batching delegate audit backend configuration.
 type BatchConfig struct {
 	// BufferSize defines a size of the buffering queue.
@@ -47,9 +57,19 @@ type BatchConfig struct {
 	// ThrottleBurst defines the maximum number of requests sent to the delegate backend at the same moment in case
 	// the capacity defined by ThrottleQPS was not utilized.
 	ThrottleBurst int
+}
 
-	// Whether the delegate backend should be called asynchronously.
-	AsyncDelegate bool
+// NewDefaultBatchConfig returns new Config objects populated by default values.
+func NewDefaultBatchConfig() BatchConfig {
+	return BatchConfig{
+		BufferSize:   defaultBatchBufferSize,
+		MaxBatchSize: defaultBatchMaxSize,
+		MaxBatchWait: defaultBatchMaxWait,
+
+		ThrottleEnable: true,
+		ThrottleQPS:    defaultBatchThrottleQPS,
+		ThrottleBurst:  defaultBatchThrottleBurst,
+	}
 }
 
 type bufferedBackend struct {
@@ -64,9 +84,6 @@ type bufferedBackend struct {
 	//
 	// Receiving maxBatchSize events will always trigger sending a batch, regardless of the amount of time passed.
 	maxBatchWait time.Duration
-
-	// Whether the delegate backend should be called asynchronously.
-	asyncDelegate bool
 
 	// Channel to signal that the batching routine has processed all remaining events and exited.
 	// Once `shutdownCh` is closed no new events will be sent to the delegate backend.
@@ -96,7 +113,6 @@ func NewBackend(delegate audit.Backend, config BatchConfig) audit.Backend {
 		buffer:          make(chan *auditinternal.Event, config.BufferSize),
 		maxBatchSize:    config.MaxBatchSize,
 		maxBatchWait:    config.MaxBatchWait,
-		asyncDelegate:   config.AsyncDelegate,
 		shutdownCh:      make(chan struct{}),
 		wg:              sync.WaitGroup{},
 		throttle:        throttle,
@@ -153,17 +169,8 @@ func (b *bufferedBackend) Shutdown() {
 // b.stopCh is closed, processIncomingEvents stops and closes the buffer.
 func (b *bufferedBackend) processIncomingEvents(stopCh <-chan struct{}) {
 	defer close(b.buffer)
-
-	var (
-		maxWaitChan  <-chan time.Time
-		maxWaitTimer *time.Timer
-	)
-	// Only use max wait batching if batching is enabled.
-	if b.maxBatchSize > 1 {
-		maxWaitTimer = time.NewTimer(b.maxBatchWait)
-		maxWaitChan = maxWaitTimer.C
-		defer maxWaitTimer.Stop()
-	}
+	t := time.NewTimer(b.maxBatchWait)
+	defer t.Stop()
 
 	for {
 		func() {
@@ -171,10 +178,8 @@ func (b *bufferedBackend) processIncomingEvents(stopCh <-chan struct{}) {
 			// goroutine can't bring down the main routine.
 			defer runtime.HandleCrash()
 
-			if b.maxBatchSize > 1 {
-				maxWaitTimer.Reset(b.maxBatchWait)
-			}
-			b.processEvents(b.collectEvents(maxWaitChan, stopCh))
+			t.Reset(b.maxBatchWait)
+			b.processEvents(b.collectEvents(t.C, stopCh))
 		}()
 
 		select {
@@ -230,25 +235,15 @@ func (b *bufferedBackend) processEvents(events []*auditinternal.Event) {
 		b.throttle.Accept()
 	}
 
-	if b.asyncDelegate {
-		b.wg.Add(1)
-		go func() {
-			defer b.wg.Done()
-			defer runtime.HandleCrash()
+	b.wg.Add(1)
+	go func() {
+		defer b.wg.Done()
+		defer runtime.HandleCrash()
 
-			// Execute the real processing in a goroutine to keep it from blocking.
-			// This lets the batching routine continue draining the queue immediately.
-			b.delegateBackend.ProcessEvents(events...)
-		}()
-	} else {
-		func() {
-			defer runtime.HandleCrash()
-
-			// Execute the real processing in a goroutine to keep it from blocking.
-			// This lets the batching routine continue draining the queue immediately.
-			b.delegateBackend.ProcessEvents(events...)
-		}()
-	}
+		// Execute the real processing in a goroutine to keep it from blocking.
+		// This lets the batching routine continue draining the queue immediately.
+		b.delegateBackend.ProcessEvents(events...)
+	}()
 }
 
 func (b *bufferedBackend) ProcessEvents(ev ...*auditinternal.Event) {

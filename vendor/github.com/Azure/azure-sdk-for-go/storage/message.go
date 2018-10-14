@@ -78,7 +78,7 @@ func (m *Message) Put(options *PutMessageOptions) error {
 	if err != nil {
 		return err
 	}
-	defer drainRespBody(resp)
+	defer readAndCloseBody(resp.Body)
 	err = checkRespCode(resp, []int{http.StatusCreated})
 	if err != nil {
 		return err
@@ -114,8 +114,7 @@ func (m *Message) Update(options *UpdateMessageOptions) error {
 		return err
 	}
 	headers["Content-Length"] = strconv.Itoa(nn)
-	// visibilitytimeout is required for Update (zero or greater) so set the default here
-	query.Set("visibilitytimeout", "0")
+
 	if options != nil {
 		if options.VisibilityTimeout != 0 {
 			query.Set("visibilitytimeout", strconv.Itoa(options.VisibilityTimeout))
@@ -129,7 +128,7 @@ func (m *Message) Update(options *UpdateMessageOptions) error {
 	if err != nil {
 		return err
 	}
-	defer drainRespBody(resp)
+	defer readAndCloseBody(resp.Body)
 
 	m.PopReceipt = resp.Header.Get("x-ms-popreceipt")
 	nextTimeStr := resp.Header.Get("x-ms-time-next-visible")
@@ -161,7 +160,7 @@ func (m *Message) Delete(options *QueueServiceOptions) error {
 	if err != nil {
 		return err
 	}
-	defer drainRespBody(resp)
+	defer readAndCloseBody(resp.Body)
 	return checkRespCode(resp, []int{http.StatusNoContent})
 }
 
