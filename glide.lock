@@ -1,5 +1,5 @@
 hash: 7f3c8980f8d20a6700193609af50a87ed1bac059b1f46f4dcc54ed1df60a7592
-updated: 2018-10-14T06:29:00.077062616-07:00
+updated: 2018-10-14T07:51:34.414905127-07:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -1041,7 +1041,7 @@ imports:
   - client/clientset/versioned/scheme
   - client/clientset/versioned/typed/appcatalog/v1alpha1
 - name: kmodules.xyz/monitoring-agent-api
-  version: 98f0d2fb18b0e786adcc1ea22b252d8fde4508f0
+  version: 626ef00ec8baebe0d2b451cf8f06450c2588f237
   repo: https://github.com/kmodules/monitoring-agent-api.git
   vcs: git
   subpackages:

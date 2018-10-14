@@ -31,7 +31,7 @@ type AgentSpec struct {
 	Agent      AgentType       `json:"agent,omitempty"`
 	Prometheus *PrometheusSpec `json:"prometheus,omitempty"`
 	// Compute Resources required by the exporter container.
-	Resources *core.ResourceRequirements `json:"resources,omitempty"`
+	Resources core.ResourceRequirements `json:"resources,omitempty"`
 }
 
 type PrometheusSpec struct {
