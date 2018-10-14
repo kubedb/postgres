@@ -319,6 +319,11 @@ func upsertPort(statefulSet *apps.StatefulSet) *apps.StatefulSet {
 
 func (c *Controller) upsertMonitoringContainer(statefulSet *apps.StatefulSet, postgres *api.Postgres, postgresVersion *catalog.PostgresVersion) *apps.StatefulSet {
 	if postgres.GetMonitoringVendor() == mona.VendorPrometheus {
+		resources := core.ResourceRequirements{}
+		if postgres.Spec.Monitor.Resources != nil {
+			resources = *postgres.Spec.Monitor.Resources
+		}
+
 		container := core.Container{
 			Name: "exporter",
 			Args: append([]string{
@@ -333,6 +338,7 @@ func (c *Controller) upsertMonitoringContainer(statefulSet *apps.StatefulSet, po
 					ContainerPort: int32(api.PrometheusExporterPortNumber),
 				},
 			},
+			Resources: resources,
 		}
 
 		envList := []core.EnvVar{

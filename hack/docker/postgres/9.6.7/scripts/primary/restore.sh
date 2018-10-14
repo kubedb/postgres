@@ -32,6 +32,7 @@ mkdir -p "$PGDATA"/pg_logical/{snapshots,mappings}/
 # setup recovery.conf
 cp /scripts/replica/recovery.conf /tmp
 
+# ref: https://www.postgresql.org/docs/10/static/recovery-target-settings.html
 if [ "$PITR" = true ]; then
   echo "recovery_target_inclusive = '$TARGET_INCLUSIVE'" >>/tmp/recovery.conf
   echo "recovery_target_action = 'promote'" >>/tmp/recovery.conf
