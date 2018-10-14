@@ -2,17 +2,22 @@ package server
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	hooks "github.com/appscode/kubernetes-webhook-util/admission/v1beta1"
 	admissionreview "github.com/appscode/kubernetes-webhook-util/registry/admissionreview/v1beta1"
+	reg_util "github.com/appscode/kutil/admissionregistration/v1beta1"
+	dynamic_util "github.com/appscode/kutil/dynamic"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/kubedb/apimachinery/pkg/admission/dormantdatabase"
 	"github.com/kubedb/apimachinery/pkg/admission/namespace"
 	"github.com/kubedb/apimachinery/pkg/admission/snapshot"
+	"github.com/kubedb/apimachinery/pkg/eventer"
 	mgAdmsn "github.com/kubedb/postgres/pkg/admission"
 	"github.com/kubedb/postgres/pkg/controller"
 	admission "k8s.io/api/admission/v1beta1"
+	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -20,6 +25,12 @@ import (
 	"k8s.io/apimachinery/pkg/version"
 	"k8s.io/apiserver/pkg/registry/rest"
 	genericapiserver "k8s.io/apiserver/pkg/server"
+	"k8s.io/client-go/kubernetes"
+)
+
+const (
+	apiserviceName    = "v1alpha1.validators.kubedb.com"
+	validatingWebhook = "postgres.validators.kubedb.com"
 )
 
 var (
@@ -167,6 +178,45 @@ func (c completedConfig) New() (*PostgresServer, error) {
 		)
 	}
 
+	if c.OperatorConfig.EnableValidatingWebhook {
+		s.GenericAPIServer.AddPostStartHookOrDie("validating-webhook-xray",
+			func(context genericapiserver.PostStartHookContext) error {
+				go func() {
+					xray := reg_util.NewCreateValidatingWebhookXray(c.OperatorConfig.ClientConfig, apiserviceName, validatingWebhook, &api.Postgres{
+						TypeMeta: metav1.TypeMeta{
+							APIVersion: api.SchemeGroupVersion.String(),
+							Kind:       api.ResourceKindPostgres,
+						},
+						ObjectMeta: metav1.ObjectMeta{
+							Name:      "test-postgres-for-webhook-xray",
+							Namespace: "default",
+						},
+						Spec: api.PostgresSpec{
+							StorageType: api.StorageType("Invalid"),
+						},
+					}, context.StopCh)
+					if err := xray.IsActive(); err != nil {
+						w, _, e2 := dynamic_util.DetectWorkload(
+							c.OperatorConfig.ClientConfig,
+							core.SchemeGroupVersion.WithResource("pods"),
+							os.Getenv("MY_POD_NAMESPACE"),
+							os.Getenv("MY_POD_NAME"))
+						if e2 == nil {
+							eventer.CreateEventWithLog(
+								kubernetes.NewForConfigOrDie(c.OperatorConfig.ClientConfig),
+								"pg-operator",
+								w,
+								core.EventTypeWarning,
+								eventer.EventReasonAdmissionWebhookNotActivated,
+								err.Error())
+						}
+						panic(err)
+					}
+				}()
+				return nil
+			},
+		)
+	}
 	return s, nil
 }
 
