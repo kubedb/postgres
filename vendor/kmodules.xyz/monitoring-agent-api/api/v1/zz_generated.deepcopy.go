@@ -37,15 +37,6 @@ func (in *AgentSpec) DeepCopyInto(out *AgentSpec) {
 		*out = new(corev1.ResourceRequirements)
 		(*in).DeepCopyInto(*out)
 	}
-	if in.Resources != nil {
-		in, out := &in.Resources, &out.Resources
-		if *in == nil {
-			*out = nil
-		} else {
-			*out = new(core_v1.ResourceRequirements)
-			(*in).DeepCopyInto(*out)
-		}
-	}
 	return
 }
 

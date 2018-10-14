@@ -151,11 +151,6 @@ func (in *ClientConfig) DeepCopyInto(out *ClientConfig) {
 		*out = make([]byte, len(*in))
 		copy(*out, *in)
 	}
-	if in.CABundle != nil {
-		in, out := &in.CABundle, &out.CABundle
-		*out = make([]byte, len(*in))
-		copy(*out, *in)
-	}
 	return
 }
 

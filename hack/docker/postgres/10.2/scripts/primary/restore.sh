@@ -34,6 +34,7 @@ cp /scripts/replica/recovery.conf /tmp
 
 if [ "$PITR" = true ]; then
   echo "recovery_target_inclusive = '$TARGET_INCLUSIVE'" >>/tmp/recovery.conf
+  echo "recovery_target_action = 'promote'" >>/tmp/recovery.conf
 
   if [ ! -z "$TARGET_TIME" ]; then
     echo "recovery_target_time = '$TARGET_TIME'" >>/tmp/recovery.conf
