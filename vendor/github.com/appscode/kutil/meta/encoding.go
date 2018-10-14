@@ -36,64 +36,48 @@ var YAMLSerializer = func() *Codec {
 
 // MarshalToYAML marshals an object into yaml.
 func MarshalToYAML(obj runtime.Object, gv schema.GroupVersion) ([]byte, error) {
-	encoder := versioning.NewCodec(
+	encoder := versioning.NewCodecForScheme(
+		scheme.Scheme,
 		YAMLSerializer,
-		nil,
-		runtime.UnsafeObjectConvertor(scheme.Scheme),
-		scheme.Scheme,
-		scheme.Scheme,
 		nil,
 		gv,
 		nil,
-		scheme.Scheme.Name(),
 	)
 	return runtime.Encode(encoder, obj)
 }
 
 // UnmarshalFromYAML unmarshals an object into yaml.
 func UnmarshalFromYAML(data []byte, gv schema.GroupVersion) (runtime.Object, error) {
-	decoder := versioning.NewCodec(
+	decoder := versioning.NewCodecForScheme(
+		scheme.Scheme,
 		nil,
 		YAMLSerializer,
-		runtime.UnsafeObjectConvertor(scheme.Scheme),
-		scheme.Scheme,
-		scheme.Scheme,
-		nil,
 		nil,
 		gv,
-		scheme.Scheme.Name(),
 	)
 	return runtime.Decode(decoder, data)
 }
 
 // MarshalToJson marshals an object into json.
 func MarshalToJson(obj runtime.Object, gv schema.GroupVersion) ([]byte, error) {
-	encoder := versioning.NewCodec(
+	encoder := versioning.NewCodecForScheme(
+		scheme.Scheme,
 		JSONSerializer,
-		nil,
-		runtime.UnsafeObjectConvertor(scheme.Scheme),
-		scheme.Scheme,
-		scheme.Scheme,
 		nil,
 		gv,
 		nil,
-		scheme.Scheme.Name(),
 	)
 	return runtime.Encode(encoder, obj)
 }
 
 // UnmarshalFromJSON unmarshals an object into json.
 func UnmarshalFromJSON(data []byte, gv schema.GroupVersion) (runtime.Object, error) {
-	decoder := versioning.NewCodec(
+	decoder := versioning.NewCodecForScheme(
+		scheme.Scheme,
 		nil,
 		JSONSerializer,
-		runtime.UnsafeObjectConvertor(scheme.Scheme),
-		scheme.Scheme,
-		scheme.Scheme,
-		nil,
 		nil,
 		gv,
-		scheme.Scheme.Name(),
 	)
 	return runtime.Decode(decoder, data)
 }

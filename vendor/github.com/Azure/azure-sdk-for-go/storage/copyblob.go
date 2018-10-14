@@ -110,7 +110,7 @@ func (b *Blob) StartCopy(sourceBlob string, options *CopyOptions) (string, error
 	if err != nil {
 		return "", err
 	}
-	defer drainRespBody(resp)
+	defer readAndCloseBody(resp.Body)
 
 	if err := checkRespCode(resp, []int{http.StatusAccepted, http.StatusCreated}); err != nil {
 		return "", err
@@ -152,7 +152,7 @@ func (b *Blob) AbortCopy(copyID string, options *AbortCopyOptions) error {
 	if err != nil {
 		return err
 	}
-	defer drainRespBody(resp)
+	defer readAndCloseBody(resp.Body)
 	return checkRespCode(resp, []int{http.StatusNoContent})
 }
 
@@ -223,7 +223,7 @@ func (b *Blob) IncrementalCopyBlob(sourceBlobURL string, snapshotTime time.Time,
 	if err != nil {
 		return "", err
 	}
-	defer drainRespBody(resp)
+	defer readAndCloseBody(resp.Body)
 
 	if err := checkRespCode(resp, []int{http.StatusAccepted}); err != nil {
 		return "", err

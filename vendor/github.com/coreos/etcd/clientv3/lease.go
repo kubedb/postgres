@@ -71,17 +71,14 @@ const (
 	// defaultTTL is the assumed lease TTL used for the first keepalive
 	// deadline before the actual TTL is known to the client.
 	defaultTTL = 5 * time.Second
+	// a small buffer to store unsent lease responses.
+	leaseResponseChSize = 16
 	// NoLease is a lease ID for the absence of a lease.
 	NoLease LeaseID = 0
 
 	// retryConnWait is how long to wait before retrying request due to an error
 	retryConnWait = 500 * time.Millisecond
 )
-
-// LeaseResponseChSize is the size of buffer to store unsent lease responses.
-// WARNING: DO NOT UPDATE.
-// Only for testing purposes.
-var LeaseResponseChSize = 16
 
 // ErrKeepAliveHalted is returned if client keep alive loop halts with an unexpected error.
 //
@@ -222,7 +219,7 @@ func (l *lessor) TimeToLive(ctx context.Context, id LeaseID, opts ...LeaseOption
 }
 
 func (l *lessor) KeepAlive(ctx context.Context, id LeaseID) (<-chan *LeaseKeepAliveResponse, error) {
-	ch := make(chan *LeaseKeepAliveResponse, LeaseResponseChSize)
+	ch := make(chan *LeaseKeepAliveResponse, leaseResponseChSize)
 
 	l.mu.Lock()
 	// ensure that recvKeepAliveLoop is still running
@@ -478,10 +475,9 @@ func (l *lessor) recvKeepAlive(resp *pb.LeaseKeepAliveResponse) {
 	for _, ch := range ka.chs {
 		select {
 		case ch <- karesp:
+			ka.nextKeepAlive = nextKeepAlive
 		default:
 		}
-		// still advance in order to rate-limit keep-alive sends
-		ka.nextKeepAlive = nextKeepAlive
 	}
 }
 

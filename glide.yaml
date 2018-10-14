@@ -5,9 +5,7 @@ import:
 - package: github.com/codeskyblue/go-sh
   version: master
 - package: github.com/coreos/prometheus-operator
-  repo: https://github.com/kmodules/prometheus-operator.git
-  vcs: git
-  version: k-1.12
+  version: v0.23.2
 - package: github.com/go-xorm/core
   version: v0.6.0
 - package: github.com/go-xorm/xorm
@@ -17,13 +15,13 @@ import:
   vcs: git
   version: master
 - package: github.com/Azure/azure-sdk-for-go
-  version: v19.0.0
+  version: v14.6.0
 - package: github.com/Azure/go-autorest
-  version: v10.14.0
+  version: v10.6.2
 - package: github.com/aws/aws-sdk-go
-  version: v1.14.12
+  version: v1.12.7
 - package: google.golang.org/api/storage/v1
-  version: 3639d6d93f377f39a1de765fa4ef37b3c7ca8bd9
+  version: master
 - package: cloud.google.com/go
   version: v0.2.0
 - package: github.com/jpillora/go-ogle-analytics
@@ -41,37 +39,39 @@ import:
 - package: github.com/spf13/pflag
   version: v1.0.1
 - package: k8s.io/api
-  version: kubernetes-1.12.0
+  version: kubernetes-1.11.3
 - package: k8s.io/apiextensions-apiserver
-  version: kubernetes-1.12.0
+  version: kubernetes-1.11.3
 - package: k8s.io/apimachinery
-  repo: https://github.com/kmodules/apimachinery.git
+  repo: https://github.com/pharmer/apimachinery.git
   vcs: git
-  version: ac-1.12.0
+  version: release-1.11.3
 - package: k8s.io/apiserver
-  repo: https://github.com/kmodules/apiserver.git
+  repo: https://github.com/pharmer/apiserver.git
   vcs: git
-  version: ac-1.12.0
+  version: release-1.11.3
 - package: k8s.io/client-go
-  version: v9.0.0
+  repo: https://github.com/pharmer/client-go.git
+  vcs: git
+  version: release-1.11.3
 - package: k8s.io/kube-aggregator
-  version: kubernetes-1.12.0
+  version: kubernetes-1.11.3
 - package: github.com/appscode/kutil
-  version: release-9.0
+  version: release-8.0
 - package: github.com/appscode/kubernetes-webhook-util
-  version: release-9.0
+  version: release-8.0
 - package: kmodules.xyz/monitoring-agent-api
   repo: https://github.com/kmodules/monitoring-agent-api.git
   vcs: git
-  version: release-9.0
+  version: release-8.0
 - package: kmodules.xyz/objectstore-api
   repo: https://github.com/kmodules/objectstore-api.git
   vcs: git
-  version: release-9.0
+  version: release-8.0
 - package: kmodules.xyz/offshoot-api
   repo: https://github.com/kmodules/offshoot-api.git
   vcs: git
-  version: release-9.0
+  version: release-8.0
 - package: github.com/openshift/api
   version: 31a7bbd2266d178da3c12bb83f5274d387f775e6
 - package: github.com/openshift/client-go
@@ -93,13 +93,13 @@ import:
 - package: golang.org/x/sys
   version: 95c6576299259db960f6c5b9b69ea52422860fce
 - package: k8s.io/kube-openapi
-  version: 0cf8f7e6ed1d2e3d47d02e3b6e559369af24d803
+  version: 91cfa479c814065e420cee7ed227db0f63a5854e
 - package: github.com/golang/protobuf
   version: v1.1.0
 - package: kmodules.xyz/custom-resources
   repo: https://github.com/kmodules/custom-resources.git
   vcs: git
-  version: release-9.0
+  version: release-8.0
 - package: golang.org/x/crypto
   version: de0752318171da717af4ce24d0a2e8626afaeb11
 - package: github.com/davecgh/go-spew

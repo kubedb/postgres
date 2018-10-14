@@ -35,7 +35,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apiserver/pkg/admission"
-	"k8s.io/apiserver/pkg/authorization/authorizer"
 	"k8s.io/apiserver/pkg/endpoints/handlers/responsewriters"
 	"k8s.io/apiserver/pkg/endpoints/metrics"
 	"k8s.io/apiserver/pkg/endpoints/request"
@@ -55,7 +54,6 @@ type RequestScope struct {
 	Defaulter       runtime.ObjectDefaulter
 	Typer           runtime.ObjectTyper
 	UnsafeConvertor runtime.ObjectConvertor
-	Authorizer      authorizer.Authorizer
 
 	TableConvertor rest.TableConvertor
 	OpenAPISchema  openapiproto.Schema
@@ -98,11 +96,6 @@ func (scope *RequestScope) AllowsStreamSchema(s string) bool {
 // ConnectResource returns a function that handles a connect request on a rest.Storage object.
 func ConnectResource(connecter rest.Connecter, scope RequestScope, admit admission.Interface, restPath string, isSubresource bool) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		if isDryRun(req.URL) {
-			scope.err(errors.NewBadRequest("dryRun is not supported"), w, req)
-			return
-		}
-
 		namespace, name, err := scope.Namer.Name(req)
 		if err != nil {
 			scope.err(err, w, req)
@@ -120,17 +113,22 @@ func ConnectResource(connecter rest.Connecter, scope RequestScope, admit admissi
 			return
 		}
 		if admit != nil && admit.Handles(admission.Connect) {
+			connectRequest := &rest.ConnectRequest{
+				Name:         name,
+				Options:      opts,
+				ResourcePath: restPath,
+			}
 			userInfo, _ := request.UserFrom(ctx)
 			// TODO: remove the mutating admission here as soon as we have ported all plugin that handle CONNECT
 			if mutatingAdmission, ok := admit.(admission.MutationInterface); ok {
-				err = mutatingAdmission.Admit(admission.NewAttributesRecord(opts, nil, scope.Kind, namespace, name, scope.Resource, scope.Subresource, admission.Connect, false, userInfo))
+				err = mutatingAdmission.Admit(admission.NewAttributesRecord(connectRequest, nil, scope.Kind, namespace, name, scope.Resource, scope.Subresource, admission.Connect, userInfo))
 				if err != nil {
 					scope.err(err, w, req)
 					return
 				}
 			}
 			if validatingAdmission, ok := admit.(admission.ValidationInterface); ok {
-				err = validatingAdmission.Validate(admission.NewAttributesRecord(opts, nil, scope.Kind, namespace, name, scope.Resource, scope.Subresource, admission.Connect, false, userInfo))
+				err = validatingAdmission.Validate(admission.NewAttributesRecord(connectRequest, nil, scope.Kind, namespace, name, scope.Resource, scope.Subresource, admission.Connect, userInfo))
 				if err != nil {
 					scope.err(err, w, req)
 					return
@@ -202,7 +200,7 @@ func finishRequest(timeout time.Duration, fn resultFunc) (result runtime.Object,
 	case p := <-panicCh:
 		panic(p)
 	case <-time.After(timeout):
-		return nil, errors.NewTimeoutError(fmt.Sprintf("request did not complete within requested timeout %s", timeout), 0)
+		return nil, errors.NewTimeoutError("request did not complete within allowed duration", 0)
 	}
 }
 

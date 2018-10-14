@@ -153,6 +153,21 @@ func (h *etcdHelper) Create(ctx context.Context, key string, obj, out runtime.Ob
 	return err
 }
 
+func checkPreconditions(key string, preconditions *storage.Preconditions, out runtime.Object) error {
+	if preconditions == nil {
+		return nil
+	}
+	objMeta, err := meta.Accessor(out)
+	if err != nil {
+		return storage.NewInternalErrorf("can't enforce preconditions %v on un-introspectable object %v, got error: %v", *preconditions, out, err)
+	}
+	if preconditions.UID != nil && *preconditions.UID != objMeta.GetUID() {
+		errMsg := fmt.Sprintf("Precondition failed: UID in precondition: %v, UID in object meta: %v", preconditions.UID, objMeta.GetUID())
+		return storage.NewInvalidObjError(key, errMsg)
+	}
+	return nil
+}
+
 // Implements storage.Interface.
 func (h *etcdHelper) Delete(ctx context.Context, key string, out runtime.Object, preconditions *storage.Preconditions) error {
 	if ctx == nil {
@@ -184,7 +199,7 @@ func (h *etcdHelper) Delete(ctx context.Context, key string, out runtime.Object,
 		if err != nil {
 			return toStorageErr(err, key, 0)
 		}
-		if err := preconditions.Check(key, obj); err != nil {
+		if err := checkPreconditions(key, preconditions, obj); err != nil {
 			return toStorageErr(err, key, 0)
 		}
 		index := uint64(0)
@@ -216,7 +231,7 @@ func (h *etcdHelper) Watch(ctx context.Context, key string, resourceVersion stri
 	if ctx == nil {
 		glog.Errorf("Context is nil")
 	}
-	watchRV, err := h.versioner.ParseResourceVersion(resourceVersion)
+	watchRV, err := h.versioner.ParseWatchResourceVersion(resourceVersion)
 	if err != nil {
 		return nil, err
 	}
@@ -231,7 +246,7 @@ func (h *etcdHelper) WatchList(ctx context.Context, key string, resourceVersion 
 	if ctx == nil {
 		glog.Errorf("Context is nil")
 	}
-	watchRV, err := h.versioner.ParseResourceVersion(resourceVersion)
+	watchRV, err := h.versioner.ParseWatchResourceVersion(resourceVersion)
 	if err != nil {
 		return nil, err
 	}
@@ -478,7 +493,7 @@ func (h *etcdHelper) GuaranteedUpdate(
 		if err != nil {
 			return toStorageErr(err, key, 0)
 		}
-		if err := preconditions.Check(key, obj); err != nil {
+		if err := checkPreconditions(key, preconditions, obj); err != nil {
 			return toStorageErr(err, key, 0)
 		}
 		meta := storage.ResponseMeta{}

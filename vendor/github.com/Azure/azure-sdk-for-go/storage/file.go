@@ -187,7 +187,7 @@ func (f *File) Delete(options *FileRequestOptions) error {
 func (f *File) DeleteIfExists(options *FileRequestOptions) (bool, error) {
 	resp, err := f.fsc.deleteResourceNoClose(f.buildPath(), resourceFile, options)
 	if resp != nil {
-		defer drainRespBody(resp)
+		defer readAndCloseBody(resp.Body)
 		if resp.StatusCode == http.StatusAccepted || resp.StatusCode == http.StatusNotFound {
 			return resp.StatusCode == http.StatusAccepted, nil
 		}
@@ -212,7 +212,7 @@ func (f *File) DownloadToStream(options *FileRequestOptions) (io.ReadCloser, err
 	}
 
 	if err = checkRespCode(resp, []int{http.StatusOK}); err != nil {
-		drainRespBody(resp)
+		readAndCloseBody(resp.Body)
 		return nil, err
 	}
 	return resp.Body, nil
@@ -242,7 +242,7 @@ func (f *File) DownloadRangeToStream(fileRange FileRange, options *GetFileOption
 	}
 
 	if err = checkRespCode(resp, []int{http.StatusOK, http.StatusPartialContent}); err != nil {
-		drainRespBody(resp)
+		readAndCloseBody(resp.Body)
 		return fs, err
 	}
 
@@ -375,7 +375,7 @@ func (f *File) modifyRange(bytes io.Reader, fileRange FileRange, timeout *uint, 
 	if err != nil {
 		return nil, err
 	}
-	defer drainRespBody(resp)
+	defer readAndCloseBody(resp.Body)
 	return resp.Header, checkRespCode(resp, []int{http.StatusCreated})
 }
 

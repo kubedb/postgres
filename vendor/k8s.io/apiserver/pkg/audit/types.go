@@ -39,7 +39,4 @@ type Backend interface {
 	// events are delivered. It can be assumed that this method is called after
 	// the stopCh channel passed to the Run method has been closed.
 	Shutdown()
-
-	// Returns the backend PluginName.
-	String() string
 }

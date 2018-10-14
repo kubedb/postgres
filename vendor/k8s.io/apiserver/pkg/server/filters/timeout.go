@@ -91,19 +91,14 @@ func (t *timeoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result := make(chan interface{})
+	done := make(chan struct{})
 	tw := newTimeoutWriter(w)
 	go func() {
-		defer func() {
-			result <- recover()
-		}()
 		t.handler.ServeHTTP(tw, r)
+		close(done)
 	}()
 	select {
-	case err := <-result:
-		if err != nil {
-			panic(err)
-		}
+	case <-done:
 		return
 	case <-after:
 		postTimeoutFn()

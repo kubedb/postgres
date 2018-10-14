@@ -69,11 +69,7 @@ func GetContainerReferenceFromSASURI(sasuri url.URL) (*Container, error) {
 	if len(path) <= 1 {
 		return nil, fmt.Errorf("could not find a container in URI: %s", sasuri.String())
 	}
-	c, err := newSASClientFromURL(&sasuri)
-	if err != nil {
-		return nil, err
-	}
-	cli := c.GetBlobService()
+	cli := newSASClient().GetBlobService()
 	return &Container{
 		bsc:    &cli,
 		Name:   path[1],

@@ -36,7 +36,6 @@ import (
 	utilwaitgroup "k8s.io/apimachinery/pkg/util/waitgroup"
 	"k8s.io/apiserver/pkg/admission"
 	"k8s.io/apiserver/pkg/audit"
-	"k8s.io/apiserver/pkg/authorization/authorizer"
 	genericapi "k8s.io/apiserver/pkg/endpoints"
 	"k8s.io/apiserver/pkg/endpoints/discovery"
 	"k8s.io/apiserver/pkg/registry/rest"
@@ -138,11 +137,6 @@ type GenericAPIServer struct {
 
 	// auditing. The backend is started after the server starts listening.
 	AuditBackend audit.Backend
-
-	// Authorizer determines whether a user is allowed to make a certain request. The Handler does a preliminary
-	// authorization check using the request URI but it may be necessary to make additional checks, such as in
-	// the create-on-update case
-	Authorizer authorizer.Authorizer
 
 	// enableAPIResponseCompression indicates whether API Responses should support compression
 	// if the client requests it via Accept-Encoding
@@ -347,9 +341,14 @@ func (s *GenericAPIServer) InstallLegacyAPIGroup(apiPrefix string, apiGroupInfo 
 		return err
 	}
 
+	// setup discovery
+	apiVersions := []string{}
+	for _, groupVersion := range apiGroupInfo.PrioritizedVersions {
+		apiVersions = append(apiVersions, groupVersion.Version)
+	}
 	// Install the version handler.
 	// Add a handler at /<apiPrefix> to enumerate the supported api versions.
-	s.Handler.GoRestfulContainer.Add(discovery.NewLegacyRootAPIHandler(s.discoveryAddresses, s.Serializer, apiPrefix).WebService())
+	s.Handler.GoRestfulContainer.Add(discovery.NewLegacyRootAPIHandler(s.discoveryAddresses, s.Serializer, apiPrefix, apiVersions).WebService())
 
 	return nil
 }
@@ -428,7 +427,6 @@ func (s *GenericAPIServer) newAPIGroupVersion(apiGroupInfo *APIGroupInfo, groupV
 		MinRequestTimeout:            s.minRequestTimeout,
 		EnableAPIResponseCompression: s.enableAPIResponseCompression,
 		OpenAPIConfig:                s.openAPIConfig,
-		Authorizer:                   s.Authorizer,
 	}
 }
 
