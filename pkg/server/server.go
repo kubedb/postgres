@@ -29,8 +29,7 @@ import (
 )
 
 const (
-	apiserviceName    = "v1alpha1.validators.kubedb.com"
-	validatingWebhook = "postgres.validators.kubedb.com"
+	apiserviceName = "v1alpha1.validators.kubedb.com"
 )
 
 var (
@@ -182,7 +181,7 @@ func (c completedConfig) New() (*PostgresServer, error) {
 		s.GenericAPIServer.AddPostStartHookOrDie("validating-webhook-xray",
 			func(context genericapiserver.PostStartHookContext) error {
 				go func() {
-					xray := reg_util.NewCreateValidatingWebhookXray(c.OperatorConfig.ClientConfig, apiserviceName, validatingWebhook, &api.Postgres{
+					xray := reg_util.NewCreateValidatingWebhookXray(c.OperatorConfig.ClientConfig, apiserviceName, &api.Postgres{
 						TypeMeta: metav1.TypeMeta{
 							APIVersion: api.SchemeGroupVersion.String(),
 							Kind:       api.ResourceKindPostgres,
