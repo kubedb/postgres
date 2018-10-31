@@ -5,9 +5,7 @@ import:
 - package: github.com/codeskyblue/go-sh
   version: master
 - package: github.com/coreos/prometheus-operator
-  repo: https://github.com/kmodules/prometheus-operator.git
-  vcs: git
-  version: k-1.12
+  version: v0.25.0
 - package: github.com/go-xorm/core
   version: v0.6.0
 - package: github.com/go-xorm/xorm
