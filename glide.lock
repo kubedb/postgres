@@ -1,5 +1,5 @@
 hash: 37ffbdf5f7bac807c2b11b378492c4583a6949da8a89c055d80f5163d5845352
-updated: 2018-10-31T17:47:34.681415702+06:00
+updated: 2018-11-01T14:23:24.389225366+06:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -37,7 +37,7 @@ imports:
   - admission/v1beta1
   - registry/admissionreview/v1beta1
 - name: github.com/appscode/kutil
-  version: 73a92159d35b8266d423a621a9437a77b3ef5f6c
+  version: 3ea05651189cbff8994265360eb150d4c3513859
   subpackages:
   - admissionregistration/v1beta1
   - apiextensions/v1beta1
@@ -348,7 +348,7 @@ imports:
 - name: github.com/json-iterator/go
   version: 1624edc4454b8682399def8740d46db5e4362ba4
 - name: github.com/kubedb/apimachinery
-  version: e8e402a71f7aff34c3bd1b838ec75cbfe18682c5
+  version: 7d6ac75d29a6f7c7adfec09c056043c913807c01
   subpackages:
   - apis
   - apis/authorization
@@ -630,7 +630,7 @@ imports:
 - name: gopkg.in/tomb.v1
   version: c131134a1947e9afd9cecfe11f4c6dff0732ae58
 - name: gopkg.in/yaml.v2
-  version: 670d4cfef0544295bc27a114dbac37980d83185a
+  version: 53feefa2559fb8dfa8d81baad31be332c97d6c77
 - name: k8s.io/api
   version: fd83cbc87e7632ccd8bbab63d2b673d4e0c631cc
   subpackages:
@@ -674,7 +674,7 @@ imports:
   - pkg/client/clientset/clientset/scheme
   - pkg/client/clientset/clientset/typed/apiextensions/v1beta1
 - name: k8s.io/apimachinery
-  version: 8d7a0c3d7f0948197f384288363dfe20cd1f00e4
+  version: 00edbc532482e56a75224c794deaa1366dd292cb
   repo: https://github.com/kmodules/apimachinery.git
   vcs: git
   subpackages:
@@ -1030,7 +1030,7 @@ imports:
   - pkg/util
   - pkg/util/proto
 - name: kmodules.xyz/custom-resources
-  version: 043b10a889fd23491f5f4ed5f91a3220f83dd96e
+  version: 6d398bd2d81b1d6a811ad026c1dd24f1564a1f3c
   repo: https://github.com/kmodules/custom-resources.git
   vcs: git
   subpackages:

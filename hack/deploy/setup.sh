@@ -48,7 +48,7 @@ source "$REPO_ROOT/hack/libbuild/common/lib.sh"
 
 export KUBE_CA=$($ONESSL get kube-ca | $ONESSL base64)
 export APPSCODE_ENV=${APPSCODE_ENV:-prod}
-export KUBEDB_SCRIPT="curl -fsSL https://raw.githubusercontent.com/kubedb/cli/0.8.0/"
+export KUBEDB_SCRIPT="curl -fsSL https://raw.githubusercontent.com/kubedb/cli/0.9.0-rc.0/"
 
 show_help() {
   echo "setup.sh - setup kubedb operator"

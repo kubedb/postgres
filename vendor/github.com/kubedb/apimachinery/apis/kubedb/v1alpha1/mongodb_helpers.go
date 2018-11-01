@@ -65,9 +65,9 @@ func (m MongoDB) GoverningServiceName() string {
 func (m MongoDB) HostAddress() string {
 	host := m.ServiceName()
 	if m.Spec.ReplicaSet != nil {
-		host = m.Spec.ReplicaSet.Name + "/" + m.Name + "-0." + m.GoverningServiceName() + ".svc"
+		host = m.Spec.ReplicaSet.Name + "/" + m.Name + "-0." + m.GoverningServiceName() + "." + m.Namespace + ".svc"
 		for i := 1; i < int(types.Int32(m.Spec.Replicas)); i++ {
-			host += "," + m.Name + "-" + strconv.Itoa(i) + m.GoverningServiceName() + ".svc"
+			host += "," + m.Name + "-" + strconv.Itoa(i) + m.GoverningServiceName() + "." + m.Namespace + ".svc"
 		}
 	}
 	return host
