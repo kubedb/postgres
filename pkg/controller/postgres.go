@@ -34,7 +34,9 @@ func (c *Controller) create(postgres *api.Postgres) error {
 			eventer.EventReasonInvalid,
 			err.Error(),
 		)
-		log.Error(err)
+		log.Errorln(err)
+		// stop Scheduler in case there is any.
+		c.cronController.StopBackupScheduling(postgres.ObjectMeta)
 		return nil // user error so just record error and don't retry.
 	}
 
@@ -209,9 +211,21 @@ func (c *Controller) ensurePostgresNode(postgres *api.Postgres, postgresVersion 
 }
 
 func (c *Controller) ensureBackupScheduler(postgres *api.Postgres) {
+	postgresVersion, err := c.ExtClient.CatalogV1alpha1().PostgresVersions().Get(string(postgres.Spec.Version), metav1.GetOptions{})
+	if err != nil {
+		c.recorder.Eventf(
+			postgres,
+			core.EventTypeWarning,
+			eventer.EventReasonFailedToSchedule,
+			"Failed to get PostgresVersion for %v. Reason: %v",
+			postgres.Spec.Version, err,
+		)
+		log.Errorln(err)
+		return
+	}
 	// Setup Schedule backup
 	if postgres.Spec.BackupSchedule != nil {
-		err := c.cronController.ScheduleBackup(postgres, postgres.ObjectMeta, postgres.Spec.BackupSchedule)
+		err := c.cronController.ScheduleBackup(postgres, postgres.ObjectMeta, postgres.Spec.BackupSchedule, postgresVersion)
 		if err != nil {
 			c.recorder.Eventf(
 				postgres,

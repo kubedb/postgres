@@ -94,6 +94,8 @@ func (f *Framework) RunOperatorAndServer(config *restclient.Config, kubeconfigPa
 	serverOpt.RecommendedOptions.Authentication.RemoteKubeConfigFile = kubeconfigPath
 
 	serverOpt.ExtraOptions.EnableRBAC = EnableRbac
+	serverOpt.ExtraOptions.EnableMutatingWebhook = true
+	serverOpt.ExtraOptions.EnableValidatingWebhook = true
 
 	err = serverOpt.Run(stopCh)
 	Expect(err).NotTo(HaveOccurred())
