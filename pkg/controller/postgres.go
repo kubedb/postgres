@@ -42,15 +42,7 @@ func (c *Controller) create(postgres *api.Postgres) error {
 
 	// Delete Matching DormantDatabase if exists any
 	if err := c.deleteMatchingDormantDatabase(postgres); err != nil {
-		c.recorder.Eventf(
-			postgres,
-			core.EventTypeWarning,
-			eventer.EventReasonFailedToCreate,
-			`Failed to delete dormant Database : "%v". Reason: %v`,
-			postgres.Name,
-			err,
-		)
-		return err
+		return fmt.Errorf(`failed to delete dormant Database : "%v". Reason: %v`, postgres.Name, err)
 	}
 
 	if postgres.Status.Phase == "" {
@@ -59,12 +51,6 @@ func (c *Controller) create(postgres *api.Postgres) error {
 			return in
 		}, apis.EnableStatusSubresource)
 		if err != nil {
-			c.recorder.Eventf(
-				postgres,
-				core.EventTypeWarning,
-				eventer.EventReasonFailedToUpdate,
-				err.Error(),
-			)
 			return err
 		}
 		postgres.Status = pg.Status
@@ -73,15 +59,7 @@ func (c *Controller) create(postgres *api.Postgres) error {
 	// create Governing Service
 	governingService := c.GoverningService
 	if err := c.CreateGoverningService(governingService, postgres.Namespace); err != nil {
-		c.recorder.Eventf(
-			postgres,
-			core.EventTypeWarning,
-			eventer.EventReasonFailedToCreate,
-			`Failed to create ServiceAccount: "%v". Reason: %v`,
-			governingService,
-			err,
-		)
-		return err
+		return fmt.Errorf(`failed to create Service: "%v". Reason: %v`, governingService, err)
 	}
 
 	// ensure database Service
@@ -148,18 +126,21 @@ func (c *Controller) create(postgres *api.Postgres) error {
 		return in
 	}, apis.EnableStatusSubresource)
 	if err != nil {
-		c.recorder.Eventf(
-			postgres,
-			core.EventTypeWarning,
-			eventer.EventReasonFailedToUpdate,
-			err.Error(),
-		)
 		return err
 	}
 	postgres.Status = pg.Status
 
 	// Ensure Schedule backup
-	c.ensureBackupScheduler(postgres)
+	if err := c.ensureBackupScheduler(postgres); err != nil {
+		c.recorder.Eventf(
+			postgres,
+			core.EventTypeWarning,
+			eventer.EventReasonFailedToSchedule,
+			err.Error(),
+		)
+		log.Errorln(err)
+		// Don't return error. Continue processing rest.
+	}
 
 	// ensure StatsService for desired monitoring
 	if _, err := c.ensureStatsService(postgres); err != nil {
@@ -210,35 +191,21 @@ func (c *Controller) ensurePostgresNode(postgres *api.Postgres, postgresVersion 
 	return vt, nil
 }
 
-func (c *Controller) ensureBackupScheduler(postgres *api.Postgres) {
+func (c *Controller) ensureBackupScheduler(postgres *api.Postgres) error {
 	postgresVersion, err := c.ExtClient.CatalogV1alpha1().PostgresVersions().Get(string(postgres.Spec.Version), metav1.GetOptions{})
 	if err != nil {
-		c.recorder.Eventf(
-			postgres,
-			core.EventTypeWarning,
-			eventer.EventReasonFailedToSchedule,
-			"Failed to get PostgresVersion for %v. Reason: %v",
-			postgres.Spec.Version, err,
-		)
-		log.Errorln(err)
-		return
+		return fmt.Errorf("failed to get PostgresVersion for %v. Reason: %v", postgres.Spec.Version, err)
 	}
 	// Setup Schedule backup
 	if postgres.Spec.BackupSchedule != nil {
-		err := c.cronController.ScheduleBackup(postgres, postgres.ObjectMeta, postgres.Spec.BackupSchedule, postgresVersion)
+		err := c.cronController.ScheduleBackup(postgres, postgres.Spec.BackupSchedule, postgresVersion)
 		if err != nil {
-			c.recorder.Eventf(
-				postgres,
-				core.EventTypeWarning,
-				eventer.EventReasonFailedToSchedule,
-				"Failed to schedule snapshot. Reason: %v",
-				err,
-			)
-			log.Errorln(err)
+			return fmt.Errorf("failed to schedule snapshot. Reason: %v", err)
 		}
 	} else {
 		c.cronController.StopBackupScheduling(postgres.ObjectMeta)
 	}
+	return nil
 }
 
 func (c *Controller) initialize(postgres *api.Postgres) error {
@@ -247,12 +214,6 @@ func (c *Controller) initialize(postgres *api.Postgres) error {
 		return in
 	}, apis.EnableStatusSubresource)
 	if err != nil {
-		c.recorder.Eventf(
-			postgres,
-			core.EventTypeWarning,
-			eventer.EventReasonFailedToUpdate,
-			err.Error(),
-		)
 		return err
 	}
 	postgres.Status = pg.Status

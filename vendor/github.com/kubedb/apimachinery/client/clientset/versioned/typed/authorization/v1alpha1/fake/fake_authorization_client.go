@@ -28,28 +28,20 @@ type FakeAuthorizationV1alpha1 struct {
 	*testing.Fake
 }
 
-func (c *FakeAuthorizationV1alpha1) MongoDBRoles(namespace string) v1alpha1.MongoDBRoleInterface {
-	return &FakeMongoDBRoles{c, namespace}
+func (c *FakeAuthorizationV1alpha1) DatabaseAccessRequests(namespace string) v1alpha1.DatabaseAccessRequestInterface {
+	return &FakeDatabaseAccessRequests{c, namespace}
 }
 
-func (c *FakeAuthorizationV1alpha1) MongoDBRoleBindings(namespace string) v1alpha1.MongoDBRoleBindingInterface {
-	return &FakeMongoDBRoleBindings{c, namespace}
+func (c *FakeAuthorizationV1alpha1) MongoDBRoles(namespace string) v1alpha1.MongoDBRoleInterface {
+	return &FakeMongoDBRoles{c, namespace}
 }
 
 func (c *FakeAuthorizationV1alpha1) MySQLRoles(namespace string) v1alpha1.MySQLRoleInterface {
 	return &FakeMySQLRoles{c, namespace}
 }
 
-func (c *FakeAuthorizationV1alpha1) MySQLRoleBindings(namespace string) v1alpha1.MySQLRoleBindingInterface {
-	return &FakeMySQLRoleBindings{c, namespace}
-}
-
 func (c *FakeAuthorizationV1alpha1) PostgresRoles(namespace string) v1alpha1.PostgresRoleInterface {
 	return &FakePostgresRoles{c, namespace}
-}
-
-func (c *FakeAuthorizationV1alpha1) PostgresRoleBindings(namespace string) v1alpha1.PostgresRoleBindingInterface {
-	return &FakePostgresRoleBindings{c, namespace}
 }
 
 // RESTClient returns a RESTClient that is used to communicate

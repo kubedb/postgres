@@ -128,15 +128,7 @@ func (c *Controller) ensureStatefulSet(
 	if vt == kutil.VerbCreated || vt == kutil.VerbPatched {
 		// Check StatefulSet Pod status
 		if err := c.CheckStatefulSetPodStatus(statefulSet); err != nil {
-			c.recorder.Eventf(
-				postgres,
-				core.EventTypeWarning,
-				eventer.EventReasonFailedToStart,
-				`Failed to be running after StatefulSet %v. Reason: %v`,
-				vt,
-				err,
-			)
-			return kutil.VerbUnchanged, err
+			return kutil.VerbUnchanged, fmt.Errorf(`failed to CreateOrPatch StatefulSet. Reason: %v`, err)
 		}
 
 		c.recorder.Eventf(

@@ -36,14 +36,7 @@ func (c *Controller) ensureService(postgres *api.Postgres) (kutil.VerbType, erro
 	// create database Service
 	vt1, err := c.createService(postgres)
 	if err != nil {
-		c.recorder.Eventf(
-			postgres,
-			core.EventTypeWarning,
-			eventer.EventReasonFailedToCreate,
-			"Failed to createOrPatch Service. Reason: %v",
-			err,
-		)
-		return kutil.VerbUnchanged, err
+		return kutil.VerbUnchanged, fmt.Errorf("failed to createOrPatch Service. Reason: %v", err)
 	} else if vt1 != kutil.VerbUnchanged {
 		c.recorder.Eventf(
 			postgres,
@@ -62,14 +55,7 @@ func (c *Controller) ensureService(postgres *api.Postgres) (kutil.VerbType, erro
 	// create database Service
 	vt2, err := c.createReplicasService(postgres)
 	if err != nil {
-		c.recorder.Eventf(
-			postgres,
-			core.EventTypeWarning,
-			eventer.EventReasonFailedToCreate,
-			"Failed to createOrPatch Service. Reason: %v",
-			err,
-		)
-		return kutil.VerbUnchanged, err
+		return kutil.VerbUnchanged, fmt.Errorf("failed to createOrPatch Service. Reason: %v", err)
 	} else if vt2 != kutil.VerbUnchanged {
 		c.recorder.Eventf(
 			postgres,
@@ -215,14 +201,7 @@ func (c *Controller) ensureStatsService(postgres *api.Postgres) (kutil.VerbType,
 		return in
 	})
 	if err != nil {
-		c.recorder.Eventf(
-			ref,
-			core.EventTypeWarning,
-			eventer.EventReasonFailedToCreate,
-			"Failed to reconcile stats service. Reason: %v",
-			err,
-		)
-		return kutil.VerbUnchanged, err
+		return kutil.VerbUnchanged, fmt.Errorf("failed to reconcile stats service. Reason: %v", err)
 	} else if vt != kutil.VerbUnchanged {
 		c.recorder.Eventf(
 			ref,
