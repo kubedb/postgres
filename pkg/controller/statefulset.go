@@ -64,7 +64,11 @@ func (c *Controller) ensureStatefulSet(
 		in.Spec.Template.Spec.Containers = core_util.UpsertContainer(
 			in.Spec.Template.Spec.Containers,
 			core.Container{
-				Name:           api.ResourceSingularPostgres,
+				Name: api.ResourceSingularPostgres,
+				Args: meta_util.UpsertArgumentList([]string{
+					"leader_election",
+					fmt.Sprintf(`--enable-analytics=%v`, c.EnableAnalytics),
+				}, c.LoggerOptions.ToFlags()),
 				Image:          postgresVersion.Spec.DB.Image,
 				Resources:      postgres.Spec.PodTemplate.Spec.Resources,
 				LivenessProbe:  postgres.Spec.PodTemplate.Spec.LivenessProbe,
