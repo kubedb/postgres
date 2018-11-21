@@ -4,6 +4,10 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/the-redback/go-oneliners"
+
+	"github.com/appscode/kutil/tools/analytics"
+
 	"github.com/appscode/go/log"
 	"github.com/appscode/go/types"
 	"github.com/appscode/kutil"
@@ -69,6 +73,12 @@ func (c *Controller) ensureStatefulSet(
 					"leader_election",
 					fmt.Sprintf(`--enable-analytics=%v`, c.EnableAnalytics),
 				}, c.LoggerOptions.ToFlags()),
+				Env: []core.EnvVar{
+					{
+						Name:  analytics.Key,
+						Value: c.AnalyticsClientID,
+					},
+				},
 				Image:          postgresVersion.Spec.DB.Image,
 				Resources:      postgres.Spec.PodTemplate.Spec.Resources,
 				LivenessProbe:  postgres.Spec.PodTemplate.Spec.LivenessProbe,
@@ -121,6 +131,8 @@ func (c *Controller) ensureStatefulSet(
 		}
 
 		in.Spec.UpdateStrategy = postgres.Spec.UpdateStrategy
+
+		oneliners.PrettyJson(in, "in")
 
 		return in
 	})

@@ -142,7 +142,6 @@ if [ "$MINIKUBE" -eq 1 ]; then
       --enable-status-subresource=true \
       --enable-mutating-webhook=true \
       --enable-validating-webhook=true \
-      --enable-analytics=false \
       --kubeconfig="$HOME/.kube/config" \
       --authorization-kubeconfig="$HOME/.kube/config" \
       --authentication-kubeconfig="$HOME/.kube/config"
