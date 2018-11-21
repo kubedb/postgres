@@ -128,7 +128,7 @@ func (c *Controller) ensureStatefulSet(
 	if vt == kutil.VerbCreated || vt == kutil.VerbPatched {
 		// Check StatefulSet Pod status
 		if err := c.CheckStatefulSetPodStatus(statefulSet); err != nil {
-			return kutil.VerbUnchanged, fmt.Errorf(`failed to CreateOrPatch StatefulSet. Reason: %v`, err)
+			return kutil.VerbUnchanged, err
 		}
 
 		c.recorder.Eventf(
@@ -219,7 +219,7 @@ func (c *Controller) checkStatefulSet(postgres *api.Postgres) error {
 
 	if statefulSet.Labels[api.LabelDatabaseKind] != api.ResourceKindPostgres ||
 		statefulSet.Labels[api.LabelDatabaseName] != name {
-		return fmt.Errorf(`intended statefulSet "%v" already exists`, name)
+		return fmt.Errorf(`intended statefulSet "%v/%v" already exists`, postgres.Namespace, name)
 	}
 
 	return nil

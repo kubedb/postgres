@@ -93,6 +93,10 @@ func (s *ExtraOptions) ApplyTo(cfg *controller.OperatorConfig) error {
 	cfg.OperatorNamespace = s.OperatorNamespace
 	cfg.GoverningService = s.GoverningService
 
+	cfg.EnableAnalytics = controller.EnableAnalytics
+	cfg.AnalyticsClientID = controller.AnalyticsClientID
+	cfg.LoggerOptions = controller.LoggerOptions
+
 	cfg.ClientConfig.QPS = float32(s.QPS)
 	cfg.ClientConfig.Burst = s.Burst
 	cfg.ResyncPeriod = s.ResyncPeriod

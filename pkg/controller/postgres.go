@@ -42,7 +42,7 @@ func (c *Controller) create(postgres *api.Postgres) error {
 
 	// Delete Matching DormantDatabase if exists any
 	if err := c.deleteMatchingDormantDatabase(postgres); err != nil {
-		return fmt.Errorf(`failed to delete dormant Database : "%v". Reason: %v`, postgres.Name, err)
+		return fmt.Errorf(`failed to delete dormant Database : "%v/%v". Reason: %v`, postgres.Namespace, postgres.Name, err)
 	}
 
 	if postgres.Status.Phase == "" {
@@ -59,7 +59,7 @@ func (c *Controller) create(postgres *api.Postgres) error {
 	// create Governing Service
 	governingService := c.GoverningService
 	if err := c.CreateGoverningService(governingService, postgres.Namespace); err != nil {
-		return fmt.Errorf(`failed to create Service: "%v". Reason: %v`, governingService, err)
+		return fmt.Errorf(`failed to create Service: "%v/%v". Reason: %v`, postgres.Namespace, governingService, err)
 	}
 
 	// ensure database Service
@@ -194,7 +194,7 @@ func (c *Controller) ensurePostgresNode(postgres *api.Postgres, postgresVersion 
 func (c *Controller) ensureBackupScheduler(postgres *api.Postgres) error {
 	postgresVersion, err := c.ExtClient.CatalogV1alpha1().PostgresVersions().Get(string(postgres.Spec.Version), metav1.GetOptions{})
 	if err != nil {
-		return fmt.Errorf("failed to get PostgresVersion for %v. Reason: %v", postgres.Spec.Version, err)
+		return fmt.Errorf("failed to get PostgresVersion %v for %v/%v. Reason: %v", postgres.Spec.Version, postgres.Namespace, postgres.Name, err)
 	}
 	// Setup Schedule backup
 	if postgres.Spec.BackupSchedule != nil {

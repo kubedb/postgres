@@ -36,7 +36,7 @@ func (c *Controller) ensureService(postgres *api.Postgres) (kutil.VerbType, erro
 	// create database Service
 	vt1, err := c.createService(postgres)
 	if err != nil {
-		return kutil.VerbUnchanged, fmt.Errorf("failed to createOrPatch Service. Reason: %v", err)
+		return kutil.VerbUnchanged, err
 	} else if vt1 != kutil.VerbUnchanged {
 		c.recorder.Eventf(
 			postgres,
@@ -55,7 +55,7 @@ func (c *Controller) ensureService(postgres *api.Postgres) (kutil.VerbType, erro
 	// create database Service
 	vt2, err := c.createReplicasService(postgres)
 	if err != nil {
-		return kutil.VerbUnchanged, fmt.Errorf("failed to createOrPatch Service. Reason: %v", err)
+		return kutil.VerbUnchanged, err
 	} else if vt2 != kutil.VerbUnchanged {
 		c.recorder.Eventf(
 			postgres,
@@ -86,7 +86,7 @@ func (c *Controller) checkService(postgres *api.Postgres, name string) error {
 
 	if service.Labels[api.LabelDatabaseKind] != api.ResourceKindPostgres ||
 		service.Labels[api.LabelDatabaseName] != postgres.Name {
-		return fmt.Errorf(`intended service "%v" already exists`, name)
+		return fmt.Errorf(`intended service "%v/%v" already exists`, postgres.Namespace, name)
 	}
 
 	return nil
@@ -201,7 +201,7 @@ func (c *Controller) ensureStatsService(postgres *api.Postgres) (kutil.VerbType,
 		return in
 	})
 	if err != nil {
-		return kutil.VerbUnchanged, fmt.Errorf("failed to reconcile stats service. Reason: %v", err)
+		return kutil.VerbUnchanged, err
 	} else if vt != kutil.VerbUnchanged {
 		c.recorder.Eventf(
 			ref,

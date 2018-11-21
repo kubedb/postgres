@@ -50,7 +50,7 @@ func (c *Controller) findDatabaseSecret(postgres *api.Postgres) (*core.Secret, e
 
 	if secret.Labels[api.LabelDatabaseKind] != api.ResourceKindPostgres ||
 		secret.Labels[api.LabelDatabaseName] != postgres.Name {
-		return nil, fmt.Errorf(`intended secret "%v" already exists`, name)
+		return nil, fmt.Errorf(`intended secret "%v/%v" already exists`, postgres.Namespace, name)
 	}
 
 	return secret, nil
