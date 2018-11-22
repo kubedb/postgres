@@ -66,10 +66,10 @@ func (c *Controller) ensureStatefulSet(
 			in.Spec.Template.Spec.Containers,
 			core.Container{
 				Name: api.ResourceSingularPostgres,
-				Args: meta_util.UpsertArgumentList([]string{
+				Args: append([]string{
 					"leader_election",
 					fmt.Sprintf(`--enable-analytics=%v`, c.EnableAnalytics),
-				}, c.LoggerOptions.ToFlags()),
+				}, c.LoggerOptions.ToFlags()...),
 				Env: []core.EnvVar{
 					{
 						Name:  analytics.Key,
@@ -126,7 +126,6 @@ func (c *Controller) ensureStatefulSet(
 		if c.EnableRBAC {
 			in.Spec.Template.Spec.ServiceAccountName = postgres.OffshootName()
 		}
-
 		in.Spec.UpdateStrategy = postgres.Spec.UpdateStrategy
 
 		return in
