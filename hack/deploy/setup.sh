@@ -137,7 +137,7 @@ if [ "$MINIKUBE" -eq 1 ]; then
 
   if [ "$MINIKUBE_RUN" -eq 1 ]; then
     $REPO_ROOT/hack/make.py
-    pg-operator run --v=0 \
+    pg-operator run --v=4 \
       --secure-port=8443 \
       --enable-status-subresource=true \
       --enable-mutating-webhook=true \

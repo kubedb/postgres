@@ -2,7 +2,6 @@ package cmds
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -32,7 +31,6 @@ func NewRootCmd(version string) *cobra.Command {
 			})
 			if controller.EnableAnalytics && gaTrackingCode != "" {
 				if client, err := ga.NewClient(gaTrackingCode); err == nil {
-					fmt.Println(">>>>>>>>>>>>>>>>>>>>>> Client", controller.AnalyticsClientID)
 					client.ClientID(controller.AnalyticsClientID)
 					parts := strings.Split(c.CommandPath(), " ")
 					client.Send(ga.NewEvent(parts[0], strings.Join(parts[1:], "/")).Label(version))

@@ -4,16 +4,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/the-redback/go-oneliners"
-
-	"github.com/appscode/kutil/tools/analytics"
-
 	"github.com/appscode/go/log"
 	"github.com/appscode/go/types"
 	"github.com/appscode/kutil"
 	app_util "github.com/appscode/kutil/apps/v1"
 	core_util "github.com/appscode/kutil/core/v1"
 	meta_util "github.com/appscode/kutil/meta"
+	"github.com/appscode/kutil/tools/analytics"
 	catalog "github.com/kubedb/apimachinery/apis/catalog/v1alpha1"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/kubedb/apimachinery/pkg/eventer"
@@ -131,8 +128,6 @@ func (c *Controller) ensureStatefulSet(
 		}
 
 		in.Spec.UpdateStrategy = postgres.Spec.UpdateStrategy
-
-		oneliners.PrettyJson(in, "in")
 
 		return in
 	})
