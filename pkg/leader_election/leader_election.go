@@ -86,7 +86,7 @@ func RunLeaderElection() {
 	go func() {
 		leaderelection.RunOrDie(context.Background(), leaderelection.LeaderElectionConfig{
 			Lock: resLock,
-			// Default values: https://github.com/kubernetes/apiserver/blob/master/pkg/apis/config/v1alpha1/defaults.go#L37-L51
+			// ref: https://github.com/kubernetes/apiserver/blob/kubernetes-1.12.0/pkg/apis/config/v1alpha1/defaults.go#L26-L52
 			LeaseDuration: 15 * time.Second,
 			RenewDeadline: 10 * time.Second,
 			RetryPeriod:   2 * time.Second,
