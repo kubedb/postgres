@@ -43,13 +43,6 @@ func (c *Controller) ensureAppBinding(db *api.Postgres) (kutil.VerbType, error) 
 	})
 
 	if err != nil {
-		c.recorder.Eventf(
-			db,
-			core.EventTypeWarning,
-			eventer.EventReasonFailedToCreate,
-			"Failed to reconcile appbinding. Reason: %v",
-			err,
-		)
 		return kutil.VerbUnchanged, err
 	} else if vt != kutil.VerbUnchanged {
 		c.recorder.Eventf(
