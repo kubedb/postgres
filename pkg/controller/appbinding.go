@@ -11,7 +11,6 @@ import (
 	"k8s.io/client-go/tools/reference"
 	appcat "kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1"
 	appcat_util "kmodules.xyz/custom-resources/client/clientset/versioned/typed/appcatalog/v1alpha1/util"
-	ofst "kmodules.xyz/offshoot-api/api/v1"
 )
 
 func (c *Controller) ensureAppBinding(db *api.Postgres) (kutil.VerbType, error) {
@@ -35,18 +34,10 @@ func (c *Controller) ensureAppBinding(db *api.Postgres) (kutil.VerbType, error) 
 		in.Spec.Type = appmeta.Type()
 		in.Spec.ClientConfig.Service = &appcat.ServiceReference{
 			Name: db.ServiceName(),
+			Port: defaultDBPort.Port,
+			//todo: add scheme
 		}
 		in.Spec.ClientConfig.InsecureSkipTLSVerify = true
-
-		svcPorts := ofst.MergeServicePorts([]core.ServicePort{defaultDBPort}, db.Spec.ServiceTemplate.Spec.Ports)
-		appPorts := make([]appcat.AppPort, len(svcPorts))
-		for i, sp := range svcPorts {
-			appPorts[i] = appcat.AppPort{
-				Name: sp.Name,
-				Port: sp.Port,
-			}
-		}
-		in.Spec.ClientConfig.Ports = appPorts
 
 		return in
 	})
