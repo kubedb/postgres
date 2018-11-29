@@ -32,6 +32,9 @@ func (c *Controller) ensureAppBinding(db *api.Postgres) (kutil.VerbType, error) 
 		in.Annotations = db.Spec.ServiceTemplate.Annotations
 
 		in.Spec.Type = appmeta.Type()
+		in.Spec.Secret = &core.LocalObjectReference{
+			Name: db.Spec.DatabaseSecret.SecretName,
+		}
 		in.Spec.ClientConfig.Service = &appcat.ServiceReference{
 			Name: db.ServiceName(),
 			Port: defaultDBPort.Port,
