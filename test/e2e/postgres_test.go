@@ -55,7 +55,7 @@ var _ = Describe("Postgres", func() {
 		postgresVersion = f.PostgresVersion()
 		garbagePostgres = new(api.PostgresList)
 		snapshot = f.Snapshot()
-		secret = new(core.Secret)
+		secret = nil
 		skipMessage = ""
 		skipSnapshotDataChecking = true
 		skipWalDataChecking = true
@@ -78,6 +78,13 @@ var _ = Describe("Postgres", func() {
 
 		By("Waiting for database to be ready")
 		f.EventuallyPingDatabase(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
+
+		By("Wait for AppBinding to create")
+		f.EventuallyAppBinding(postgres.ObjectMeta).Should(BeTrue())
+
+		By("Check valid AppBinding Specs")
+		err := f.CheckAppBindingSpec(postgres.ObjectMeta)
+		Expect(err).NotTo(HaveOccurred())
 	}
 
 	var testGeneralBehaviour = func() {

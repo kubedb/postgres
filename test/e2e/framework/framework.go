@@ -7,16 +7,18 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	ka "k8s.io/kube-aggregator/pkg/client/clientset_generated/clientset"
+	appcat_cs "kmodules.xyz/custom-resources/client/clientset/versioned/typed/appcatalog/v1alpha1"
 )
 
 type Framework struct {
-	restConfig   *rest.Config
-	kubeClient   kubernetes.Interface
-	extClient    cs.Interface
-	kaClient     ka.Interface
-	namespace    string
-	name         string
-	StorageClass string
+	restConfig       *rest.Config
+	kubeClient       kubernetes.Interface
+	extClient        cs.Interface
+	kaClient         ka.Interface
+	appCatalogClient appcat_cs.AppcatalogV1alpha1Interface
+	namespace        string
+	name             string
+	StorageClass     string
 }
 
 func New(
@@ -24,16 +26,18 @@ func New(
 	kubeClient kubernetes.Interface,
 	extClient cs.Interface,
 	kaClient ka.Interface,
+	appCatalogClient appcat_cs.AppcatalogV1alpha1Interface,
 	storageClass string,
 ) *Framework {
 	return &Framework{
-		restConfig:   restConfig,
-		kubeClient:   kubeClient,
-		extClient:    extClient,
-		kaClient:     kaClient,
-		name:         "postgres-operator",
-		namespace:    rand.WithUniqSuffix(api.ResourceSingularPostgres),
-		StorageClass: storageClass,
+		restConfig:       restConfig,
+		kubeClient:       kubeClient,
+		extClient:        extClient,
+		kaClient:         kaClient,
+		appCatalogClient: appCatalogClient,
+		name:             "postgres-operator",
+		namespace:        rand.WithUniqSuffix(api.ResourceSingularPostgres),
+		StorageClass:     storageClass,
 	}
 }
 

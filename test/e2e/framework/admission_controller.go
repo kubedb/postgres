@@ -9,7 +9,10 @@ import (
 	"time"
 
 	"github.com/appscode/go/log"
+	"github.com/appscode/kutil"
+	admsn_kutil "github.com/appscode/kutil/admissionregistration/v1beta1"
 	discovery_util "github.com/appscode/kutil/discovery"
+	meta_util "github.com/appscode/kutil/meta"
 	shell "github.com/codeskyblue/go-sh"
 	"github.com/kubedb/apimachinery/apis"
 	"github.com/kubedb/postgres/pkg/cmds/server"
@@ -54,7 +57,18 @@ func (f *Framework) EventuallyAPIServiceReady() GomegaAsyncAssertion {
 			if err := f.isApiSvcReady("v1alpha1.validators.kubedb.com"); err != nil {
 				return err
 			}
-			time.Sleep(time.Second * 5) // let the resource become available
+			time.Sleep(time.Second * 3) // let the resource become available
+
+			// Check if the annotations of validating webhook is updated by operator/controller
+			apiSvc, err := f.kaClient.ApiregistrationV1beta1().APIServices().Get("v1alpha1.validators.kubedb.com", metav1.GetOptions{})
+			if err != nil {
+				return err
+			}
+
+			if _, err := meta_util.GetString(apiSvc.Annotations, admsn_kutil.KeyAdmissionWebhookActive); err == kutil.ErrNotFound {
+				log.Errorf("APIService v1alpha1.validators.kubedb.com not ready yet")
+				return err
+			}
 			return nil
 		},
 		time.Minute*2,
@@ -76,7 +90,7 @@ func (f *Framework) RunOperatorAndServer(config *restclient.Config, kubeconfigPa
 	}
 
 	sh := shell.NewSession()
-	args := []interface{}{"--minikube"}
+	args := []interface{}{"--minikube", fmt.Sprintf("--docker-registry=%v", DockerRegistry)}
 	SetupServer := filepath.Join("..", "..", "hack", "deploy", "setup.sh")
 
 	By("Creating API server and webhook stuffs")

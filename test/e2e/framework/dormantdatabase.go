@@ -110,6 +110,19 @@ func (f *Framework) EventuallyWipedOut(meta metav1.ObjectMeta) GomegaAsyncAssert
 				return fmt.Errorf("secrets have not wiped out yet")
 			}
 
+			// check if appbinds are wiped out
+			appBindingList, err := f.appCatalogClient.AppBindings(meta.Namespace).List(
+				metav1.ListOptions{
+					LabelSelector: labelSelector.String(),
+				},
+			)
+			if err != nil {
+				return err
+			}
+			if len(appBindingList.Items) > 0 {
+				return fmt.Errorf("appBindings have not wiped out yet")
+			}
+
 			return nil
 		},
 		time.Minute*10,
