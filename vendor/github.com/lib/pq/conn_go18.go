@@ -1,3 +1,5 @@
+// +build go1.8
+
 package pq
 
 import (
@@ -106,10 +108,7 @@ func (cn *conn) cancel() error {
 		can := conn{
 			c: c,
 		}
-		err = can.ssl(cn.opts)
-		if err != nil {
-			return err
-		}
+		can.ssl(cn.opts)
 
 		w := can.writeBuf(0)
 		w.int32(80877102) // cancel request code
