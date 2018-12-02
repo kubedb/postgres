@@ -26,7 +26,7 @@ import:
   version: v0.2.0
 - package: github.com/jpillora/go-ogle-analytics
 - package: github.com/kubedb/apimachinery
-  version: 0.9.0-rc.1
+  version: master
 - package: github.com/lib/pq
 - package: github.com/onsi/ginkgo
   version: v1.6.0
