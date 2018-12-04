@@ -14,7 +14,7 @@ DB_VERSION=10.2
 SUFFIX=v1
 TAG="$DB_VERSION-$SUFFIX"
 
-WALG_VER=${WALG_VER:-v0.1.7}
+WALG_VER=${WALG_VER:-0.2.0-ac}
 
 DIST="$REPO_ROOT/dist"
 mkdir -p "$DIST"
@@ -30,9 +30,8 @@ build_docker() {
   pushd "$REPO_ROOT/hack/docker/postgres/$DB_VERSION"
 
   # Download wal-g
-  wget https://github.com/kubedb/wal-g/releases/download/${WALG_VER}/wal-g-alpine-amd64
-  chmod +x wal-g-alpine-amd64
-  mv wal-g-alpine-amd64 wal-g
+  wget https://github.com/kubedb/wal-g/releases/download/${WALG_VER}/wal-g
+  chmod +x wal-g
 
   # Copy pg-operator
   cp "$DIST/pg-operator/pg-operator-alpine-amd64" pg-operator
