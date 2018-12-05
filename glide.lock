@@ -1,5 +1,5 @@
-hash: 3c85014f1e0148f59c8e10aea5f0d7a7c4c434c615e5f31c98f905ee203cbe29
-updated: 2018-12-05T04:28:27.89559583-08:00
+hash: edb74a899e0414db4c5197f02b8dd25992d03b25df88f3fe89093332d1673a16
+updated: 2018-12-05T15:55:51.160960765-08:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -352,7 +352,7 @@ imports:
 - name: github.com/json-iterator/go
   version: 1624edc4454b8682399def8740d46db5e4362ba4
 - name: github.com/kubedb/apimachinery
-  version: edf77e9609ff15a2ad16582deda49eef5a0b80f4
+  version: 754de4d03075c5b1861f57ed2fc08e4f0ecd34e0
   subpackages:
   - apis
   - apis/authorization
@@ -629,6 +629,8 @@ imports:
   version: ca60c6d796d4b1f7bb2a8fd5271d8a59aeffb4bf
   repo: https://github.com/appscode/cron.git
   vcs: git
+- name: gopkg.in/square/go-jose.v2
+  version: f61ac651e23224d43848a8dc387dee016d7eacf9
 - name: gopkg.in/tomb.v1
   version: c131134a1947e9afd9cecfe11f4c6dff0732ae58
 - name: gopkg.in/yaml.v2
@@ -1042,7 +1044,7 @@ imports:
   - client/clientset/versioned/typed/appcatalog/v1alpha1
   - client/clientset/versioned/typed/appcatalog/v1alpha1/util
 - name: kmodules.xyz/monitoring-agent-api
-  version: c68fa034fbbaeb8c930c17d1ec0790a4ea46bad3
+  version: d12289267b3d7510feb9fac1f5e451d476f23a38
   repo: https://github.com/kmodules/monitoring-agent-api.git
   vcs: git
   subpackages:
