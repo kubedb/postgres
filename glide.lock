@@ -1,5 +1,5 @@
-hash: d82e9b4403a9be5ea157d986fbc113f739a1d9a09d7eae74ac7d5b894a395595
-updated: 2018-12-02T08:23:05.135087414-08:00
+hash: 3c85014f1e0148f59c8e10aea5f0d7a7c4c434c615e5f31c98f905ee203cbe29
+updated: 2018-12-05T04:28:27.89559583-08:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -9,7 +9,7 @@ imports:
   - compute/metadata
   - internal
 - name: github.com/appscode/go
-  version: a6d58457b39324ead2ffb1f24be7a0a638c9f112
+  version: aa0a55d74dac66f9b9bec9c0e7b67944115a3f44
   subpackages:
   - analytics
   - arrays
@@ -17,6 +17,7 @@ imports:
   - crypto/rand
   - encoding/json/types
   - encoding/yaml
+  - flags
   - homedir
   - ioutil
   - log
@@ -58,7 +59,7 @@ imports:
 - name: github.com/appscode/ocutil
   version: 9e3ab89e810deaabe1fd353d01913aaf7dbe6e6d
 - name: github.com/appscode/osm
-  version: 1afd84f09007c717e2a46e9d87e30902d8331b91
+  version: fb08059eb9264578f9e15dc796f7afdb1bd40294
   subpackages:
   - context
 - name: github.com/aws/aws-sdk-go
@@ -582,7 +583,7 @@ imports:
   - googleapi/internal/uritemplates
   - storage/v1
 - name: google.golang.org/appengine
-  version: 4a4468ece617fc8205e99368fa2200e9d1fad421
+  version: 12d5545dc1cfa6047a286d5e853841b6471f4c19
   subpackages:
   - internal
   - internal/app_identity
