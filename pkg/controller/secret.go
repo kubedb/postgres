@@ -33,10 +33,9 @@ func (c *Controller) ensureDatabaseSecret(postgres *api.Postgres) error {
 			return err
 		}
 		postgres.Spec.DatabaseSecret = pg.Spec.DatabaseSecret
-	} else {
-		return c.upgradeDatabaseSecret(postgres)
+		return nil
 	}
-	return nil
+	return c.upgradeDatabaseSecret(postgres)
 }
 
 func (c *Controller) findDatabaseSecret(postgres *api.Postgres) (*core.Secret, error) {
