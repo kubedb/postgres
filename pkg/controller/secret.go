@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/appscode/go/crypto/rand"
+	core_util "github.com/appscode/kutil/core/v1"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/kubedb/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1/util"
 	core "k8s.io/api/core/v1"
@@ -32,6 +33,8 @@ func (c *Controller) ensureDatabaseSecret(postgres *api.Postgres) error {
 			return err
 		}
 		postgres.Spec.DatabaseSecret = pg.Spec.DatabaseSecret
+	} else {
+		return c.upgradeDatabaseSecret(postgres)
 	}
 	return nil
 }
@@ -88,6 +91,28 @@ func (c *Controller) createDatabaseSecret(postgres *api.Postgres) (*core.SecretV
 	return &core.SecretVolumeSource{
 		SecretName: secret.Name,
 	}, nil
+}
+
+func (c *Controller) upgradeDatabaseSecret(postgres *api.Postgres) error {
+	meta := metav1.ObjectMeta{
+		Name:      postgres.OffshootName() + "-auth",
+		Namespace: postgres.Namespace,
+	}
+
+	_, _, err := core_util.CreateOrPatchSecret(c.Client, meta, func(in *core.Secret) *core.Secret {
+		if _, ok := in.Data[PostgresUser]; !ok {
+			in.StringData = core_util.UpsertMap(in.StringData, map[string]string{
+				PostgresUser: "postgres",
+			})
+		}
+		if _, ok := in.Data[PostgresPassword]; !ok {
+			in.StringData = core_util.UpsertMap(in.StringData, map[string]string{
+				PostgresPassword: rand.GeneratePassword(),
+			})
+		}
+		return in
+	})
+	return err
 }
 
 func (c *Controller) deleteSecret(dormantDb *api.DormantDatabase, secretVolume *core.SecretVolumeSource) error {
