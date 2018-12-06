@@ -96,7 +96,7 @@ func (c *Controller) createDatabaseSecret(postgres *api.Postgres) (*core.SecretV
 // https://github.com/kubedb/postgres/pull/179/files#diff-10ddaf307bbebafda149db10a28b9c24R20 commit
 func (c *Controller) upgradeDatabaseSecret(postgres *api.Postgres) error {
 	meta := metav1.ObjectMeta{
-		Name:      postgres.OffshootName() + "-auth",
+		Name:      postgres.Spec.DatabaseSecret.SecretName,
 		Namespace: postgres.Namespace,
 	}
 
