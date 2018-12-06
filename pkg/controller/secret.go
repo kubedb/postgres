@@ -103,7 +103,7 @@ func (c *Controller) upgradeDatabaseSecret(postgres *api.Postgres) error {
 
 	_, _, err := core_util.CreateOrPatchSecret(c.Client, meta, func(in *core.Secret) *core.Secret {
 		if _, ok := in.Data[PostgresUser]; !ok {
-			in.Data[PostgresUser] = []byte("postgres")
+			in.StringData = map[string]string{PostgresUser: "postgres"}
 		}
 		return in
 	})
