@@ -46,7 +46,6 @@ func (f *Framework) EventuallySnapshotPhase(meta metav1.ObjectMeta) GomegaAsyncA
 		func() api.SnapshotPhase {
 			snapshot, err := f.extClient.KubedbV1alpha1().Snapshots(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
 			Expect(err).NotTo(HaveOccurred())
-			Expect(snapshot.Status.Phase).ToNot(Equal(api.SnapshotPhaseFailed))
 			return snapshot.Status.Phase
 		},
 		time.Minute*5,
