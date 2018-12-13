@@ -26,18 +26,18 @@ import (
 )
 
 var (
-	storageClass string
+	storageClass = "standard"
 )
 
 func init() {
 	scheme.AddToScheme(clientSetScheme.Scheme)
 
-	flag.StringVar(&storageClass, "storageclass", "standard", "Kubernetes StorageClass name")
-	flag.StringVar(&framework.DockerRegistry, "docker-registry", "kubedbci", "User provided docker repository")
-	flag.StringVar(&framework.DBVersion, "pg-version", "10.2-v1", "Postgres version")
-	flag.StringVar(&framework.ExporterTag, "exporter-tag", "v0.4.6", "Tag of postgres_exporter image")
-	flag.BoolVar(&framework.EnableRbac, "rbac", true, "Enable RBAC for database workloads")
-	flag.BoolVar(&framework.SelfHostedOperator, "selfhosted-operator", false, "Enable this for self-hosted operator")
+	flag.StringVar(&storageClass, "storageclass", storageClass, "Kubernetes StorageClass name")
+	flag.StringVar(&framework.DockerRegistry, "docker-registry", framework.DockerRegistry, "User provided docker repository")
+	flag.StringVar(&framework.DBVersion, "pg-version", framework.DBVersion, "Postgres version")
+	flag.StringVar(&framework.ExporterTag, "exporter-tag", framework.ExporterTag, "Tag of postgres_exporter image")
+	flag.BoolVar(&framework.EnableRbac, "rbac", framework.EnableRbac, "Enable RBAC for database workloads")
+	flag.BoolVar(&framework.SelfHostedOperator, "selfhosted-operator", framework.SelfHostedOperator, "Enable this for self-hosted operator")
 }
 
 const (

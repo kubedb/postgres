@@ -25,14 +25,6 @@ import (
 	kApi "k8s.io/kube-aggregator/pkg/apis/apiregistration/v1beta1"
 )
 
-var (
-	DockerRegistry     string
-	ExporterTag        string
-	EnableRbac         bool
-	SelfHostedOperator bool
-	DBVersion          string
-)
-
 func (f *Framework) isApiSvcReady(apiSvcName string) error {
 	apiSvc, err := f.kaClient.ApiregistrationV1beta1().APIServices().Get(apiSvcName, metav1.GetOptions{})
 	if err != nil {
