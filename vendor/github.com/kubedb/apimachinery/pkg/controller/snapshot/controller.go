@@ -45,7 +45,7 @@ func NewController(
 		snapshotter:      snapshotter,
 		Config:           config,
 		tweakListOptions: tweakListOptions,
-		eventRecorder:    eventer.NewEventRecorder(controller.Client, "Job Controller"),
+		eventRecorder:    eventer.NewEventRecorder(controller.Client, "Snapshot Controller"),
 	}
 }
 

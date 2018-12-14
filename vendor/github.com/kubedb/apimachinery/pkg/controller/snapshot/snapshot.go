@@ -179,7 +179,7 @@ func (c *Controller) create(snapshot *api.Snapshot) error {
 
 	job, err := c.snapshotter.GetSnapshotter(snapshot)
 	if err != nil {
-		message := fmt.Sprintf("Failed to take snapshot. Reason: %v", err)
+		message := fmt.Sprintf("Failed to create Snapshotter Job. Reason: %v", err)
 		c.eventRecorder.Event(
 			db,
 			core.EventTypeWarning,
@@ -192,6 +192,15 @@ func (c *Controller) create(snapshot *api.Snapshot) error {
 			eventer.EventReasonSnapshotError,
 			message,
 		)
+
+		// If error is not retryable then mark the snapshot as failed and don't retry
+		if !kutil.IsRequestRetryable(err) {
+			if _, e2 := util.MarkAsFailedSnapshot(c.ExtClient.KubedbV1alpha1(), snapshot, err.Error(), apis.EnableStatusSubresource); e2 != nil {
+				return e2 // retry if retryable error
+			}
+			return nil // don't retry
+		}
+
 		return err
 	}
 

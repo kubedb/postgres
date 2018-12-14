@@ -27,12 +27,10 @@ func (o condOr) WriteTo(w Writer) error {
 	for i, cond := range o {
 		var needQuote bool
 		switch cond.(type) {
-		case condAnd, expr:
+		case condAnd:
 			needQuote = true
 		case Eq:
 			needQuote = (len(cond.(Eq)) > 1)
-		case Neq:
-			needQuote = (len(cond.(Neq)) > 1)
 		}
 
 		if needQuote {
