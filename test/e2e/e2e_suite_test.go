@@ -25,6 +25,12 @@ import (
 	appcat_cs "kmodules.xyz/custom-resources/client/clientset/versioned/typed/appcatalog/v1alpha1"
 )
 
+// To Run E2E tests:
+//
+// 1. ./hack/make.py test e2e
+//
+// 2. ./hack/make.py test e2e --v=1  --docker-registry=kubedbci --db-catalog=10.2-v1 --db-version=10.2-v2 --db-tools=10.2-v2 --selfhosted-operator=true
+
 var (
 	storageClass = "standard"
 )
@@ -34,7 +40,9 @@ func init() {
 
 	flag.StringVar(&storageClass, "storageclass", storageClass, "Kubernetes StorageClass name")
 	flag.StringVar(&framework.DockerRegistry, "docker-registry", framework.DockerRegistry, "User provided docker repository")
-	flag.StringVar(&framework.DBVersion, "pg-version", framework.DBVersion, "Postgres version")
+	flag.StringVar(&framework.DBCatalogName, "db-catalog", framework.DBCatalogName, "Postgres version")
+	flag.StringVar(&framework.DBVersion, "db-version", framework.DBVersion, "Postgres version")
+	flag.StringVar(&framework.DBToolsTag, "db-tools", framework.DBToolsTag, "Postgres Tools Tag")
 	flag.StringVar(&framework.ExporterTag, "exporter-tag", framework.ExporterTag, "Tag of postgres_exporter image")
 	flag.BoolVar(&framework.EnableRbac, "rbac", framework.EnableRbac, "Enable RBAC for database workloads")
 	flag.BoolVar(&framework.SelfHostedOperator, "selfhosted-operator", framework.SelfHostedOperator, "Enable this for self-hosted operator")
