@@ -3,6 +3,7 @@ package e2e_test
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/appscode/go/log"
 	core_util "github.com/appscode/kutil/core/v1"
@@ -1123,14 +1124,15 @@ var _ = Describe("Postgres", func() {
 
 					walEnv := []core.EnvVar{
 						{
-							Name:  POSTGRES_INITDB_XLOGDIR,
+							Name:  POSTGRES_INITDB_WALDIR,
 							Value: walDir,
 						},
 					}
-					if framework.DBVersion == "10.2-v1" {
+
+					if strings.HasPrefix(framework.DBVersion, "9") {
 						walEnv = []core.EnvVar{
 							{
-								Name:  POSTGRES_INITDB_WALDIR,
+								Name:  POSTGRES_INITDB_XLOGDIR,
 								Value: walDir,
 							},
 						}
@@ -1165,7 +1167,7 @@ var _ = Describe("Postgres", func() {
 
 			Context("Update EnvVar", func() {
 
-				It("should reject to update EnvVar", func() {
+				It("should not reject to update EnvVar", func() {
 					if skipMessage != "" {
 						Skip(skipMessage)
 					}
@@ -1191,8 +1193,7 @@ var _ = Describe("Postgres", func() {
 						}
 						return in
 					})
-					fmt.Println(err)
-					Expect(err).To(HaveOccurred())
+					Expect(err).NotTo(HaveOccurred())
 				})
 			})
 		})
