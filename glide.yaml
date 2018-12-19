@@ -34,6 +34,8 @@ import:
   repo: https://github.com/appscode/stow.git
   vcs: git
   version: master
+- package: github.com/mitchellh/mapstructure
+  version: v1.1.2
 - package: github.com/imdario/mergo
   version: v0.3.5
 - package: github.com/jpillora/go-ogle-analytics
