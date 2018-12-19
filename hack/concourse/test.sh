@@ -35,19 +35,6 @@ pushd "$GOPATH"/src/github.com/$ORG_NAME/$REPO_NAME
 ./hack/make.py test e2e \
   --v=1 \
   --storageclass=${StorageClass:-standard} \
-  --db-version=10.6 \
-  --db-tools=10.6 \
-  --db-catalog=10.6 \
-  --selfhosted-operator=true \
-  --docker-registry=${DOCKER_REGISTRY} \
-  --ginkgo.flakeAttempts=2
-
-./hack/make.py test e2e \
-  --v=1 \
-  --storageclass=${StorageClass:-standard} \
-  --db-version=11.1 \
-  --db-tools=11.1 \
-  --db-catalog=11.1 \
   --selfhosted-operator=true \
   --docker-registry=${DOCKER_REGISTRY} \
   --ginkgo.flakeAttempts=2
