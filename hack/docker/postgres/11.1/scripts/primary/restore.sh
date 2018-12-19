@@ -54,7 +54,7 @@ mv /tmp/recovery.conf "$PGDATA/recovery.conf"
 # setup postgresql.conf
 cp /scripts/primary/postgresql.conf /tmp
 echo "wal_level = replica" >>/tmp/postgresql.conf
-echo "max_wal_senders = 99" >>/tmp/postgresql.conf
+echo "max_wal_senders = 90" >>/tmp/postgresql.conf # default is 10.  value must be less than max_connections minus superuser_reserved_connections. ref: https://www.postgresql.org/docs/11/runtime-config-replication.html#GUC-MAX-WAL-SENDERS
 echo "wal_keep_segments = 32" >>/tmp/postgresql.conf
 if [ "$STREAMING" == "synchronous" ]; then
   # setup synchronous streaming replication
