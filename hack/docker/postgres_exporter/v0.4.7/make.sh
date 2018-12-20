@@ -10,7 +10,7 @@ DOCKER_REGISTRY=${DOCKER_REGISTRY:-kubedb}
 
 IMG_REGISTRY=wrouesnel
 IMG=postgres_exporter
-TAG=v0.4.6
+TAG=v0.4.7
 
 docker pull "$IMG_REGISTRY/$IMG:$TAG"
 

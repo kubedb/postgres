@@ -71,6 +71,7 @@ dbversions=(
 
 exporters=(
   v0.4.6
+  v0.4.7
 )
 
 echo ""
