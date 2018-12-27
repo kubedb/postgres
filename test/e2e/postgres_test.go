@@ -347,6 +347,19 @@ var _ = Describe("Postgres", func() {
 
 				Context("Delete One Snapshot keeping others", func() {
 
+					BeforeEach(func() {
+						postgres.Spec.Init = &api.InitSpec{
+							ScriptSource: &api.ScriptSourceSpec{
+								VolumeSource: core.VolumeSource{
+									GitRepo: &core.GitRepoVolumeSource{
+										Repository: "https://github.com/kubedb/postgres-init-scripts.git",
+										Directory:  ".",
+									},
+								},
+							},
+						}
+					})
+
 					It("Delete One Snapshot keeping others", func() {
 						// Create Postgres and take Snapshot
 						shouldTakeSnapshot()
@@ -432,6 +445,19 @@ var _ = Describe("Postgres", func() {
 
 				Context("Delete One Snapshot keeping others", func() {
 
+					BeforeEach(func() {
+						postgres.Spec.Init = &api.InitSpec{
+							ScriptSource: &api.ScriptSourceSpec{
+								VolumeSource: core.VolumeSource{
+									GitRepo: &core.GitRepoVolumeSource{
+										Repository: "https://github.com/kubedb/postgres-init-scripts.git",
+										Directory:  ".",
+									},
+								},
+							},
+						}
+					})
+
 					It("Delete One Snapshot keeping others", func() {
 						// Create Postgres and take Snapshot
 						shouldTakeSnapshot()
@@ -491,6 +517,19 @@ var _ = Describe("Postgres", func() {
 				It("should take Snapshot successfully", shouldTakeSnapshot)
 
 				Context("Delete One Snapshot keeping others", func() {
+
+					BeforeEach(func() {
+						postgres.Spec.Init = &api.InitSpec{
+							ScriptSource: &api.ScriptSourceSpec{
+								VolumeSource: core.VolumeSource{
+									GitRepo: &core.GitRepoVolumeSource{
+										Repository: "https://github.com/kubedb/postgres-init-scripts.git",
+										Directory:  ".",
+									},
+								},
+							},
+						}
+					})
 
 					It("Delete One Snapshot keeping others", func() {
 						// Create Postgres and take Snapshot
