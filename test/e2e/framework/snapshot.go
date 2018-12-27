@@ -2,6 +2,7 @@ package framework
 
 import (
 	"fmt"
+	"path/filepath"
 	"time"
 
 	"github.com/appscode/go/crypto/rand"
@@ -124,8 +125,10 @@ func (f *Framework) checkSnapshotData(snapshot *api.Snapshot) (bool, error) {
 		return false, err
 	}
 
-	folderName, _ := snapshot.Location()
-	prefix := fmt.Sprintf("%v/%v", folderName, snapshot.Name)
+	prefixLocation, _ := snapshot.Location() // error checked by .Container()
+	prefix := filepath.Join(prefixLocation, snapshot.Name)
+	prefix += "/" // A separator after prefix to prevent multiple snapshot's prefix matching. ref: https://github.com/kubedb/project/issues/377
+
 	cursor := stow.CursorStart
 	totalItem := 0
 	for {

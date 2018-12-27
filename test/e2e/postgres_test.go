@@ -344,6 +344,53 @@ var _ = Describe("Postgres", func() {
 				})
 
 				It("should take Snapshot successfully", shouldTakeSnapshot)
+
+				Context("Delete One Snapshot keeping others", func() {
+
+					It("Delete One Snapshot keeping others", func() {
+						// Create Postgres and take Snapshot
+						shouldTakeSnapshot()
+
+						oldSnapshot := snapshot.DeepCopy()
+
+						// New snapshot that has old snapshot's name in prefix
+						snapshot.Name += "-2"
+
+						By(fmt.Sprintf("Create Snapshot %v", snapshot.Name))
+						err = f.CreateSnapshot(snapshot)
+						Expect(err).NotTo(HaveOccurred())
+
+						By("Check for Succeeded snapshot")
+						f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(api.SnapshotPhaseSucceeded))
+
+						if !skipSnapshotDataChecking {
+							By("Check for snapshot data")
+							f.EventuallySnapshotDataFound(snapshot).Should(BeTrue())
+						}
+
+						// delete old snapshot
+						By(fmt.Sprintf("Delete old Snapshot %v", snapshot.Name))
+						err = f.DeleteSnapshot(oldSnapshot.ObjectMeta)
+						Expect(err).NotTo(HaveOccurred())
+
+						By("Waiting for old Snapshot to be deleted")
+						f.EventuallySnapshot(oldSnapshot.ObjectMeta).Should(BeFalse())
+						if !skipSnapshotDataChecking {
+							By(fmt.Sprintf("Check data for old snapshot %v", oldSnapshot.Name))
+							f.EventuallySnapshotDataFound(oldSnapshot).Should(BeFalse())
+						}
+
+						// check remaining snapshot
+						By(fmt.Sprintf("Checking another Snapshot %v still exists", snapshot.Name))
+						_, err = f.GetSnapshot(snapshot.ObjectMeta)
+						Expect(err).NotTo(HaveOccurred())
+
+						if !skipSnapshotDataChecking {
+							By(fmt.Sprintf("Check data for remaining snapshot %v", snapshot.Name))
+							f.EventuallySnapshotDataFound(snapshot).Should(BeTrue())
+						}
+					})
+				})
 			})
 
 			Context("In GCS", func() {
@@ -382,6 +429,53 @@ var _ = Describe("Postgres", func() {
 						f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(api.SnapshotPhaseFailed))
 					})
 				})
+
+				Context("Delete One Snapshot keeping others", func() {
+
+					It("Delete One Snapshot keeping others", func() {
+						// Create Postgres and take Snapshot
+						shouldTakeSnapshot()
+
+						oldSnapshot := snapshot.DeepCopy()
+
+						// New snapshot that has old snapshot's name in prefix
+						snapshot.Name += "-2"
+
+						By(fmt.Sprintf("Create Snapshot %v", snapshot.Name))
+						err = f.CreateSnapshot(snapshot)
+						Expect(err).NotTo(HaveOccurred())
+
+						By("Check for Succeeded snapshot")
+						f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(api.SnapshotPhaseSucceeded))
+
+						if !skipSnapshotDataChecking {
+							By("Check for snapshot data")
+							f.EventuallySnapshotDataFound(snapshot).Should(BeTrue())
+						}
+
+						// delete old snapshot
+						By(fmt.Sprintf("Delete old Snapshot %v", snapshot.Name))
+						err = f.DeleteSnapshot(oldSnapshot.ObjectMeta)
+						Expect(err).NotTo(HaveOccurred())
+
+						By("Waiting for old Snapshot to be deleted")
+						f.EventuallySnapshot(oldSnapshot.ObjectMeta).Should(BeFalse())
+						if !skipSnapshotDataChecking {
+							By(fmt.Sprintf("Check data for old snapshot %v", oldSnapshot.Name))
+							f.EventuallySnapshotDataFound(oldSnapshot).Should(BeFalse())
+						}
+
+						// check remaining snapshot
+						By(fmt.Sprintf("Checking another Snapshot %v still exists", snapshot.Name))
+						_, err = f.GetSnapshot(snapshot.ObjectMeta)
+						Expect(err).NotTo(HaveOccurred())
+
+						if !skipSnapshotDataChecking {
+							By(fmt.Sprintf("Check data for remaining snapshot %v", snapshot.Name))
+							f.EventuallySnapshotDataFound(snapshot).Should(BeTrue())
+						}
+					})
+				})
 			})
 
 			Context("In Azure", func() {
@@ -395,6 +489,53 @@ var _ = Describe("Postgres", func() {
 				})
 
 				It("should take Snapshot successfully", shouldTakeSnapshot)
+
+				Context("Delete One Snapshot keeping others", func() {
+
+					It("Delete One Snapshot keeping others", func() {
+						// Create Postgres and take Snapshot
+						shouldTakeSnapshot()
+
+						oldSnapshot := snapshot.DeepCopy()
+
+						// New snapshot that has old snapshot's name in prefix
+						snapshot.Name += "-2"
+
+						By(fmt.Sprintf("Create Snapshot %v", snapshot.Name))
+						err = f.CreateSnapshot(snapshot)
+						Expect(err).NotTo(HaveOccurred())
+
+						By("Check for Succeeded snapshot")
+						f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(api.SnapshotPhaseSucceeded))
+
+						if !skipSnapshotDataChecking {
+							By("Check for snapshot data")
+							f.EventuallySnapshotDataFound(snapshot).Should(BeTrue())
+						}
+
+						// delete old snapshot
+						By(fmt.Sprintf("Delete old Snapshot %v", snapshot.Name))
+						err = f.DeleteSnapshot(oldSnapshot.ObjectMeta)
+						Expect(err).NotTo(HaveOccurred())
+
+						By("Waiting for old Snapshot to be deleted")
+						f.EventuallySnapshot(oldSnapshot.ObjectMeta).Should(BeFalse())
+						if !skipSnapshotDataChecking {
+							By(fmt.Sprintf("Check data for old snapshot %v", oldSnapshot.Name))
+							f.EventuallySnapshotDataFound(oldSnapshot).Should(BeFalse())
+						}
+
+						// check remaining snapshot
+						By(fmt.Sprintf("Checking another Snapshot %v still exists", snapshot.Name))
+						_, err = f.GetSnapshot(snapshot.ObjectMeta)
+						Expect(err).NotTo(HaveOccurred())
+
+						if !skipSnapshotDataChecking {
+							By(fmt.Sprintf("Check data for remaining snapshot %v", snapshot.Name))
+							f.EventuallySnapshotDataFound(snapshot).Should(BeTrue())
+						}
+					})
+				})
 			})
 
 			Context("In Swift", func() {
