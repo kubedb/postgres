@@ -33,6 +33,10 @@ type BackupScheduleSpec struct {
 	// +optional
 	PodTemplate ofst.PodTemplateSpec `json:"podTemplate,omitempty"`
 
+	// PodVolumeClaimSpec is used to specify temporary storage for backup/restore Job
+	// +optional
+	PodVolumeClaimSpec *core.PersistentVolumeClaimSpec `json:"podVolumeClaimSpec,omitempty"`
+
 	// -------------------------------------------------------------------------
 
 	// Deprecated: Use podTemplate.spec.resources

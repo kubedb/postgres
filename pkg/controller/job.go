@@ -33,7 +33,11 @@ func (c *Controller) createRestoreJob(postgres *api.Postgres, snapshot *api.Snap
 	}
 
 	// Get PersistentVolume object for Backup Util pod.
-	persistentVolume, err := c.getVolumeForSnapshot(postgres.Spec.StorageType, postgres.Spec.Storage, jobName, postgres.Namespace)
+	pvcSpec := snapshot.Spec.PodVolumeClaimSpec
+	if pvcSpec == nil {
+		pvcSpec = postgres.Spec.Storage
+	}
+	persistentVolume, err := c.getVolumeForSnapshot(postgres.Spec.StorageType, pvcSpec, jobName, postgres.Namespace)
 	if err != nil {
 		return nil, err
 	}
@@ -179,7 +183,11 @@ func (c *Controller) GetSnapshotter(snapshot *api.Snapshot) (*batch.Job, error) 
 	}
 
 	// Get PersistentVolume object for Backup Util pod.
-	persistentVolume, err := c.getVolumeForSnapshot(postgres.Spec.StorageType, postgres.Spec.Storage, jobName, snapshot.Namespace)
+	pvcSpec := snapshot.Spec.PodVolumeClaimSpec
+	if pvcSpec == nil {
+		pvcSpec = postgres.Spec.Storage
+	}
+	persistentVolume, err := c.getVolumeForSnapshot(postgres.Spec.StorageType, pvcSpec, jobName, snapshot.Namespace)
 	if err != nil {
 		return nil, err
 	}

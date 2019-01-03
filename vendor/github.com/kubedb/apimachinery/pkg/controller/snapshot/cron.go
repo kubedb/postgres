@@ -231,9 +231,10 @@ func (s *snapshotInvoker) createSnapshot(snapshotName string) (*api.Snapshot, er
 			Labels:    labelMap,
 		},
 		Spec: api.SnapshotSpec{
-			DatabaseName: s.dbMetaObject.GetName(),
-			Backend:      s.scheduleSpec.Backend,
-			PodTemplate:  s.scheduleSpec.PodTemplate,
+			DatabaseName:       s.dbMetaObject.GetName(),
+			Backend:            s.scheduleSpec.Backend,
+			PodTemplate:        s.scheduleSpec.PodTemplate,
+			PodVolumeClaimSpec: s.scheduleSpec.PodVolumeClaimSpec,
 		},
 	}
 
