@@ -13,7 +13,7 @@ IMG=postgres
 DB_VERSION=10.6
 TAG="$DB_VERSION"
 
-WALG_VER=${WALG_VER:-0.2.0-ac}
+WALG_VER=${WALG_VER:-0.2.4-ac}
 
 DIST="$REPO_ROOT/dist"
 mkdir -p "$DIST"

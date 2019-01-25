@@ -23,6 +23,7 @@ cp /scripts/primary/postgresql.conf /tmp
 echo "wal_level = replica" >>/tmp/postgresql.conf
 echo "max_wal_senders = 90" >>/tmp/postgresql.conf # default is 10.  value must be less than max_connections minus superuser_reserved_connections. ref: https://www.postgresql.org/docs/11/runtime-config-replication.html#GUC-MAX-WAL-SENDERS
 echo "wal_keep_segments = 32" >>/tmp/postgresql.conf
+
 mv /tmp/postgresql.conf "$PGDATA/postgresql.conf"
 
 # setup pg_hba.conf
@@ -82,7 +83,6 @@ if [ "$STREAMING" == "synchronous" ]; then
    echo "synchronous_commit = remote_write" >>"$PGDATA/postgresql.conf"
    echo "synchronous_standby_names = '*'" >>"$PGDATA/postgresql.conf"
 fi
-
 
 if [ "$ARCHIVE" == "wal-g" ]; then
   # setup postgresql.conf

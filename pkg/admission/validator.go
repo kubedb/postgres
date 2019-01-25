@@ -20,7 +20,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/mergepatch"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	storage "kmodules.xyz/objectstore-api/osm"
 )
 
 type PostgresValidator struct {
@@ -174,18 +173,11 @@ func ValidatePostgres(client kubernetes.Interface, extClient cs.Interface, postg
 	if postgres.Spec.Archiver != nil {
 		archiverStorage := postgres.Spec.Archiver.Storage
 		if archiverStorage != nil {
-			if archiverStorage.StorageSecretName == "" {
-				return fmt.Errorf(`object 'StorageSecretName' is missing in '%v'`, archiverStorage)
-			}
-			if archiverStorage.S3 == nil {
+			if archiverStorage.S3 == nil && archiverStorage.GCS == nil {
 				return errors.New("no storage provider is configured")
 			}
-			if !(archiverStorage.GCS == nil && archiverStorage.Azure == nil && archiverStorage.Swift == nil && archiverStorage.Local == nil) {
+			if !(archiverStorage.Azure == nil && archiverStorage.Swift == nil && archiverStorage.Local == nil) {
 				return errors.New("invalid storage provider is configured")
-			}
-
-			if err := storage.CheckBucketAccess(client, *archiverStorage, postgres.Namespace); err != nil {
-				return err
 			}
 		}
 	}
@@ -219,18 +211,11 @@ func ValidatePostgres(client kubernetes.Interface, extClient cs.Interface, postg
 
 	if postgres.Spec.Init != nil && postgres.Spec.Init.PostgresWAL != nil {
 		wal := postgres.Spec.Init.PostgresWAL
-		if wal.StorageSecretName == "" {
-			return fmt.Errorf(`object 'StorageSecretName' is missing in '%v'`, wal)
-		}
-		if wal.S3 == nil {
+		if wal.S3 == nil && wal.GCS == nil {
 			return errors.New("no storage provider is configured")
 		}
-		if !(wal.GCS == nil && wal.Azure == nil && wal.Swift == nil && wal.Local == nil) {
+		if !(wal.Azure == nil && wal.Swift == nil && wal.Local == nil) {
 			return errors.New("invalid storage provider is configured")
-		}
-
-		if err := storage.CheckBucketAccess(client, wal.Backend, postgres.Namespace); err != nil {
-			return err
 		}
 	}
 
