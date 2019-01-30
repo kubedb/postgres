@@ -10,6 +10,7 @@ import (
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/kubedb/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1/util"
 	. "github.com/onsi/gomega"
+	core "k8s.io/api/core/v1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -102,6 +103,61 @@ func (f *Framework) EventuallySnapshotCount(meta metav1.ObjectMeta) GomegaAsyncA
 		},
 		time.Minute*10,
 		time.Second*5,
+	)
+}
+
+func (f *Framework) EventuallyJobVolumeIsEmptyDir(meta metav1.ObjectMeta) GomegaAsyncAssertion {
+	jobName := fmt.Sprintf("%s-%s", api.DatabaseNamePrefix, meta.Name)
+	return Eventually(
+		func() bool {
+			job, err := f.kubeClient.BatchV1().Jobs(meta.Namespace).Get(jobName, metav1.GetOptions{})
+			if err != nil {
+				return false
+			}
+
+			for _, v := range job.Spec.Template.Spec.Volumes {
+				if v.Name == "util-volume" {
+					return v.EmptyDir != nil
+				}
+			}
+			return false
+		},
+		time.Minute*5,
+		time.Second*1,
+	)
+}
+
+func (f *Framework) EventuallyJobPVCSize(meta metav1.ObjectMeta) GomegaAsyncAssertion {
+	jobName := fmt.Sprintf("%s-%s", api.DatabaseNamePrefix, meta.Name)
+	return Eventually(
+		func() string {
+			job, err := f.kubeClient.BatchV1().Jobs(meta.Namespace).Get(jobName, metav1.GetOptions{})
+			if err != nil {
+				return err.Error()
+			}
+
+			found := false
+			for _, v := range job.Spec.Template.Spec.Volumes {
+				if v.Name == "util-volume" {
+					found = true
+					break
+				}
+			}
+			if !found {
+				return fmt.Errorf("util-volume not found in job spec").Error()
+			}
+
+			pvc, err := f.kubeClient.CoreV1().PersistentVolumeClaims(meta.Namespace).Get(jobName, metav1.GetOptions{})
+			if err != nil {
+				return err.Error()
+			}
+			if sz, found := pvc.Spec.Resources.Requests[core.ResourceStorage]; found {
+				return sz.String()
+			}
+			return ""
+		},
+		time.Minute*5,
+		time.Second*1,
 	)
 }
 

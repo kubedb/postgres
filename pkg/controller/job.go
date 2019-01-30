@@ -3,7 +3,6 @@ package controller
 import (
 	"fmt"
 
-	"github.com/appscode/go/log"
 	core_util "github.com/appscode/kutil/core/v1"
 	"github.com/appscode/kutil/tools/analytics"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
@@ -33,17 +32,21 @@ func (c *Controller) createRestoreJob(postgres *api.Postgres, snapshot *api.Snap
 	}
 
 	// Get PersistentVolume object for Backup Util pod.
-	pvcSpec := snapshot.Spec.PodVolumeClaimSpec
-	if pvcSpec == nil {
-		pvcSpec = postgres.Spec.Storage
-	}
-	persistentVolume, err := c.getVolumeForSnapshot(postgres.Spec.StorageType, pvcSpec, jobName, postgres.Namespace)
+	pvcSpec := postgres.Spec.Storage
+	persistentVolume, err := c.GetVolumeForSnapshot(
+		postgres.Spec.StorageType,
+		pvcSpec, snapshot.Spec.PodVolumeClaimSpec,
+		jobName, snapshot.Namespace,
+	)
 	if err != nil {
 		return nil, err
 	}
 
 	// Folder name inside Cloud bucket where backup will be uploaded
-	folderName, _ := snapshot.Location()
+	folderName, err := snapshot.Location()
+	if err != nil {
+		return nil, err
+	}
 
 	job := &batch.Job{
 		ObjectMeta: metav1.ObjectMeta{
@@ -183,17 +186,22 @@ func (c *Controller) GetSnapshotter(snapshot *api.Snapshot) (*batch.Job, error) 
 	}
 
 	// Get PersistentVolume object for Backup Util pod.
-	pvcSpec := snapshot.Spec.PodVolumeClaimSpec
-	if pvcSpec == nil {
-		pvcSpec = postgres.Spec.Storage
-	}
-	persistentVolume, err := c.getVolumeForSnapshot(postgres.Spec.StorageType, pvcSpec, jobName, snapshot.Namespace)
+	pvcSpec := postgres.Spec.Storage
+	persistentVolume, err := c.GetVolumeForSnapshot(
+		postgres.Spec.StorageType,
+		pvcSpec, snapshot.Spec.PodVolumeClaimSpec,
+		jobName, snapshot.Namespace,
+	)
 	if err != nil {
 		return nil, err
 	}
 
 	// Folder name inside Cloud bucket where backup will be uploaded
-	folderName, _ := snapshot.Location()
+	folderName, err := snapshot.Location()
+	if err != nil {
+		return nil, err
+	}
+
 	job := &batch.Job{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        jobName,
@@ -304,53 +312,4 @@ func (c *Controller) GetSnapshotter(snapshot *api.Snapshot) (*batch.Job, error) 
 		})
 	}
 	return job, nil
-}
-
-func (c *Controller) getVolumeForSnapshot(st api.StorageType, pvcSpec *core.PersistentVolumeClaimSpec, jobName, namespace string) (*core.Volume, error) {
-	if st == api.StorageTypeEphemeral {
-		ed := core.EmptyDirVolumeSource{}
-		if pvcSpec != nil {
-			if sz, found := pvcSpec.Resources.Requests[core.ResourceStorage]; found {
-				ed.SizeLimit = &sz
-			}
-		}
-		return &core.Volume{
-			Name: "tools",
-			VolumeSource: core.VolumeSource{
-				EmptyDir: &ed,
-			},
-		}, nil
-	}
-
-	volume := &core.Volume{
-		Name: "tools",
-	}
-	if len(pvcSpec.AccessModes) == 0 {
-		pvcSpec.AccessModes = []core.PersistentVolumeAccessMode{
-			core.ReadWriteOnce,
-		}
-		log.Infof(`Using "%v" as AccessModes in "%v"`, core.ReadWriteOnce, pvcSpec)
-	}
-
-	claim := &core.PersistentVolumeClaim{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      jobName,
-			Namespace: namespace,
-		},
-		Spec: *pvcSpec,
-	}
-	if pvcSpec.StorageClassName != nil {
-		claim.Annotations = map[string]string{
-			"volume.beta.kubernetes.io/storage-class": *pvcSpec.StorageClassName,
-		}
-	}
-
-	if _, err := c.Client.CoreV1().PersistentVolumeClaims(claim.Namespace).Create(claim); err != nil {
-		return nil, err
-	}
-
-	volume.PersistentVolumeClaim = &core.PersistentVolumeClaimVolumeSource{
-		ClaimName: claim.Name,
-	}
-	return volume, nil
 }
