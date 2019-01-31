@@ -2,6 +2,7 @@ package controller
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/appscode/go/log"
@@ -14,6 +15,7 @@ import (
 	catalog "github.com/kubedb/apimachinery/apis/catalog/v1alpha1"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/kubedb/apimachinery/pkg/eventer"
+	"github.com/kubedb/postgres/pkg/leader_election"
 	apps "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
@@ -184,6 +186,18 @@ func (c *Controller) ensureCombinedNode(postgres *api.Postgres, postgresVersion 
 		{
 			Name:  "STREAMING",
 			Value: strings.ToLower(string(streamingMode)),
+		},
+		{
+			Name:  leader_election.LeaseDurationEnv,
+			Value: strconv.Itoa(int(postgres.Spec.LeaderElection.LeaseDuration)),
+		},
+		{
+			Name:  leader_election.RenewDeadlineEnv,
+			Value: strconv.Itoa(int(postgres.Spec.LeaderElection.RenewDeadline)),
+		},
+		{
+			Name:  leader_election.RetryPeriodEnv,
+			Value: strconv.Itoa(int(postgres.Spec.LeaderElection.RetryPeriod)),
 		},
 	}
 

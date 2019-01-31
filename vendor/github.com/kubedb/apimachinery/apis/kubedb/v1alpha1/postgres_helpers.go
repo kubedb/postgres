@@ -215,6 +215,16 @@ func (p *PostgresSpec) SetDefaults() {
 
 		p.Init.PostgresWAL.PITR = pitr
 	}
+
+	if p.LeaderElection == nil {
+		// xref: https://github.com/kubedb/postgres/pull/228/files
+		// xref: https://github.com/kubernetes/apiserver/blob/e85ad7b666fef0476185731329f4cff1536efff8/pkg/apis/config/v1alpha1/defaults.go#L26-L52
+		p.LeaderElection = &LeaderElectionConfig{
+			LeaseDuration: 15,
+			RenewDeadline: 10,
+			RetryPeriod:   2,
+		}
+	}
 }
 
 func (e *PostgresSpec) GetSecrets() []string {

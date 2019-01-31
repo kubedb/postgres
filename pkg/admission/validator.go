@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/appscode/go/log"
 	hookapi "github.com/appscode/kubernetes-webhook-util/admission/v1beta1"
@@ -20,6 +21,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/mergepatch"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/leaderelection"
 	storage "kmodules.xyz/objectstore-api/osm"
 )
 
@@ -208,6 +210,23 @@ func ValidatePostgres(client kubernetes.Interface, extClient cs.Interface, postg
 			return fmt.Errorf("postgres %s/%s is using deprecated version %v. Skipped processing",
 				postgres.Namespace, postgres.Name, postgresVersion.Name)
 		}
+
+		// ref: https://github.com/kubernetes/client-go/blob/6134db91200ea474868bc6775e62cc294a74c6c6/tools/leaderelection/leaderelection.go#L73-L87
+		if postgres.Spec.LeaderElection.LeaseDuration <= postgres.Spec.LeaderElection.RenewDeadline {
+			return fmt.Errorf("leaseDuration must be greater than renewDeadline")
+		}
+		if time.Duration(postgres.Spec.LeaderElection.RenewDeadline) <= time.Duration(leaderelection.JitterFactor*float64(postgres.Spec.LeaderElection.RetryPeriod)) {
+			return fmt.Errorf("renewDeadline must be greater than retryPeriod*JitterFactor")
+		}
+		if postgres.Spec.LeaderElection.LeaseDuration < 1 {
+			return fmt.Errorf("leaseDuration must be greater than zero")
+		}
+		if postgres.Spec.LeaderElection.RenewDeadline < 1 {
+			return fmt.Errorf("renewDeadline must be greater than zero")
+		}
+		if postgres.Spec.LeaderElection.RetryPeriod < 1 {
+			return fmt.Errorf("retryPeriod must be greater than zero")
+		}
 	}
 
 	if postgres.Spec.Init != nil &&
@@ -297,6 +316,9 @@ func matchWithDormantDatabase(extClient cs.Interface, postgres *api.Postgres) er
 
 	// Skip Checking Backup Scheduler
 	drmnOriginSpec.BackupSchedule = originalSpec.BackupSchedule
+
+	// Skip Checking LeaderElectionConfigs
+	drmnOriginSpec.LeaderElection = originalSpec.LeaderElection
 
 	if !meta_util.Equal(drmnOriginSpec, &originalSpec) {
 		diff := meta_util.Diff(drmnOriginSpec, &originalSpec)
