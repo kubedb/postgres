@@ -211,7 +211,8 @@ func ValidatePostgres(client kubernetes.Interface, extClient cs.Interface, postg
 				postgres.Namespace, postgres.Name, postgresVersion.Name)
 		}
 
-		// ref: https://github.com/kubernetes/client-go/blob/6134db91200ea474868bc6775e62cc294a74c6c6/tools/leaderelection/leaderelection.go#L73-L87
+		// validate leader election configs. ref: https://github.com/kubernetes/client-go/blob/6134db91200ea474868bc6775e62cc294a74c6c6/tools/leaderelection/leaderelection.go#L73-L87
+		// ==============> start
 		if postgres.Spec.LeaderElection.LeaseDuration <= postgres.Spec.LeaderElection.RenewDeadline {
 			return fmt.Errorf("leaseDuration must be greater than renewDeadline")
 		}
@@ -227,6 +228,7 @@ func ValidatePostgres(client kubernetes.Interface, extClient cs.Interface, postg
 		if postgres.Spec.LeaderElection.RetryPeriod < 1 {
 			return fmt.Errorf("retryPeriod must be greater than zero")
 		}
+		// end <==============
 	}
 
 	if postgres.Spec.Init != nil &&
