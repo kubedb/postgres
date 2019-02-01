@@ -4,6 +4,10 @@ set -e
 
 echo "Running as Replica"
 
+mkdir -p "$PGDATA"
+rm -rf "$PGDATA"/*
+chmod 0700 "$PGDATA"
+
 # set password ENV
 export PGPASSWORD=${POSTGRES_PASSWORD:-postgres}
 
@@ -22,10 +26,6 @@ while true; do
 done
 
 # get basebackup
-mkdir -p "$PGDATA"
-rm -rf "$PGDATA"/*
-chmod 0700 "$PGDATA"
-
 pg_basebackup -X fetch --no-password --pgdata "$PGDATA" --username=postgres --host="$PRIMARY_HOST"
 
 # setup recovery.conf
