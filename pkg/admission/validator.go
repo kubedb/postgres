@@ -210,26 +210,29 @@ func ValidatePostgres(client kubernetes.Interface, extClient cs.Interface, postg
 			return fmt.Errorf("postgres %s/%s is using deprecated version %v. Skipped processing",
 				postgres.Namespace, postgres.Name, postgresVersion.Name)
 		}
+	}
 
-		// validate leader election configs. ref: https://github.com/kubernetes/client-go/blob/6134db91200ea474868bc6775e62cc294a74c6c6/tools/leaderelection/leaderelection.go#L73-L87
-		// ==============> start
-		if postgres.Spec.LeaderElection.LeaseDuration <= postgres.Spec.LeaderElection.RenewDeadline {
+	// validate leader election configs. ref: https://github.com/kubernetes/client-go/blob/6134db91200ea474868bc6775e62cc294a74c6c6/tools/leaderelection/leaderelection.go#L73-L87
+	// ==============> start
+	lec := postgres.Spec.LeaderElection
+	if lec != nil {
+		if lec.LeaseDurationSeconds <= lec.RenewDeadlineSeconds {
 			return fmt.Errorf("leaseDuration must be greater than renewDeadline")
 		}
-		if time.Duration(postgres.Spec.LeaderElection.RenewDeadline) <= time.Duration(leaderelection.JitterFactor*float64(postgres.Spec.LeaderElection.RetryPeriod)) {
+		if time.Duration(lec.RenewDeadlineSeconds) <= time.Duration(leaderelection.JitterFactor*float64(lec.RetryPeriodSeconds)) {
 			return fmt.Errorf("renewDeadline must be greater than retryPeriod*JitterFactor")
 		}
-		if postgres.Spec.LeaderElection.LeaseDuration < 1 {
+		if lec.LeaseDurationSeconds < 1 {
 			return fmt.Errorf("leaseDuration must be greater than zero")
 		}
-		if postgres.Spec.LeaderElection.RenewDeadline < 1 {
+		if lec.RenewDeadlineSeconds < 1 {
 			return fmt.Errorf("renewDeadline must be greater than zero")
 		}
-		if postgres.Spec.LeaderElection.RetryPeriod < 1 {
+		if lec.RetryPeriodSeconds < 1 {
 			return fmt.Errorf("retryPeriod must be greater than zero")
 		}
-		// end <==============
 	}
+	// end <==============
 
 	if postgres.Spec.Init != nil &&
 		postgres.Spec.Init.SnapshotSource != nil &&

@@ -1321,23 +1321,23 @@ func schema_apimachinery_apis_kubedb_v1alpha1_LeaderElectionConfig(ref common.Re
 			SchemaProps: spec.SchemaProps{
 				Description: "LeaderElectionConfig contains essential attributes of leader election. ref: https://github.com/kubernetes/client-go/blob/6134db91200ea474868bc6775e62cc294a74c6c6/tools/leaderelection/leaderelection.go#L105-L114",
 				Properties: map[string]spec.Schema{
-					"leaseDuration": {
+					"leaseDurationSeconds": {
 						SchemaProps: spec.SchemaProps{
 							Description: "LeaseDuration is the duration in second that non-leader candidates will wait to force acquire leadership. This is measured against time of last observed ack. Default 15",
 							Type:        []string{"integer"},
 							Format:      "int32",
 						},
 					},
-					"renewDeadline": {
+					"renewDeadlineSeconds": {
 						SchemaProps: spec.SchemaProps{
 							Description: "RenewDeadline is the duration in second that the acting master will retry refreshing leadership before giving up. Normally, LeaseDuration * 2 / 3. Default 10",
 							Type:        []string{"integer"},
 							Format:      "int32",
 						},
 					},
-					"retryPeriod": {
+					"retryPeriodSeconds": {
 						SchemaProps: spec.SchemaProps{
-							Description: "RetryPeriod is the duration in second the LeaderElector clients should wait between tries of actions. Normally, LeaseDuration * 3. Default 2",
+							Description: "RetryPeriod is the duration in second the LeaderElector clients should wait between tries of actions. Normally, LeaseDuration / 3. Default 2",
 							Type:        []string{"integer"},
 							Format:      "int32",
 						},

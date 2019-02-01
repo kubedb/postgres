@@ -217,12 +217,11 @@ func (p *PostgresSpec) SetDefaults() {
 	}
 
 	if p.LeaderElection == nil {
-		// xref: https://github.com/kubedb/postgres/pull/228/files
-		// xref: https://github.com/kubernetes/apiserver/blob/e85ad7b666fef0476185731329f4cff1536efff8/pkg/apis/config/v1alpha1/defaults.go#L26-L52
+		// Default values: https://github.com/kubernetes/apiserver/blob/e85ad7b666fef0476185731329f4cff1536efff8/pkg/apis/config/v1alpha1/defaults.go#L26-L52
 		p.LeaderElection = &LeaderElectionConfig{
-			LeaseDuration: 15,
-			RenewDeadline: 10,
-			RetryPeriod:   2,
+			LeaseDurationSeconds: 15,
+			RenewDeadlineSeconds: 10,
+			RetryPeriodSeconds:   2,
 		}
 	}
 }

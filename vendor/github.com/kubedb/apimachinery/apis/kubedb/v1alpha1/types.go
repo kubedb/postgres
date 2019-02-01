@@ -49,15 +49,15 @@ type LeaderElectionConfig struct {
 	// LeaseDuration is the duration in second that non-leader candidates will
 	// wait to force acquire leadership. This is measured against time of
 	// last observed ack. Default 15
-	LeaseDuration int32 `json:"leaseDuration,omitempty"`
+	LeaseDurationSeconds int32 `json:"leaseDurationSeconds,omitempty"`
 	// RenewDeadline is the duration in second that the acting master will retry
 	// refreshing leadership before giving up. Normally, LeaseDuration * 2 / 3.
 	// Default 10
-	RenewDeadline int32 `json:"renewDeadline,omitempty"`
+	RenewDeadlineSeconds int32 `json:"renewDeadlineSeconds,omitempty"`
 	// RetryPeriod is the duration in second the LeaderElector clients should wait
-	// between tries of actions. Normally, LeaseDuration * 3.
+	// between tries of actions. Normally, LeaseDuration / 3.
 	// Default 2
-	RetryPeriod int32 `json:"retryPeriod,omitempty"`
+	RetryPeriodSeconds int32 `json:"retryPeriodSeconds,omitempty"`
 }
 
 type DatabasePhase string

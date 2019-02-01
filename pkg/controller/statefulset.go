@@ -189,15 +189,15 @@ func (c *Controller) ensureCombinedNode(postgres *api.Postgres, postgresVersion 
 		},
 		{
 			Name:  leader_election.LeaseDurationEnv,
-			Value: strconv.Itoa(int(postgres.Spec.LeaderElection.LeaseDuration)),
+			Value: strconv.Itoa(int(postgres.Spec.LeaderElection.LeaseDurationSeconds)),
 		},
 		{
 			Name:  leader_election.RenewDeadlineEnv,
-			Value: strconv.Itoa(int(postgres.Spec.LeaderElection.RenewDeadline)),
+			Value: strconv.Itoa(int(postgres.Spec.LeaderElection.RenewDeadlineSeconds)),
 		},
 		{
 			Name:  leader_election.RetryPeriodEnv,
-			Value: strconv.Itoa(int(postgres.Spec.LeaderElection.RetryPeriod)),
+			Value: strconv.Itoa(int(postgres.Spec.LeaderElection.RetryPeriodSeconds)),
 		},
 	}
 
