@@ -177,7 +177,7 @@ func ValidatePostgres(client kubernetes.Interface, extClient cs.Interface, postg
 				return errors.New("no storage provider is configured")
 			}
 			if !(archiverStorage.Azure == nil && archiverStorage.Swift == nil && archiverStorage.Local == nil) {
-				return errors.New("invalid storage provider is configured")
+				return errors.New("unsupported storage provider")
 			}
 		}
 	}
@@ -215,7 +215,7 @@ func ValidatePostgres(client kubernetes.Interface, extClient cs.Interface, postg
 			return errors.New("no storage provider is configured")
 		}
 		if !(wal.Azure == nil && wal.Swift == nil && wal.Local == nil) {
-			return errors.New("invalid storage provider is configured")
+			return errors.New("unsupported storage provider")
 		}
 	}
 
