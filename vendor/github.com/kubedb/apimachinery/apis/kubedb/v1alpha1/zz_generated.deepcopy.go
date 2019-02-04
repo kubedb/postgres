@@ -1755,6 +1755,11 @@ func (in *SnapshotSourceSpec) DeepCopy() *SnapshotSourceSpec {
 func (in *SnapshotSpec) DeepCopyInto(out *SnapshotSpec) {
 	*out = *in
 	in.Backend.DeepCopyInto(&out.Backend)
+	if in.StorageType != nil {
+		in, out := &in.StorageType, &out.StorageType
+		*out = new(StorageType)
+		**out = **in
+	}
 	in.PodTemplate.DeepCopyInto(&out.PodTemplate)
 	if in.PodVolumeClaimSpec != nil {
 		in, out := &in.PodVolumeClaimSpec, &out.PodVolumeClaimSpec
