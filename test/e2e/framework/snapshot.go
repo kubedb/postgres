@@ -106,21 +106,33 @@ func (f *Framework) EventuallySnapshotCount(meta metav1.ObjectMeta) GomegaAsyncA
 	)
 }
 
-func (f *Framework) EventuallyJobVolumeIsEmptyDir(meta metav1.ObjectMeta) GomegaAsyncAssertion {
+func (f *Framework) EventuallyJobVolumeEmptyDirSize(meta metav1.ObjectMeta) GomegaAsyncAssertion {
 	jobName := fmt.Sprintf("%s-%s", api.DatabaseNamePrefix, meta.Name)
 	return Eventually(
-		func() bool {
+		func() string {
 			job, err := f.kubeClient.BatchV1().Jobs(meta.Namespace).Get(jobName, metav1.GetOptions{})
 			if err != nil {
-				return false
+				return err.Error()
 			}
 
+			found := false
+			ed := core.EmptyDirVolumeSource{}
 			for _, v := range job.Spec.Template.Spec.Volumes {
-				if v.Name == "util-volume" {
-					return v.EmptyDir != nil
+				if v.Name == "util-volume" && v.EmptyDir != nil {
+					ed = *v.EmptyDir
+					found = true
+					break
 				}
 			}
-			return false
+			if !found {
+				return fmt.Errorf("empty directory util-volume not found in job spec").Error()
+			}
+
+			// match "0" if sizelimit is not given
+			if ed.SizeLimit == nil {
+				return "0"
+			}
+			return ed.SizeLimit.String()
 		},
 		time.Minute*5,
 		time.Second*1,
