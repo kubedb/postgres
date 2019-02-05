@@ -25,7 +25,7 @@ func (f *Framework) PatchDormantDatabase(meta metav1.ObjectMeta, transform func(
 	return dormantDatabase, err
 }
 func (f *Framework) DeleteDormantDatabase(meta metav1.ObjectMeta) error {
-	return f.extClient.KubedbV1alpha1().DormantDatabases(meta.Namespace).Delete(meta.Name, &metav1.DeleteOptions{})
+	return f.extClient.KubedbV1alpha1().DormantDatabases(meta.Namespace).Delete(meta.Name, deleteInForeground())
 }
 
 func (f *Framework) EventuallyDormantDatabase(meta metav1.ObjectMeta) GomegaAsyncAssertion {

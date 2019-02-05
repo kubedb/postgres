@@ -22,9 +22,21 @@ fi
 if [ "$ARCHIVE" == "wal-g" ]; then
   # set walg ENV
   CRED_PATH="/srv/wal-g/archive/secrets"
-  export WALE_S3_PREFIX=$(echo "$ARCHIVE_S3_PREFIX")
-  export AWS_ACCESS_KEY_ID=$(cat "$CRED_PATH/AWS_ACCESS_KEY_ID")
-  export AWS_SECRET_ACCESS_KEY=$(cat "$CRED_PATH/AWS_SECRET_ACCESS_KEY")
+
+  if [[ ${ARCHIVE_S3_PREFIX} != "" ]]; then
+    export WALE_S3_PREFIX="$ARCHIVE_S3_PREFIX"
+    if [[ -e "$CRED_PATH/AWS_ACCESS_KEY_ID" ]]; then
+      export AWS_ACCESS_KEY_ID=$(cat "$CRED_PATH/AWS_ACCESS_KEY_ID")
+      export AWS_SECRET_ACCESS_KEY=$(cat "$CRED_PATH/AWS_SECRET_ACCESS_KEY")
+    fi
+  elif [[ ${ARCHIVE_GS_PREFIX} != "" ]]; then
+    export WALE_GS_PREFIX="$ARCHIVE_GS_PREFIX"
+    if [[ -e "$CRED_PATH/GOOGLE_APPLICATION_CREDENTIALS" ]]; then
+      export GOOGLE_APPLICATION_CREDENTIALS="$CRED_PATH/GOOGLE_APPLICATION_CREDENTIALS"
+    elif [[ -e "$CRED_PATH/GOOGLE_SERVICE_ACCOUNT_JSON_KEY" ]]; then
+      export GOOGLE_APPLICATION_CREDENTIALS="$CRED_PATH/GOOGLE_SERVICE_ACCOUNT_JSON_KEY"
+    fi
+  fi
 
   pg_ctl -D "$PGDATA" -w start
   PGUSER="postgres" wal-g backup-push "$PGDATA" >/dev/null
