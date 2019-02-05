@@ -34,10 +34,7 @@ const (
 )
 
 func RunLeaderElection() {
-
-	var namespace string
-	var leaseDuration, renewDeadline, retryPeriod int
-	getEnvVariables(&namespace, &leaseDuration, &renewDeadline, &retryPeriod)
+	namespace, leaseDuration, renewDeadline, retryPeriod := loadEnvVariables()
 
 	// Change owner of Postgres data directory
 	if err := setPermission(); err != nil {
@@ -158,28 +155,30 @@ func RunLeaderElection() {
 	select {}
 }
 
-func getEnvVariables(namespace *string, leaseDuration, renewDeadline, retryPeriod *int) {
+func loadEnvVariables() (namespace string, leaseDuration, renewDeadline, retryPeriod int) {
 	var err error
 
-	*namespace = os.Getenv("NAMESPACE")
-	if *namespace == "" {
-		*namespace = "default"
+	namespace = os.Getenv("NAMESPACE")
+	if namespace == "" {
+		namespace = "default"
 	}
 
 	leaseDurationStr := os.Getenv(LeaseDurationEnv)
-	if *leaseDuration, err = strconv.Atoi(leaseDurationStr); err != nil || *leaseDuration == 0 {
-		*leaseDuration = 15
+	if leaseDuration, err = strconv.Atoi(leaseDurationStr); err != nil || leaseDuration == 0 {
+		leaseDuration = 15
 	}
 
 	renewDeadlineStr := os.Getenv(RenewDeadlineEnv)
-	if *renewDeadline, err = strconv.Atoi(renewDeadlineStr); err != nil || *renewDeadline == 0 {
-		*renewDeadline = 10
+	if renewDeadline, err = strconv.Atoi(renewDeadlineStr); err != nil || renewDeadline == 0 {
+		renewDeadline = 10
 	}
 
 	retryPeriodStr := os.Getenv(RetryPeriodEnv)
-	if *retryPeriod, err = strconv.Atoi(retryPeriodStr); err != nil || *retryPeriod == 0 {
-		*retryPeriod = 15
+	if retryPeriod, err = strconv.Atoi(retryPeriodStr); err != nil || retryPeriod == 0 {
+		retryPeriod = 15
 	}
+
+	return
 }
 
 func setPermission() error {
