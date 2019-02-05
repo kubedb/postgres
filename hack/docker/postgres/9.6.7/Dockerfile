@@ -23,6 +23,9 @@ ENV PITR latest
 ENV ARCHIVE_S3_PREFIX ""
 ENV RESTORE_S3_PREFIX ""
 
+ENV ARCHIVE_GS_PREFIX ""
+ENV RESTORE_GS_PREFIX ""
+
 ENTRYPOINT ["pg-operator"]
 CMD ["leader_election"]
 

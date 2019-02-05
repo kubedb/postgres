@@ -59,7 +59,7 @@ func (f *Framework) PatchPostgres(meta metav1.ObjectMeta, transform func(postgre
 }
 
 func (f *Framework) DeletePostgres(meta metav1.ObjectMeta) error {
-	return f.extClient.KubedbV1alpha1().Postgreses(meta.Namespace).Delete(meta.Name, &metav1.DeleteOptions{})
+	return f.extClient.KubedbV1alpha1().Postgreses(meta.Namespace).Delete(meta.Name, deleteInForeground())
 }
 
 func (f *Framework) EventuallyPostgres(meta metav1.ObjectMeta) GomegaAsyncAssertion {
