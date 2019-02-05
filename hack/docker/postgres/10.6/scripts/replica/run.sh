@@ -1,12 +1,8 @@
 #!/usr/bin/env bash
 
-set -e
+set -eou pipefail
 
 echo "Running as Replica"
-
-mkdir -p "$PGDATA"
-rm -rf "$PGDATA"/*
-chmod 0700 "$PGDATA"
 
 # set password ENV
 export PGPASSWORD=${POSTGRES_PASSWORD:-postgres}
@@ -15,17 +11,30 @@ export ARCHIVE=${ARCHIVE:-}
 
 # Waiting for running Postgres
 while true; do
-  pg_isready --host="$PRIMARY_HOST" --timeout=2 &>/dev/null && break
   echo "Attempting pg_isready on primary"
+  pg_isready --host="$PRIMARY_HOST" --timeout=2 &>/dev/null && break
+  # check if current pod became leader itself
+  if [[ -e "/tmp/leader/leader-elected" ]]; then
+    exit 0
+  fi
   sleep 2
 done
+
 while true; do
-  psql -h "$PRIMARY_HOST" --no-password --username=postgres --command="select now();" &>/dev/null && break
   echo "Attempting query on primary"
+  psql -h "$PRIMARY_HOST" --no-password --username=postgres --command="select now();" &>/dev/null && break
+  # check if current pod became leader itself
+  if [[ -e "/tmp/leader/leader-elected" ]]; then
+    exit 0
+  fi
   sleep 2
 done
 
 # get basebackup
+mkdir -p "$PGDATA"
+rm -rf "$PGDATA"/*
+chmod 0700 "$PGDATA"
+
 pg_basebackup -X fetch --no-password --pgdata "$PGDATA" --username=postgres --host="$PRIMARY_HOST"
 
 # setup recovery.conf

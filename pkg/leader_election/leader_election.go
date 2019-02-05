@@ -145,6 +145,9 @@ func RunLeaderElection() {
 							if !ioutil.WriteString("/tmp/pg-failover-trigger", "") {
 								log.Fatalln("Failed to create trigger file")
 							}
+							if !ioutil.WriteString("/tmp/leader/leader-elected", "") {
+								log.Println("Failed to create leader-election trigger file")
+							}
 						}
 					}
 				},
