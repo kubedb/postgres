@@ -14,16 +14,6 @@ import (
 	"k8s.io/client-go/tools/reference"
 )
 
-func (c *Controller) deleteRole(postgres *api.Postgres) error {
-	// Delete existing Roles
-	if err := c.Client.RbacV1beta1().Roles(postgres.Namespace).Delete(postgres.OffshootName(), nil); err != nil {
-		if !kerr.IsNotFound(err) {
-			return err
-		}
-	}
-	return nil
-}
-
 func (c *Controller) ensureRole(postgres *api.Postgres) error {
 	ref, rerr := reference.GetReference(clientsetscheme.Scheme, postgres)
 	if rerr != nil {
@@ -69,16 +59,6 @@ func (c *Controller) ensureRole(postgres *api.Postgres) error {
 	return err
 }
 
-func (c *Controller) deleteServiceAccount(postgres *api.Postgres) error {
-	// Delete existing ServiceAccount
-	if err := c.Client.CoreV1().ServiceAccounts(postgres.Namespace).Delete(postgres.OffshootName(), nil); err != nil {
-		if !kerr.IsNotFound(err) {
-			return err
-		}
-	}
-	return nil
-}
-
 func (c *Controller) createServiceAccount(postgres *api.Postgres) error {
 	ref, rerr := reference.GetReference(clientsetscheme.Scheme, postgres)
 	if rerr != nil {
@@ -97,16 +77,6 @@ func (c *Controller) createServiceAccount(postgres *api.Postgres) error {
 		},
 	)
 	return err
-}
-
-func (c *Controller) deleteRoleBinding(postgres *api.Postgres) error {
-	// Delete existing RoleBindings
-	if err := c.Client.RbacV1beta1().RoleBindings(postgres.Namespace).Delete(postgres.OffshootName(), nil); err != nil {
-		if !kerr.IsNotFound(err) {
-			return err
-		}
-	}
-	return nil
 }
 
 func (c *Controller) createRoleBinding(postgres *api.Postgres) error {
@@ -156,25 +126,6 @@ func (c *Controller) ensureRBACStuff(postgres *api.Postgres) error {
 
 	// Create New RoleBinding
 	if err := c.createRoleBinding(postgres); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (c *Controller) deleteRBACStuff(postgres *api.Postgres) error {
-	// Delete Existing Role
-	if err := c.deleteRole(postgres); err != nil {
-		return err
-	}
-
-	// Delete ServiceAccount
-	if err := c.deleteServiceAccount(postgres); err != nil {
-		return err
-	}
-
-	// Delete New RoleBinding
-	if err := c.deleteRoleBinding(postgres); err != nil {
 		return err
 	}
 
