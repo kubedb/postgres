@@ -131,11 +131,7 @@ func (a *SnapshotValidator) validateSnapshot(snapshot *api.Snapshot) error {
 		if err != nil {
 			return err
 		}
-		storage := es.Spec.Storage
-		if es.Spec.Topology != nil {
-			storage = es.Spec.Topology.Data.Storage
-		}
-		if err := verifyStorageType(snapshot, storage); err != nil {
+		if err := verifyStorageType(snapshot, es.Spec.Storage); err != nil {
 			return err
 		}
 	case api.ResourceKindPostgres:
