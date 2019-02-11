@@ -164,7 +164,7 @@ func (c *Controller) createRestoreJob(postgres *api.Postgres, snapshot *api.Snap
 	}
 
 	if c.EnableRBAC {
-		job.Spec.Template.Spec.ServiceAccountName = postgres.OffshootName()
+		job.Spec.Template.Spec.ServiceAccountName = postgres.SnapshotSAName()
 	}
 
 	return c.Client.BatchV1().Jobs(postgres.Namespace).Create(job)
@@ -324,7 +324,7 @@ func (c *Controller) GetSnapshotter(snapshot *api.Snapshot) (*batch.Job, error) 
 	}
 
 	if c.EnableRBAC {
-		job.Spec.Template.Spec.ServiceAccountName = postgres.OffshootName()
+		job.Spec.Template.Spec.ServiceAccountName = postgres.SnapshotSAName()
 	}
 
 	return job, nil

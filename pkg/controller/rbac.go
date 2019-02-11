@@ -59,7 +59,7 @@ func (c *Controller) ensureRole(postgres *api.Postgres) error {
 	return err
 }
 
-func (c *Controller) createServiceAccount(postgres *api.Postgres) error {
+func (c *Controller) createServiceAccount(postgres *api.Postgres, saName string) error {
 	ref, rerr := reference.GetReference(clientsetscheme.Scheme, postgres)
 	if rerr != nil {
 		return rerr
@@ -68,7 +68,7 @@ func (c *Controller) createServiceAccount(postgres *api.Postgres) error {
 	_, _, err := core_util.CreateOrPatchServiceAccount(
 		c.Client,
 		metav1.ObjectMeta{
-			Name:      postgres.OffshootName(),
+			Name:      saName,
 			Namespace: postgres.Namespace,
 		},
 		func(in *core.ServiceAccount) *core.ServiceAccount {
@@ -118,7 +118,7 @@ func (c *Controller) ensureRBACStuff(postgres *api.Postgres) error {
 	}
 
 	// Create New ServiceAccount
-	if err := c.createServiceAccount(postgres); err != nil {
+	if err := c.createServiceAccount(postgres, postgres.OffshootName()); err != nil {
 		if !kerr.IsAlreadyExists(err) {
 			return err
 		}
@@ -127,6 +127,13 @@ func (c *Controller) ensureRBACStuff(postgres *api.Postgres) error {
 	// Create New RoleBinding
 	if err := c.createRoleBinding(postgres); err != nil {
 		return err
+	}
+
+	// ServiceAccount for snapshot
+	if err := c.createServiceAccount(postgres, postgres.SnapshotSAName()); err != nil {
+		if !kerr.IsAlreadyExists(err) {
+			return err
+		}
 	}
 
 	return nil

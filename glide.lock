@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 hash: 303f5f2a5a38cd1fd3b71e190508f7a16d79a81c4e4a248af41965f7e496afd0
 updated: 2019-02-09T15:16:43.658192587-08:00
+=======
+hash: 0885997d2d2ed9264d58f8f7151cb0f680879c5ff3bd981afb866a3bf22429d7
+updated: 2019-02-11T13:12:58.561020074+06:00
+>>>>>>> Different service account for snapshot
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -349,7 +354,11 @@ imports:
 - name: github.com/json-iterator/go
   version: 1624edc4454b8682399def8740d46db5e4362ba4
 - name: github.com/kubedb/apimachinery
+<<<<<<< HEAD
   version: 2ba704f42f3a01216fbcf234001398d4e5b14544
+=======
+  version: 99a2b8e0fe3e67c39f0c0f3cf2c2b2400e9c2a6a
+>>>>>>> Different service account for snapshot
   subpackages:
   - apis
   - apis/authorization
@@ -576,7 +585,11 @@ imports:
   - googleapi/internal/uritemplates
   - storage/v1
 - name: google.golang.org/appengine
+<<<<<<< HEAD
   version: 12d5545dc1cfa6047a286d5e853841b6471f4c19
+=======
+  version: 99bc4335fe23898c0a61f5b35afabb6d11f29094
+>>>>>>> Different service account for snapshot
   subpackages:
   - internal
   - internal/app_identity
