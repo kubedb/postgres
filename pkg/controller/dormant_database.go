@@ -62,8 +62,10 @@ func (c *Controller) waitUntilRBACStuffDeleted(postgres *api.Postgres) error {
 	}
 
 	// Delete Snapshot ServiceAccount
-	snapSAMeta := postgres.ObjectMeta
-	snapSAMeta.Name = postgres.SnapshotSAName()
+	snapSAMeta := metav1.ObjectMeta{
+		Name:      postgres.SnapshotSAName(),
+		Namespace: postgres.Namespace,
+	}
 	if err := core_util.WaitUntillServiceAccountDeleted(c.Client, snapSAMeta); err != nil {
 		return err
 	}
