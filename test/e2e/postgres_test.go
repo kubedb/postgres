@@ -1343,7 +1343,7 @@ var _ = Describe("Postgres", func() {
 				})
 			})
 
-			Context("In GCS", func() {
+			FContext("In GCS", func() {
 
 				BeforeEach(func() {
 					secret = f.SecretForGCSBackend()
@@ -1408,6 +1408,73 @@ var _ = Describe("Postgres", func() {
 					It("should remove wal data from backend", shouldWipeOutWalData)
 				})
 			})
+			///////
+			FContext("In AZURE", func() {
+
+				BeforeEach(func() {
+					secret = f.SecretForAzureBackend()
+					skipWalDataChecking = false
+					postgres.Spec.Archiver = &api.PostgresArchiverSpec{
+						Storage: &store.Backend{
+							StorageSecretName: secret.Name,
+							Azure: &store.AzureSpec{
+								Container: os.Getenv(AZURE_CONTAINER_NAME),
+							},
+						},
+					}
+
+					// -- > 2nd Postgres < --
+					postgres2nd = f.Postgres()
+					postgres2nd.Spec.Archiver = &api.PostgresArchiverSpec{
+						Storage: &store.Backend{
+							StorageSecretName: secret.Name,
+							Azure: &store.AzureSpec{
+								Container: os.Getenv(AZURE_CONTAINER_NAME),
+							},
+						},
+					}
+					postgres2nd.Spec.Init = &api.InitSpec{
+						PostgresWAL: &api.PostgresWALSourceSpec{
+							Backend: store.Backend{
+								StorageSecretName: secret.Name,
+								Azure: &store.AzureSpec{
+									Container: os.Getenv(AZURE_CONTAINER_NAME),
+									Prefix:    fmt.Sprintf("kubedb/%s/%s/archive/", postgres.Namespace, postgres.Name),
+								},
+							},
+						},
+					}
+
+					// -- > 3rd Postgres < --
+					postgres3rd = f.Postgres()
+					postgres3rd.Spec.Init = &api.InitSpec{
+						PostgresWAL: &api.PostgresWALSourceSpec{
+							Backend: store.Backend{
+								StorageSecretName: secret.Name,
+								Azure: &store.AzureSpec{
+									Container: os.Getenv(AZURE_CONTAINER_NAME),
+									Prefix:    fmt.Sprintf("kubedb/%s/%s/archive/", postgres.Namespace, postgres.Name),
+								},
+							},
+						},
+					}
+				})
+
+				Context("Archive and Initialize from wal archive", func() {
+
+					It("should archive and should resume from archive successfully", archiveAndInitializeFromArchive)
+				})
+
+				Context("WipeOut wal data", func() {
+
+					BeforeEach(func() {
+						postgres.Spec.TerminationPolicy = api.TerminationPolicyWipeOut
+					})
+
+					It("should remove wal data from backend", shouldWipeOutWalData)
+				})
+			})
+			//////////
 		})
 
 		Context("Termination Policy", func() {
