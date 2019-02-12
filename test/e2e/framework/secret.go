@@ -9,12 +9,19 @@ import (
 	"github.com/appscode/go/crypto/rand"
 	"github.com/appscode/go/log"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
+	"github.com/kubedb/postgres/pkg/controller"
 	. "github.com/onsi/gomega"
 	core "k8s.io/api/core/v1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	store "kmodules.xyz/objectstore-api/api/v1"
+)
+
+var (
+	CustomSecretSuffix = "custom-secret"
+	CustomUsername     = "username1234567890"
+	CustomPassword     = "password0987654321"
 )
 
 func (i *Invocation) SecretForLocalBackend() *core.Secret {
@@ -108,6 +115,19 @@ func (i *Invocation) SecretForSwiftBackend() *core.Secret {
 			store.OS_USERNAME:    []byte(os.Getenv(store.OS_USERNAME)),
 			store.OS_PASSWORD:    []byte(os.Getenv(store.OS_PASSWORD)),
 			store.OS_REGION_NAME: []byte(os.Getenv(store.OS_REGION_NAME)),
+		},
+	}
+}
+
+func (i *Invocation) SecretForDatabaseAuthentication(meta metav1.ObjectMeta) *core.Secret {
+	return &core.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      fmt.Sprintf("%v-%v", meta.Name, CustomSecretSuffix),
+			Namespace: meta.Namespace,
+		},
+		StringData: map[string]string{
+			controller.PostgresUser:     CustomUsername,
+			controller.PostgresPassword: CustomPassword,
 		},
 	}
 }

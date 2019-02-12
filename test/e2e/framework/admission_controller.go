@@ -49,7 +49,7 @@ func (f *Framework) EventuallyAPIServiceReady() GomegaAsyncAssertion {
 			if err := f.isApiSvcReady("v1alpha1.validators.kubedb.com"); err != nil {
 				return err
 			}
-			time.Sleep(time.Second * 3) // let the resource become available
+			time.Sleep(time.Second * 5) // let the resource become available
 
 			// Check if the annotations of validating webhook is updated by operator/controller
 			apiSvc, err := f.kaClient.ApiregistrationV1beta1().APIServices().Get("v1alpha1.validators.kubedb.com", metav1.GetOptions{})
@@ -109,21 +109,21 @@ func (f *Framework) RunOperatorAndServer(config *restclient.Config, kubeconfigPa
 
 func (f *Framework) CleanAdmissionConfigs() {
 	// delete validating Webhook
-	if err := f.kubeClient.AdmissionregistrationV1beta1().ValidatingWebhookConfigurations().DeleteCollection(deleteInBackground(), metav1.ListOptions{
+	if err := f.kubeClient.AdmissionregistrationV1beta1().ValidatingWebhookConfigurations().DeleteCollection(deleteInForeground(), metav1.ListOptions{
 		LabelSelector: "app=kubedb",
 	}); err != nil && !kerr.IsNotFound(err) {
 		fmt.Printf("error in deletion of Validating Webhook. Error: %v", err)
 	}
 
 	// delete mutating Webhook
-	if err := f.kubeClient.AdmissionregistrationV1beta1().MutatingWebhookConfigurations().DeleteCollection(deleteInBackground(), metav1.ListOptions{
+	if err := f.kubeClient.AdmissionregistrationV1beta1().MutatingWebhookConfigurations().DeleteCollection(deleteInForeground(), metav1.ListOptions{
 		LabelSelector: "app=kubedb",
 	}); err != nil && !kerr.IsNotFound(err) {
 		fmt.Printf("error in deletion of Mutating Webhook. Error: %v", err)
 	}
 
 	// Delete APIService
-	if err := f.kaClient.ApiregistrationV1beta1().APIServices().DeleteCollection(deleteInBackground(), metav1.ListOptions{
+	if err := f.kaClient.ApiregistrationV1beta1().APIServices().DeleteCollection(deleteInForeground(), metav1.ListOptions{
 		LabelSelector: "app=kubedb",
 	}); err != nil && !kerr.IsNotFound(err) {
 		fmt.Printf("error in deletion of APIService. Error: %v", err)
@@ -135,7 +135,7 @@ func (f *Framework) CleanAdmissionConfigs() {
 	}
 
 	// Delete EndPoints
-	if err := f.kubeClient.CoreV1().Endpoints("kube-system").DeleteCollection(deleteInBackground(), metav1.ListOptions{
+	if err := f.kubeClient.CoreV1().Endpoints("kube-system").DeleteCollection(deleteInForeground(), metav1.ListOptions{
 		LabelSelector: "app=kubedb",
 	}); err != nil && !kerr.IsNotFound(err) {
 		fmt.Printf("error in deletion of Endpoints. Error: %v", err)
