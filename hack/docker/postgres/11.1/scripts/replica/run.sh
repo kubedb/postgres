@@ -14,8 +14,9 @@ while true; do
   echo "Attempting pg_isready on primary"
   pg_isready --host="$PRIMARY_HOST" --timeout=2 &>/dev/null && break
   # check if current pod became leader itself
-  if [[ -e "/tmp/leader/leader-elected" ]]; then
-    exit 0
+  if [[ -e "/tmp/pg-failover-trigger" ]]; then
+    echo "Postgres promotion trigger_file found. Running primary run script"
+    exec /scripts/primary/run.sh
   fi
   sleep 2
 done
@@ -24,8 +25,9 @@ while true; do
   echo "Attempting query on primary"
   psql -h "$PRIMARY_HOST" --no-password --username=postgres --command="select now();" &>/dev/null && break
   # check if current pod became leader itself
-  if [[ -e "/tmp/leader/leader-elected" ]]; then
-    exit 0
+  if [[ -e "/tmp/pg-failover-trigger" ]]; then
+    echo "Postgres promotion trigger_file found. Running primary run script"
+    exec /scripts/primary/run.sh
   fi
   sleep 2
 done

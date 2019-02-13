@@ -21,8 +21,8 @@ fi
 # This node can become new leader while not able to create trigger file, So, left over recovery.conf from
 # last bootup (when this node was standby) may exists. And, that will force this node to become STANDBY.
 # So, delete recovery.conf.
-if  [[ -e $PGDATA/recovery.conf ]] && [[ $(cat $PGDATA/recovery.conf | grep -c "primary_conninfo") -gt 0 ]]; then
-    # recovery.conf file exists and contains "primary_conninfo". So, this is left over from previous standby state.
+if [[ -e $PGDATA/recovery.conf ]] && [[ $(cat $PGDATA/recovery.conf | grep -c "primary_conninfo") -gt 0 ]]; then
+  # recovery.conf file exists and contains "primary_conninfo". So, this is left over from previous standby state.
   rm $PGDATA/recovery.conf
 fi
 
