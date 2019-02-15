@@ -19,11 +19,12 @@ fi
 initdb $POSTGRES_INITDB_ARGS --pgdata="$PGDATA" >/dev/null
 
 # setup postgresql.conf
-cp /scripts/primary/postgresql.conf /tmp
+touch /tmp/postgresql.conf
 echo "wal_level = replica" >>/tmp/postgresql.conf
 echo "max_wal_senders = 99" >>/tmp/postgresql.conf
 echo "wal_keep_segments = 32" >>/tmp/postgresql.conf
 
+cat /scripts/primary/postgresql.conf >> /tmp/postgresql.conf
 mv /tmp/postgresql.conf "$PGDATA/postgresql.conf"
 
 # setup pg_hba.conf
@@ -78,15 +79,19 @@ done
 # stop server
 pg_ctl -D "$PGDATA" -m fast -w stop >/dev/null
 
+touch /tmp/postgresql.conf
 if [ "$STREAMING" == "synchronous" ]; then
    # setup synchronous streaming replication
-   echo "synchronous_commit = remote_write" >>"$PGDATA/postgresql.conf"
-   echo "synchronous_standby_names = '*'" >>"$PGDATA/postgresql.conf"
+   echo "synchronous_commit = remote_write" >>"/tmp/postgresql.conf"
+   echo "synchronous_standby_names = '*'" >>"/tmp/postgresql.conf"
 fi
 
 if [ "$ARCHIVE" == "wal-g" ]; then
   # setup postgresql.conf
-  echo "archive_command = 'wal-g wal-push %p'" >>"$PGDATA/postgresql.conf"
-  echo "archive_timeout = 60" >>"$PGDATA/postgresql.conf"
-  echo "archive_mode = always" >>"$PGDATA/postgresql.conf"
+  echo "archive_command = 'wal-g wal-push %p'" >>"/tmp/postgresql.conf"
+  echo "archive_timeout = 60" >>"/tmp/postgresql.conf"
+  echo "archive_mode = always" >>"/tmp/postgresql.conf"
 fi
+
+# ref: https://superuser.com/a/246841/985093
+cat /tmp/postgresql.conf $PGDATA/postgresql.conf > "/tmp/postgresql.conf.tmp" && mv "/tmp/postgresql.conf.tmp"  "$PGDATA/postgresql.conf"

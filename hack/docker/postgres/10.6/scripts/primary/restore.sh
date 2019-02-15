@@ -64,7 +64,7 @@ echo "restore_command = 'wal-g wal-fetch %f %p'" >>/tmp/recovery.conf
 mv /tmp/recovery.conf "$PGDATA/recovery.conf"
 
 # setup postgresql.conf
-cp /scripts/primary/postgresql.conf /tmp
+touch /tmp/postgresql.conf
 echo "wal_level = replica" >>/tmp/postgresql.conf
 echo "max_wal_senders = 99" >>/tmp/postgresql.conf
 echo "wal_keep_segments = 32" >>/tmp/postgresql.conf
@@ -73,14 +73,15 @@ if [ "$STREAMING" == "synchronous" ]; then
   echo "synchronous_commit = remote_write" >>/tmp/postgresql.conf
   echo "synchronous_standby_names = '*'" >>/tmp/postgresql.conf
 fi
-mv /tmp/postgresql.conf "$PGDATA/postgresql.conf"
 
 if [ "$ARCHIVE" == "wal-g" ]; then
   # setup postgresql.conf
-  echo "archive_command = 'wal-g wal-push %p'" >>"$PGDATA/postgresql.conf"
-  echo "archive_timeout = 60" >>"$PGDATA/postgresql.conf"
-  echo "archive_mode = always" >>"$PGDATA/postgresql.conf"
+  echo "archive_command = 'wal-g wal-push %p'" >>"/tmp/postgresql.conf"
+  echo "archive_timeout = 60" >>"/tmp/postgresql.conf"
+  echo "archive_mode = always" >>"/tmp/postgresql.conf"
 fi
+cat /scripts/primary/postgresql.conf >> /tmp/postgresql.conf
+mv /tmp/postgresql.conf "$PGDATA/postgresql.conf"
 
 rm "$PGDATA/recovery.done" &>/dev/null
 

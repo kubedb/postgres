@@ -48,7 +48,7 @@ echo "primary_conninfo = 'application_name=$HOSTNAME host=$PRIMARY_HOST'" >>/tmp
 mv /tmp/recovery.conf "$PGDATA/recovery.conf"
 
 # setup postgresql.conf
-cp /scripts/primary/postgresql.conf /tmp
+touch /tmp/postgresql.conf
 echo "wal_level = replica" >>/tmp/postgresql.conf
 echo "max_wal_senders = 90" >>/tmp/postgresql.conf # default is 10.  value must be less than max_connections minus superuser_reserved_connections. ref: https://www.postgresql.org/docs/11/runtime-config-replication.html#GUC-MAX-WAL-SENDERS
 echo "wal_keep_segments = 32" >>/tmp/postgresql.conf
@@ -60,8 +60,6 @@ if [ "$STREAMING" == "synchronous" ]; then
    echo "synchronous_commit = remote_write" >>/tmp/postgresql.conf
    echo "synchronous_standby_names = '*'" >>/tmp/postgresql.conf
 fi
-
-mv /tmp/postgresql.conf "$PGDATA/postgresql.conf"
 
 # push base-backup
 if [ "$ARCHIVE" == "wal-g" ]; then
@@ -84,9 +82,11 @@ if [ "$ARCHIVE" == "wal-g" ]; then
   fi
 
   # setup postgresql.conf
-  echo "archive_command = 'wal-g wal-push %p'" >>"$PGDATA/postgresql.conf"
-  echo "archive_timeout = 60" >>"$PGDATA/postgresql.conf"
-  echo "archive_mode = always" >>"$PGDATA/postgresql.conf"
+  echo "archive_command = 'wal-g wal-push %p'" >>"/tmp/postgresql.conf"
+  echo "archive_timeout = 60" >>"/tmp/postgresql.conf"
+  echo "archive_mode = always" >>"/tmp/postgresql.conf"
 fi
+cat /scripts/primary/postgresql.conf >> /tmp/postgresql.conf
+mv /tmp/postgresql.conf "$PGDATA/postgresql.conf"
 
 exec postgres
