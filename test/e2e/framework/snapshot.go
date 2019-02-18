@@ -229,7 +229,7 @@ func (f *Framework) CleanSnapshot() {
 			fmt.Printf("error Patching Snapshot. error: %v", err)
 		}
 	}
-	if err := f.extClient.KubedbV1alpha1().Snapshots(f.namespace).DeleteCollection(deleteInBackground(), metav1.ListOptions{}); err != nil {
+	if err := f.extClient.KubedbV1alpha1().Snapshots(f.namespace).DeleteCollection(deleteInForeground(), metav1.ListOptions{}); err != nil {
 		fmt.Printf("error in deletion of Snapshot. Error: %v", err)
 	}
 }

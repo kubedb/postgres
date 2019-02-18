@@ -87,6 +87,17 @@ func (c *Controller) createRestoreJob(postgres *api.Postgres, snapshot *api.Snap
 							}, postgres.Spec.Init.SnapshotSource.Args...),
 							Env: []core.EnvVar{
 								{
+									Name: PostgresUser,
+									ValueFrom: &core.EnvVarSource{
+										SecretKeyRef: &core.SecretKeySelector{
+											LocalObjectReference: core.LocalObjectReference{
+												Name: postgres.Spec.DatabaseSecret.SecretName,
+											},
+											Key: PostgresUser,
+										},
+									},
+								},
+								{
 									Name: PostgresPassword,
 									ValueFrom: &core.EnvVarSource{
 										SecretKeyRef: &core.SecretKeySelector{
@@ -162,6 +173,11 @@ func (c *Controller) createRestoreJob(postgres *api.Postgres, snapshot *api.Snap
 		}
 		job.Spec.Template.Spec.Volumes = append(job.Spec.Template.Spec.Volumes, volume)
 	}
+
+	if c.EnableRBAC {
+		job.Spec.Template.Spec.ServiceAccountName = postgres.SnapshotSAName()
+	}
+
 	return c.Client.BatchV1().Jobs(postgres.Namespace).Create(job)
 }
 
@@ -243,6 +259,17 @@ func (c *Controller) GetSnapshotter(snapshot *api.Snapshot) (*batch.Job, error) 
 							}, snapshot.Spec.PodTemplate.Spec.Args...),
 							Env: []core.EnvVar{
 								{
+									Name: PostgresUser,
+									ValueFrom: &core.EnvVarSource{
+										SecretKeyRef: &core.SecretKeySelector{
+											LocalObjectReference: core.LocalObjectReference{
+												Name: postgres.Spec.DatabaseSecret.SecretName,
+											},
+											Key: PostgresUser,
+										},
+									},
+								},
+								{
 									Name: PostgresPassword,
 									ValueFrom: &core.EnvVarSource{
 										SecretKeyRef: &core.SecretKeySelector{
@@ -317,5 +344,10 @@ func (c *Controller) GetSnapshotter(snapshot *api.Snapshot) (*batch.Job, error) 
 			VolumeSource: snapshot.Spec.Backend.Local.VolumeSource,
 		})
 	}
+
+	if c.EnableRBAC {
+		job.Spec.Template.Spec.ServiceAccountName = postgres.SnapshotSAName()
+	}
+
 	return job, nil
 }

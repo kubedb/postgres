@@ -445,6 +445,23 @@ var _ = Describe("Postgres", func() {
 					})
 				})
 
+				Context("with custom username and password", func() {
+					customSecret := &core.Secret{}
+					BeforeEach(func() {
+						customSecret = f.SecretForDatabaseAuthentication(postgres.ObjectMeta)
+						postgres.Spec.DatabaseSecret = &core.SecretVolumeSource{
+							SecretName: customSecret.Name,
+						}
+					})
+					It("should take snapshot successfully", func() {
+						By("Create Database Secret")
+						err := f.CreateSecret(customSecret)
+						Expect(err).NotTo(HaveOccurred())
+
+						shouldTakeSnapshot()
+					})
+				})
+
 				Context("Delete One Snapshot keeping others", func() {
 
 					BeforeEach(func() {
