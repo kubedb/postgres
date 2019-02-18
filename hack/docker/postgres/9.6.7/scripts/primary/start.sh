@@ -82,15 +82,15 @@ pg_ctl -D "$PGDATA" -m fast -w stop >/dev/null
 touch /tmp/postgresql.conf
 if [ "$STREAMING" == "synchronous" ]; then
    # setup synchronous streaming replication
-   echo "synchronous_commit = remote_write" >>"/tmp/postgresql.conf"
-   echo "synchronous_standby_names = '*'" >>"/tmp/postgresql.conf"
+   echo "synchronous_commit = remote_write" >>/tmp/postgresql.conf
+   echo "synchronous_standby_names = '*'" >>/tmp/postgresql.conf
 fi
 
 if [ "$ARCHIVE" == "wal-g" ]; then
   # setup postgresql.conf
-  echo "archive_command = 'wal-g wal-push %p'" >>"/tmp/postgresql.conf"
-  echo "archive_timeout = 60" >>"/tmp/postgresql.conf"
-  echo "archive_mode = always" >>"/tmp/postgresql.conf"
+  echo "archive_command = 'wal-g wal-push %p'" >>/tmp/postgresql.conf
+  echo "archive_timeout = 60" >>/tmp/postgresql.conf
+  echo "archive_mode = always" >>/tmp/postgresql.conf
 fi
 
 # ref: https://superuser.com/a/246841/985093

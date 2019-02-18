@@ -76,9 +76,9 @@ fi
 
 if [ "$ARCHIVE" == "wal-g" ]; then
   # setup postgresql.conf
-  echo "archive_command = 'wal-g wal-push %p'" >>"/tmp/postgresql.conf"
-  echo "archive_timeout = 60" >>"/tmp/postgresql.conf"
-  echo "archive_mode = always" >>"/tmp/postgresql.conf"
+  echo "archive_command = 'wal-g wal-push %p'" >>/tmp/postgresql.conf
+  echo "archive_timeout = 60" >>/tmp/postgresql.conf
+  echo "archive_mode = always" >>/tmp/postgresql.conf
 fi
 cat /scripts/primary/postgresql.conf >> /tmp/postgresql.conf
 mv /tmp/postgresql.conf "$PGDATA/postgresql.conf"
