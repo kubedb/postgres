@@ -164,13 +164,17 @@ func (f *Framework) EventuallyCountTable(meta metav1.ObjectMeta, dbName string, 
 			defer db.Close()
 
 			if err := f.CheckPostgres(db); err != nil {
+				fmt.Println(">>>>>>>>>>>>>>>>>>", 1, err)
 				return -1
 			}
 
 			res, err := db.Query("SELECT table_name FROM information_schema.tables WHERE table_schema='data'")
 			if err != nil {
+				fmt.Println(">>>>>>>>>>>>>>>>>>", 2, err)
 				return -1
 			}
+
+			fmt.Println(">>>>>>>>>>>>>>>>>>", 3, len(res))
 
 			return len(res)
 		},
