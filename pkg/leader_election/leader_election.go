@@ -175,7 +175,7 @@ func loadEnvVariables() (namespace string, leaseDuration, renewDeadline, retryPe
 
 	retryPeriodStr := os.Getenv(RetryPeriodEnv)
 	if retryPeriod, err = strconv.Atoi(retryPeriodStr); err != nil || retryPeriod == 0 {
-		retryPeriod = 15
+		retryPeriod = 2
 	}
 
 	return

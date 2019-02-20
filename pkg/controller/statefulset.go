@@ -187,18 +187,23 @@ func (c *Controller) ensureCombinedNode(postgres *api.Postgres, postgresVersion 
 			Name:  "STREAMING",
 			Value: strings.ToLower(string(streamingMode)),
 		},
-		{
-			Name:  leader_election.LeaseDurationEnv,
-			Value: strconv.Itoa(int(postgres.Spec.LeaderElection.LeaseDurationSeconds)),
-		},
-		{
-			Name:  leader_election.RenewDeadlineEnv,
-			Value: strconv.Itoa(int(postgres.Spec.LeaderElection.RenewDeadlineSeconds)),
-		},
-		{
-			Name:  leader_election.RetryPeriodEnv,
-			Value: strconv.Itoa(int(postgres.Spec.LeaderElection.RetryPeriodSeconds)),
-		},
+	}
+
+	if postgres.Spec.LeaderElection != nil {
+		envList = append(envList, []core.EnvVar{
+			{
+				Name:  leader_election.LeaseDurationEnv,
+				Value: strconv.Itoa(int(postgres.Spec.LeaderElection.LeaseDurationSeconds)),
+			},
+			{
+				Name:  leader_election.RenewDeadlineEnv,
+				Value: strconv.Itoa(int(postgres.Spec.LeaderElection.RenewDeadlineSeconds)),
+			},
+			{
+				Name:  leader_election.RetryPeriodEnv,
+				Value: strconv.Itoa(int(postgres.Spec.LeaderElection.RetryPeriodSeconds)),
+			},
+		}...)
 	}
 
 	if postgres.Spec.Archiver != nil {
