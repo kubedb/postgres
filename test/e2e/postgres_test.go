@@ -1478,7 +1478,7 @@ var _ = Describe("Postgres", func() {
 			})
 			//////////
 			////////////////////==========SWIFT============//////////////////////
-			FContext("In SWIFT", func() {
+			Context("In SWIFT", func() {
 
 				BeforeEach(func() {
 					secret = f.SecretForSwiftBackend()
@@ -1543,8 +1543,6 @@ var _ = Describe("Postgres", func() {
 					It("should remove wal data from backend", shouldWipeOutWalData)
 				})
 			})
-			//////////
-			/////
 		})
 
 		Context("Termination Policy", func() {

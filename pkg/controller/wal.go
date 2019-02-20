@@ -2,7 +2,6 @@ package controller
 
 import (
 	"fmt"
-	"log"
 	"path/filepath"
 
 	"github.com/graymeta/stow"
@@ -36,37 +35,31 @@ func (c *Controller) wipeOutWalData(meta metav1.ObjectMeta, spec *api.PostgresSp
 	}
 
 	if postgres.Spec.Archiver == nil {
-		log.Println("====================================> Achiever is nil")
 		// no archiver was configured. nothing to remove.
 		return nil
 	}
 
 	cfg, err := osm.NewOSMContext(c.Client, *postgres.Spec.Archiver.Storage, postgres.Namespace)
 	if err != nil {
-		log.Println("====================================> Cant get cfg")
 		return err
 	}
 
 	loc, err := stow.Dial(cfg.Provider, cfg.Config)
 	if err != nil {
-		log.Println("====================================> Cant dial stow")
 		return err
 	}
 	bucket, err := postgres.Spec.Archiver.Storage.Container()
 	if err != nil {
-		log.Println("====================================> Cant get Bucket")
 		return err
 	}
 	container, err := loc.Container(bucket)
 	if err != nil {
-		log.Println("====================================> Cant get Container")
 		return err
 	}
 
 	prefix := WalDataDir(postgres)
 	cursor := stow.CursorStart
 	for {
-		log.Println("====================================> In the loop with cursors")
 		items, next, err := container.Items(prefix, cursor, 50)
 		if err != nil {
 			return err

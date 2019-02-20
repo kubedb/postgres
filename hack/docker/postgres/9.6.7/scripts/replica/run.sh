@@ -72,7 +72,6 @@ if [ "$ARCHIVE" == "wal-g" ]; then
       export AWS_ACCESS_KEY_ID=$(cat "$CRED_PATH/AWS_ACCESS_KEY_ID")
       export AWS_SECRET_ACCESS_KEY=$(cat "$CRED_PATH/AWS_SECRET_ACCESS_KEY")
     fi
-
   elif [[ ${ARCHIVE_GS_PREFIX} != "" ]]; then
     export WALE_GS_PREFIX="$ARCHIVE_GS_PREFIX"
     if [[ -e "$CRED_PATH/GOOGLE_APPLICATION_CREDENTIALS" ]]; then
@@ -80,7 +79,6 @@ if [ "$ARCHIVE" == "wal-g" ]; then
     elif [[ -e "$CRED_PATH/GOOGLE_SERVICE_ACCOUNT_JSON_KEY" ]]; then
       export GOOGLE_APPLICATION_CREDENTIALS="$CRED_PATH/GOOGLE_SERVICE_ACCOUNT_JSON_KEY"
     fi
-
   elif [[ ${ARCHIVE_AZ_PREFIX} != "" ]]; then
     export WALE_AZ_PREFIX="$ARCHIVE_AZ_PREFIX"
     if [[ -e "$CRED_PATH/AZURE_STORAGE_ACCESS_KEY" ]]; then
@@ -93,7 +91,6 @@ if [ "$ARCHIVE" == "wal-g" ]; then
       elif [[ -e "$CRED_PATH/AZURE_ACCOUNT_NAME" ]]; then
       export AZURE_STORAGE_ACCOUNT=$(cat "$CRED_PATH/AZURE_ACCOUNT_NAME")
     fi
-
   elif [[ ${ARCHIVE_SWIFT_PREFIX} != "" ]]; then
     export WALE_SWIFT_PREFIX="$ARCHIVE_SWIFT_PREFIX"
     if [[ -e "$CRED_PATH/OS_USERNAME" ]]; then
@@ -143,6 +140,7 @@ if [ "$ARCHIVE" == "wal-g" ]; then
       export ST_KEY=$(cat "$CRED_PATH/ST_KEY")
     fi
   fi
+
   # setup postgresql.conf
   echo "archive_command = 'wal-g wal-push %p'" >>/tmp/postgresql.conf
   echo "archive_timeout = 60" >>/tmp/postgresql.conf

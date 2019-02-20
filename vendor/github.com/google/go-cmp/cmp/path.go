@@ -163,6 +163,12 @@ func (ps pathStep) String() string {
 	}
 	return fmt.Sprintf("{%s}", s)
 }
+func (ps pathStep) isPathStep() {}
+
+func (sf structField) String() string { return fmt.Sprintf(".%s", sf.name) }
+func (sf structField) Name() string   { return sf.name }
+func (sf structField) Index() int     { return sf.idx }
+func (sf structField) isStructField() {}
 
 // StructField represents a struct field access on a field called Name.
 type StructField struct{ *structField }
