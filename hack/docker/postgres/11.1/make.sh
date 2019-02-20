@@ -29,10 +29,9 @@ build_docker() {
   pushd "$REPO_ROOT/hack/docker/postgres/$DB_VERSION"
 
   # Download wal-g
-#  #wget https://github.com/kubedb/wal-g/releases/download/${WALG_VER}/wal-g-alpine-amd64
-#  #chmod +x wal-g-alpine-amd64
-#  #mv wal-g-alpine-amd64 wal-g
-  chmod +x wal-g # remove later
+  wget https://github.com/kubedb/wal-g/releases/download/${WALG_VER}/wal-g-alpine-amd64
+  chmod +x wal-g-alpine-amd64
+  mv wal-g-alpine-amd64 wal-g
 
   # Copy pg-operator
   cp "$DIST/pg-operator/pg-operator-alpine-amd64" pg-operator
@@ -41,7 +40,7 @@ build_docker() {
   local cmd="docker build --pull -t $DOCKER_REGISTRY/$IMG:$TAG ."
   echo $cmd; $cmd
 
-#  rm wal-g pg-operator
+  rm wal-g pg-operator
   popd
 }
 
