@@ -9,10 +9,6 @@ import (
 	"time"
 
 	"github.com/appscode/go/log"
-	"github.com/appscode/kutil"
-	admsn_kutil "github.com/appscode/kutil/admissionregistration/v1beta1"
-	discovery_util "github.com/appscode/kutil/discovery"
-	meta_util "github.com/appscode/kutil/meta"
 	shell "github.com/codeskyblue/go-sh"
 	"github.com/kubedb/apimachinery/apis"
 	"github.com/kubedb/postgres/pkg/cmds/server"
@@ -23,6 +19,10 @@ import (
 	"k8s.io/client-go/discovery"
 	restclient "k8s.io/client-go/rest"
 	kApi "k8s.io/kube-aggregator/pkg/apis/apiregistration/v1beta1"
+	kutil "kmodules.xyz/client-go"
+	admsn_kutil "kmodules.xyz/client-go/admissionregistration/v1beta1"
+	discovery_util "kmodules.xyz/client-go/discovery"
+	meta_util "kmodules.xyz/client-go/meta"
 )
 
 func (f *Framework) isApiSvcReady(apiSvcName string) error {
