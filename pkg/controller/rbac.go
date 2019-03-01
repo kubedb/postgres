@@ -185,6 +185,7 @@ func (c *Controller) ensurePSP(postgres *api.Postgres) error {
 		return rerr
 	}
 
+	// Ensure Pod Security policy for Postgres resources
 	noEscalation := false
 	_, _, err := policy_util.CreateOrPatchPodSecurityPolicy(c.Client,
 		metav1.ObjectMeta{
@@ -238,6 +239,7 @@ func (c *Controller) ensureSnapshotPSP(postgres *api.Postgres) error {
 		return rerr
 	}
 
+	// Ensure Pod Security policy for PostgresDB Snapshot
 	noEscalation := false
 	_, _, err := policy_util.CreateOrPatchPodSecurityPolicy(c.Client,
 		metav1.ObjectMeta{
