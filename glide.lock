@@ -1,5 +1,5 @@
 hash: d135ffd2c8ac0d65de676813cdde4e2f56e955186a2a2ff41fec9be4af990b9b
-updated: 2019-03-12T14:37:18.199618773-07:00
+updated: 2019-03-14T11:23:12.008122974-07:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -212,7 +212,7 @@ imports:
 - name: github.com/emicklei/go-restful-swagger12
   version: dcef7f55730566d41eae5db10e7d6981829720f6
 - name: github.com/evanphx/json-patch
-  version: 36442dbdb585210f8d5a1b45e67aa323c197d5c4
+  version: 5858425f75500d40c52783dce87d085a483ce135
 - name: github.com/fatih/structs
   version: 878a968ab22548362a09bdb3322f98b00f470d46
 - name: github.com/fsnotify/fsnotify
@@ -327,7 +327,7 @@ imports:
 - name: github.com/json-iterator/go
   version: 1624edc4454b8682399def8740d46db5e4362ba4
 - name: github.com/kubedb/apimachinery
-  version: 947c3c783b4e4a20f6d01282ccc9a61364bf9f65
+  version: 334b49d77d819d1e3a8d90c7a4ea526bbb71f8b4
   subpackages:
   - apis
   - apis/authorization
@@ -431,7 +431,7 @@ imports:
   - matchers/support/goraph/util
   - types
 - name: github.com/orcaman/concurrent-map
-  version: 7ed82d9cb71768a4e3656ee8837c7af568c75459
+  version: 2693aad1ed7517c2bb5b3a42cb8fde88b941d89d
 - name: github.com/pborman/uuid
   version: ca53cad383cad2479bbba7f7a1a05797ec1386e4
 - name: github.com/peterbourgon/diskv
@@ -670,6 +670,7 @@ imports:
   - pkg/apis/meta/internalversion
   - pkg/apis/meta/v1
   - pkg/apis/meta/v1/unstructured
+  - pkg/apis/meta/v1/unstructured/unstructuredscheme
   - pkg/apis/meta/v1/validation
   - pkg/apis/meta/v1beta1
   - pkg/conversion
@@ -815,6 +816,12 @@ imports:
   - plugin/pkg/audit/webhook
   - plugin/pkg/authenticator/token/webhook
   - plugin/pkg/authorizer/webhook
+- name: k8s.io/cli-runtime
+  version: a04da5c88c0796c1dc5ff976a9c91999779ac0e4
+  subpackages:
+  - pkg/genericclioptions
+  - pkg/genericclioptions/printers
+  - pkg/genericclioptions/resource
 - name: k8s.io/client-go
   version: e64494209f554a6723674bd494d69445fb76a1d4
   subpackages:
@@ -974,6 +981,7 @@ imports:
   - plugin/pkg/client/auth/openstack
   - rest
   - rest/watch
+  - restmapper
   - testing
   - third_party/forked/golang/template
   - tools/auth
@@ -1002,7 +1010,7 @@ imports:
   - util/retry
   - util/workqueue
 - name: k8s.io/klog
-  version: b9b56d5dfc9208f60ea747056670942d8b0afdc8
+  version: 8139d8cb77af419532b33dfa7dd09fbc5f1d344f
 - name: k8s.io/kube-aggregator
   version: 71ff10f5febb8733ad25fc112736ff5f8cd97beb
   subpackages:
@@ -1024,7 +1032,7 @@ imports:
 - name: k8s.io/utils
   version: 66066c83e385e385ccc3c964b44fd7dcd413d0ed
 - name: kmodules.xyz/client-go
-  version: b4cd767776cc2c7cc31df6721ebad3cb6f728baa
+  version: 348709ae06aa951e2e3e9c31bae48d704ace2d5d
   subpackages:
   - admissionregistration/v1beta1
   - apiextensions/v1beta1

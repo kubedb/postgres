@@ -15,7 +15,7 @@ var (
 	SelfHostedOperator = false
 	DBCatalogName      = "9.6-v2"
 	DBVersion          = "9.6-v3"
-	DBToolsTag         = "9.6-v2"
+	DBToolsTag         = "9.6-v3"
 	ExporterTag        = "v0.4.6"
 	EnableRbac         = true
 )
