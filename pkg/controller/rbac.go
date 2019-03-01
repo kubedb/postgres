@@ -9,10 +9,10 @@ import (
 	rbac "k8s.io/api/rbac/v1beta1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 	clientsetscheme "k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/tools/reference"
 	core_util "kmodules.xyz/client-go/core/v1"
+	policy_util "kmodules.xyz/client-go/policy/v1beta1"
 	rbac_util "kmodules.xyz/client-go/rbac/v1beta1"
 )
 
@@ -179,28 +179,28 @@ func (c *Controller) createSnapshotRoleBinding(postgres *api.Postgres) error {
 	return err
 }
 
-func (c *Controller) createPSP(postgres *api.Postgres) error {
+func (c *Controller) ensurePSP(postgres *api.Postgres) error {
 	ref, rerr := reference.GetReference(clientsetscheme.Scheme, postgres)
 	if rerr != nil {
 		return rerr
 	}
 
 	noEscalation := false
-	createPSP := func() *policy_v1beta1.PodSecurityPolicy {
-		return &policy_v1beta1.PodSecurityPolicy{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: postgres.OffshootName(),
-				//TODO: possible function EnsureOwnerReference(&psp.ObjectMeta, ref) in kutil for non namespaced resources.
-				OwnerReferences: []metav1.OwnerReference{
-					{
-						APIVersion: ref.APIVersion,
-						Kind:       ref.Kind,
-						Name:       ref.Name,
-						UID:        ref.UID,
-					},
+	_, _, err := policy_util.CreateOrPatchPodSecurityPolicy(c.Client,
+		metav1.ObjectMeta{
+			Name: postgres.OffshootName(),
+		},
+		func(in *policy_v1beta1.PodSecurityPolicy) *policy_v1beta1.PodSecurityPolicy {
+			//TODO: possible function EnsureOwnerReference(&psp.ObjectMeta, ref) in kutil for non namespaced resources.
+			in.OwnerReferences = []metav1.OwnerReference{
+				{
+					APIVersion: ref.APIVersion,
+					Kind:       ref.Kind,
+					Name:       ref.Name,
+					UID:        ref.UID,
 				},
-			},
-			Spec: policy_v1beta1.PodSecurityPolicySpec{
+			}
+			in.Spec = policy_v1beta1.PodSecurityPolicySpec{
 				Privileged:               false,
 				AllowPrivilegeEscalation: &noEscalation,
 				Volumes: []policy_v1beta1.FSType{
@@ -225,46 +225,35 @@ func (c *Controller) createPSP(postgres *api.Postgres) error {
 					"IPC_LOCK",
 					"SYS_RESOURCE",
 				},
-			},
-		}
-	}
-	psp := createPSP()
-
-	_, cerr := c.Client.PolicyV1beta1().PodSecurityPolicies().Create(psp)
-
-	data, err := psp.Marshal()
-	if err != nil {
-		return err
-	}
-	if kerr.IsAlreadyExists(cerr) {
-		_, _ = c.Client.PolicyV1beta1().PodSecurityPolicies().Patch(postgres.OffshootName(), types.MergePatchType, data)
-		return nil
-	}
+			}
+			return in
+		},
+	)
 	return err
 }
 
-func (c *Controller) createSnapshotPSP(postgres *api.Postgres) error {
+func (c *Controller) ensureSnapshotPSP(postgres *api.Postgres) error {
 	ref, rerr := reference.GetReference(clientsetscheme.Scheme, postgres)
 	if rerr != nil {
 		return rerr
 	}
 
 	noEscalation := false
-	createPSP := func() *policy_v1beta1.PodSecurityPolicy {
-		return &policy_v1beta1.PodSecurityPolicy{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: postgres.SnapshotSAName(),
-				//TODO: possible function EnsureOwnerReference(&psp.ObjectMeta, ref) in kutil for non namespaced resources.
-				OwnerReferences: []metav1.OwnerReference{
-					{
-						APIVersion: ref.APIVersion,
-						Kind:       ref.Kind,
-						Name:       ref.Name,
-						UID:        ref.UID,
-					},
+	_, _, err := policy_util.CreateOrPatchPodSecurityPolicy(c.Client,
+		metav1.ObjectMeta{
+			Name: postgres.SnapshotSAName(),
+		},
+		func(in *policy_v1beta1.PodSecurityPolicy) *policy_v1beta1.PodSecurityPolicy {
+			//TODO: possible function EnsureOwnerReference(&psp.ObjectMeta, ref) in kutil for non namespaced resources.
+			in.OwnerReferences = []metav1.OwnerReference{
+				{
+					APIVersion: ref.APIVersion,
+					Kind:       ref.Kind,
+					Name:       ref.Name,
+					UID:        ref.UID,
 				},
-			},
-			Spec: policy_v1beta1.PodSecurityPolicySpec{
+			}
+			in.Spec = policy_v1beta1.PodSecurityPolicySpec{
 				Privileged:               false,
 				AllowPrivilegeEscalation: &noEscalation,
 				Volumes: []policy_v1beta1.FSType{
@@ -285,27 +274,16 @@ func (c *Controller) createSnapshotPSP(postgres *api.Postgres) error {
 				SupplementalGroups: policy_v1beta1.SupplementalGroupsStrategyOptions{
 					Rule: policy_v1beta1.SupplementalGroupsStrategyRunAsAny,
 				},
-			},
-		}
-	}
-	psp := createPSP()
-
-	_, cerr := c.Client.PolicyV1beta1().PodSecurityPolicies().Create(psp)
-
-	data, err := psp.Marshal()
-	if err != nil {
-		return err
-	}
-	if kerr.IsAlreadyExists(cerr) {
-		_, _ = c.Client.PolicyV1beta1().PodSecurityPolicies().Patch(postgres.OffshootName(), types.MergePatchType, data)
-		return nil
-	}
+			}
+			return in
+		},
+	)
 	return err
 }
 
 func (c *Controller) ensureRBACStuff(postgres *api.Postgres) error {
 	//Create PSP
-	if err := c.createPSP(postgres); err != nil {
+	if err := c.ensurePSP(postgres); err != nil {
 		return err
 	}
 
@@ -326,7 +304,7 @@ func (c *Controller) ensureRBACStuff(postgres *api.Postgres) error {
 		return err
 	}
 	//Create PSP for snapshot
-	if err := c.createSnapshotPSP(postgres); err != nil {
+	if err := c.ensureSnapshotPSP(postgres); err != nil {
 		return err
 	}
 
