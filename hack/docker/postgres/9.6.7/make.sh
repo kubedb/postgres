@@ -10,7 +10,7 @@ source "$REPO_ROOT/hack/libbuild/common/kubedb_image.sh"
 DOCKER_REGISTRY=${DOCKER_REGISTRY:-kubedb}
 
 IMG=postgres
-SUFFIX=v3
+SUFFIX=v4
 DB_VERSION=9.6.7
 TAG="$DB_VERSION-$SUFFIX"
 
