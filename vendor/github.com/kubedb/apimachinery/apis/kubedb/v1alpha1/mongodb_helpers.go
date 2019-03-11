@@ -123,6 +123,12 @@ func (m MongoDB) StatsService() mona.StatsAccessor {
 	return &mongoDBStatsService{&m}
 }
 
+func (m MongoDB) StatsServiceLabels() map[string]string {
+	lbl := meta_util.FilterKeys(GenericKey, m.OffshootSelectors(), m.Labels)
+	lbl[LabelRole] = "stats"
+	return lbl
+}
+
 func (m *MongoDB) GetMonitoringVendor() string {
 	if m.Spec.Monitor != nil {
 		return m.Spec.Monitor.Agent.Vendor()

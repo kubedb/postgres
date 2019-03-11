@@ -62,8 +62,8 @@ func (r memcachedApp) Type() appcat.AppType {
 	return appcat.AppType(fmt.Sprintf("%s/%s", kubedb.GroupName, ResourceSingularMemcached))
 }
 
-func (r Memcached) AppBindingMeta() appcat.AppBindingMeta {
-	return &memcachedApp{&r}
+func (m Memcached) AppBindingMeta() appcat.AppBindingMeta {
+	return &memcachedApp{&m}
 }
 
 type memcachedStatsService struct {
@@ -92,6 +92,12 @@ func (m memcachedStatsService) Scheme() string {
 
 func (m Memcached) StatsService() mona.StatsAccessor {
 	return &memcachedStatsService{&m}
+}
+
+func (m Memcached) StatsServiceLabels() map[string]string {
+	lbl := meta_util.FilterKeys(GenericKey, m.OffshootSelectors(), m.Labels)
+	lbl[LabelRole] = "stats"
+	return lbl
 }
 
 func (m *Memcached) GetMonitoringVendor() string {

@@ -103,6 +103,12 @@ func (e Etcd) StatsService() mona.StatsAccessor {
 	return &etcdStatsService{&e}
 }
 
+func (e Etcd) StatsServiceLabels() map[string]string {
+	lbl := meta_util.FilterKeys(GenericKey, e.OffshootSelectors(), e.Labels)
+	lbl[LabelRole] = "stats"
+	return lbl
+}
+
 func (e *Etcd) GetMonitoringVendor() string {
 	if e.Spec.Monitor != nil {
 		return e.Spec.Monitor.Agent.Vendor()

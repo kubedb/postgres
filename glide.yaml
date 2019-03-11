@@ -8,10 +8,6 @@ import:
   version: v11.1.0
 - package: github.com/appscode/go
   version: master
-- package: kmodules.xyz/webhook-runtime
-  version: release-10.0
-- package: kmodules.xyz/client-go
-  version: release-10.0
 - package: github.com/aws/aws-sdk-go
   version: v1.14.12
 - package: github.com/codeskyblue/go-sh
@@ -54,6 +50,8 @@ import:
   version: v1.4.1
 - package: github.com/pkg/errors
   version: v0.8.0
+- package: github.com/prometheus/client_golang
+  version: v0.9.2
 - package: github.com/russross/blackfriday
   version: v1.5.2
 - package: github.com/spf13/cobra
@@ -94,6 +92,10 @@ import:
   version: kubernetes-1.13.0
 - package: k8s.io/kube-openapi
   version: c59034cc13d587f5ef4e85ca0ade0c1866ae8e1d
+- package: k8s.io/utils
+  version: 66066c83e385e385ccc3c964b44fd7dcd413d0ed
+- package: kmodules.xyz/client-go
+  version: release-10.0
 - package: kmodules.xyz/custom-resources
   version: release-10.0
 - package: kmodules.xyz/monitoring-agent-api
@@ -102,3 +104,7 @@ import:
   version: release-10.0
 - package: kmodules.xyz/offshoot-api
   version: release-10.0
+- package: kmodules.xyz/webhook-runtime
+  version: release-10.0
+- package: sigs.k8s.io/yaml
+  version: v1.1.0

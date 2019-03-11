@@ -13,19 +13,28 @@ import (
 )
 
 type defaultReporter struct {
-	Option
+	curPath Path
+
 	diffs  []string // List of differences, possibly truncated
 	ndiffs int      // Total number of differences
 	nbytes int      // Number of bytes in diffs
 	nlines int      // Number of lines in diffs
 }
 
-var _ reporter = (*defaultReporter)(nil)
-
-func (r *defaultReporter) Report(x, y reflect.Value, eq bool, p Path) {
-	if eq {
-		return // Ignore equal results
+func (r *defaultReporter) PushStep(ps PathStep) {
+	r.curPath.push(ps)
+}
+func (r *defaultReporter) Report(f reportFlags) {
+	if f&reportUnequal > 0 {
+		vx, vy := r.curPath.Last().Values()
+		r.report(vx, vy, r.curPath)
 	}
+}
+func (r *defaultReporter) PopStep() {
+	r.curPath.pop()
+}
+
+func (r *defaultReporter) report(x, y reflect.Value, p Path) {
 	const maxBytes = 4096
 	const maxLines = 256
 	r.ndiffs++

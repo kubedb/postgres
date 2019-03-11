@@ -100,6 +100,12 @@ func (p Postgres) StatsService() mona.StatsAccessor {
 	return &postgresStatsService{&p}
 }
 
+func (p Postgres) StatsServiceLabels() map[string]string {
+	lbl := meta_util.FilterKeys(GenericKey, p.OffshootSelectors(), p.Labels)
+	lbl[LabelRole] = "stats"
+	return lbl
+}
+
 func (p *Postgres) GetMonitoringVendor() string {
 	if p.Spec.Monitor != nil {
 		return p.Spec.Monitor.Agent.Vendor()

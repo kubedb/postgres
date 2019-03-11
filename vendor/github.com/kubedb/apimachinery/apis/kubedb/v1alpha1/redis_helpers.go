@@ -107,6 +107,12 @@ func (r Redis) StatsService() mona.StatsAccessor {
 	return &redisStatsService{&r}
 }
 
+func (r Redis) StatsServiceLabels() map[string]string {
+	lbl := meta_util.FilterKeys(GenericKey, r.OffshootSelectors(), r.Labels)
+	lbl[LabelRole] = "stats"
+	return lbl
+}
+
 func (r *Redis) GetMonitoringVendor() string {
 	if r.Spec.Monitor != nil {
 		return r.Spec.Monitor.Agent.Vendor()

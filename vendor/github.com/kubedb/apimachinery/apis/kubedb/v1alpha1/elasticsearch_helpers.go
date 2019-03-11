@@ -115,6 +115,12 @@ func (e Elasticsearch) StatsService() mona.StatsAccessor {
 	return &elasticsearchStatsService{&e}
 }
 
+func (e Elasticsearch) StatsServiceLabels() map[string]string {
+	lbl := meta_util.FilterKeys(GenericKey, e.OffshootSelectors(), e.Labels)
+	lbl[LabelRole] = "stats"
+	return lbl
+}
+
 func (e *Elasticsearch) GetMonitoringVendor() string {
 	if e.Spec.Monitor != nil {
 		return e.Spec.Monitor.Agent.Vendor()

@@ -67,8 +67,8 @@ func (r mysqlApp) Type() appcat.AppType {
 	return appcat.AppType(fmt.Sprintf("%s/%s", kubedb.GroupName, ResourceSingularMySQL))
 }
 
-func (r MySQL) AppBindingMeta() appcat.AppBindingMeta {
-	return &mysqlApp{&r}
+func (m MySQL) AppBindingMeta() appcat.AppBindingMeta {
+	return &mysqlApp{&m}
 }
 
 type mysqlStatsService struct {
@@ -97,6 +97,12 @@ func (m mysqlStatsService) Scheme() string {
 
 func (m MySQL) StatsService() mona.StatsAccessor {
 	return &mysqlStatsService{&m}
+}
+
+func (m MySQL) StatsServiceLabels() map[string]string {
+	lbl := meta_util.FilterKeys(GenericKey, m.OffshootSelectors(), m.Labels)
+	lbl[LabelRole] = "stats"
+	return lbl
 }
 
 func (m *MySQL) GetMonitoringVendor() string {
