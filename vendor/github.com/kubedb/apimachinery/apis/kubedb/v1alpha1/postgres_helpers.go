@@ -28,7 +28,13 @@ func (p Postgres) OffshootSelectors() map[string]string {
 }
 
 func (p Postgres) OffshootLabels() map[string]string {
-	return meta_util.FilterKeys(GenericKey, p.OffshootSelectors(), p.Labels)
+	out := p.OffshootSelectors()
+	out[meta_util.NameLabelKey] = ResourceSingularPostgres
+	out[meta_util.VersionLabelKey] = string(p.Spec.Version)
+	out[meta_util.InstanceLabelKey] = p.Name
+	out[meta_util.ComponentLabelKey] = "database"
+	out[meta_util.ManagedByLabelKey] = GenericKey
+	return meta_util.FilterKeys(GenericKey, out, p.Labels)
 }
 
 func (p Postgres) ResourceShortCode() string {

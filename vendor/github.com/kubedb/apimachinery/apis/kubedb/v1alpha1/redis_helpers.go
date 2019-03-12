@@ -28,7 +28,13 @@ func (r Redis) OffshootSelectors() map[string]string {
 }
 
 func (r Redis) OffshootLabels() map[string]string {
-	return meta_util.FilterKeys(GenericKey, r.OffshootSelectors(), r.Labels)
+	out := r.OffshootSelectors()
+	out[meta_util.NameLabelKey] = ResourceSingularRedis
+	out[meta_util.VersionLabelKey] = string(r.Spec.Version)
+	out[meta_util.InstanceLabelKey] = r.Name
+	out[meta_util.ComponentLabelKey] = "database"
+	out[meta_util.ManagedByLabelKey] = GenericKey
+	return meta_util.FilterKeys(GenericKey, out, r.Labels)
 }
 
 func (r Redis) ResourceShortCode() string {

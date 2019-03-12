@@ -27,7 +27,13 @@ func (m MySQL) OffshootSelectors() map[string]string {
 }
 
 func (m MySQL) OffshootLabels() map[string]string {
-	return meta_util.FilterKeys(GenericKey, m.OffshootSelectors(), m.Labels)
+	out := m.OffshootSelectors()
+	out[meta_util.NameLabelKey] = ResourceSingularMySQL
+	out[meta_util.VersionLabelKey] = string(m.Spec.Version)
+	out[meta_util.InstanceLabelKey] = m.Name
+	out[meta_util.ComponentLabelKey] = "database"
+	out[meta_util.ManagedByLabelKey] = GenericKey
+	return meta_util.FilterKeys(GenericKey, out, m.Labels)
 }
 
 func (m MySQL) ResourceShortCode() string {

@@ -1,5 +1,5 @@
 hash: d135ffd2c8ac0d65de676813cdde4e2f56e955186a2a2ff41fec9be4af990b9b
-updated: 2019-03-10T22:29:16.046266631-07:00
+updated: 2019-03-12T14:37:18.199618773-07:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -216,7 +216,7 @@ imports:
 - name: github.com/fatih/structs
   version: 878a968ab22548362a09bdb3322f98b00f470d46
 - name: github.com/fsnotify/fsnotify
-  version: 11844c0959f6fff69ba325d097fce35bd85a8e93
+  version: 1485a34d5d5723fea214f5710708e19a831720e4
 - name: github.com/ghodss/yaml
   version: 0ca9ea5df5451ffdf184b4428c902747c2c11cd7
 - name: github.com/go-ini/ini
@@ -261,10 +261,11 @@ imports:
 - name: github.com/google/btree
   version: 7d79101e329e5a3adf994758c578dab82b90c017
 - name: github.com/google/go-cmp
-  version: c81281657ad99ba22e14fda7c4dfaaf2974c454e
+  version: 6f77996f0c42f7b84e5a2b252227263f93432e9b
   subpackages:
   - cmp
   - cmp/internal/diff
+  - cmp/internal/flags
   - cmp/internal/function
   - cmp/internal/value
 - name: github.com/google/gofuzz
@@ -326,7 +327,7 @@ imports:
 - name: github.com/json-iterator/go
   version: 1624edc4454b8682399def8740d46db5e4362ba4
 - name: github.com/kubedb/apimachinery
-  version: 96b21b844e4236d284eb2a18ea7e5701bd992233
+  version: 947c3c783b4e4a20f6d01282ccc9a61364bf9f65
   subpackages:
   - apis
   - apis/authorization
@@ -1023,7 +1024,7 @@ imports:
 - name: k8s.io/utils
   version: 66066c83e385e385ccc3c964b44fd7dcd413d0ed
 - name: kmodules.xyz/client-go
-  version: 4e95b64335e75800ba52ff9e44188066da251420
+  version: b4cd767776cc2c7cc31df6721ebad3cb6f728baa
   subpackages:
   - admissionregistration/v1beta1
   - apiextensions/v1beta1
