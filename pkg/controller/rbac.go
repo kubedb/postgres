@@ -178,7 +178,7 @@ func (c *Controller) createSnapshotRoleBinding(db *api.Postgres) error {
 	return err
 }
 
-func (c *Controller) getPolicyNames(db *api.MySQL) (string, string, error) {
+func (c *Controller) getPolicyNames(db *api.Postgres) (string, string, error) {
 	dbVersion, err := c.ExtClient.CatalogV1alpha1().PostgresVersions().Get(string(db.Spec.Version), metav1.GetOptions{})
 	if err != nil {
 		return "", "", err

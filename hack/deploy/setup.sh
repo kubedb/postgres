@@ -132,6 +132,7 @@ if [ "$MINIKUBE" -eq 1 ]; then
   cat $CLI_ROOT/hack/deploy/validating-webhook.yaml | $ONESSL envsubst | kubectl apply -f -
   cat $CLI_ROOT/hack/deploy/mutating-webhook.yaml | $ONESSL envsubst | kubectl apply -f -
   cat $REPO_ROOT/hack/dev/apiregistration.yaml | $ONESSL envsubst | kubectl apply -f -
+  cat $CLI_ROOT/hack/deploy/kubedb-catalog/psp.yaml | $ONESSL envsubst | kubectl apply -f -
   # Following line may give error if DBVersions CRD already not created
   cat $CLI_ROOT/hack/deploy/kubedb-catalog/postgres.yaml | $ONESSL envsubst | kubectl apply -f - || true
 
