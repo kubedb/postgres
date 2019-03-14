@@ -12,12 +12,11 @@ import (
 	clientsetscheme "k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/tools/reference"
 	core_util "kmodules.xyz/client-go/core/v1"
-	policy_util "kmodules.xyz/client-go/policy/v1beta1"
 	rbac_util "kmodules.xyz/client-go/rbac/v1beta1"
 )
 
-func (c *Controller) ensureRole(postgres *api.Postgres) error {
-	ref, rerr := reference.GetReference(clientsetscheme.Scheme, postgres)
+func (c *Controller) ensureRole(db *api.Postgres, pspName string) error {
+	ref, rerr := reference.GetReference(clientsetscheme.Scheme, db)
 	if rerr != nil {
 		return rerr
 	}
@@ -26,8 +25,8 @@ func (c *Controller) ensureRole(postgres *api.Postgres) error {
 	_, _, err := rbac_util.CreateOrPatchRole(
 		c.Client,
 		metav1.ObjectMeta{
-			Name:      postgres.OffshootName(),
-			Namespace: postgres.Namespace,
+			Name:      db.OffshootName(),
+			Namespace: db.Namespace,
 		},
 		func(in *rbac.Role) *rbac.Role {
 			core_util.EnsureOwnerReference(&in.ObjectMeta, ref)
@@ -36,13 +35,13 @@ func (c *Controller) ensureRole(postgres *api.Postgres) error {
 					APIGroups:     []string{policy_v1beta1.GroupName},
 					Resources:     []string{"podsecuritypolicies"},
 					Verbs:         []string{"use"},
-					ResourceNames: []string{postgres.OffshootName()},
+					ResourceNames: []string{pspName},
 				},
 				{
 					APIGroups:     []string{apps.GroupName},
 					Resources:     []string{"statefulsets"},
 					Verbs:         []string{"get"},
-					ResourceNames: []string{postgres.OffshootName()},
+					ResourceNames: []string{db.OffshootName()},
 				},
 				{
 					APIGroups: []string{core.GroupName},
@@ -58,7 +57,7 @@ func (c *Controller) ensureRole(postgres *api.Postgres) error {
 					APIGroups:     []string{core.GroupName},
 					Resources:     []string{"configmaps"},
 					Verbs:         []string{"get", "update"},
-					ResourceNames: []string{le.GetLeaderLockName(postgres.OffshootName())},
+					ResourceNames: []string{le.GetLeaderLockName(db.OffshootName())},
 				},
 			}
 			return in
@@ -67,8 +66,8 @@ func (c *Controller) ensureRole(postgres *api.Postgres) error {
 	return err
 }
 
-func (c *Controller) ensureSnapshotRole(postgres *api.Postgres) error {
-	ref, rerr := reference.GetReference(clientsetscheme.Scheme, postgres)
+func (c *Controller) ensureSnapshotRole(db *api.Postgres, pspName string) error {
+	ref, rerr := reference.GetReference(clientsetscheme.Scheme, db)
 	if rerr != nil {
 		return rerr
 	}
@@ -76,8 +75,8 @@ func (c *Controller) ensureSnapshotRole(postgres *api.Postgres) error {
 	_, _, err := rbac_util.CreateOrPatchRole(
 		c.Client,
 		metav1.ObjectMeta{
-			Name:      postgres.SnapshotSAName(),
-			Namespace: postgres.Namespace,
+			Name:      db.SnapshotSAName(),
+			Namespace: db.Namespace,
 		},
 		func(in *rbac.Role) *rbac.Role {
 			core_util.EnsureOwnerReference(&in.ObjectMeta, ref)
@@ -86,7 +85,7 @@ func (c *Controller) ensureSnapshotRole(postgres *api.Postgres) error {
 					APIGroups:     []string{policy_v1beta1.GroupName},
 					Resources:     []string{"podsecuritypolicies"},
 					Verbs:         []string{"use"},
-					ResourceNames: []string{postgres.SnapshotSAName()},
+					ResourceNames: []string{pspName},
 				},
 			}
 			return in
@@ -95,8 +94,8 @@ func (c *Controller) ensureSnapshotRole(postgres *api.Postgres) error {
 	return err
 }
 
-func (c *Controller) createServiceAccount(postgres *api.Postgres, saName string) error {
-	ref, rerr := reference.GetReference(clientsetscheme.Scheme, postgres)
+func (c *Controller) createServiceAccount(db *api.Postgres, saName string) error {
+	ref, rerr := reference.GetReference(clientsetscheme.Scheme, db)
 	if rerr != nil {
 		return rerr
 	}
@@ -105,7 +104,7 @@ func (c *Controller) createServiceAccount(postgres *api.Postgres, saName string)
 		c.Client,
 		metav1.ObjectMeta{
 			Name:      saName,
-			Namespace: postgres.Namespace,
+			Namespace: db.Namespace,
 		},
 		func(in *core.ServiceAccount) *core.ServiceAccount {
 			core_util.EnsureOwnerReference(&in.ObjectMeta, ref)
@@ -115,8 +114,8 @@ func (c *Controller) createServiceAccount(postgres *api.Postgres, saName string)
 	return err
 }
 
-func (c *Controller) createRoleBinding(postgres *api.Postgres) error {
-	ref, rerr := reference.GetReference(clientsetscheme.Scheme, postgres)
+func (c *Controller) createRoleBinding(db *api.Postgres) error {
+	ref, rerr := reference.GetReference(clientsetscheme.Scheme, db)
 	if rerr != nil {
 		return rerr
 	}
@@ -124,21 +123,21 @@ func (c *Controller) createRoleBinding(postgres *api.Postgres) error {
 	_, _, err := rbac_util.CreateOrPatchRoleBinding(
 		c.Client,
 		metav1.ObjectMeta{
-			Name:      postgres.OffshootName(),
-			Namespace: postgres.Namespace,
+			Name:      db.OffshootName(),
+			Namespace: db.Namespace,
 		},
 		func(in *rbac.RoleBinding) *rbac.RoleBinding {
 			core_util.EnsureOwnerReference(&in.ObjectMeta, ref)
 			in.RoleRef = rbac.RoleRef{
 				APIGroup: rbac.GroupName,
 				Kind:     "Role",
-				Name:     postgres.OffshootName(),
+				Name:     db.OffshootName(),
 			}
 			in.Subjects = []rbac.Subject{
 				{
 					Kind:      rbac.ServiceAccountKind,
-					Name:      postgres.OffshootName(),
-					Namespace: postgres.Namespace,
+					Name:      db.OffshootName(),
+					Namespace: db.Namespace,
 				},
 			}
 			return in
@@ -147,8 +146,8 @@ func (c *Controller) createRoleBinding(postgres *api.Postgres) error {
 	return err
 }
 
-func (c *Controller) createSnapshotRoleBinding(postgres *api.Postgres) error {
-	ref, rerr := reference.GetReference(clientsetscheme.Scheme, postgres)
+func (c *Controller) createSnapshotRoleBinding(db *api.Postgres) error {
+	ref, rerr := reference.GetReference(clientsetscheme.Scheme, db)
 	if rerr != nil {
 		return rerr
 	}
@@ -156,21 +155,21 @@ func (c *Controller) createSnapshotRoleBinding(postgres *api.Postgres) error {
 	_, _, err := rbac_util.CreateOrPatchRoleBinding(
 		c.Client,
 		metav1.ObjectMeta{
-			Name:      postgres.SnapshotSAName(),
-			Namespace: postgres.Namespace,
+			Name:      db.SnapshotSAName(),
+			Namespace: db.Namespace,
 		},
 		func(in *rbac.RoleBinding) *rbac.RoleBinding {
 			core_util.EnsureOwnerReference(&in.ObjectMeta, ref)
 			in.RoleRef = rbac.RoleRef{
 				APIGroup: rbac.GroupName,
 				Kind:     "Role",
-				Name:     postgres.SnapshotSAName(),
+				Name:     db.SnapshotSAName(),
 			}
 			in.Subjects = []rbac.Subject{
 				{
 					Kind:      rbac.ServiceAccountKind,
-					Name:      postgres.SnapshotSAName(),
-					Namespace: postgres.Namespace,
+					Name:      db.SnapshotSAName(),
+					Namespace: db.Namespace,
 				},
 			}
 			return in
@@ -179,118 +178,25 @@ func (c *Controller) createSnapshotRoleBinding(postgres *api.Postgres) error {
 	return err
 }
 
-func (c *Controller) ensurePSP(postgres *api.Postgres) error {
-	ref, rerr := reference.GetReference(clientsetscheme.Scheme, postgres)
-	if rerr != nil {
-		return rerr
+func (c *Controller) getPolicyNames(db *api.MySQL) (string, string, error) {
+	dbVersion, err := c.ExtClient.CatalogV1alpha1().PostgresVersions().Get(string(db.Spec.Version), metav1.GetOptions{})
+	if err != nil {
+		return "", "", err
 	}
+	dbPolicyName := dbVersion.Spec.PodSecurityPolicies.DatabasePolicyName
+	snapshotPolicyName := dbVersion.Spec.PodSecurityPolicies.SnapshotterPolicyName
 
-	// Ensure Pod Security policy for Postgres resources
-	noEscalation := false
-	_, _, err := policy_util.CreateOrPatchPodSecurityPolicy(c.Client,
-		metav1.ObjectMeta{
-			Name: postgres.OffshootName(),
-		},
-		func(in *policy_v1beta1.PodSecurityPolicy) *policy_v1beta1.PodSecurityPolicy {
-			//TODO: possible function EnsureOwnerReference(&psp.ObjectMeta, ref) in kutil for non namespaced resources.
-			in.OwnerReferences = []metav1.OwnerReference{
-				{
-					APIVersion: ref.APIVersion,
-					Kind:       ref.Kind,
-					Name:       ref.Name,
-					UID:        ref.UID,
-				},
-			}
-			in.Spec = policy_v1beta1.PodSecurityPolicySpec{
-				Privileged:               false,
-				AllowPrivilegeEscalation: &noEscalation,
-				Volumes: []policy_v1beta1.FSType{
-					policy_v1beta1.All,
-				},
-				HostIPC:     false,
-				HostNetwork: false,
-				HostPID:     false,
-				RunAsUser: policy_v1beta1.RunAsUserStrategyOptions{
-					Rule: policy_v1beta1.RunAsUserStrategyRunAsAny,
-				},
-				SELinux: policy_v1beta1.SELinuxStrategyOptions{
-					Rule: policy_v1beta1.SELinuxStrategyRunAsAny,
-				},
-				FSGroup: policy_v1beta1.FSGroupStrategyOptions{
-					Rule: policy_v1beta1.FSGroupStrategyRunAsAny,
-				},
-				SupplementalGroups: policy_v1beta1.SupplementalGroupsStrategyOptions{
-					Rule: policy_v1beta1.SupplementalGroupsStrategyRunAsAny,
-				},
-				AllowedCapabilities: []core.Capability{
-					"IPC_LOCK",
-					"SYS_RESOURCE",
-				},
-			}
-			return in
-		},
-	)
-	return err
-}
-
-func (c *Controller) ensureSnapshotPSP(postgres *api.Postgres) error {
-	ref, rerr := reference.GetReference(clientsetscheme.Scheme, postgres)
-	if rerr != nil {
-		return rerr
-	}
-
-	// Ensure Pod Security policy for PostgresDB Snapshot
-	noEscalation := false
-	_, _, err := policy_util.CreateOrPatchPodSecurityPolicy(c.Client,
-		metav1.ObjectMeta{
-			Name: postgres.SnapshotSAName(),
-		},
-		func(in *policy_v1beta1.PodSecurityPolicy) *policy_v1beta1.PodSecurityPolicy {
-			//TODO: possible function EnsureOwnerReference(&psp.ObjectMeta, ref) in kutil for non namespaced resources.
-			in.OwnerReferences = []metav1.OwnerReference{
-				{
-					APIVersion: ref.APIVersion,
-					Kind:       ref.Kind,
-					Name:       ref.Name,
-					UID:        ref.UID,
-				},
-			}
-			in.Spec = policy_v1beta1.PodSecurityPolicySpec{
-				Privileged:               false,
-				AllowPrivilegeEscalation: &noEscalation,
-				Volumes: []policy_v1beta1.FSType{
-					policy_v1beta1.All,
-				},
-				HostIPC:     false,
-				HostNetwork: false,
-				HostPID:     false,
-				RunAsUser: policy_v1beta1.RunAsUserStrategyOptions{
-					Rule: policy_v1beta1.RunAsUserStrategyRunAsAny,
-				},
-				SELinux: policy_v1beta1.SELinuxStrategyOptions{
-					Rule: policy_v1beta1.SELinuxStrategyRunAsAny,
-				},
-				FSGroup: policy_v1beta1.FSGroupStrategyOptions{
-					Rule: policy_v1beta1.FSGroupStrategyRunAsAny,
-				},
-				SupplementalGroups: policy_v1beta1.SupplementalGroupsStrategyOptions{
-					Rule: policy_v1beta1.SupplementalGroupsStrategyRunAsAny,
-				},
-			}
-			return in
-		},
-	)
-	return err
+	return dbPolicyName, snapshotPolicyName, nil
 }
 
 func (c *Controller) ensureRBACStuff(postgres *api.Postgres) error {
-	//Create PSP
-	if err := c.ensurePSP(postgres); err != nil {
+	dbPolicyName, snapshotPolicyName, err := c.getPolicyNames(postgres)
+	if err != nil {
 		return err
 	}
 
 	// Create New Role
-	if err := c.ensureRole(postgres); err != nil {
+	if err := c.ensureRole(postgres, dbPolicyName); err != nil {
 		return err
 	}
 
@@ -305,13 +211,9 @@ func (c *Controller) ensureRBACStuff(postgres *api.Postgres) error {
 	if err := c.createRoleBinding(postgres); err != nil {
 		return err
 	}
-	//Create PSP for snapshot
-	if err := c.ensureSnapshotPSP(postgres); err != nil {
-		return err
-	}
 
 	//Role for snapshot
-	if err := c.ensureSnapshotRole(postgres); err != nil {
+	if err := c.ensureSnapshotRole(postgres, snapshotPolicyName); err != nil {
 		return err
 	}
 
