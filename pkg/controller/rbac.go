@@ -30,6 +30,7 @@ func (c *Controller) ensureRole(db *api.Postgres, pspName string) error {
 		},
 		func(in *rbac.Role) *rbac.Role {
 			core_util.EnsureOwnerReference(&in.ObjectMeta, ref)
+			in.Labels = db.OffshootLabels()
 			in.Rules = []rbac.PolicyRule{
 				{
 					APIGroups:     []string{policy_v1beta1.GroupName},
@@ -80,6 +81,7 @@ func (c *Controller) ensureSnapshotRole(db *api.Postgres, pspName string) error 
 		},
 		func(in *rbac.Role) *rbac.Role {
 			core_util.EnsureOwnerReference(&in.ObjectMeta, ref)
+			in.Labels = db.OffshootLabels()
 			in.Rules = []rbac.PolicyRule{
 				{
 					APIGroups:     []string{policy_v1beta1.GroupName},
@@ -108,6 +110,7 @@ func (c *Controller) createServiceAccount(db *api.Postgres, saName string) error
 		},
 		func(in *core.ServiceAccount) *core.ServiceAccount {
 			core_util.EnsureOwnerReference(&in.ObjectMeta, ref)
+			in.Labels = db.OffshootLabels()
 			return in
 		},
 	)
@@ -128,6 +131,7 @@ func (c *Controller) createRoleBinding(db *api.Postgres) error {
 		},
 		func(in *rbac.RoleBinding) *rbac.RoleBinding {
 			core_util.EnsureOwnerReference(&in.ObjectMeta, ref)
+			in.Labels = db.OffshootLabels()
 			in.RoleRef = rbac.RoleRef{
 				APIGroup: rbac.GroupName,
 				Kind:     "Role",
@@ -160,6 +164,7 @@ func (c *Controller) createSnapshotRoleBinding(db *api.Postgres) error {
 		},
 		func(in *rbac.RoleBinding) *rbac.RoleBinding {
 			core_util.EnsureOwnerReference(&in.ObjectMeta, ref)
+			in.Labels = db.OffshootLabels()
 			in.RoleRef = rbac.RoleRef{
 				APIGroup: rbac.GroupName,
 				Kind:     "Role",

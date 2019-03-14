@@ -1,5 +1,5 @@
 hash: 469978189e54025e422ce012f232c43dbbbd55f08fe8577b52a2facc85edc33b
-updated: 2019-03-14T11:28:55.73290153-07:00
+updated: 2019-03-14T11:47:46.62227065-07:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -1032,7 +1032,7 @@ imports:
 - name: k8s.io/utils
   version: 66066c83e385e385ccc3c964b44fd7dcd413d0ed
 - name: kmodules.xyz/client-go
-  version: 348709ae06aa951e2e3e9c31bae48d704ace2d5d
+  version: fd7cc05edf46bb8d630fa6a84b875162f321e778
   subpackages:
   - admissionregistration/v1beta1
   - apiextensions/v1beta1
@@ -1043,7 +1043,6 @@ imports:
   - dynamic
   - logs
   - meta
-  - policy/v1beta1
   - rbac/v1beta1
   - tools/analytics
   - tools/cli

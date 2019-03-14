@@ -2,8 +2,7 @@
 # export APPSCODE_ENV=dev
 
 # kubedb/cli branch to checkout for installer script.
-# will be reverted back to master when psp-sprt branch is merged
-export CLI_BRANCH="psp-sprt"
+export CLI_BRANCH="master"
 
 # provide CUSTOM_OPERATOR_TAG for kubedb installer.
 # if APPSCODE_ENV=dev then git_tag will be used as CUSTOM_OPERATOR_TAG
