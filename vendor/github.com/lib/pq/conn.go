@@ -340,7 +340,12 @@ func DialOpen(d Dialer, name string) (_ driver.Conn, err error) {
 		return nil, err
 	}
 
-	// cn.ssl and cn.startup panic on error. Make sure we don't leak cn.c.
+	err = cn.ssl(o)
+	if err != nil {
+		return nil, err
+	}
+
+	// cn.startup panics on error. Make sure we don't leak cn.c.
 	panicking := true
 	defer func() {
 		if panicking {
@@ -348,7 +353,6 @@ func DialOpen(d Dialer, name string) (_ driver.Conn, err error) {
 		}
 	}()
 
-	cn.ssl(o)
 	cn.buf = bufio.NewReader(cn.c)
 	cn.startup(o)
 
@@ -700,7 +704,7 @@ func (cn *conn) simpleQuery(q string) (res *rows, err error) {
 			// res might be non-nil here if we received a previous
 			// CommandComplete, but that's fine; just overwrite it
 			res = &rows{cn: cn}
-			res.colNames, res.colFmts, res.colTyps = parsePortalRowDescribe(r)
+			res.rowsHeader = parsePortalRowDescribe(r)
 
 			// To work around a bug in QueryRow in Go 1.2 and earlier, wait
 			// until the first DataRow has been received.
@@ -857,17 +861,15 @@ func (cn *conn) query(query string, args []driver.Value) (_ *rows, err error) {
 		cn.readParseResponse()
 		cn.readBindResponse()
 		rows := &rows{cn: cn}
-		rows.colNames, rows.colFmts, rows.colTyps = cn.readPortalDescribeResponse()
+		rows.rowsHeader = cn.readPortalDescribeResponse()
 		cn.postExecuteWorkaround()
 		return rows, nil
 	}
 	st := cn.prepareTo(query, "")
 	st.exec(args)
 	return &rows{
-		cn:       cn,
-		colNames: st.colNames,
-		colTyps:  st.colTyps,
-		colFmts:  st.colFmts,
+		cn:         cn,
+		rowsHeader: st.rowsHeader,
 	}, nil
 }
 
@@ -1029,30 +1031,35 @@ func (cn *conn) recv1() (t byte, r *readBuf) {
 	return t, r
 }
 
-func (cn *conn) ssl(o values) {
-	upgrade := ssl(o)
+func (cn *conn) ssl(o values) error {
+	upgrade, err := ssl(o)
+	if err != nil {
+		return err
+	}
+
 	if upgrade == nil {
 		// Nothing to do
-		return
+		return nil
 	}
 
 	w := cn.writeBuf(0)
 	w.int32(80877103)
-	if err := cn.sendStartupPacket(w); err != nil {
-		panic(err)
+	if err = cn.sendStartupPacket(w); err != nil {
+		return err
 	}
 
 	b := cn.scratch[:1]
-	_, err := io.ReadFull(cn.c, b)
+	_, err = io.ReadFull(cn.c, b)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	if b[0] != 'S' {
-		panic(ErrSSLNotSupported)
+		return ErrSSLNotSupported
 	}
 
-	cn.c = upgrade(cn.c)
+	cn.c, err = upgrade(cn.c)
+	return err
 }
 
 // isDriverSetting returns true iff a setting is purely for configuring the
@@ -1171,12 +1178,10 @@ var colFmtDataAllBinary = []byte{0, 1, 0, 1}
 var colFmtDataAllText = []byte{0, 0}
 
 type stmt struct {
-	cn         *conn
-	name       string
-	colNames   []string
-	colFmts    []format
+	cn   *conn
+	name string
+	rowsHeader
 	colFmtData []byte
-	colTyps    []fieldDesc
 	paramTyps  []oid.Oid
 	closed     bool
 }
@@ -1222,10 +1227,8 @@ func (st *stmt) Query(v []driver.Value) (r driver.Rows, err error) {
 
 	st.exec(v)
 	return &rows{
-		cn:       st.cn,
-		colNames: st.colNames,
-		colTyps:  st.colTyps,
-		colFmts:  st.colFmts,
+		cn:         st.cn,
+		rowsHeader: st.rowsHeader,
 	}, nil
 }
 
@@ -1335,16 +1338,22 @@ func (cn *conn) parseComplete(commandTag string) (driver.Result, string) {
 	return driver.RowsAffected(n), commandTag
 }
 
-type rows struct {
-	cn       *conn
-	finish   func()
+type rowsHeader struct {
 	colNames []string
 	colTyps  []fieldDesc
 	colFmts  []format
-	done     bool
-	rb       readBuf
-	result   driver.Result
-	tag      string
+}
+
+type rows struct {
+	cn     *conn
+	finish func()
+	rowsHeader
+	done   bool
+	rb     readBuf
+	result driver.Result
+	tag    string
+
+	next *rowsHeader
 }
 
 func (rs *rows) Close() error {
@@ -1431,7 +1440,8 @@ func (rs *rows) Next(dest []driver.Value) (err error) {
 			}
 			return
 		case 'T':
-			rs.colNames, rs.colFmts, rs.colTyps = parsePortalRowDescribe(&rs.rb)
+			next := parsePortalRowDescribe(&rs.rb)
+			rs.next = &next
 			return io.EOF
 		default:
 			errorf("unexpected message after execute: %q", t)
@@ -1440,10 +1450,16 @@ func (rs *rows) Next(dest []driver.Value) (err error) {
 }
 
 func (rs *rows) HasNextResultSet() bool {
-	return !rs.done
+	hasNext := rs.next != nil && !rs.done
+	return hasNext
 }
 
 func (rs *rows) NextResultSet() error {
+	if rs.next == nil {
+		return io.EOF
+	}
+	rs.rowsHeader = *rs.next
+	rs.next = nil
 	return nil
 }
 
@@ -1621,13 +1637,13 @@ func (cn *conn) readStatementDescribeResponse() (paramTyps []oid.Oid, colNames [
 	}
 }
 
-func (cn *conn) readPortalDescribeResponse() (colNames []string, colFmts []format, colTyps []fieldDesc) {
+func (cn *conn) readPortalDescribeResponse() rowsHeader {
 	t, r := cn.recv1()
 	switch t {
 	case 'T':
 		return parsePortalRowDescribe(r)
 	case 'n':
-		return nil, nil, nil
+		return rowsHeader{}
 	case 'E':
 		err := parseError(r)
 		cn.readReadyForQuery()
@@ -1733,11 +1749,11 @@ func parseStatementRowDescribe(r *readBuf) (colNames []string, colTyps []fieldDe
 	return
 }
 
-func parsePortalRowDescribe(r *readBuf) (colNames []string, colFmts []format, colTyps []fieldDesc) {
+func parsePortalRowDescribe(r *readBuf) rowsHeader {
 	n := r.int16()
-	colNames = make([]string, n)
-	colFmts = make([]format, n)
-	colTyps = make([]fieldDesc, n)
+	colNames := make([]string, n)
+	colFmts := make([]format, n)
+	colTyps := make([]fieldDesc, n)
 	for i := range colNames {
 		colNames[i] = r.string()
 		r.next(6)
@@ -1746,7 +1762,11 @@ func parsePortalRowDescribe(r *readBuf) (colNames []string, colFmts []format, co
 		colTyps[i].Mod = r.int32()
 		colFmts[i] = format(r.int16())
 	}
-	return
+	return rowsHeader{
+		colNames: colNames,
+		colFmts:  colFmts,
+		colTyps:  colTyps,
+	}
 }
 
 // parseEnviron tries to mimic some of libpq's environment handling

@@ -112,3 +112,5 @@ import:
   version: release-10.0
 - package: sigs.k8s.io/yaml
   version: v1.1.0
+- package: k8s.io/cli-runtime
+  version: kubernetes-1.13.0
