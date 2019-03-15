@@ -28,6 +28,10 @@ func (i *Invocation) PostgresVersion() *api.PostgresVersion {
 			Tools: api.PostgresVersionTools{
 				Image: fmt.Sprintf("%s/postgres-tools:%s", DockerRegistry, DBToolsTag),
 			},
+			PodSecurityPolicies: api.PostgresVersionPodSecurityPolicy{
+				SnapshotterPolicyName: "postgres-snapshot",
+				DatabasePolicyName:    "postgres-db",
+			},
 		},
 	}
 }
