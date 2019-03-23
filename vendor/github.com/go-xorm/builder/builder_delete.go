@@ -15,11 +15,11 @@ func Delete(conds ...Cond) *Builder {
 }
 
 func (b *Builder) deleteWriteTo(w Writer) error {
-	if len(b.from) <= 0 {
+	if len(b.tableName) <= 0 {
 		return ErrNoTableName
 	}
 
-	if _, err := fmt.Fprintf(w, "DELETE FROM %s WHERE ", b.from); err != nil {
+	if _, err := fmt.Fprintf(w, "DELETE FROM %s WHERE ", b.tableName); err != nil {
 		return err
 	}
 

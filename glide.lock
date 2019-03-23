@@ -1,5 +1,5 @@
-hash: 503df601c63e5ac20e9b7ffa3699cbf12ed5352e8fa308dce25d6ede2fa52ab4
-updated: 2019-03-18T15:10:21.017167768-07:00
+hash: f3e43f7f30bcdff457f3a8da1ef36ed350b468299732a0fcdcf0849d99c59eb3
+updated: 2019-03-23T09:04:59.083043606-07:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -226,11 +226,11 @@ imports:
 - name: github.com/go-openapi/jsonreference
   version: 8483a886a90412cd6858df4ea3483dce9c8e35a3
 - name: github.com/go-openapi/spec
-  version: 5bae59e25b21498baea7f9d46e9c147ec106a42e
+  version: 5b6cdde3200976e3ecceb2868706ee39b6aff3e4
 - name: github.com/go-openapi/swag
   version: 5899d5c5e619fda5fa86e14795a835f473ca284c
 - name: github.com/go-xorm/builder
-  version: 1d658d7596c25394aab557ef5b50ef35bf706384
+  version: 145c9968bfe732a56d7160439d25154c5aaa2f35
 - name: github.com/go-xorm/core
   version: c10e21e7e1cec20e09398f2dfae385e58c8df555
 - name: github.com/go-xorm/xorm
@@ -271,7 +271,7 @@ imports:
 - name: github.com/google/gofuzz
   version: 44d81051d367757e1c7c6a5a86423ece9afcf63c
 - name: github.com/google/uuid
-  version: 8c31c18f31ede9fc8eae72290a7e7a8064e9b3e3
+  version: d460ce9f8df2e77fb1ba55ca87fafed96c607494
 - name: github.com/googleapis/gnostic
   version: 0c5108395e2debce0d731cf0287ddf7242066aba
   subpackages:
@@ -327,7 +327,7 @@ imports:
 - name: github.com/json-iterator/go
   version: 1624edc4454b8682399def8740d46db5e4362ba4
 - name: github.com/kubedb/apimachinery
-  version: fb8b2533cc4f81f8c39214d943b3951206be0a2b
+  version: 334b49d77d819d1e3a8d90c7a4ea526bbb71f8b4
   subpackages:
   - apis
   - apis/authorization
@@ -371,7 +371,7 @@ imports:
   - pkg/eventer
   - pkg/validator
 - name: github.com/lib/pq
-  version: 88edab0803230a3898347e77b474f8c1820a1f20
+  version: 4ded0e9383f75c197b3a2aaa6d590ac52df6fd79
   subpackages:
   - oid
 - name: github.com/mailru/easyjson
@@ -393,7 +393,7 @@ imports:
 - name: github.com/modern-go/reflect2
   version: 94122c33edd36123c84d5368cfb2b69df93a0ec8
 - name: github.com/ncw/swift
-  version: a12c20e04ddb87207d41409a7afda9848aba8df2
+  version: 24e3012fc8a71f004a6455bce2088031d50bf2b6
 - name: github.com/NYTimes/gziphandler
   version: 56545f4a5d46df9a6648819d1664c3a03a13ffdb
 - name: github.com/onsi/ginkgo
@@ -1065,12 +1065,12 @@ imports:
   - agents/prometheusbuiltin
   - api/v1
 - name: kmodules.xyz/objectstore-api
-  version: 433d1fad089cb639415b182f6067cc5ffd43a2b3
+  version: 1819d12be808d6e39341205515e8ec91c55d4898
   subpackages:
   - api/v1
   - osm
 - name: kmodules.xyz/offshoot-api
-  version: 317e1ed3d6c458ec431ae651b7d61deb831f40ed
+  version: 3386b694ec505dca686fd81f82c3be89e9ca5fda
   subpackages:
   - api/v1
 - name: kmodules.xyz/webhook-runtime
