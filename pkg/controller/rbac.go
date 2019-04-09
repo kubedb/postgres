@@ -33,12 +33,6 @@ func (c *Controller) ensureRole(db *api.Postgres, pspName string) error {
 			in.Labels = db.OffshootLabels()
 			in.Rules = []rbac.PolicyRule{
 				{
-					APIGroups:     []string{policy_v1beta1.GroupName},
-					Resources:     []string{"podsecuritypolicies"},
-					Verbs:         []string{"use"},
-					ResourceNames: []string{pspName},
-				},
-				{
 					APIGroups:     []string{apps.GroupName},
 					Resources:     []string{"statefulsets"},
 					Verbs:         []string{"get"},
@@ -60,6 +54,15 @@ func (c *Controller) ensureRole(db *api.Postgres, pspName string) error {
 					Verbs:         []string{"get", "update"},
 					ResourceNames: []string{le.GetLeaderLockName(db.OffshootName())},
 				},
+			}
+			if pspName != "" {
+				pspRule := rbac.PolicyRule{
+					APIGroups:     []string{policy_v1beta1.GroupName},
+					Resources:     []string{"podsecuritypolicies"},
+					Verbs:         []string{"use"},
+					ResourceNames: []string{pspName},
+				}
+				in.Rules = append(in.Rules, pspRule)
 			}
 			return in
 		},
@@ -83,12 +86,15 @@ func (c *Controller) ensureSnapshotRole(db *api.Postgres, pspName string) error 
 			core_util.EnsureOwnerReference(&in.ObjectMeta, ref)
 			in.Labels = db.OffshootLabels()
 			in.Rules = []rbac.PolicyRule{
-				{
+			}
+			if pspName != "" {
+				pspRule := rbac.PolicyRule{
 					APIGroups:     []string{policy_v1beta1.GroupName},
 					Resources:     []string{"podsecuritypolicies"},
 					Verbs:         []string{"use"},
 					ResourceNames: []string{pspName},
-				},
+				}
+				in.Rules = append(in.Rules, pspRule)
 			}
 			return in
 		},
