@@ -85,8 +85,7 @@ func (c *Controller) ensureSnapshotRole(db *api.Postgres, pspName string) error 
 		func(in *rbac.Role) *rbac.Role {
 			core_util.EnsureOwnerReference(&in.ObjectMeta, ref)
 			in.Labels = db.OffshootLabels()
-			in.Rules = []rbac.PolicyRule{
-			}
+			in.Rules = []rbac.PolicyRule{}
 			if pspName != "" {
 				pspRule := rbac.PolicyRule{
 					APIGroups:     []string{policy_v1beta1.GroupName},
