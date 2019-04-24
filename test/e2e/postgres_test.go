@@ -1242,6 +1242,69 @@ var _ = Describe("Postgres", func() {
 				f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(6))
 			}
 
+			archiveAndInitializeFromLocalArchive := func() {
+				// -- > 1st Postgres < --
+				// Create Postgres
+				createAndWaitForRunning()
+
+				By("Creating Schema")
+				f.EventuallyCreateSchema(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
+
+				By("Creating Table")
+				f.EventuallyCreateTable(postgres.ObjectMeta, dbName, dbUser, 3).Should(BeTrue())
+
+				By("Checking Table")
+				f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
+
+				By("Checking Archive")
+				f.EventuallyCountArchive(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
+
+				oldPostgres, err := f.GetPostgres(postgres.ObjectMeta)
+				Expect(err).NotTo(HaveOccurred())
+
+				garbagePostgres.Items = append(garbagePostgres.Items, *oldPostgres)
+
+				// -- > 1st Postgres end < --
+
+				// -- > 2nd Postgres < --
+				*postgres = *postgres2nd
+
+				// Create Postgres
+				createAndWaitForRunning()
+
+				By("Ping Database")
+				f.EventuallyPingDatabase(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
+
+				By("Creating Table")
+				f.EventuallyCreateTable(postgres.ObjectMeta, dbName, dbUser, 3).Should(BeTrue())
+
+				By("Checking Table")
+				f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(6))
+
+				By("Checking Archive")
+				f.EventuallyCountArchive(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
+
+				oldPostgres, err = f.GetPostgres(postgres.ObjectMeta)
+				Expect(err).NotTo(HaveOccurred())
+
+				garbagePostgres.Items = append(garbagePostgres.Items, *oldPostgres)
+
+				// -- > 2nd Postgres end < --
+
+				// -- > 3rd Postgres < --
+				*postgres = *postgres3rd
+
+				// Create Postgres
+				createAndWaitForRunning()
+
+				By("Ping Database")
+				f.EventuallyPingDatabase(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
+
+				By("Checking Table")
+				f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(6))
+
+			}
+
 			shouldWipeOutWalData := func() {
 
 				err := f.CreateSecret(secret)
@@ -1275,6 +1338,106 @@ var _ = Describe("Postgres", func() {
 				By("Checking Wal data removed from backend")
 				f.EventuallyWalDataFound(postgres).Should(BeFalse())
 			}
+
+			shouldWipeOutLocalWalData := func() {
+				By("Checking DormantDatabase is not created")
+				f.EventuallyDormantDatabase(postgres.ObjectMeta).Should(BeFalse())
+
+				By("Wal data is removed from backend")
+			}
+
+			Context("In Local", func() {
+				BeforeEach(func() {
+					skipWalDataChecking = true
+				})
+
+				Context("With EmptyDir as Archive backend", func() {
+					By("By definition, WAL files can not be initialized from EmptyDir. Skipping Test.")
+				})
+
+				Context("With PVC as Archive backend", func() {
+					var archivePVC *core.PersistentVolumeClaim
+					BeforeEach(func() {
+						secret = f.SecretForLocalBackend()
+						archivePVC = f.GetPersistentVolumeClaim()
+						err := f.CreatePersistentVolumeClaim(archivePVC)
+						Expect(err).NotTo(HaveOccurred())
+
+						postgres.Spec.Archiver = &api.PostgresArchiverSpec{
+							Storage: &store.Backend{
+								Local: &store.LocalSpec{
+									MountPath: "/repo",
+									VolumeSource: core.VolumeSource{
+										PersistentVolumeClaim: &core.PersistentVolumeClaimVolumeSource{
+											ClaimName: archivePVC.Name,
+										},
+									},
+								},
+							},
+						}
+						// 2nd Postgres
+						postgres2nd = f.Postgres()
+						postgres2nd.Spec.Archiver = &api.PostgresArchiverSpec{
+							Storage: &store.Backend{
+								Local: &store.LocalSpec{
+									MountPath: "/repo",
+									VolumeSource: core.VolumeSource{
+										PersistentVolumeClaim: &core.PersistentVolumeClaimVolumeSource{
+											ClaimName: archivePVC.Name,
+										},
+									},
+								},
+							},
+						}
+						postgres2nd.Spec.Init = &api.InitSpec{
+							PostgresWAL: &api.PostgresWALSourceSpec{
+								Backend: store.Backend{
+									Local: &store.LocalSpec{
+										MountPath: "/repo",
+										SubPath:   fmt.Sprintf("%s-0", postgres.Name),
+										VolumeSource: core.VolumeSource{
+											PersistentVolumeClaim: &core.PersistentVolumeClaimVolumeSource{
+												ClaimName: archivePVC.Name,
+											},
+										},
+									},
+								},
+							},
+						}
+						// -- > 3rd Postgres < --
+						postgres3rd = f.Postgres()
+						postgres3rd.Spec.Init = &api.InitSpec{
+							PostgresWAL: &api.PostgresWALSourceSpec{
+								Backend: store.Backend{
+									Local: &store.LocalSpec{
+										MountPath: "cold/sub0",
+										SubPath:   fmt.Sprintf("%s-0", postgres2nd.Name),
+										VolumeSource: core.VolumeSource{
+											PersistentVolumeClaim: &core.PersistentVolumeClaimVolumeSource{
+												ClaimName: archivePVC.Name,
+											},
+										},
+									},
+								},
+							},
+						}
+
+					})
+					Context("Archive and Initialize from wal archive", func() {
+						It("should archive and should resume from archive successfully", archiveAndInitializeFromLocalArchive)
+					})
+					Context("WipeOut wal data", func() {
+
+						BeforeEach(func() {
+							postgres.Spec.TerminationPolicy = api.TerminationPolicyWipeOut
+							//err := f.DeletePersistentVolumeClaim(archivePVC.ObjectMeta)
+							//Expect(err).NotTo(HaveOccurred())
+						})
+
+						It("should remove wal data from backend", shouldWipeOutLocalWalData)
+					})
+				})
+			})
 
 			Context("In S3", func() {
 

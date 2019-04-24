@@ -5,6 +5,7 @@
 package builder
 
 import (
+	sql2 "database/sql"
 	"fmt"
 	"reflect"
 	"time"
@@ -105,10 +106,15 @@ func ConvertToBoundSQL(sql string, args []interface{}) (string, error) {
 				return "", ErrNeedMoreArguments
 			}
 
-			if noSQLQuoteNeeded(args[j]) {
-				_, err = fmt.Fprint(&buf, args[j])
+			arg := args[j]
+			if namedArg, ok := arg.(sql2.NamedArg); ok {
+				arg = namedArg.Value
+			}
+
+			if noSQLQuoteNeeded(arg) {
+				_, err = fmt.Fprint(&buf, arg)
 			} else {
-				_, err = fmt.Fprintf(&buf, "'%v'", args[j])
+				_, err = fmt.Fprintf(&buf, "'%v'", arg)
 			}
 			if err != nil {
 				return "", err
@@ -129,27 +135,22 @@ func ConvertPlaceholder(sql, prefix string) (string, error) {
 	var i, j, start int
 	for ; i < len(sql); i++ {
 		if sql[i] == '?' {
-			_, err := buf.WriteString(sql[start:i])
-			if err != nil {
+			if _, err := buf.WriteString(sql[start:i]); err != nil {
 				return "", err
 			}
+
 			start = i + 1
-
-			_, err = buf.WriteString(prefix)
-			if err != nil {
-				return "", err
-			}
-
 			j = j + 1
-			_, err = buf.WriteString(fmt.Sprintf("%d", j))
-			if err != nil {
+
+			if _, err := buf.WriteString(fmt.Sprintf("%v%d", prefix, j)); err != nil {
 				return "", err
 			}
 		}
 	}
-	_, err := buf.WriteString(sql[start:])
-	if err != nil {
+
+	if _, err := buf.WriteString(sql[start:]); err != nil {
 		return "", err
 	}
+
 	return buf.String(), nil
 }
