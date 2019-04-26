@@ -52,6 +52,52 @@ func (i *Invocation) SecretForS3Backend() *core.Secret {
 	}
 }
 
+func (i *Invocation) SecretForMinioBackend() *core.Secret {
+	if os.Getenv(store.AWS_ACCESS_KEY_ID) == "" ||
+		os.Getenv(store.AWS_SECRET_ACCESS_KEY) == "" {
+		return &core.Secret{}
+	}
+
+	return &core.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      rand.WithUniqSuffix(i.app + "-s3"),
+			Namespace: i.namespace,
+		},
+		Data: map[string][]byte{
+			store.AWS_ACCESS_KEY_ID:     []byte(os.Getenv(store.AWS_ACCESS_KEY_ID)),
+			store.AWS_SECRET_ACCESS_KEY: []byte(os.Getenv(store.AWS_SECRET_ACCESS_KEY)),
+			store.CA_CERT_DATA:          i.CertStore.CACertBytes(),
+		},
+	}
+}
+
+func (i *Invocation) SecretForMinioServer() *core.Secret {
+
+	if os.Getenv(store.AWS_ACCESS_KEY_ID) == "" ||
+		os.Getenv(store.AWS_SECRET_ACCESS_KEY) == "" {
+		return &core.Secret{}
+	}
+
+	crt, key, err := i.CertStore.NewServerCertPairBytes(i.MinioServerSANs())
+	if err != nil {
+		return nil
+	}
+	Expect(err).NotTo(HaveOccurred())
+
+	return &core.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      rand.WithUniqSuffix(i.app + "-s3"),
+			Namespace: i.namespace,
+		},
+		Data: map[string][]byte{
+			store.AWS_ACCESS_KEY_ID:     []byte(os.Getenv(store.AWS_ACCESS_KEY_ID)),
+			store.AWS_SECRET_ACCESS_KEY: []byte(os.Getenv(store.AWS_SECRET_ACCESS_KEY)),
+			MINIO_PUBLIC_CRT_NAME:       []byte(string(crt) + "\n" + string(i.CertStore.CACertBytes())),
+			MINIO_PRIVATE_KEY_NAME:      key,
+		},
+	}
+}
+
 func (i *Invocation) SecretForGCSBackend() *core.Secret {
 	if os.Getenv(store.GOOGLE_PROJECT_ID) == "" ||
 		(os.Getenv("GOOGLE_APPLICATION_CREDENTIALS") == "" && os.Getenv(store.GOOGLE_SERVICE_ACCOUNT_JSON_KEY) == "") {

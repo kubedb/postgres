@@ -48,6 +48,7 @@ var _ = Describe("Postgres", func() {
 		skipMessage              string
 		skipSnapshotDataChecking bool
 		skipWalDataChecking      bool
+		skipWipeOut              bool
 		dbName                   string
 		dbUser                   string
 	)
@@ -62,6 +63,7 @@ var _ = Describe("Postgres", func() {
 		skipMessage = ""
 		skipSnapshotDataChecking = true
 		skipWalDataChecking = true
+		skipWipeOut = false
 		dbName = "postgres"
 		dbUser = "postgres"
 	})
@@ -225,8 +227,10 @@ var _ = Describe("Postgres", func() {
 
 		}
 
-		By("Wait for postgres resources to be wipedOut")
-		f.EventuallyWipedOut(postgres.ObjectMeta).Should(Succeed())
+		if !skipWipeOut {
+			By("Wait for postgres resources to be wipedOut")
+			f.EventuallyWipedOut(postgres.ObjectMeta).Should(Succeed())
+		}
 
 		if postgres.Spec.Archiver != nil && !skipWalDataChecking {
 			By("Checking wal data has been removed")
@@ -259,6 +263,8 @@ var _ = Describe("Postgres", func() {
 		if err != nil && !kerr.IsNotFound(err) {
 			Expect(err).NotTo(HaveOccurred())
 		}
+		err = f.DeleteMinioServer()
+		Expect(err).NotTo(HaveOccurred())
 	})
 
 	Describe("Test", func() {
@@ -1422,6 +1428,138 @@ var _ = Describe("Postgres", func() {
 				})
 			})
 
+			FContext("Minio S3", func() {
+				BeforeEach(func() {
+					skipWalDataChecking = false
+					if !framework.SelfHostedOperator {
+						skipWipeOut = true
+					} else {
+						skipWipeOut = false
+					}
+				})
+				Context("With ca-cert", func() {
+					BeforeEach(func() {
+						By("Creating Minio server with cacert")
+						addrs, err := f.CreateMinioServer(true, nil)
+						Expect(err).NotTo(HaveOccurred())
+						secret = f.SecretForMinioBackend()
+						postgres.Spec.Archiver = &api.PostgresArchiverSpec{
+							Storage: &store.Backend{
+								StorageSecretName: secret.Name,
+								S3: &store.S3Spec{
+									Bucket:   os.Getenv(S3_BUCKET_NAME),
+									Endpoint: addrs,
+								},
+							},
+						}
+						//err = f.CreateBucket(postgres)
+						//Expect(err).NotTo(HaveOccurred())
+						// -- > 2nd Postgres < --
+						postgres2nd = f.Postgres()
+						postgres2nd.Spec.Archiver = &api.PostgresArchiverSpec{
+							Storage: &store.Backend{
+								StorageSecretName: secret.Name,
+								S3: &store.S3Spec{
+									Bucket:   os.Getenv(S3_BUCKET_NAME),
+									Endpoint: addrs,
+								},
+							},
+						}
+						postgres2nd.Spec.Init = &api.InitSpec{
+							PostgresWAL: &api.PostgresWALSourceSpec{
+								Backend: store.Backend{
+									StorageSecretName: secret.Name,
+									S3: &store.S3Spec{
+										Bucket:   os.Getenv(S3_BUCKET_NAME),
+										Prefix:   fmt.Sprintf("kubedb/%s/%s/archive/", postgres.Namespace, postgres.Name),
+										Endpoint: addrs,
+									},
+								},
+							},
+						}
+
+						// -- > 3rd Postgres < --
+						postgres3rd = f.Postgres()
+						postgres3rd.Spec.Init = &api.InitSpec{
+							PostgresWAL: &api.PostgresWALSourceSpec{
+								Backend: store.Backend{
+									StorageSecretName: secret.Name,
+									S3: &store.S3Spec{
+										Bucket:   os.Getenv(S3_BUCKET_NAME),
+										Prefix:   fmt.Sprintf("kubedb/%s/%s/archive/", postgres2nd.Namespace, postgres2nd.Name),
+										Endpoint: addrs,
+									},
+								},
+							},
+						}
+
+					})
+					It("should archive and should resume from archive successfully", archiveAndInitializeFromArchive)
+					AfterEach(func() {
+
+					})
+				})
+				Context("Without ca-cert", func() {
+					BeforeEach(func() {
+						By("Creating Minio server without cacert")
+						addrs, err := f.CreateMinioServer(false, nil)
+						Expect(err).NotTo(HaveOccurred())
+						secret = f.SecretForS3Backend()
+						postgres.Spec.Archiver = &api.PostgresArchiverSpec{
+							Storage: &store.Backend{
+								StorageSecretName: secret.Name,
+								S3: &store.S3Spec{
+									Bucket:   os.Getenv(S3_BUCKET_NAME),
+									Endpoint: addrs,
+								},
+							},
+						}
+						//err = f.CreateBucket(postgres)
+						//Expect(err).NotTo(HaveOccurred())
+						// -- > 2nd Postgres < --
+						postgres2nd = f.Postgres()
+						postgres2nd.Spec.Archiver = &api.PostgresArchiverSpec{
+							Storage: &store.Backend{
+								StorageSecretName: secret.Name,
+								S3: &store.S3Spec{
+									Bucket:   os.Getenv(S3_BUCKET_NAME),
+									Endpoint: addrs,
+								},
+							},
+						}
+						postgres2nd.Spec.Init = &api.InitSpec{
+							PostgresWAL: &api.PostgresWALSourceSpec{
+								Backend: store.Backend{
+									StorageSecretName: secret.Name,
+									S3: &store.S3Spec{
+										Bucket:   os.Getenv(S3_BUCKET_NAME),
+										Prefix:   fmt.Sprintf("kubedb/%s/%s/archive/", postgres.Namespace, postgres.Name),
+										Endpoint: addrs,
+									},
+								},
+							},
+						}
+
+						// -- > 3rd Postgres < --
+						postgres3rd = f.Postgres()
+						postgres3rd.Spec.Init = &api.InitSpec{
+							PostgresWAL: &api.PostgresWALSourceSpec{
+								Backend: store.Backend{
+									StorageSecretName: secret.Name,
+									S3: &store.S3Spec{
+										Bucket:   os.Getenv(S3_BUCKET_NAME),
+										Prefix:   fmt.Sprintf("kubedb/%s/%s/archive/", postgres2nd.Namespace, postgres2nd.Name),
+										Endpoint: addrs,
+									},
+								},
+							},
+						}
+
+					})
+					It("should archive and should resume from archive successfully", archiveAndInitializeFromArchive)
+				})
+			})
+
 			Context("In S3", func() {
 
 				BeforeEach(func() {
@@ -1489,7 +1627,6 @@ var _ = Describe("Postgres", func() {
 				})
 			})
 
-			////////////////////==========GCS============//////////////////////
 			Context("In GCS", func() {
 
 				BeforeEach(func() {
@@ -1556,7 +1693,6 @@ var _ = Describe("Postgres", func() {
 				})
 			})
 
-			////////////////////==========AZURE============//////////////////////
 			Context("In AZURE", func() {
 
 				BeforeEach(func() {
@@ -1622,8 +1758,7 @@ var _ = Describe("Postgres", func() {
 					It("should remove wal data from backend", shouldWipeOutWalData)
 				})
 			})
-			//////////
-			////////////////////==========SWIFT============//////////////////////
+
 			Context("In SWIFT", func() {
 
 				BeforeEach(func() {

@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"crypto/md5"
+	"crypto/sha256"
 	"database/sql"
 	"database/sql/driver"
 	"encoding/binary"
@@ -21,6 +22,7 @@ import (
 	"unicode"
 
 	"github.com/lib/pq/oid"
+	"github.com/lib/pq/scram"
 )
 
 // Common error types
@@ -958,7 +960,6 @@ func (cn *conn) recv() (t byte, r *readBuf) {
 		if err != nil {
 			panic(err)
 		}
-
 		switch t {
 		case 'E':
 			panic(parseError(r))
@@ -1129,6 +1130,55 @@ func (cn *conn) auth(r *readBuf, o values) {
 		if r.int32() != 0 {
 			errorf("unexpected authentication response: %q", t)
 		}
+	case 10:
+		sc := scram.NewClient(sha256.New, o["user"], o["password"])
+		sc.Step(nil)
+		if sc.Err() != nil {
+			errorf("SCRAM-SHA-256 error: %s", sc.Err().Error())
+		}
+		scOut := sc.Out()
+
+		w := cn.writeBuf('p')
+		w.string("SCRAM-SHA-256")
+		w.int32(len(scOut))
+		w.bytes(scOut)
+		cn.send(w)
+
+		t, r := cn.recv()
+		if t != 'R' {
+			errorf("unexpected password response: %q", t)
+		}
+
+		if r.int32() != 11 {
+			errorf("unexpected authentication response: %q", t)
+		}
+
+		nextStep := r.next(len(*r))
+		sc.Step(nextStep)
+		if sc.Err() != nil {
+			errorf("SCRAM-SHA-256 error: %s", sc.Err().Error())
+		}
+
+		scOut = sc.Out()
+		w = cn.writeBuf('p')
+		w.bytes(scOut)
+		cn.send(w)
+
+		t, r = cn.recv()
+		if t != 'R' {
+			errorf("unexpected password response: %q", t)
+		}
+
+		if r.int32() != 12 {
+			errorf("unexpected authentication response: %q", t)
+		}
+
+		nextStep = r.next(len(*r))
+		sc.Step(nextStep)
+		if sc.Err() != nil {
+			errorf("SCRAM-SHA-256 error: %s", sc.Err().Error())
+		}
+
 	default:
 		errorf("unknown authentication response: %d", code)
 	}
@@ -1448,6 +1498,39 @@ func QuoteIdentifier(name string) string {
 		name = name[:end]
 	}
 	return `"` + strings.Replace(name, `"`, `""`, -1) + `"`
+}
+
+// QuoteLiteral quotes a 'literal' (e.g. a parameter, often used to pass literal
+// to DDL and other statements that do not accept parameters) to be used as part
+// of an SQL statement.  For example:
+//
+//    exp_date := pq.QuoteLiteral("2023-01-05 15:00:00Z")
+//    err := db.Exec(fmt.Sprintf("CREATE ROLE my_user VALID UNTIL %s", exp_date))
+//
+// Any single quotes in name will be escaped. Any backslashes (i.e. "\") will be
+// replaced by two backslashes (i.e. "\\") and the C-style escape identifier
+// that PostgreSQL provides ('E') will be prepended to the string.
+func QuoteLiteral(literal string) string {
+	// This follows the PostgreSQL internal algorithm for handling quoted literals
+	// from libpq, which can be found in the "PQEscapeStringInternal" function,
+	// which is found in the libpq/fe-exec.c source file:
+	// https://git.postgresql.org/gitweb/?p=postgresql.git;a=blob;f=src/interfaces/libpq/fe-exec.c
+	//
+	// substitute any single-quotes (') with two single-quotes ('')
+	literal = strings.Replace(literal, `'`, `''`, -1)
+	// determine if the string has any backslashes (\) in it.
+	// if it does, replace any backslashes (\) with two backslashes (\\)
+	// then, we need to wrap the entire string with a PostgreSQL
+	// C-style escape. Per how "PQEscapeStringInternal" handles this case, we
+	// also add a space before the "E"
+	if strings.Contains(literal, `\`) {
+		literal = strings.Replace(literal, `\`, `\\`, -1)
+		literal = ` E'` + literal + `'`
+	} else {
+		// otherwise, we can just wrap the literal with a pair of single quotes
+		literal = `'` + literal + `'`
+	}
+	return literal
 }
 
 func md5s(s string) string {

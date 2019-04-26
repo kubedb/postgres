@@ -1,5 +1,5 @@
-hash: a80e46c9b734570e274c930dbdecc17b8d414cec86b23447b2991f2ee037be47
-updated: 2019-04-23T02:31:54.576029049-07:00
+hash: 34d3b853047e7b33b33487eeb633a6dc77cafe60835036e4c729d84850f2a51c
+updated: 2019-05-06T12:29:38.338076459+06:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -8,7 +8,7 @@ imports:
   subpackages:
   - compute/metadata
 - name: github.com/appscode/go
-  version: 50c98d5fbcddac827713a481a7e34a26df5e4b57
+  version: 60025f1135c977fecd189c12dbfa259d837d7a18
   subpackages:
   - analytics
   - arrays
@@ -230,7 +230,7 @@ imports:
 - name: github.com/go-openapi/swag
   version: 5899d5c5e619fda5fa86e14795a835f473ca284c
 - name: github.com/go-xorm/builder
-  version: 1d658d7596c25394aab557ef5b50ef35bf706384
+  version: 0c156dfdb0619fec336cc5b87b15b06f858ce6c7
 - name: github.com/go-xorm/core
   version: c10e21e7e1cec20e09398f2dfae385e58c8df555
 - name: github.com/go-xorm/xorm
@@ -271,7 +271,7 @@ imports:
 - name: github.com/google/gofuzz
   version: 44d81051d367757e1c7c6a5a86423ece9afcf63c
 - name: github.com/google/uuid
-  version: 8c31c18f31ede9fc8eae72290a7e7a8064e9b3e3
+  version: c2e93f3ae59f2904160ceaab466009f965df46d6
 - name: github.com/googleapis/gnostic
   version: 0c5108395e2debce0d731cf0287ddf7242066aba
   subpackages:
@@ -327,7 +327,7 @@ imports:
 - name: github.com/json-iterator/go
   version: 1624edc4454b8682399def8740d46db5e4362ba4
 - name: github.com/kubedb/apimachinery
-  version: b5efa57aa32081ced51ecebc3e00379985d23a34
+  version: 5a91bc4773677eac8b3bf673f3c9c8394d12f476
   subpackages:
   - apis
   - apis/authorization
@@ -371,9 +371,10 @@ imports:
   - pkg/eventer
   - pkg/validator
 - name: github.com/lib/pq
-  version: d6156e141ac6c06345c7c73f450987a9ed4b751f
+  version: ceb88a0649027d76542fd8084fcb4e07b4d52295
   subpackages:
   - oid
+  - scram
 - name: github.com/mailru/easyjson
   version: 2f5df55504ebc322e4d52d34df6a1f5b503bf26d
   subpackages:
@@ -471,6 +472,10 @@ imports:
   - diffmatchpatch
 - name: github.com/sirupsen/logrus
   version: 89742aefa4b206dcf400792f3bd35b542998eb3b
+- name: github.com/spf13/afero
+  version: 588a75ec4f32903aa5e39a2619ba6a4631e28424
+  subpackages:
+  - mem
 - name: github.com/spf13/cobra
   version: ef82de70bb3f60c65fb8eebacbb2d122ef517385
   subpackages:
@@ -1032,7 +1037,7 @@ imports:
 - name: k8s.io/utils
   version: 66066c83e385e385ccc3c964b44fd7dcd413d0ed
 - name: kmodules.xyz/client-go
-  version: 5dcc4cecf4c96d58e0624cd41311f3a4663db7d7
+  version: 85881479d87957cf3eab9424ec86bcc67dbfbac6
   subpackages:
   - admissionregistration/v1beta1
   - apiextensions/v1beta1
@@ -1045,6 +1050,7 @@ imports:
   - meta
   - rbac/v1beta1
   - tools/analytics
+  - tools/certstore
   - tools/cli
   - tools/clientcmd
   - tools/portforward
@@ -1065,7 +1071,7 @@ imports:
   - agents/prometheusbuiltin
   - api/v1
 - name: kmodules.xyz/objectstore-api
-  version: 2558fb903e3d0756f974ed4e5769ffcf27ffea30
+  version: a687247211d6e2dc2f08c7392ca4dba17749586e
   subpackages:
   - api/v1
   - osm
