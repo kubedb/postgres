@@ -1419,12 +1419,6 @@ var _ = Describe("Postgres", func() {
 					Context("Archive and Initialize from wal archive", func() {
 						It("should archive and should resume from archive successfully", archiveAndInitializeFromLocalArchive)
 					})
-					Context("WipeOut wal data", func() {
-
-						BeforeEach(func() {
-							postgres.Spec.TerminationPolicy = api.TerminationPolicyWipeOut
-						})
-					})
 				})
 			})
 
