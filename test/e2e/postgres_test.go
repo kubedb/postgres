@@ -1339,13 +1339,6 @@ var _ = Describe("Postgres", func() {
 				f.EventuallyWalDataFound(postgres).Should(BeFalse())
 			}
 
-			shouldWipeOutLocalWalData := func() {
-				By("Checking DormantDatabase is not created")
-				f.EventuallyDormantDatabase(postgres.ObjectMeta).Should(BeFalse())
-
-				By("Wal data is removed from backend")
-			}
-
 			Context("In Local", func() {
 				BeforeEach(func() {
 					skipWalDataChecking = true
@@ -1430,11 +1423,7 @@ var _ = Describe("Postgres", func() {
 
 						BeforeEach(func() {
 							postgres.Spec.TerminationPolicy = api.TerminationPolicyWipeOut
-							//err := f.DeletePersistentVolumeClaim(archivePVC.ObjectMeta)
-							//Expect(err).NotTo(HaveOccurred())
 						})
-
-						It("should remove wal data from backend", shouldWipeOutLocalWalData)
 					})
 				})
 			})

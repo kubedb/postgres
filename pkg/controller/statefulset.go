@@ -529,30 +529,31 @@ func upsertDataVolume(statefulSet *apps.StatefulSet, postgres *api.Postgres) *ap
 			podSpec := statefulSet.Spec.Template.Spec
 			if pgLocalVol != nil {
 				volume := core.Volume{
-					Name:         "local",
+					Name:         "localArchive",
 					VolumeSource: pgLocalVol.VolumeSource,
 				}
 				statefulSet.Spec.Template.Spec.Volumes = append(podSpec.Volumes, volume)
 
 				statefulSet.Spec.Template.Spec.Containers[0].VolumeMounts = append(podSpec.Containers[0].VolumeMounts, core.VolumeMount{
-					Name:      "local",
+					Name:      "localArchive",
 					MountPath: pgLocalVol.MountPath,
 					//SubPath:  use of SubPath is discouraged
 					// due to the contrasting natures of PV claim and wal-g directory
 				})
 			}
-		} else if postgres.Spec.Init != nil && postgres.Spec.Init.PostgresWAL != nil && postgres.Spec.Init.PostgresWAL.Local != nil {
+		}
+		if postgres.Spec.Init != nil && postgres.Spec.Init.PostgresWAL != nil && postgres.Spec.Init.PostgresWAL.Local != nil {
 			pgLocalVol := postgres.Spec.Init.PostgresWAL.Local
 			podSpec := statefulSet.Spec.Template.Spec
 			if pgLocalVol != nil {
 				volume := core.Volume{
-					Name:         "local",
+					Name:         "localInit",
 					VolumeSource: pgLocalVol.VolumeSource,
 				}
 				statefulSet.Spec.Template.Spec.Volumes = append(podSpec.Volumes, volume)
 
 				statefulSet.Spec.Template.Spec.Containers[0].VolumeMounts = append(podSpec.Containers[0].VolumeMounts, core.VolumeMount{
-					Name:      "local",
+					Name:      "localInit",
 					MountPath: pgLocalVol.MountPath,
 					//SubPath: is used to locate existing archive
 					//from given mountPath, therefore isn't mounted.
