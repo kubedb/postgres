@@ -250,11 +250,10 @@ func (c *Controller) ensureCombinedNode(postgres *api.Postgres, postgresVersion 
 					},
 				)
 			} else if archiverStorage.Local != nil {
-				archiveDestination := path.Join("/", archiverStorage.Local.MountPath)
 				envList = append(envList,
 					core.EnvVar{
 						Name:  "ARCHIVE_FILE_PREFIX",
-						Value: archiveDestination,
+						Value: archiverStorage.Local.MountPath,
 					},
 				)
 			}
@@ -524,7 +523,9 @@ func upsertInitScript(statefulSet *apps.StatefulSet, script core.VolumeSource) *
 func upsertDataVolume(statefulSet *apps.StatefulSet, postgres *api.Postgres) *apps.StatefulSet {
 	if postgres.Spec.Archiver != nil || postgres.Spec.Init != nil {
 		// Add a PV
-		if postgres.Spec.Archiver != nil && postgres.Spec.Archiver.Storage != nil && postgres.Spec.Archiver.Storage.Local != nil {
+		if postgres.Spec.Archiver != nil &&
+			postgres.Spec.Archiver.Storage != nil &&
+			postgres.Spec.Archiver.Storage.Local != nil {
 			pgLocalVol := postgres.Spec.Archiver.Storage.Local
 			podSpec := statefulSet.Spec.Template.Spec
 			if pgLocalVol != nil {
@@ -542,7 +543,9 @@ func upsertDataVolume(statefulSet *apps.StatefulSet, postgres *api.Postgres) *ap
 				})
 			}
 		}
-		if postgres.Spec.Init != nil && postgres.Spec.Init.PostgresWAL != nil && postgres.Spec.Init.PostgresWAL.Local != nil {
+		if postgres.Spec.Init != nil &&
+			postgres.Spec.Init.PostgresWAL != nil &&
+			postgres.Spec.Init.PostgresWAL.Local != nil {
 			pgLocalVol := postgres.Spec.Init.PostgresWAL.Local
 			podSpec := statefulSet.Spec.Template.Spec
 			if pgLocalVol != nil {
