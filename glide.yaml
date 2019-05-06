@@ -110,8 +110,6 @@ import:
   version: release-10.0
 - package: kmodules.xyz/monitoring-agent-api
   version: release-10.0
-- package: kmodules.xyz/client-go/tools/certstore
-  version: release-10.0
 - package: kmodules.xyz/objectstore-api
   version: release-10.0
 - package: kmodules.xyz/offshoot-api

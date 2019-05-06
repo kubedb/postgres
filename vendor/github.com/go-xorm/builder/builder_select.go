@@ -15,7 +15,7 @@ func Select(cols ...string) *Builder {
 }
 
 func (b *Builder) selectWriteTo(w Writer) error {
-	if len(b.from) <= 0 && !b.isNested {
+	if len(b.tableName) <= 0 && !b.isNested {
 		return ErrNoTableName
 	}
 
@@ -46,20 +46,12 @@ func (b *Builder) selectWriteTo(w Writer) error {
 	}
 
 	if b.subQuery == nil {
-		if _, err := fmt.Fprint(w, " FROM ", b.from); err != nil {
+		if _, err := fmt.Fprint(w, " FROM ", b.tableName); err != nil {
 			return err
 		}
 	} else {
-		if b.cond.IsValid() && len(b.from) <= 0 {
+		if b.cond.IsValid() && len(b.tableName) <= 0 {
 			return ErrUnnamedDerivedTable
-		}
-		if b.subQuery.dialect != "" && b.dialect != b.subQuery.dialect {
-			return ErrInconsistentDialect
-		}
-
-		// dialect of sub-query will inherit from the main one (if not set up)
-		if b.dialect != "" && b.subQuery.dialect == "" {
-			b.subQuery.dialect = b.dialect
 		}
 
 		switch b.subQuery.optype {
@@ -69,10 +61,10 @@ func (b *Builder) selectWriteTo(w Writer) error {
 				return err
 			}
 
-			if len(b.from) == 0 {
+			if len(b.tableName) == 0 {
 				fmt.Fprintf(w, ")")
 			} else {
-				fmt.Fprintf(w, ") %v", b.from)
+				fmt.Fprintf(w, ") %v", b.tableName)
 			}
 		default:
 			return ErrUnexpectedSubQuery

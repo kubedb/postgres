@@ -48,16 +48,16 @@ const (
 // ├── ca.crt
 // └── config
 
-const keyCaCertData = "cacert_data"
-
 func NewOSMSecret(client kubernetes.Interface, name, namespace string, spec api.Backend) (*core.Secret, error) {
 	osmCtx, err := NewOSMContext(client, spec, namespace)
 	if err != nil {
 		return nil, err
 	}
-	cacertData, certDataFound := osmCtx.Config[keyCaCertData]
+	cacertData, certDataFound := osmCtx.Config[s3.ConfigCACertData]
 	if certDataFound {
-		delete(osmCtx.Config, keyCaCertData)
+		// assume that CA cert file is mounted at SecretMountPath directory
+		osmCtx.Config[s3.ConfigCACertFile] = filepath.Join(SecretMountPath, CaCertFileName)
+		delete(osmCtx.Config, s3.ConfigCACertData)
 	}
 
 	osmCfg := &otx.OSMConfig{
@@ -184,10 +184,7 @@ func NewOSMContext(client kubernetes.Interface, spec api.Backend, namespace stri
 
 			cacertData, ok := config[api.CA_CERT_DATA]
 			if ok && u.Scheme == "https" {
-				// assume that CA cert file is mounted at SecretMountPath directory
-				nc.Config[s3.ConfigCACertFile] = filepath.Join(SecretMountPath, CaCertFileName)
-
-				nc.Config[keyCaCertData] = string(cacertData)
+				nc.Config[s3.ConfigCACertData] = string(cacertData)
 			}
 		}
 		return nc, nil

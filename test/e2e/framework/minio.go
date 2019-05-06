@@ -6,24 +6,20 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
-
-	"k8s.io/apimachinery/pkg/labels"
-
-	v12 "kmodules.xyz/client-go/core/v1"
-
 	"time"
 
 	"github.com/appscode/go/crypto/rand"
-
 	"github.com/graymeta/stow"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	apps "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/util/cert"
 	apps_util "kmodules.xyz/client-go/apps/v1"
+	v12 "kmodules.xyz/client-go/core/v1"
 	"kmodules.xyz/client-go/tools/portforward"
 	v1 "kmodules.xyz/objectstore-api/api/v1"
 	"kmodules.xyz/objectstore-api/osm"
@@ -233,7 +229,6 @@ func (fi *Invocation) CreateBucket(deployment *apps.Deployment, secret *core.Sec
 	}
 
 	err = wait.PollImmediate(2*time.Second, 10*time.Minute, func() (bool, error) {
-
 		if tls {
 			endPoint = fmt.Sprintf("https://%s:%d", localIP, tunnel.Local)
 		} else {
