@@ -1,5 +1,18 @@
 # Change Log
 
+## [0.12.0](https://github.com/kubedb/postgres/tree/0.12.0) (2019-05-06)
+[Full Changelog](https://github.com/kubedb/postgres/compare/0.11.0...0.12.0)
+
+**Merged pull requests:**
+
+- Added PostgreSQL 11.2 [\#275](https://github.com/kubedb/postgres/pull/275) ([the-redback](https://github.com/the-redback))
+- Revendor dependencies [\#274](https://github.com/kubedb/postgres/pull/274) ([tamalsaha](https://github.com/tamalsaha))
+- Support for WAL archiving to S3 Minio [\#272](https://github.com/kubedb/postgres/pull/272) ([iamrz1](https://github.com/iamrz1))
+- Fix PSP in Role for kubeDB upgrade [\#271](https://github.com/kubedb/postgres/pull/271) ([iamrz1](https://github.com/iamrz1))
+- Local storage for wal-g [\#270](https://github.com/kubedb/postgres/pull/270) ([iamrz1](https://github.com/iamrz1))
+- Modify mutator validator names [\#268](https://github.com/kubedb/postgres/pull/268) ([iamrz1](https://github.com/iamrz1))
+- Automatically set aws region when using iam as an auth method [\#267](https://github.com/kubedb/postgres/pull/267) ([tamalsaha](https://github.com/tamalsaha))
+
 ## [0.11.0](https://github.com/kubedb/postgres/tree/0.11.0) (2019-03-18)
 [Full Changelog](https://github.com/kubedb/postgres/compare/0.10.0...0.11.0)
 
