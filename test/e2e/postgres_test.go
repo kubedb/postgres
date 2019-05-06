@@ -48,7 +48,7 @@ var _ = Describe("Postgres", func() {
 		skipMessage              string
 		skipSnapshotDataChecking bool
 		skipWalDataChecking      bool
-		skipWipeOut              bool
+		skipMinioDeployment      bool
 		dbName                   string
 		dbUser                   string
 	)
@@ -63,7 +63,7 @@ var _ = Describe("Postgres", func() {
 		skipMessage = ""
 		skipSnapshotDataChecking = true
 		skipWalDataChecking = true
-		skipWipeOut = false
+		skipMinioDeployment = true
 		dbName = "postgres"
 		dbUser = "postgres"
 	})
@@ -227,10 +227,8 @@ var _ = Describe("Postgres", func() {
 
 		}
 
-		if !skipWipeOut {
-			By("Wait for postgres resources to be wipedOut")
-			f.EventuallyWipedOut(postgres.ObjectMeta).Should(Succeed())
-		}
+		By("Wait for postgres resources to be wipedOut")
+		f.EventuallyWipedOut(postgres.ObjectMeta).Should(Succeed())
 
 		if postgres.Spec.Archiver != nil && !skipWalDataChecking {
 			By("Checking wal data has been removed")
@@ -263,8 +261,12 @@ var _ = Describe("Postgres", func() {
 		if err != nil && !kerr.IsNotFound(err) {
 			Expect(err).NotTo(HaveOccurred())
 		}
-		err = f.DeleteMinioServer()
-		Expect(err).NotTo(HaveOccurred())
+
+		if !skipMinioDeployment {
+			By("Deleting Minio Server")
+			err = f.DeleteMinioServer()
+			Expect(err).NotTo(HaveOccurred())
+		}
 	})
 
 	Describe("Test", func() {
@@ -1428,15 +1430,12 @@ var _ = Describe("Postgres", func() {
 				})
 			})
 
-			FContext("Minio S3", func() {
+			Context("Minio S3", func() {
 				BeforeEach(func() {
 					skipWalDataChecking = false
-					if !framework.SelfHostedOperator {
-						skipWipeOut = true
-					} else {
-						skipWipeOut = false
-					}
+					skipMinioDeployment = false
 				})
+
 				Context("With ca-cert", func() {
 					BeforeEach(func() {
 						By("Creating Minio server with cacert")
@@ -1452,8 +1451,7 @@ var _ = Describe("Postgres", func() {
 								},
 							},
 						}
-						//err = f.CreateBucket(postgres)
-						//Expect(err).NotTo(HaveOccurred())
+
 						// -- > 2nd Postgres < --
 						postgres2nd = f.Postgres()
 						postgres2nd.Spec.Archiver = &api.PostgresArchiverSpec{
@@ -1494,11 +1492,11 @@ var _ = Describe("Postgres", func() {
 						}
 
 					})
-					It("should archive and should resume from archive successfully", archiveAndInitializeFromArchive)
-					AfterEach(func() {
 
-					})
+					It("should archive and should resume from archive successfully", archiveAndInitializeFromArchive)
+
 				})
+
 				Context("Without ca-cert", func() {
 					BeforeEach(func() {
 						By("Creating Minio server without cacert")
@@ -1514,8 +1512,7 @@ var _ = Describe("Postgres", func() {
 								},
 							},
 						}
-						//err = f.CreateBucket(postgres)
-						//Expect(err).NotTo(HaveOccurred())
+
 						// -- > 2nd Postgres < --
 						postgres2nd = f.Postgres()
 						postgres2nd.Spec.Archiver = &api.PostgresArchiverSpec{
@@ -1556,6 +1553,7 @@ var _ = Describe("Postgres", func() {
 						}
 
 					})
+
 					It("should archive and should resume from archive successfully", archiveAndInitializeFromArchive)
 				})
 			})
