@@ -230,7 +230,7 @@ imports:
 - name: github.com/go-openapi/swag
   version: 5899d5c5e619fda5fa86e14795a835f473ca284c
 - name: github.com/go-xorm/builder
-  version: 145c9968bfe732a56d7160439d25154c5aaa2f35
+  version: 1d658d7596c25394aab557ef5b50ef35bf706384
 - name: github.com/go-xorm/core
   version: c10e21e7e1cec20e09398f2dfae385e58c8df555
 - name: github.com/go-xorm/xorm
@@ -243,7 +243,7 @@ imports:
   - protoc-gen-gogo/descriptor
   - sortkeys
 - name: github.com/golang/glog
-  version: 44145f04b68cf362d9c4df2182967c2275eaefed
+  version: 23def4e6c14b4da8ac2ed8007337bc5eb5007998
 - name: github.com/golang/groupcache
   version: 02826c3e79038b59d737d3b1c0a1d937f71a4433
   subpackages:
@@ -321,7 +321,7 @@ imports:
 - name: github.com/inconshreveable/mousetrap
   version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
 - name: github.com/jmespath/go-jmespath
-  version: 0b12d6b521d83fc7f755e7cfc1b1fbdd35a01a74
+  version: c2b33e8439af944379acbdd9c3a5fe0bc44bd8a5
 - name: github.com/jpillora/go-ogle-analytics
   version: 14b04e0594ef6a9fd943363b135656f0ec8c9d0e
 - name: github.com/json-iterator/go
@@ -371,7 +371,7 @@ imports:
   - pkg/eventer
   - pkg/validator
 - name: github.com/lib/pq
-  version: 4ded0e9383f75c197b3a2aaa6d590ac52df6fd79
+  version: d6156e141ac6c06345c7c73f450987a9ed4b751f
   subpackages:
   - oid
 - name: github.com/mailru/easyjson
@@ -464,7 +464,7 @@ imports:
 - name: github.com/russross/blackfriday
   version: 05f3235734ad95d0016f6a23902f06461fcf567a
 - name: github.com/satori/go.uuid
-  version: f58768cc1a7a7e77a3bd49e98cdd21419399b6a3
+  version: b2ce2384e17bbe0c6d34077efa39dbab3e09123b
 - name: github.com/sergi/go-diff
   version: 97b2266dfe4bd4ea1b81a463322f04f8b724801e
   subpackages:
@@ -551,7 +551,7 @@ imports:
   - googleapi/internal/uritemplates
   - storage/v1
 - name: google.golang.org/appengine
-  version: 12d5545dc1cfa6047a286d5e853841b6471f4c19
+  version: 54a98f90d1c46b7731eb8fb305d2a321c30ef610
   subpackages:
   - internal
   - internal/app_identity
@@ -1010,7 +1010,7 @@ imports:
   - util/retry
   - util/workqueue
 - name: k8s.io/klog
-  version: b9b56d5dfc9208f60ea747056670942d8b0afdc8
+  version: 8139d8cb77af419532b33dfa7dd09fbc5f1d344f
 - name: k8s.io/kube-aggregator
   version: 5268a8efdb65d805d4ba7fab84c47291ef797fe6
   subpackages:

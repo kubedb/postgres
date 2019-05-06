@@ -42,11 +42,6 @@ func (in *BackupScheduleSpec) DeepCopyInto(out *BackupScheduleSpec) {
 		*out = new(v1.PersistentVolumeClaimSpec)
 		(*in).DeepCopyInto(*out)
 	}
-	if in.Resources != nil {
-		in, out := &in.Resources, &out.Resources
-		*out = new(v1.ResourceRequirements)
-		(*in).DeepCopyInto(*out)
-	}
 	return
 }
 
@@ -324,35 +319,6 @@ func (in *ElasticsearchSpec) DeepCopyInto(out *ElasticsearchSpec) {
 	in.PodTemplate.DeepCopyInto(&out.PodTemplate)
 	in.ServiceTemplate.DeepCopyInto(&out.ServiceTemplate)
 	in.UpdateStrategy.DeepCopyInto(&out.UpdateStrategy)
-	if in.NodeSelector != nil {
-		in, out := &in.NodeSelector, &out.NodeSelector
-		*out = make(map[string]string, len(*in))
-		for key, val := range *in {
-			(*out)[key] = val
-		}
-	}
-	if in.Resources != nil {
-		in, out := &in.Resources, &out.Resources
-		*out = new(v1.ResourceRequirements)
-		(*in).DeepCopyInto(*out)
-	}
-	if in.Affinity != nil {
-		in, out := &in.Affinity, &out.Affinity
-		*out = new(v1.Affinity)
-		(*in).DeepCopyInto(*out)
-	}
-	if in.Tolerations != nil {
-		in, out := &in.Tolerations, &out.Tolerations
-		*out = make([]v1.Toleration, len(*in))
-		for i := range *in {
-			(*in)[i].DeepCopyInto(&(*out)[i])
-		}
-	}
-	if in.ImagePullSecrets != nil {
-		in, out := &in.ImagePullSecrets, &out.ImagePullSecrets
-		*out = make([]v1.LocalObjectReference, len(*in))
-		copy(*out, *in)
-	}
 	return
 }
 
@@ -666,35 +632,6 @@ func (in *MemcachedSpec) DeepCopyInto(out *MemcachedSpec) {
 	in.PodTemplate.DeepCopyInto(&out.PodTemplate)
 	in.ServiceTemplate.DeepCopyInto(&out.ServiceTemplate)
 	in.UpdateStrategy.DeepCopyInto(&out.UpdateStrategy)
-	if in.NodeSelector != nil {
-		in, out := &in.NodeSelector, &out.NodeSelector
-		*out = make(map[string]string, len(*in))
-		for key, val := range *in {
-			(*out)[key] = val
-		}
-	}
-	if in.Resources != nil {
-		in, out := &in.Resources, &out.Resources
-		*out = new(v1.ResourceRequirements)
-		(*in).DeepCopyInto(*out)
-	}
-	if in.Affinity != nil {
-		in, out := &in.Affinity, &out.Affinity
-		*out = new(v1.Affinity)
-		(*in).DeepCopyInto(*out)
-	}
-	if in.Tolerations != nil {
-		in, out := &in.Tolerations, &out.Tolerations
-		*out = make([]v1.Toleration, len(*in))
-		for i := range *in {
-			(*in)[i].DeepCopyInto(&(*out)[i])
-		}
-	}
-	if in.ImagePullSecrets != nil {
-		in, out := &in.ImagePullSecrets, &out.ImagePullSecrets
-		*out = make([]v1.LocalObjectReference, len(*in))
-		copy(*out, *in)
-	}
 	return
 }
 
@@ -856,35 +793,6 @@ func (in *MongoDBSpec) DeepCopyInto(out *MongoDBSpec) {
 	in.PodTemplate.DeepCopyInto(&out.PodTemplate)
 	in.ServiceTemplate.DeepCopyInto(&out.ServiceTemplate)
 	in.UpdateStrategy.DeepCopyInto(&out.UpdateStrategy)
-	if in.NodeSelector != nil {
-		in, out := &in.NodeSelector, &out.NodeSelector
-		*out = make(map[string]string, len(*in))
-		for key, val := range *in {
-			(*out)[key] = val
-		}
-	}
-	if in.Resources != nil {
-		in, out := &in.Resources, &out.Resources
-		*out = new(v1.ResourceRequirements)
-		(*in).DeepCopyInto(*out)
-	}
-	if in.Affinity != nil {
-		in, out := &in.Affinity, &out.Affinity
-		*out = new(v1.Affinity)
-		(*in).DeepCopyInto(*out)
-	}
-	if in.Tolerations != nil {
-		in, out := &in.Tolerations, &out.Tolerations
-		*out = make([]v1.Toleration, len(*in))
-		for i := range *in {
-			(*in)[i].DeepCopyInto(&(*out)[i])
-		}
-	}
-	if in.ImagePullSecrets != nil {
-		in, out := &in.ImagePullSecrets, &out.ImagePullSecrets
-		*out = make([]v1.LocalObjectReference, len(*in))
-		copy(*out, *in)
-	}
 	return
 }
 
@@ -1020,35 +928,6 @@ func (in *MySQLSpec) DeepCopyInto(out *MySQLSpec) {
 	in.PodTemplate.DeepCopyInto(&out.PodTemplate)
 	in.ServiceTemplate.DeepCopyInto(&out.ServiceTemplate)
 	in.UpdateStrategy.DeepCopyInto(&out.UpdateStrategy)
-	if in.NodeSelector != nil {
-		in, out := &in.NodeSelector, &out.NodeSelector
-		*out = make(map[string]string, len(*in))
-		for key, val := range *in {
-			(*out)[key] = val
-		}
-	}
-	if in.Resources != nil {
-		in, out := &in.Resources, &out.Resources
-		*out = new(v1.ResourceRequirements)
-		(*in).DeepCopyInto(*out)
-	}
-	if in.Affinity != nil {
-		in, out := &in.Affinity, &out.Affinity
-		*out = new(v1.Affinity)
-		(*in).DeepCopyInto(*out)
-	}
-	if in.Tolerations != nil {
-		in, out := &in.Tolerations, &out.Tolerations
-		*out = make([]v1.Toleration, len(*in))
-		for i := range *in {
-			(*in)[i].DeepCopyInto(&(*out)[i])
-		}
-	}
-	if in.ImagePullSecrets != nil {
-		in, out := &in.ImagePullSecrets, &out.ImagePullSecrets
-		*out = make([]v1.LocalObjectReference, len(*in))
-		copy(*out, *in)
-	}
 	return
 }
 
@@ -1326,35 +1205,6 @@ func (in *PostgresSpec) DeepCopyInto(out *PostgresSpec) {
 	in.ServiceTemplate.DeepCopyInto(&out.ServiceTemplate)
 	in.ReplicaServiceTemplate.DeepCopyInto(&out.ReplicaServiceTemplate)
 	in.UpdateStrategy.DeepCopyInto(&out.UpdateStrategy)
-	if in.NodeSelector != nil {
-		in, out := &in.NodeSelector, &out.NodeSelector
-		*out = make(map[string]string, len(*in))
-		for key, val := range *in {
-			(*out)[key] = val
-		}
-	}
-	if in.Resources != nil {
-		in, out := &in.Resources, &out.Resources
-		*out = new(v1.ResourceRequirements)
-		(*in).DeepCopyInto(*out)
-	}
-	if in.Affinity != nil {
-		in, out := &in.Affinity, &out.Affinity
-		*out = new(v1.Affinity)
-		(*in).DeepCopyInto(*out)
-	}
-	if in.Tolerations != nil {
-		in, out := &in.Tolerations, &out.Tolerations
-		*out = make([]v1.Toleration, len(*in))
-		for i := range *in {
-			(*in)[i].DeepCopyInto(&(*out)[i])
-		}
-	}
-	if in.ImagePullSecrets != nil {
-		in, out := &in.ImagePullSecrets, &out.ImagePullSecrets
-		*out = make([]v1.LocalObjectReference, len(*in))
-		copy(*out, *in)
-	}
 	return
 }
 
@@ -1596,35 +1446,6 @@ func (in *RedisSpec) DeepCopyInto(out *RedisSpec) {
 	in.PodTemplate.DeepCopyInto(&out.PodTemplate)
 	in.ServiceTemplate.DeepCopyInto(&out.ServiceTemplate)
 	in.UpdateStrategy.DeepCopyInto(&out.UpdateStrategy)
-	if in.NodeSelector != nil {
-		in, out := &in.NodeSelector, &out.NodeSelector
-		*out = make(map[string]string, len(*in))
-		for key, val := range *in {
-			(*out)[key] = val
-		}
-	}
-	if in.Resources != nil {
-		in, out := &in.Resources, &out.Resources
-		*out = new(v1.ResourceRequirements)
-		(*in).DeepCopyInto(*out)
-	}
-	if in.Affinity != nil {
-		in, out := &in.Affinity, &out.Affinity
-		*out = new(v1.Affinity)
-		(*in).DeepCopyInto(*out)
-	}
-	if in.Tolerations != nil {
-		in, out := &in.Tolerations, &out.Tolerations
-		*out = make([]v1.Toleration, len(*in))
-		for i := range *in {
-			(*in)[i].DeepCopyInto(&(*out)[i])
-		}
-	}
-	if in.ImagePullSecrets != nil {
-		in, out := &in.ImagePullSecrets, &out.ImagePullSecrets
-		*out = make([]v1.LocalObjectReference, len(*in))
-		copy(*out, *in)
-	}
 	return
 }
 
@@ -1770,11 +1591,6 @@ func (in *SnapshotSpec) DeepCopyInto(out *SnapshotSpec) {
 	if in.PodVolumeClaimSpec != nil {
 		in, out := &in.PodVolumeClaimSpec, &out.PodVolumeClaimSpec
 		*out = new(v1.PersistentVolumeClaimSpec)
-		(*in).DeepCopyInto(*out)
-	}
-	if in.Resources != nil {
-		in, out := &in.Resources, &out.Resources
-		*out = new(v1.ResourceRequirements)
 		(*in).DeepCopyInto(*out)
 	}
 	return
