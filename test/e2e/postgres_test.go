@@ -48,6 +48,7 @@ var _ = Describe("Postgres", func() {
 		skipMessage              string
 		skipSnapshotDataChecking bool
 		skipWalDataChecking      bool
+		skipMinioDeployment      bool
 		dbName                   string
 		dbUser                   string
 	)
@@ -62,6 +63,7 @@ var _ = Describe("Postgres", func() {
 		skipMessage = ""
 		skipSnapshotDataChecking = true
 		skipWalDataChecking = true
+		skipMinioDeployment = true
 		dbName = "postgres"
 		dbUser = "postgres"
 	})
@@ -257,6 +259,12 @@ var _ = Describe("Postgres", func() {
 		By("Deleting PostgresVersion crd")
 		err = f.DeletePostgresVersion(postgresVersion.ObjectMeta)
 		if err != nil && !kerr.IsNotFound(err) {
+			Expect(err).NotTo(HaveOccurred())
+		}
+
+		if !skipMinioDeployment {
+			By("Deleting Minio Server")
+			err = f.DeleteMinioServer()
 			Expect(err).NotTo(HaveOccurred())
 		}
 	})
@@ -1422,6 +1430,134 @@ var _ = Describe("Postgres", func() {
 				})
 			})
 
+			Context("Minio S3", func() {
+				BeforeEach(func() {
+					skipWalDataChecking = false
+					skipMinioDeployment = false
+				})
+
+				Context("With ca-cert", func() {
+					BeforeEach(func() {
+						By("Creating Minio server with cacert")
+						addrs, err := f.CreateMinioServer(true, nil)
+						Expect(err).NotTo(HaveOccurred())
+						secret = f.SecretForMinioBackend()
+						postgres.Spec.Archiver = &api.PostgresArchiverSpec{
+							Storage: &store.Backend{
+								StorageSecretName: secret.Name,
+								S3: &store.S3Spec{
+									Bucket:   os.Getenv(S3_BUCKET_NAME),
+									Endpoint: addrs,
+								},
+							},
+						}
+
+						// -- > 2nd Postgres < --
+						postgres2nd = f.Postgres()
+						postgres2nd.Spec.Archiver = &api.PostgresArchiverSpec{
+							Storage: &store.Backend{
+								StorageSecretName: secret.Name,
+								S3: &store.S3Spec{
+									Bucket:   os.Getenv(S3_BUCKET_NAME),
+									Endpoint: addrs,
+								},
+							},
+						}
+						postgres2nd.Spec.Init = &api.InitSpec{
+							PostgresWAL: &api.PostgresWALSourceSpec{
+								Backend: store.Backend{
+									StorageSecretName: secret.Name,
+									S3: &store.S3Spec{
+										Bucket:   os.Getenv(S3_BUCKET_NAME),
+										Prefix:   fmt.Sprintf("kubedb/%s/%s/archive/", postgres.Namespace, postgres.Name),
+										Endpoint: addrs,
+									},
+								},
+							},
+						}
+
+						// -- > 3rd Postgres < --
+						postgres3rd = f.Postgres()
+						postgres3rd.Spec.Init = &api.InitSpec{
+							PostgresWAL: &api.PostgresWALSourceSpec{
+								Backend: store.Backend{
+									StorageSecretName: secret.Name,
+									S3: &store.S3Spec{
+										Bucket:   os.Getenv(S3_BUCKET_NAME),
+										Prefix:   fmt.Sprintf("kubedb/%s/%s/archive/", postgres2nd.Namespace, postgres2nd.Name),
+										Endpoint: addrs,
+									},
+								},
+							},
+						}
+
+					})
+
+					It("should archive and should resume from archive successfully", archiveAndInitializeFromArchive)
+
+				})
+
+				Context("Without ca-cert", func() {
+					BeforeEach(func() {
+						By("Creating Minio server without cacert")
+						addrs, err := f.CreateMinioServer(false, nil)
+						Expect(err).NotTo(HaveOccurred())
+						secret = f.SecretForS3Backend()
+						postgres.Spec.Archiver = &api.PostgresArchiverSpec{
+							Storage: &store.Backend{
+								StorageSecretName: secret.Name,
+								S3: &store.S3Spec{
+									Bucket:   os.Getenv(S3_BUCKET_NAME),
+									Endpoint: addrs,
+								},
+							},
+						}
+
+						// -- > 2nd Postgres < --
+						postgres2nd = f.Postgres()
+						postgres2nd.Spec.Archiver = &api.PostgresArchiverSpec{
+							Storage: &store.Backend{
+								StorageSecretName: secret.Name,
+								S3: &store.S3Spec{
+									Bucket:   os.Getenv(S3_BUCKET_NAME),
+									Endpoint: addrs,
+								},
+							},
+						}
+						postgres2nd.Spec.Init = &api.InitSpec{
+							PostgresWAL: &api.PostgresWALSourceSpec{
+								Backend: store.Backend{
+									StorageSecretName: secret.Name,
+									S3: &store.S3Spec{
+										Bucket:   os.Getenv(S3_BUCKET_NAME),
+										Prefix:   fmt.Sprintf("kubedb/%s/%s/archive/", postgres.Namespace, postgres.Name),
+										Endpoint: addrs,
+									},
+								},
+							},
+						}
+
+						// -- > 3rd Postgres < --
+						postgres3rd = f.Postgres()
+						postgres3rd.Spec.Init = &api.InitSpec{
+							PostgresWAL: &api.PostgresWALSourceSpec{
+								Backend: store.Backend{
+									StorageSecretName: secret.Name,
+									S3: &store.S3Spec{
+										Bucket:   os.Getenv(S3_BUCKET_NAME),
+										Prefix:   fmt.Sprintf("kubedb/%s/%s/archive/", postgres2nd.Namespace, postgres2nd.Name),
+										Endpoint: addrs,
+									},
+								},
+							},
+						}
+
+					})
+
+					It("should archive and should resume from archive successfully", archiveAndInitializeFromArchive)
+				})
+			})
+
 			Context("In S3", func() {
 
 				BeforeEach(func() {
@@ -1489,7 +1625,6 @@ var _ = Describe("Postgres", func() {
 				})
 			})
 
-			////////////////////==========GCS============//////////////////////
 			Context("In GCS", func() {
 
 				BeforeEach(func() {
@@ -1556,7 +1691,6 @@ var _ = Describe("Postgres", func() {
 				})
 			})
 
-			////////////////////==========AZURE============//////////////////////
 			Context("In AZURE", func() {
 
 				BeforeEach(func() {
@@ -1622,8 +1756,7 @@ var _ = Describe("Postgres", func() {
 					It("should remove wal data from backend", shouldWipeOutWalData)
 				})
 			})
-			//////////
-			////////////////////==========SWIFT============//////////////////////
+
 			Context("In SWIFT", func() {
 
 				BeforeEach(func() {

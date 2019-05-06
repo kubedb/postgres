@@ -26,10 +26,6 @@ func (b *Builder) unionWriteTo(w Writer) error {
 				return err
 			}
 		} else {
-			if b.dialect != "" && b.dialect != current.dialect {
-				return ErrInconsistentDialect
-			}
-
 			if idx != 0 {
 				fmt.Fprint(w, fmt.Sprintf(" UNION %v ", strings.ToUpper(u.unionType)))
 			}

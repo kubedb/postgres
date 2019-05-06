@@ -228,6 +228,14 @@ func (c *Controller) ensureCombinedNode(postgres *api.Postgres, postgresVersion 
 						Value: fmt.Sprintf("s3://%v/%v", archiverStorage.S3.Bucket, WalDataDir(postgres)),
 					},
 				)
+				if archiverStorage.S3.Endpoint != "" {
+					envList = append(envList,
+						core.EnvVar{
+							Name:  "ARCHIVE_S3_ENDPOINT",
+							Value: archiverStorage.S3.Endpoint,
+						},
+					)
+				}
 			} else if archiverStorage.GCS != nil {
 				envList = append(envList,
 					core.EnvVar{
@@ -660,6 +668,14 @@ func walRecoveryConfig(wal *api.PostgresWALSourceSpec) []core.EnvVar {
 				Value: fmt.Sprintf("s3://%v/%v", wal.S3.Bucket, wal.S3.Prefix),
 			},
 		)
+		if wal.S3.Endpoint != "" {
+			envList = append(envList,
+				core.EnvVar{
+					Name:  "RESTORE_S3_ENDPOINT",
+					Value: wal.S3.Endpoint,
+				},
+			)
+		}
 	} else if wal.GCS != nil {
 		envList = append(envList,
 			core.EnvVar{

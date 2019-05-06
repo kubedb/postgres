@@ -1,5 +1,5 @@
 hash: a80e46c9b734570e274c930dbdecc17b8d414cec86b23447b2991f2ee037be47
-updated: 2019-04-23T02:31:54.576029049-07:00
+updated: 2019-05-06T02:02:05.072319859-07:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -8,7 +8,7 @@ imports:
   subpackages:
   - compute/metadata
 - name: github.com/appscode/go
-  version: 50c98d5fbcddac827713a481a7e34a26df5e4b57
+  version: 60025f1135c977fecd189c12dbfa259d837d7a18
   subpackages:
   - analytics
   - arrays
@@ -230,7 +230,7 @@ imports:
 - name: github.com/go-openapi/swag
   version: 5899d5c5e619fda5fa86e14795a835f473ca284c
 - name: github.com/go-xorm/builder
-  version: 1d658d7596c25394aab557ef5b50ef35bf706384
+  version: 145c9968bfe732a56d7160439d25154c5aaa2f35
 - name: github.com/go-xorm/core
   version: c10e21e7e1cec20e09398f2dfae385e58c8df555
 - name: github.com/go-xorm/xorm
@@ -243,7 +243,7 @@ imports:
   - protoc-gen-gogo/descriptor
   - sortkeys
 - name: github.com/golang/glog
-  version: 23def4e6c14b4da8ac2ed8007337bc5eb5007998
+  version: 44145f04b68cf362d9c4df2182967c2275eaefed
 - name: github.com/golang/groupcache
   version: 02826c3e79038b59d737d3b1c0a1d937f71a4433
   subpackages:
@@ -290,7 +290,7 @@ imports:
 - name: github.com/gorilla/websocket
   version: 66b9c49e59c6c48f0ffce28c2d8b8a5678502c6d
 - name: github.com/graymeta/stow
-  version: 8020e152292b2cdbdca30274fec24e18905f254d
+  version: ca5baa008ea321ea84980da11752f2590b485e87
   repo: https://github.com/appscode/stow.git
   vcs: git
   subpackages:
@@ -321,13 +321,13 @@ imports:
 - name: github.com/inconshreveable/mousetrap
   version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
 - name: github.com/jmespath/go-jmespath
-  version: c2b33e8439af944379acbdd9c3a5fe0bc44bd8a5
+  version: 0b12d6b521d83fc7f755e7cfc1b1fbdd35a01a74
 - name: github.com/jpillora/go-ogle-analytics
   version: 14b04e0594ef6a9fd943363b135656f0ec8c9d0e
 - name: github.com/json-iterator/go
   version: 1624edc4454b8682399def8740d46db5e4362ba4
 - name: github.com/kubedb/apimachinery
-  version: b5efa57aa32081ced51ecebc3e00379985d23a34
+  version: 5a91bc4773677eac8b3bf673f3c9c8394d12f476
   subpackages:
   - apis
   - apis/authorization
@@ -371,7 +371,7 @@ imports:
   - pkg/eventer
   - pkg/validator
 - name: github.com/lib/pq
-  version: d6156e141ac6c06345c7c73f450987a9ed4b751f
+  version: 88edab0803230a3898347e77b474f8c1820a1f20
   subpackages:
   - oid
 - name: github.com/mailru/easyjson
@@ -464,13 +464,17 @@ imports:
 - name: github.com/russross/blackfriday
   version: 05f3235734ad95d0016f6a23902f06461fcf567a
 - name: github.com/satori/go.uuid
-  version: b2ce2384e17bbe0c6d34077efa39dbab3e09123b
+  version: f58768cc1a7a7e77a3bd49e98cdd21419399b6a3
 - name: github.com/sergi/go-diff
   version: 97b2266dfe4bd4ea1b81a463322f04f8b724801e
   subpackages:
   - diffmatchpatch
 - name: github.com/sirupsen/logrus
   version: 89742aefa4b206dcf400792f3bd35b542998eb3b
+- name: github.com/spf13/afero
+  version: d40851caa0d747393da1ffb28f7f9d8b4eeffebd
+  subpackages:
+  - mem
 - name: github.com/spf13/cobra
   version: ef82de70bb3f60c65fb8eebacbb2d122ef517385
   subpackages:
@@ -551,7 +555,7 @@ imports:
   - googleapi/internal/uritemplates
   - storage/v1
 - name: google.golang.org/appengine
-  version: 54a98f90d1c46b7731eb8fb305d2a321c30ef610
+  version: 12d5545dc1cfa6047a286d5e853841b6471f4c19
   subpackages:
   - internal
   - internal/app_identity
@@ -1032,7 +1036,7 @@ imports:
 - name: k8s.io/utils
   version: 66066c83e385e385ccc3c964b44fd7dcd413d0ed
 - name: kmodules.xyz/client-go
-  version: 5dcc4cecf4c96d58e0624cd41311f3a4663db7d7
+  version: 85881479d87957cf3eab9424ec86bcc67dbfbac6
   subpackages:
   - admissionregistration/v1beta1
   - apiextensions/v1beta1
@@ -1045,6 +1049,7 @@ imports:
   - meta
   - rbac/v1beta1
   - tools/analytics
+  - tools/certstore
   - tools/cli
   - tools/clientcmd
   - tools/portforward
@@ -1065,7 +1070,7 @@ imports:
   - agents/prometheusbuiltin
   - api/v1
 - name: kmodules.xyz/objectstore-api
-  version: 2558fb903e3d0756f974ed4e5769ffcf27ffea30
+  version: 94c81c8acca95bee96c5c250925da955ac67be18
   subpackages:
   - api/v1
   - osm

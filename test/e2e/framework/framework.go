@@ -1,22 +1,27 @@
 package framework
 
 import (
+	"path/filepath"
+
 	"github.com/appscode/go/crypto/rand"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	cs "github.com/kubedb/apimachinery/client/clientset/versioned"
+	. "github.com/onsi/gomega"
+	"github.com/spf13/afero"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	ka "k8s.io/kube-aggregator/pkg/client/clientset_generated/clientset"
+	"kmodules.xyz/client-go/tools/certstore"
 	appcat_cs "kmodules.xyz/custom-resources/client/clientset/versioned/typed/appcatalog/v1alpha1"
 )
 
 var (
 	DockerRegistry     = "kubedbci"
 	SelfHostedOperator = false
-	DBCatalogName      = "9.6-v3"
-	DBVersion          = "9.6-v4"
-	DBToolsTag         = "9.6-v3"
-	ExporterTag        = "v0.4.6"
+	DBCatalogName      = "9.6.7-v4"
+	DBVersion          = "9.6.7-v5"
+	DBToolsTag         = "9.6.7-v3"
+	ExporterTag        = "v0.4.7"
 	EnableRbac         = true
 )
 
@@ -29,6 +34,7 @@ type Framework struct {
 	namespace        string
 	name             string
 	StorageClass     string
+	CertStore        *certstore.CertStore
 }
 
 func New(
@@ -39,6 +45,11 @@ func New(
 	appCatalogClient appcat_cs.AppcatalogV1alpha1Interface,
 	storageClass string,
 ) *Framework {
+	store, err := certstore.NewCertStore(afero.NewMemMapFs(), filepath.Join("", "pki"))
+	Expect(err).NotTo(HaveOccurred())
+
+	err = store.InitCA()
+	Expect(err).NotTo(HaveOccurred())
 	return &Framework{
 		restConfig:       restConfig,
 		kubeClient:       kubeClient,
@@ -48,6 +59,7 @@ func New(
 		name:             "postgres-operator",
 		namespace:        rand.WithUniqSuffix(api.ResourceSingularPostgres),
 		StorageClass:     storageClass,
+		CertStore:        store,
 	}
 }
 

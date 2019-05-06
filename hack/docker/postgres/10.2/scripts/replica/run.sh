@@ -70,6 +70,12 @@ if [ "$ARCHIVE" == "wal-g" ]; then
     export WALE_S3_PREFIX="$ARCHIVE_S3_PREFIX"
     [[ -e "$CRED_PATH/AWS_ACCESS_KEY_ID" ]] &&  export AWS_ACCESS_KEY_ID=$(cat "$CRED_PATH/AWS_ACCESS_KEY_ID")
     [[ -e "$CRED_PATH/AWS_SECRET_ACCESS_KEY" ]] &&  export AWS_SECRET_ACCESS_KEY=$(cat "$CRED_PATH/AWS_SECRET_ACCESS_KEY")
+    if [[ ${ARCHIVE_S3_ENDPOINT} != "" ]]; then
+      [[ -e "$CRED_PATH/CA_CERT_DATA" ]] &&  export WALG_S3_CA_CERT_FILE="$CRED_PATH/CA_CERT_DATA"
+      export AWS_ENDPOINT=$ARCHIVE_S3_ENDPOINT
+      export AWS_S3_FORCE_PATH_STYLE="true"
+      export AWS_REGION="us-east-1"
+    fi
 
   elif [[ ${ARCHIVE_GS_PREFIX} != "" ]]; then
     export WALE_GS_PREFIX="$ARCHIVE_GS_PREFIX"
