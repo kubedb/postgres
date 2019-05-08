@@ -82,18 +82,8 @@ func (c *Clientset) AuthorizationV1alpha1() authorizationv1alpha1.AuthorizationV
 	return &fakeauthorizationv1alpha1.FakeAuthorizationV1alpha1{Fake: &c.Fake}
 }
 
-// Authorization retrieves the AuthorizationV1alpha1Client
-func (c *Clientset) Authorization() authorizationv1alpha1.AuthorizationV1alpha1Interface {
-	return &fakeauthorizationv1alpha1.FakeAuthorizationV1alpha1{Fake: &c.Fake}
-}
-
 // CatalogV1alpha1 retrieves the CatalogV1alpha1Client
 func (c *Clientset) CatalogV1alpha1() catalogv1alpha1.CatalogV1alpha1Interface {
-	return &fakecatalogv1alpha1.FakeCatalogV1alpha1{Fake: &c.Fake}
-}
-
-// Catalog retrieves the CatalogV1alpha1Client
-func (c *Clientset) Catalog() catalogv1alpha1.CatalogV1alpha1Interface {
 	return &fakecatalogv1alpha1.FakeCatalogV1alpha1{Fake: &c.Fake}
 }
 
@@ -102,17 +92,7 @@ func (c *Clientset) ConfigV1alpha1() configv1alpha1.ConfigV1alpha1Interface {
 	return &fakeconfigv1alpha1.FakeConfigV1alpha1{Fake: &c.Fake}
 }
 
-// Config retrieves the ConfigV1alpha1Client
-func (c *Clientset) Config() configv1alpha1.ConfigV1alpha1Interface {
-	return &fakeconfigv1alpha1.FakeConfigV1alpha1{Fake: &c.Fake}
-}
-
 // KubedbV1alpha1 retrieves the KubedbV1alpha1Client
 func (c *Clientset) KubedbV1alpha1() kubedbv1alpha1.KubedbV1alpha1Interface {
-	return &fakekubedbv1alpha1.FakeKubedbV1alpha1{Fake: &c.Fake}
-}
-
-// Kubedb retrieves the KubedbV1alpha1Client
-func (c *Clientset) Kubedb() kubedbv1alpha1.KubedbV1alpha1Interface {
 	return &fakekubedbv1alpha1.FakeKubedbV1alpha1{Fake: &c.Fake}
 }
