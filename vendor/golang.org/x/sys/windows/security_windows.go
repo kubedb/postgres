@@ -583,14 +583,13 @@ func (tml *Tokenmandatorylabel) Size() uint32 {
 // Authorization Functions
 //sys	checkTokenMembership(tokenHandle Token, sidToCheck *SID, isMember *int32) (err error) = advapi32.CheckTokenMembership
 //sys	OpenProcessToken(process Handle, access uint32, token *Token) (err error) = advapi32.OpenProcessToken
-//sys	GetCurrentThreadToken() (token Token) = advapi32.GetCurrentThreadToken
 //sys	OpenThreadToken(thread Handle, access uint32, openAsSelf bool, token *Token) (err error) = advapi32.OpenThreadToken
-//sys	GetCurrentProcessToken() (token Token) = advapi32.GetCurrentProcessToken
 //sys	ImpersonateSelf(impersonationlevel uint32) (err error) = advapi32.ImpersonateSelf
 //sys	RevertToSelf() (err error) = advapi32.RevertToSelf
 //sys	SetThreadToken(thread *Handle, token Token) (err error) = advapi32.SetThreadToken
 //sys	LookupPrivilegeValue(systemname *uint16, name *uint16, luid *LUID) (err error) = advapi32.LookupPrivilegeValueW
 //sys	AdjustTokenPrivileges(token Token, disableAllPrivileges bool, newstate *Tokenprivileges, buflen uint32, prevstate *Tokenprivileges, returnlen *uint32) (err error) = advapi32.AdjustTokenPrivileges
+//sys	AdjustTokenGroups(token Token, resetToDefault bool, newstate *Tokengroups, buflen uint32, prevstate *Tokengroups, returnlen *uint32) (err error) = advapi32.AdjustTokenGroups
 //sys	GetTokenInformation(token Token, infoClass uint32, info *byte, infoLen uint32, returnedLen *uint32) (err error) = advapi32.GetTokenInformation
 //sys	SetTokenInformation(token Token, infoClass uint32, info *byte, infoLen uint32) (err error) = advapi32.SetTokenInformation
 //sys	DuplicateTokenEx(existingToken Token, desiredAccess uint32, tokenAttributes *SecurityAttributes, impersonationLevel uint32, tokenType uint32, newToken *Token) (err error) = advapi32.DuplicateTokenEx
@@ -607,7 +606,9 @@ func (tml *Tokenmandatorylabel) Size() uint32 {
 type Token Handle
 
 // OpenCurrentProcessToken opens the access token
-// associated with current process.
+// associated with current process. It is a real
+// token that needs to be closed, unlike
+// GetCurrentProcessToken.
 func OpenCurrentProcessToken() (Token, error) {
 	p, e := GetCurrentProcess()
 	if e != nil {
@@ -619,6 +620,27 @@ func OpenCurrentProcessToken() (Token, error) {
 		return 0, e
 	}
 	return t, nil
+}
+
+// GetCurrentProcessToken returns the access token associated with
+// the current process. It is a pseudo token that does not need
+// to be closed.
+func GetCurrentProcessToken() Token {
+	return Token(^uintptr(4 - 1))
+}
+
+// GetCurrentThreadToken return the access token associated with
+// the current thread. It is a pseudo token that does not need
+// to be closed.
+func GetCurrentThreadToken() Token {
+	return Token(^uintptr(5 - 1))
+}
+
+// GetCurrentThreadEffectiveToken returns the effective access token
+// associated with the current thread. It is a pseudo token that does
+// not need to be closed.
+func GetCurrentThreadEffectiveToken() Token {
+	return Token(^uintptr(6 - 1))
 }
 
 // Close releases access to access token.
@@ -690,6 +712,28 @@ func (t Token) GetUserProfileDirectory() (string, error) {
 			return "", e
 		}
 	}
+}
+
+// Returns whether the current token is elevated from a UAC perspective.
+func (token Token) IsElevated() bool {
+	var isElevated uint32
+	var outLen uint32
+	err := GetTokenInformation(token, TokenElevation, (*byte)(unsafe.Pointer(&isElevated)), uint32(unsafe.Sizeof(isElevated)), &outLen)
+	if err != nil {
+		return false
+	}
+	return outLen == uint32(unsafe.Sizeof(isElevated)) && isElevated != 0
+}
+
+// Returns the linked token, which may be an elevated UAC token.
+func (token Token) GetLinkedToken() (Token, error) {
+	var linkedToken Token
+	var outLen uint32
+	err := GetTokenInformation(token, TokenLinkedToken, (*byte)(unsafe.Pointer(&linkedToken)), uint32(unsafe.Sizeof(linkedToken)), &outLen)
+	if err != nil {
+		return Token(0), err
+	}
+	return linkedToken, nil
 }
 
 // GetSystemDirectory retrieves path to current location of the system

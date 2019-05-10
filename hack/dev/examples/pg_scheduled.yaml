@@ -1,0 +1,22 @@
+apiVersion: kubedb.com/v1alpha1
+kind: Postgres
+metadata:
+  name: scheduled-pg
+  namespace: demo
+spec:
+  version: "10.2-v2"
+  replicas: 1
+  storage:
+    storageClassName: "standard"
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 1Gi
+  terminationPolicy: WipeOut
+  backupSchedule:
+    cronExpression: "@every 2m"
+    storageSecretName: gcs-secret
+    gcs:
+      bucket: kubedb-qa
+      prefix: kubedb-crd/scheduled-pg

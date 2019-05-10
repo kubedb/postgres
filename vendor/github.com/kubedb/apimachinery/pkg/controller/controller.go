@@ -18,6 +18,8 @@ import (
 	"k8s.io/client-go/tools/cache"
 	"kmodules.xyz/client-go/tools/queue"
 	appcat_cs "kmodules.xyz/custom-resources/client/clientset/versioned/typed/appcatalog/v1alpha1"
+	scs "stash.appscode.dev/stash/client/clientset/versioned"
+	stashInformers "stash.appscode.dev/stash/client/informers/externalversions"
 )
 
 type Controller struct {
@@ -27,17 +29,20 @@ type Controller struct {
 	// Api Extension Client
 	ApiExtKubeClient crd_cs.ApiextensionsV1beta1Interface
 	// ThirdPartyExtension client
-	ExtClient cs.Interface
+	ExtClient cs.Interface //#TODO: rename to DBClient
 	// Dynamic client
 	DynamicClient dynamic.Interface
 	// AppCatalog client
 	AppCatalogClient appcat_cs.AppcatalogV1alpha1Interface
+	// StashClient for stash
+	StashClient scs.Interface
 }
 
 type Config struct {
 	// Informer factory
 	KubeInformerFactory   informers.SharedInformerFactory
 	KubedbInformerFactory kubedbinformers.SharedInformerFactory
+	StashInformerFactory  stashInformers.SharedInformerFactory
 
 	// DormantDb queue
 	DrmnQueue    *queue.Worker
@@ -48,6 +53,9 @@ type Config struct {
 	// snapshot queue
 	SnapQueue    *queue.Worker
 	SnapInformer cache.SharedIndexInformer
+	// restoreSession queue
+	RSQueue    *queue.Worker
+	RSInformer cache.SharedIndexInformer
 
 	EnableRBAC              bool
 	OperatorNamespace       string

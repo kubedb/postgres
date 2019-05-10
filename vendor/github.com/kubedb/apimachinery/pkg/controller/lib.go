@@ -3,6 +3,7 @@ package controller
 import (
 	"math"
 	"path/filepath"
+	"time"
 
 	"github.com/appscode/go/log"
 	"github.com/graymeta/stow"
@@ -14,14 +15,17 @@ import (
 	batch "k8s.io/api/batch/v1"
 	core "k8s.io/api/core/v1"
 	policyv1beta1 "k8s.io/api/policy/v1beta1"
+	crd_cs "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/apimachinery/pkg/util/wait"
 	clientsetscheme "k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/tools/reference"
 	core_util "kmodules.xyz/client-go/core/v1"
 	policy_util "kmodules.xyz/client-go/policy/v1beta1"
 	"kmodules.xyz/objectstore-api/osm"
+	"stash.appscode.dev/stash/apis/stash/v1beta1"
 )
 
 const UtilVolumeName = "util-volume"
@@ -257,4 +261,17 @@ func (c *Controller) CreateDeploymentPodDisruptionBudget(deployment *appsv1.Depl
 			return in
 		})
 	return err
+}
+
+func FoundStashCRDs(apiExtClient crd_cs.ApiextensionsV1beta1Interface) bool {
+	_, err := apiExtClient.CustomResourceDefinitions().Get(v1beta1.ResourcePluralRestoreSession+"."+v1beta1.SchemeGroupVersion.Group, metav1.GetOptions{})
+	return err == nil
+}
+
+// BlockOnStashOperator waits for restoresession crd to come up.
+// It either waits until restoresession crd exists or throws error otherwise
+func (c *Controller) BlockOnStashOperator() error {
+	return wait.PollImmediateInfinite(time.Second*10, func() (bool, error) {
+		return FoundStashCRDs(c.ApiExtKubeClient), nil
+	})
 }

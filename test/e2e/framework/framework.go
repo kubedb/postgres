@@ -9,28 +9,28 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/spf13/afero"
 	"gomodules.xyz/cert/certstore"
+	crd_cs "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	ka "k8s.io/kube-aggregator/pkg/client/clientset_generated/clientset"
 	appcat_cs "kmodules.xyz/custom-resources/client/clientset/versioned/typed/appcatalog/v1alpha1"
+	scs "stash.appscode.dev/stash/client/clientset/versioned"
 )
 
 var (
 	DockerRegistry     = "kubedbci"
 	SelfHostedOperator = false
-	DBCatalogName      = "11.2"
-	DBVersion          = "11.2"
-	DBToolsTag         = "11.2"
-	ExporterTag        = "v0.4.6"
-	EnableRbac         = true
+	DBCatalogName      = "10.2-v4"
 )
 
 type Framework struct {
 	restConfig       *rest.Config
 	kubeClient       kubernetes.Interface
-	extClient        cs.Interface
+	apiExtKubeClient crd_cs.ApiextensionsV1beta1Interface
+	dbClient         cs.Interface
 	kaClient         ka.Interface
 	appCatalogClient appcat_cs.AppcatalogV1alpha1Interface
+	stashClient      scs.Interface
 	namespace        string
 	name             string
 	StorageClass     string
@@ -40,9 +40,11 @@ type Framework struct {
 func New(
 	restConfig *rest.Config,
 	kubeClient kubernetes.Interface,
-	extClient cs.Interface,
+	apiExtKubeClient crd_cs.ApiextensionsV1beta1Interface,
+	dbClient cs.Interface,
 	kaClient ka.Interface,
 	appCatalogClient appcat_cs.AppcatalogV1alpha1Interface,
+	stashClient scs.Interface,
 	storageClass string,
 ) *Framework {
 	store, err := certstore.NewCertStore(afero.NewMemMapFs(), filepath.Join("", "pki"))
@@ -53,9 +55,11 @@ func New(
 	return &Framework{
 		restConfig:       restConfig,
 		kubeClient:       kubeClient,
-		extClient:        extClient,
+		apiExtKubeClient: apiExtKubeClient,
+		dbClient:         dbClient,
 		kaClient:         kaClient,
 		appCatalogClient: appCatalogClient,
+		stashClient:      stashClient,
 		name:             "postgres-operator",
 		namespace:        rand.WithUniqSuffix(api.ResourceSingularPostgres),
 		StorageClass:     storageClass,
@@ -75,7 +79,7 @@ func (fi *Invocation) App() string {
 }
 
 func (fi *Invocation) ExtClient() cs.Interface {
-	return fi.extClient
+	return fi.dbClient
 }
 
 type Invocation struct {

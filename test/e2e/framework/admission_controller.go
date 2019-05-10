@@ -11,9 +11,11 @@ import (
 	"github.com/appscode/go/log"
 	shell "github.com/codeskyblue/go-sh"
 	"github.com/kubedb/apimachinery/apis"
+	catlog "github.com/kubedb/apimachinery/apis/catalog/v1alpha1"
 	"github.com/kubedb/postgres/pkg/cmds/server"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	crd_api "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/discovery"
@@ -21,6 +23,7 @@ import (
 	kApi "k8s.io/kube-aggregator/pkg/apis/apiregistration/v1beta1"
 	kutil "kmodules.xyz/client-go"
 	admsn_kutil "kmodules.xyz/client-go/admissionregistration/v1beta1"
+	apiext_util "kmodules.xyz/client-go/apiextensions/v1beta1"
 	discovery_util "kmodules.xyz/client-go/discovery"
 	meta_util "kmodules.xyz/client-go/meta"
 )
@@ -71,6 +74,14 @@ func (f *Framework) EventuallyAPIServiceReady() GomegaAsyncAssertion {
 func (f *Framework) RunOperatorAndServer(config *restclient.Config, kubeconfigPath string, stopCh <-chan struct{}) {
 	defer GinkgoRecover()
 
+	// ensure crds. Mainly for catalogVersions CRD.
+	log.Infoln("Ensuring CustomResourceDefinition...")
+	crds := []*crd_api.CustomResourceDefinition{
+		catlog.PostgresVersion{}.CustomResourceDefinition(),
+	}
+	err := apiext_util.RegisterCRDs(f.apiExtKubeClient, crds)
+	Expect(err).NotTo(HaveOccurred())
+
 	// Check and set EnableStatusSubresource=true for >=kubernetes v1.11
 	// Todo: remove this part and set EnableStatusSubresource=true automatically when subresources is must in kubedb.
 	discClient, err := discovery.NewDiscoveryClientForConfig(config)
@@ -99,7 +110,7 @@ func (f *Framework) RunOperatorAndServer(config *restclient.Config, kubeconfigPa
 	serverOpt.RecommendedOptions.Authorization.RemoteKubeConfigFile = kubeconfigPath
 	serverOpt.RecommendedOptions.Authentication.RemoteKubeConfigFile = kubeconfigPath
 
-	serverOpt.ExtraOptions.EnableRBAC = EnableRbac
+	serverOpt.ExtraOptions.EnableRBAC = true
 	serverOpt.ExtraOptions.EnableMutatingWebhook = true
 	serverOpt.ExtraOptions.EnableValidatingWebhook = true
 

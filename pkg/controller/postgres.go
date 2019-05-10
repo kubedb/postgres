@@ -94,30 +94,42 @@ func (c *Controller) create(postgres *api.Postgres) error {
 		)
 	}
 
+	// ensure appbinding before ensuring Restic scheduler and restore
+	_, err = c.ensureAppBinding(postgres)
+	if err != nil {
+		log.Errorln(err)
+		return err
+	}
+
 	if _, err := meta_util.GetString(postgres.Annotations, api.AnnotationInitialized); err == kutil.ErrNotFound &&
 		postgres.Spec.Init != nil &&
-		postgres.Spec.Init.SnapshotSource != nil {
-
-		snapshotSource := postgres.Spec.Init.SnapshotSource
+		(postgres.Spec.Init.SnapshotSource != nil || postgres.Spec.Init.StashRestoreSession != nil) {
 
 		if postgres.Status.Phase == api.DatabasePhaseInitializing {
 			return nil
 		}
 
-		jobName := fmt.Sprintf("%s-%s", api.DatabaseNamePrefix, snapshotSource.Name)
-		if _, err := c.Client.BatchV1().Jobs(snapshotSource.Namespace).Get(jobName, metav1.GetOptions{}); err != nil {
-			if !kerr.IsNotFound(err) {
-				return err
+		// add phase that database is being initialized
+		pg, err := util.UpdatePostgresStatus(c.ExtClient.KubedbV1alpha1(), postgres, func(in *api.PostgresStatus) *api.PostgresStatus {
+			in.Phase = api.DatabasePhaseInitializing
+			return in
+		}, apis.EnableStatusSubresource)
+		if err != nil {
+			return err
+		}
+		postgres.Status = pg.Status
+
+		init := postgres.Spec.Init
+		if init.SnapshotSource != nil {
+			err = c.initializeFromSnapshot(postgres)
+			if err != nil {
+				return fmt.Errorf("failed to complete initialization. Reason: %v", err)
 			}
-		} else {
+			return err
+		} else if init.StashRestoreSession != nil {
+			log.Debugf("Postgres %v/%v is waiting for restoreSession to be succeeded", postgres.Namespace, postgres.Name)
 			return nil
 		}
-
-		err = c.initialize(postgres)
-		if err != nil {
-			return fmt.Errorf("failed to complete initialization. Reason: %v", err)
-		}
-		return nil
 	}
 
 	pg, err := util.UpdatePostgresStatus(c.ExtClient.KubedbV1alpha1(), postgres, func(in *api.PostgresStatus) *api.PostgresStatus {
@@ -167,12 +179,6 @@ func (c *Controller) create(postgres *api.Postgres) error {
 		return nil
 	}
 
-	_, err = c.ensureAppBinding(postgres)
-	if err != nil {
-		log.Errorln(err)
-		return err
-	}
-
 	return nil
 }
 
@@ -215,17 +221,17 @@ func (c *Controller) ensureBackupScheduler(postgres *api.Postgres) error {
 	return nil
 }
 
-func (c *Controller) initialize(postgres *api.Postgres) error {
-	pg, err := util.UpdatePostgresStatus(c.ExtClient.KubedbV1alpha1(), postgres, func(in *api.PostgresStatus) *api.PostgresStatus {
-		in.Phase = api.DatabasePhaseInitializing
-		return in
-	}, apis.EnableStatusSubresource)
-	if err != nil {
-		return err
-	}
-	postgres.Status = pg.Status
-
+func (c *Controller) initializeFromSnapshot(postgres *api.Postgres) error {
 	snapshotSource := postgres.Spec.Init.SnapshotSource
+	jobName := fmt.Sprintf("%s-%s", api.DatabaseNamePrefix, snapshotSource.Name)
+	if _, err := c.Client.BatchV1().Jobs(snapshotSource.Namespace).Get(jobName, metav1.GetOptions{}); err != nil {
+		if !kerr.IsNotFound(err) {
+			return err
+		}
+	} else {
+		return nil
+	}
+
 	// Event for notification that kubernetes objects are creating
 	c.recorder.Eventf(
 		postgres,
