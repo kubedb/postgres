@@ -2,6 +2,7 @@ package framework
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/appscode/go/crypto/rand"
@@ -11,14 +12,21 @@ import (
 	"github.com/kubedb/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1/util"
 	. "github.com/onsi/gomega"
 	core "k8s.io/api/core/v1"
+	policy "k8s.io/api/policy/v1beta1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
+	meta_util "kmodules.xyz/client-go/meta"
 )
 
 var (
 	JobPvcStorageSize = "2Gi"
 	DBPvcStorageSize  = "1Gi"
+)
+
+const (
+	kindEviction = "Eviction"
 )
 
 func (i *Invocation) Postgres() *api.Postgres {
@@ -131,4 +139,64 @@ func (f *Framework) CleanPostgres() {
 	if err := f.extClient.KubedbV1alpha1().Postgreses(f.namespace).DeleteCollection(deleteInForeground(), metav1.ListOptions{}); err != nil {
 		fmt.Printf("error in deletion of Postgres. Error: %v", err)
 	}
+}
+
+func (f *Framework) EvictPodsFromStatefulSet(meta metav1.ObjectMeta) error {
+	var err error
+	labelSelector := labels.Set{
+		meta_util.ManagedByLabelKey: api.GenericKey,
+		api.LabelDatabaseKind:       api.ResourceKindPostgres,
+		api.LabelDatabaseName:       meta.GetName(),
+	}
+	// get sts in the namespace
+	stsList, err := f.kubeClient.AppsV1().StatefulSets(meta.Namespace).List(metav1.ListOptions{LabelSelector: labelSelector.String()})
+	if err != nil {
+		return err
+	}
+	for _, sts := range stsList.Items {
+		// if PDB is not found, send error
+		var pdb *policy.PodDisruptionBudget
+		pdb, err = f.kubeClient.PolicyV1beta1().PodDisruptionBudgets(sts.Namespace).Get(sts.Name, metav1.GetOptions{})
+		if err != nil {
+			return err
+		}
+		eviction := &policy.Eviction{
+			TypeMeta: metav1.TypeMeta{
+				APIVersion: policy.SchemeGroupVersion.String(),
+				Kind:       kindEviction,
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      sts.Name,
+				Namespace: sts.Namespace,
+			},
+			DeleteOptions: &metav1.DeleteOptions{},
+		}
+
+		if pdb.Spec.MaxUnavailable == nil {
+			return fmt.Errorf("found pdb %s spec.maxUnavailable nil", pdb.Name)
+		}
+
+		// try to evict as many pod as allowed in pdb. No err should occur
+		maxUnavailable := pdb.Spec.MaxUnavailable.IntValue()
+		for i := 0; i < maxUnavailable; i++ {
+			eviction.Name = sts.Name + "-" + strconv.Itoa(i)
+
+			err := f.kubeClient.PolicyV1beta1().Evictions(eviction.Namespace).Evict(eviction)
+			if err != nil {
+				return err
+			}
+		}
+
+		// try to evict one extra pod. TooManyRequests err should occur
+		eviction.Name = sts.Name + "-" + strconv.Itoa(maxUnavailable)
+		err = f.kubeClient.PolicyV1beta1().Evictions(eviction.Namespace).Evict(eviction)
+		if kerr.IsTooManyRequests(err) {
+			err = nil
+		} else if err != nil {
+			return err
+		} else {
+			return fmt.Errorf("expected pod %s/%s to be not evicted due to pdb %s", sts.Namespace, eviction.Name, pdb.Name)
+		}
+	}
+	return err
 }
