@@ -292,6 +292,9 @@ func matchWithDormantDatabase(extClient cs.Interface, postgres *api.Postgres) er
 	// Skip checking UpdateStrategy
 	drmnOriginSpec.UpdateStrategy = originalSpec.UpdateStrategy
 
+	// Skip checking ServiceAccountName
+	drmnOriginSpec.PodTemplate.Spec.ServiceAccountName = originalSpec.PodTemplate.Spec.ServiceAccountName
+
 	// Skip checking TerminationPolicy
 	drmnOriginSpec.TerminationPolicy = originalSpec.TerminationPolicy
 

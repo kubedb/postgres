@@ -15,6 +15,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	core "k8s.io/api/core/v1"
+	rbac "k8s.io/api/rbac/v1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	core_util "kmodules.xyz/client-go/core/v1"
@@ -277,6 +278,192 @@ var _ = Describe("Postgres", func() {
 
 				It("should run successfully", testGeneralBehaviour)
 			})
+
+			Context("with custom SA Name", func() {
+				BeforeEach(func() {
+					var customSecret *core.Secret
+					customSecret = f.SecretForDatabaseAuthentication(postgres.ObjectMeta)
+					postgres.Spec.DatabaseSecret = &core.SecretVolumeSource{
+						SecretName: customSecret.Name,
+					}
+					err := f.CreateSecret(customSecret)
+					Expect(err).NotTo(HaveOccurred())
+					postgres.Spec.PodTemplate.Spec.ServiceAccountName = "my-custom-sa"
+					postgres.Spec.TerminationPolicy = api.TerminationPolicyPause
+				})
+				It("should start and resume successfully", func() {
+					//shouldTakeSnapshot()
+					createAndWaitForRunning()
+					if postgres == nil {
+						Skip("Skipping")
+					}
+					By("Check if Postgres " + postgres.Name + " exists.")
+					_, err := f.GetPostgres(postgres.ObjectMeta)
+					if err != nil {
+						if kerr.IsNotFound(err) {
+							// Postgres was not created. Hence, rest of cleanup is not necessary.
+							return
+						}
+						Expect(err).NotTo(HaveOccurred())
+					}
+
+					By("Delete postgres: " + postgres.Name)
+					err = f.DeletePostgres(postgres.ObjectMeta)
+					if err != nil {
+						if kerr.IsNotFound(err) {
+							// Postgres was not created. Hence, rest of cleanup is not necessary.
+							log.Infof("Skipping rest of cleanup. Reason: Postgres %s is not found.", postgres.Name)
+							return
+						}
+						Expect(err).NotTo(HaveOccurred())
+					}
+
+					By("Wait for postgres to be paused")
+					f.EventuallyDormantDatabaseStatus(postgres.ObjectMeta).Should(matcher.HavePaused())
+
+					By("Resume PG")
+					createAndWaitForRunning()
+				})
+			})
+
+			Context("With Custom Resources", func() {
+
+				BeforeEach(func() {
+					skipSnapshotDataChecking = false
+					snapshot.Spec.DatabaseName = postgres.Name
+					secret = f.SecretForGCSBackend()
+					snapshot.Spec.StorageSecretName = secret.Name
+					snapshot.Spec.GCS = &store.GCSSpec{
+						Bucket: os.Getenv(GCS_BUCKET_NAME),
+					}
+				})
+				Context("with custom SA", func() {
+					var customSAForDB *core.ServiceAccount
+					var customRoleForDB *rbac.Role
+					var customRoleBindingForDB *rbac.RoleBinding
+					var customSAForSnapshot *core.ServiceAccount
+					var customRoleForSnapshot *rbac.Role
+					var customRoleBindingForSnapshot *rbac.RoleBinding
+					BeforeEach(func() {
+						postgres.Spec.TerminationPolicy = api.TerminationPolicyWipeOut
+
+						customSAForDB = f.ServiceAccount()
+						postgres.Spec.PodTemplate.Spec.ServiceAccountName = customSAForDB.Name
+						customSAForSnapshot = f.ServiceAccount()
+						snapshot.Spec.PodTemplate.Spec.ServiceAccountName = customSAForSnapshot.Name
+
+						customRoleForDB = f.RoleForPostgres(postgres.ObjectMeta)
+						customRoleForSnapshot = f.RoleForSnapshot(postgres.ObjectMeta)
+
+						customRoleBindingForDB = f.RoleBinding(customSAForDB.Name, customRoleForDB.Name)
+						customRoleBindingForSnapshot = f.RoleBinding(customSAForSnapshot.Name, customRoleForSnapshot.Name)
+
+						By("Create Database SA")
+						err = f.CreateServiceAccount(customSAForDB)
+						Expect(err).NotTo(HaveOccurred())
+						By("Create Database Role")
+						err = f.CreateRole(customRoleForDB)
+						Expect(err).NotTo(HaveOccurred())
+						By("Create Database RoleBinding")
+						err = f.CreateRoleBinding(customRoleBindingForDB)
+						Expect(err).NotTo(HaveOccurred())
+
+						By("Create Snapshot SA")
+						err = f.CreateServiceAccount(customSAForSnapshot)
+						Expect(err).NotTo(HaveOccurred())
+						By("Create Snapshot Role")
+						err = f.CreateRole(customRoleForSnapshot)
+						Expect(err).NotTo(HaveOccurred())
+						By("Create Snapshot RoleBinding")
+						err = f.CreateRoleBinding(customRoleBindingForSnapshot)
+						Expect(err).NotTo(HaveOccurred())
+					})
+					It("should take snapshot successfully", func() {
+						shouldTakeSnapshot()
+					})
+					It("should init from snapshot successfully", func() {
+						By("Start initializing From Snapshot")
+						// create postgres and take snapshot
+						shouldInsertDataAndTakeSnapshot()
+
+						oldPostgres, err := f.GetPostgres(postgres.ObjectMeta)
+						Expect(err).NotTo(HaveOccurred())
+
+						garbagePostgres.Items = append(garbagePostgres.Items, *oldPostgres)
+
+						By("Create postgres from snapshot")
+						*postgres = *f.Postgres()
+						postgres.Spec.DatabaseSecret = oldPostgres.Spec.DatabaseSecret
+						postgres.Spec.Init = &api.InitSpec{
+							SnapshotSource: &api.SnapshotSourceSpec{
+								Namespace: snapshot.Namespace,
+								Name:      snapshot.Name,
+							},
+						}
+
+						//Create New role and bind it to existing SA
+						By("Get new Role and RB")
+						customRoleForReplayDB := f.RoleForPostgres(postgres.ObjectMeta)
+						customRoleBindingForReplayDB := f.RoleBinding(customSAForDB.Name, customRoleForReplayDB.Name)
+
+						By("Create Database Role")
+						err = f.CreateRole(customRoleForReplayDB)
+						Expect(err).NotTo(HaveOccurred())
+						By("Create Database RoleBinding")
+						err = f.CreateRoleBinding(customRoleBindingForReplayDB)
+						Expect(err).NotTo(HaveOccurred())
+
+						postgres.Spec.PodTemplate.Spec.ServiceAccountName = customSAForDB.Name
+
+						// Create and wait for running Postgres
+						createAndWaitForRunning()
+
+						By("Check Table")
+						f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
+					})
+
+				})
+
+				Context("with custom Secret", func() {
+					var kubedbSecret *core.Secret
+					var customSecret *core.Secret
+					BeforeEach(func() {
+
+						customSecret = f.SecretForDatabaseAuthentication(postgres.ObjectMeta)
+						postgres.Spec.DatabaseSecret = &core.SecretVolumeSource{
+							SecretName: customSecret.Name,
+						}
+
+					})
+					It("should preserve custom secret successfully", func() {
+						By("Create Database Secret")
+						err := f.CreateSecret(customSecret)
+						Expect(err).NotTo(HaveOccurred())
+
+						shouldTakeSnapshot()
+						deleteTestResource()
+						By("Verifying Database Secret is present")
+						err = f.CheckSecret(customSecret)
+						Expect(err).NotTo(HaveOccurred())
+					})
+					It("should delete labelled secret successfully", func() {
+						kubedbSecret = f.SecretForDatabaseAuthenticationWithLabel(postgres.ObjectMeta)
+						postgres.Spec.DatabaseSecret = &core.SecretVolumeSource{
+							SecretName: kubedbSecret.Name,
+						}
+						By("Create Database Secret")
+						err = f.CreateSecret(kubedbSecret)
+						Expect(err).NotTo(HaveOccurred())
+
+						shouldTakeSnapshot()
+						deleteTestResource()
+						By("Verify Database Secret is not present")
+						err = f.CheckSecret(kubedbSecret)
+						Expect(err).To(HaveOccurred())
+					})
+				})
+
+			})
 		})
 
 		Context("Snapshot", func() {
@@ -454,7 +641,7 @@ var _ = Describe("Postgres", func() {
 				})
 
 				Context("with custom username and password", func() {
-					customSecret := &core.Secret{}
+					var customSecret *core.Secret
 					BeforeEach(func() {
 						customSecret = f.SecretForDatabaseAuthentication(postgres.ObjectMeta)
 						postgres.Spec.DatabaseSecret = &core.SecretVolumeSource{

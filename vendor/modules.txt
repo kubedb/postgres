@@ -202,48 +202,6 @@ github.com/jmespath/go-jmespath
 github.com/jpillora/go-ogle-analytics
 # github.com/json-iterator/go v1.1.6
 github.com/json-iterator/go
-# github.com/kubedb/apimachinery v0.0.0-20190526014453-48e4bab67179
-github.com/kubedb/apimachinery/apis/kubedb/v1alpha1
-github.com/kubedb/apimachinery/client/clientset/versioned
-github.com/kubedb/apimachinery/pkg/validator
-github.com/kubedb/apimachinery/client/clientset/versioned/scheme
-github.com/kubedb/apimachinery/apis
-github.com/kubedb/apimachinery/client/informers/externalversions
-github.com/kubedb/apimachinery/pkg/controller/snapshot
-github.com/kubedb/apimachinery/apis/authorization/v1alpha1
-github.com/kubedb/apimachinery/apis/catalog/v1alpha1
-github.com/kubedb/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1/util
-github.com/kubedb/apimachinery/client/listers/kubedb/v1alpha1
-github.com/kubedb/apimachinery/pkg/controller
-github.com/kubedb/apimachinery/pkg/controller/dormantdatabase
-github.com/kubedb/apimachinery/pkg/eventer
-github.com/kubedb/apimachinery/pkg/admission/dormantdatabase
-github.com/kubedb/apimachinery/pkg/admission/namespace
-github.com/kubedb/apimachinery/pkg/admission/snapshot
-github.com/kubedb/apimachinery/apis/kubedb
-github.com/kubedb/apimachinery/client/clientset/versioned/typed/authorization/v1alpha1
-github.com/kubedb/apimachinery/client/clientset/versioned/typed/catalog/v1alpha1
-github.com/kubedb/apimachinery/client/clientset/versioned/typed/config/v1alpha1
-github.com/kubedb/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1
-github.com/kubedb/apimachinery/client/clientset/versioned/fake
-github.com/kubedb/apimachinery/apis/config/v1alpha1
-github.com/kubedb/apimachinery/client/informers/externalversions/authorization
-github.com/kubedb/apimachinery/client/informers/externalversions/catalog
-github.com/kubedb/apimachinery/client/informers/externalversions/internalinterfaces
-github.com/kubedb/apimachinery/client/informers/externalversions/kubedb
-github.com/kubedb/apimachinery/client/informers/externalversions/kubedb/v1alpha1
-github.com/kubedb/apimachinery/pkg/controller/job
-github.com/kubedb/apimachinery/apis/authorization
-github.com/kubedb/apimachinery/apis/catalog
-github.com/kubedb/apimachinery/pkg/admission
-github.com/kubedb/apimachinery/client/clientset/versioned/typed/authorization/v1alpha1/fake
-github.com/kubedb/apimachinery/client/clientset/versioned/typed/catalog/v1alpha1/fake
-github.com/kubedb/apimachinery/client/clientset/versioned/typed/config/v1alpha1/fake
-github.com/kubedb/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1/fake
-github.com/kubedb/apimachinery/client/informers/externalversions/authorization/v1alpha1
-github.com/kubedb/apimachinery/client/informers/externalversions/catalog/v1alpha1
-github.com/kubedb/apimachinery/client/listers/authorization/v1alpha1
-github.com/kubedb/apimachinery/client/listers/catalog/v1alpha1
 # github.com/lib/pq v0.0.0-20190507191818-2ff3cb3adc01
 github.com/lib/pq
 github.com/lib/pq/oid
@@ -483,6 +441,7 @@ k8s.io/api/apps/v1
 k8s.io/api/batch/v1
 k8s.io/api/policy/v1beta1
 k8s.io/api/rbac/v1beta1
+k8s.io/api/rbac/v1
 k8s.io/api/authentication/v1
 k8s.io/api/storage/v1beta1
 k8s.io/api/admissionregistration/v1beta1
@@ -506,7 +465,6 @@ k8s.io/api/networking/v1
 k8s.io/api/networking/v1beta1
 k8s.io/api/node/v1alpha1
 k8s.io/api/node/v1beta1
-k8s.io/api/rbac/v1
 k8s.io/api/rbac/v1alpha1
 k8s.io/api/scheduling/v1
 k8s.io/api/scheduling/v1alpha1

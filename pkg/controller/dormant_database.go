@@ -99,6 +99,18 @@ func (c *Controller) wipeOutDatabase(meta metav1.ObjectMeta, secrets []string, r
 		return errors.Wrap(err, "error in getting used secret list")
 	}
 	unusedSecrets := sets.NewString(secrets...).Difference(secretUsed)
+
+	for _, unusedSecret := range unusedSecrets.List() {
+		secret, err := c.Client.CoreV1().Secrets(meta.Namespace).Get(unusedSecret, metav1.GetOptions{})
+		if err != nil {
+			return errors.Wrap(err, "error in getting db secret")
+		}
+		genericKey, ok := secret.Labels[meta_util.ManagedByLabelKey]
+		if !ok || genericKey != api.GenericKey {
+			unusedSecrets.Delete(secret.Name)
+		}
+	}
+
 	return dynamic_util.EnsureOwnerReferenceForItems(
 		c.DynamicClient,
 		core.SchemeGroupVersion.WithResource("secrets"),

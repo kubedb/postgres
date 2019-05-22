@@ -175,7 +175,14 @@ func (c *Controller) createRestoreJob(postgres *api.Postgres, snapshot *api.Snap
 	}
 
 	if c.EnableRBAC {
-		job.Spec.Template.Spec.ServiceAccountName = postgres.SnapshotSAName()
+		if snapshot.Spec.PodTemplate.Spec.ServiceAccountName == "" {
+			if err := c.ensureSnapshotRBAC(postgres); err != nil {
+				return nil, err
+			}
+			job.Spec.Template.Spec.ServiceAccountName = postgres.SnapshotSAName()
+		} else {
+			job.Spec.Template.Spec.ServiceAccountName = snapshot.Spec.PodTemplate.Spec.ServiceAccountName
+		}
 	}
 
 	return c.Client.BatchV1().Jobs(postgres.Namespace).Create(job)
@@ -346,7 +353,14 @@ func (c *Controller) GetSnapshotter(snapshot *api.Snapshot) (*batch.Job, error) 
 	}
 
 	if c.EnableRBAC {
-		job.Spec.Template.Spec.ServiceAccountName = postgres.SnapshotSAName()
+		if snapshot.Spec.PodTemplate.Spec.ServiceAccountName == "" {
+			job.Spec.Template.Spec.ServiceAccountName = postgres.SnapshotSAName()
+			if err := c.ensureSnapshotRBAC(postgres); err != nil {
+				return nil, err
+			}
+		} else {
+			job.Spec.Template.Spec.ServiceAccountName = snapshot.Spec.PodTemplate.Spec.ServiceAccountName
+		}
 	}
 
 	return job, nil

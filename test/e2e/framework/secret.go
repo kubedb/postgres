@@ -15,6 +15,7 @@ import (
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
+	meta_util "kmodules.xyz/client-go/meta"
 	store "kmodules.xyz/objectstore-api/api/v1"
 )
 
@@ -178,6 +179,24 @@ func (i *Invocation) SecretForDatabaseAuthentication(meta metav1.ObjectMeta) *co
 	}
 }
 
+func (i *Invocation) SecretForDatabaseAuthenticationWithLabel(meta metav1.ObjectMeta) *core.Secret {
+	//this Label mimics a secret created and manged by kubedb and not user.
+	// It should get deleted during wipeout
+	return &core.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      fmt.Sprintf("kubedb-%v-%v", meta.Name, CustomSecretSuffix),
+			Namespace: meta.Namespace,
+			Labels: map[string]string{
+				meta_util.ManagedByLabelKey: api.GenericKey,
+			},
+		},
+		StringData: map[string]string{
+			controller.PostgresUser:     CustomUsername,
+			controller.PostgresPassword: CustomPassword,
+		},
+	}
+}
+
 // TODO: Add more methods for Swift, Backblaze B2, Rest server backend.
 
 func (f *Framework) CreateSecret(obj *core.Secret) error {
@@ -231,4 +250,9 @@ func (f *Framework) EventuallyDBSecretCount(meta metav1.ObjectMeta) GomegaAsyncA
 		time.Minute*5,
 		time.Second*5,
 	)
+}
+
+func (f *Framework) CheckSecret(secret *core.Secret) error {
+	_, err := f.kubeClient.CoreV1().Secrets(f.namespace).Get(secret.Name, metav1.GetOptions{})
+	return err
 }

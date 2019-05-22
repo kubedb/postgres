@@ -3,6 +3,8 @@ module github.com/kubedb/postgres
 go 1.12
 
 require (
+	github.com/Azure/go-autorest v11.1.2+incompatible // indirect
+	github.com/OneOfOne/xxhash v1.2.5 // indirect
 	github.com/appscode/go v0.0.0-20190523031839-1468ee3a76e8
 	github.com/codeskyblue/go-sh v0.0.0-20190412065543-76bd3d59ff27
 	github.com/coreos/prometheus-operator v0.29.0
@@ -13,8 +15,10 @@ require (
 	github.com/go-xorm/core v0.6.0
 	github.com/go-xorm/xorm v0.7.0
 	github.com/graymeta/stow v0.1.0
+	github.com/kr/pty v1.1.4 // indirect
 	github.com/kubedb/apimachinery v0.0.0-20190526014453-48e4bab67179
 	github.com/lib/pq v0.0.0-20190507191818-2ff3cb3adc01
+	github.com/magiconair/properties v1.8.1 // indirect
 	github.com/mattn/go-sqlite3 v1.10.0 // indirect
 	github.com/ncw/swift v1.0.47 // indirect
 	github.com/onsi/ginkgo v1.8.0
@@ -26,6 +30,7 @@ require (
 	github.com/ziutek/mymysql v1.5.4 // indirect
 	golang.org/x/sys v0.0.0-20190508220229-2d0786266e9c // indirect
 	gomodules.xyz/cert v1.0.0
+	gopkg.in/square/go-jose.v2 v2.2.2 // indirect
 	k8s.io/api v0.0.0-20190503110853-61630f889b3c
 	k8s.io/apiextensions-apiserver v0.0.0-20190508224317-421cff06bf05
 	k8s.io/apimachinery v0.0.0-20190508063446-a3da69d3723c
@@ -34,7 +39,8 @@ require (
 	k8s.io/client-go v11.0.0+incompatible
 	k8s.io/component-base v0.0.0-20190508223741-40efa6d42997 // indirect
 	k8s.io/kube-aggregator v0.0.0-20190508224022-f9852b6d3a84
-	kmodules.xyz/client-go v0.0.0-20190524133821-9c8a87771aea
+	k8s.io/kubernetes v1.14.2 // indirect
+	kmodules.xyz/client-go v0.0.0-20190527113919-eb165836b702
 	kmodules.xyz/custom-resources v0.0.0-20190508103408-464e8324c3ec
 	kmodules.xyz/monitoring-agent-api v0.0.0-20190508125842-489150794b9b
 	kmodules.xyz/objectstore-api v0.0.0-20190506085934-94c81c8acca9

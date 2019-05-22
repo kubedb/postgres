@@ -71,11 +71,8 @@ func (c *Controller) createDatabaseSecret(postgres *api.Postgres) (*core.SecretV
 	name := fmt.Sprintf("%v-auth", postgres.OffshootName())
 	secret := &core.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: name,
-			Labels: map[string]string{
-				api.LabelDatabaseKind: api.ResourceKindPostgres,
-				api.LabelDatabaseName: postgres.OffshootName(),
-			},
+			Name:   name,
+			Labels: postgres.OffshootLabels(),
 		},
 		Type: core.SecretTypeOpaque,
 		Data: map[string][]byte{
