@@ -20,14 +20,15 @@ _testmain.go
 *.test
 *.prof
 
-# external packages folder
-.idea/
-dist/
-*.pyc
-*.DS_Store
-.vscode/
+/bin
+/.go
 
-**/.env
-apiserver.local.config/
-coverage.txt
-junit.xml
+/.idea
+/.markdownlint.json
+/.vscode
+/apiserver.local.config
+/coverage.txt
+/dist
+/hack/configs/.env
+/test/e2e/junit.xml
+/test/e2e/report.xml
