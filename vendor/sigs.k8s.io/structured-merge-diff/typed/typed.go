@@ -25,13 +25,45 @@ import (
 	"sigs.k8s.io/structured-merge-diff/value"
 )
 
+// TypedValue is a value with an associated type.
+type TypedValue interface {
+	// AsValue removes the type from the TypedValue and only keeps the value.
+	AsValue() *value.Value
+	// Validate returns an error with a list of every spec violation.
+	Validate() error
+	// ToFieldSet creates a set containing every leaf field and item mentioned, or
+	// validation errors, if any were encountered.
+	ToFieldSet() (*fieldpath.Set, error)
+	// Merge returns the result of merging tv and pso ("partially specified
+	// object") together. Of note:
+	//  * No fields can be removed by this operation.
+	//  * If both tv and pso specify a given leaf field, the result will keep pso's
+	//    value.
+	//  * Container typed elements will have their items ordered:
+	//    * like tv, if pso doesn't change anything in the container
+	//    * like pso, if pso does change something in the container.
+	// tv and pso must both be of the same type (their Schema and TypeRef must
+	// match), or an error will be returned. Validation errors will be returned if
+	// the objects don't conform to the schema.
+	Merge(pso TypedValue) (TypedValue, error)
+	// Compare compares the two objects. See the comments on the `Comparison`
+	// struct for details on the return value.
+	//
+	// tv and rhs must both be of the same type (their Schema and TypeRef must
+	// match), or an error will be returned. Validation errors will be returned if
+	// the objects don't conform to the schema.
+	Compare(rhs TypedValue) (c *Comparison, err error)
+	// RemoveItems removes each provided list or map item from the value.
+	RemoveItems(items *fieldpath.Set) TypedValue
+}
+
 // AsTyped accepts a value and a type and returns a TypedValue. 'v' must have
 // type 'typeName' in the schema. An error is returned if the v doesn't conform
 // to the schema.
-func AsTyped(v value.Value, s *schema.Schema, typeRef schema.TypeRef) (*TypedValue, error) {
-	tv := &TypedValue{
+func AsTyped(v value.Value, s *schema.Schema, typeName string) (TypedValue, error) {
+	tv := typedValue{
 		value:   v,
-		typeRef: typeRef,
+		typeRef: schema.TypeRef{NamedType: &typeName},
 		schema:  s,
 	}
 	if err := tv.Validate(); err != nil {
@@ -44,38 +76,36 @@ func AsTyped(v value.Value, s *schema.Schema, typeRef schema.TypeRef) (*TypedVal
 // conforms to the schema, for cases where that has already been checked or
 // where you're going to call a method that validates as a side-effect (like
 // ToFieldSet).
-func AsTypedUnvalidated(v value.Value, s *schema.Schema, typeRef schema.TypeRef) *TypedValue {
-	tv := &TypedValue{
+func AsTypedUnvalidated(v value.Value, s *schema.Schema, typeName string) TypedValue {
+	tv := typedValue{
 		value:   v,
-		typeRef: typeRef,
+		typeRef: schema.TypeRef{NamedType: &typeName},
 		schema:  s,
 	}
 	return tv
 }
 
-// TypedValue is a value of some specific type.
-type TypedValue struct {
+// typedValue is a value of some specific type.
+type typedValue struct {
 	value   value.Value
 	typeRef schema.TypeRef
 	schema  *schema.Schema
 }
 
-// AsValue removes the type from the TypedValue and only keeps the value.
-func (tv TypedValue) AsValue() *value.Value {
+var _ TypedValue = typedValue{}
+
+func (tv typedValue) AsValue() *value.Value {
 	return &tv.value
 }
 
-// Validate returns an error with a list of every spec violation.
-func (tv TypedValue) Validate() error {
+func (tv typedValue) Validate() error {
 	if errs := tv.walker().validate(); len(errs) != 0 {
 		return errs
 	}
 	return nil
 }
 
-// ToFieldSet creates a set containing every leaf field and item mentioned, or
-// validation errors, if any were encountered.
-func (tv TypedValue) ToFieldSet() (*fieldpath.Set, error) {
+func (tv typedValue) ToFieldSet() (*fieldpath.Set, error) {
 	s := fieldpath.NewSet()
 	w := tv.walker()
 	w.leafFieldCallback = func(p fieldpath.Path) { s.Insert(p) }
@@ -86,34 +116,27 @@ func (tv TypedValue) ToFieldSet() (*fieldpath.Set, error) {
 	return s, nil
 }
 
-// Merge returns the result of merging tv and pso ("partially specified
-// object") together. Of note:
-//  * No fields can be removed by this operation.
-//  * If both tv and pso specify a given leaf field, the result will keep pso's
-//    value.
-//  * Container typed elements will have their items ordered:
-//    * like tv, if pso doesn't change anything in the container
-//    * like pso, if pso does change something in the container.
-// tv and pso must both be of the same type (their Schema and TypeRef must
-// match), or an error will be returned. Validation errors will be returned if
-// the objects don't conform to the schema.
-func (tv TypedValue) Merge(pso *TypedValue) (*TypedValue, error) {
-	return merge(&tv, pso, ruleKeepRHS, nil)
+func (tv typedValue) Merge(pso TypedValue) (TypedValue, error) {
+	tpso, ok := pso.(typedValue)
+	if !ok {
+		return nil, errorFormatter{}.
+			errorf("can't merge typedValue with %T", pso)
+	}
+	return merge(tv, tpso, ruleKeepRHS, nil)
 }
 
-// Compare compares the two objects. See the comments on the `Comparison`
-// struct for details on the return value.
-//
-// tv and rhs must both be of the same type (their Schema and TypeRef must
-// match), or an error will be returned. Validation errors will be returned if
-// the objects don't conform to the schema.
-func (tv TypedValue) Compare(rhs *TypedValue) (c *Comparison, err error) {
+func (tv typedValue) Compare(rhs TypedValue) (c *Comparison, err error) {
+	trhs, ok := rhs.(typedValue)
+	if !ok {
+		return nil, errorFormatter{}.
+			errorf("can't compare typedValue with %T", rhs)
+	}
 	c = &Comparison{
 		Removed:  fieldpath.NewSet(),
 		Modified: fieldpath.NewSet(),
 		Added:    fieldpath.NewSet(),
 	}
-	c.Merged, err = merge(&tv, rhs, func(w *mergingWalker) {
+	c.Merged, err = merge(tv, trhs, func(w *mergingWalker) {
 		if w.lhs == nil {
 			c.Added.Insert(w.path)
 		} else if w.rhs == nil {
@@ -140,49 +163,14 @@ func (tv TypedValue) Compare(rhs *TypedValue) (c *Comparison, err error) {
 }
 
 // RemoveItems removes each provided list or map item from the value.
-func (tv TypedValue) RemoveItems(items *fieldpath.Set) *TypedValue {
-	tv.value, _ = value.FromUnstructured(tv.value.ToUnstructured(true))
-	removeItemsWithSchema(&tv.value, items, tv.schema, tv.typeRef)
-	return &tv
+func (tv typedValue) RemoveItems(items *fieldpath.Set) TypedValue {
+	copied := tv
+	copied.value, _ = value.FromUnstructured(tv.value.ToUnstructured(true))
+	removeItemsWithSchema(&copied.value, items, copied.schema, copied.typeRef)
+	return copied
 }
 
-// NormalizeUnions takes the new object and normalizes the union:
-// - If there is a discriminator and its value has changed, clean all
-// fields but the one specified by the discriminator
-// - If there is no discriminator, or it hasn't changed, if new has two
-// of the fields set, remove the one that was set in old.
-// - If there is a discriminator, set it to the value we've kept (if it changed)
-//
-// This can fail if:
-// - Multiple new fields are set,
-// - The discriminator is changed, and at least one new field is set.
-func (tv TypedValue) NormalizeUnions(new *TypedValue) (*TypedValue, error) {
-	var errs ValidationErrors
-	var normalizeFn = func(w *mergingWalker) {
-		if w.rhs != nil {
-			v := *w.rhs
-			w.out = &v
-		}
-		if err := normalizeUnions(w); err != nil {
-			errs = append(errs, w.error(err)...)
-		}
-	}
-	out, mergeErrs := merge(&tv, new, func(w *mergingWalker) {}, normalizeFn)
-	if mergeErrs != nil {
-		errs = append(errs, mergeErrs.(ValidationErrors)...)
-	}
-	if len(errs) > 0 {
-		return nil, errs
-	}
-	return out, nil
-}
-
-func (tv TypedValue) Empty() *TypedValue {
-	tv.value = value.Value{Null: true}
-	return &tv
-}
-
-func merge(lhs, rhs *TypedValue, rule, postRule mergeRule) (*TypedValue, error) {
+func merge(lhs, rhs typedValue, rule, postRule mergeRule) (TypedValue, error) {
 	if lhs.schema != rhs.schema {
 		return nil, errorFormatter{}.
 			errorf("expected objects with types from the same schema")
@@ -205,7 +193,7 @@ func merge(lhs, rhs *TypedValue, rule, postRule mergeRule) (*TypedValue, error) 
 		return nil, errs
 	}
 
-	out := &TypedValue{
+	out := typedValue{
 		schema:  lhs.schema,
 		typeRef: lhs.typeRef,
 	}
@@ -224,7 +212,7 @@ func merge(lhs, rhs *TypedValue, rule, postRule mergeRule) (*TypedValue, error) 
 type Comparison struct {
 	// Merged is the result of merging the two objects, as explained in the
 	// comments on TypedValue.Merge().
-	Merged *TypedValue
+	Merged TypedValue
 
 	// Removed contains any fields removed by rhs (the right-hand-side
 	// object in the comparison).

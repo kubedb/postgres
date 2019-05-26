@@ -40,6 +40,10 @@ func (c *FakeKubedbV1alpha1) Etcds(namespace string) v1alpha1.EtcdInterface {
 	return &FakeEtcds{c, namespace}
 }
 
+func (c *FakeKubedbV1alpha1) MariaDBs(namespace string) v1alpha1.MariaDBInterface {
+	return &FakeMariaDBs{c, namespace}
+}
+
 func (c *FakeKubedbV1alpha1) Memcacheds(namespace string) v1alpha1.MemcachedInterface {
 	return &FakeMemcacheds{c, namespace}
 }
@@ -50,6 +54,10 @@ func (c *FakeKubedbV1alpha1) MongoDBs(namespace string) v1alpha1.MongoDBInterfac
 
 func (c *FakeKubedbV1alpha1) MySQLs(namespace string) v1alpha1.MySQLInterface {
 	return &FakeMySQLs{c, namespace}
+}
+
+func (c *FakeKubedbV1alpha1) Perconas(namespace string) v1alpha1.PerconaInterface {
+	return &FakePerconas{c, namespace}
 }
 
 func (c *FakeKubedbV1alpha1) Postgreses(namespace string) v1alpha1.PostgresInterface {
