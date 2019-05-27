@@ -3,7 +3,6 @@ package controller
 import (
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	le "github.com/kubedb/postgres/pkg/leader_election"
-	"github.com/pkg/errors"
 	apps "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"
 	policy_v1beta1 "k8s.io/api/policy/v1beta1"
@@ -201,37 +200,41 @@ func (c *Controller) getPolicyNames(db *api.Postgres) (string, string, error) {
 }
 
 func (c *Controller) ensureDatabaseRBAC(postgres *api.Postgres) error {
-	dbPolicyName, _, err := c.getPolicyNames(postgres)
-	if err != nil {
-		return err
-	}
-
 	saName := postgres.Spec.PodTemplate.Spec.ServiceAccountName
 	if saName == "" {
-		return errors.New("Service Account Name should not empty.")
+		saName = postgres.OffshootName()
+		postgres.Spec.PodTemplate.Spec.ServiceAccountName = saName
 	}
-	_, err = c.Client.CoreV1().ServiceAccounts(postgres.Namespace).Get(saName, metav1.GetOptions{})
-	if err != nil {
-		if !kerr.IsNotFound(err) {
-			return err
-		}
-		// Create New Role
-		if err := c.ensureRole(postgres, dbPolicyName); err != nil {
-			return err
-		}
 
-		// Create New ServiceAccount
-		if err := c.createServiceAccount(postgres, saName); err != nil {
+	sa, err := c.Client.CoreV1().ServiceAccounts(postgres.Namespace).Get(saName, metav1.GetOptions{})
+	if kerr.IsNotFound(err) {
+		// create service account, since it does not exist
+		if err = c.createServiceAccount(postgres, saName); err != nil {
 			if !kerr.IsAlreadyExists(err) {
 				return err
 			}
 		}
-
-		// Create New RoleBinding
-		if err := c.createRoleBinding(postgres, saName); err != nil {
-			return err
-		}
+	} else if err != nil {
+		return err
+	} else if !core_util.IsOwnedBy(sa, postgres) {
+		// user provided the service account, so do nothing.
+		return nil
 	}
+
+	// Create New Role
+	pspName, _, err := c.getPolicyNames(postgres)
+	if err != nil {
+		return err
+	}
+	if err := c.ensureRole(postgres, pspName); err != nil {
+		return err
+	}
+
+	// Create New RoleBinding
+	if err := c.createRoleBinding(postgres, saName); err != nil {
+		return err
+	}
+
 	return nil
 }
 
