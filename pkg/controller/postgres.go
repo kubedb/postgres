@@ -184,8 +184,8 @@ func (c *Controller) ensurePostgresNode(postgres *api.Postgres, postgresVersion 
 	}
 
 	if c.EnableRBAC {
-		// Ensure ClusterRoles for database statefulsets
-		if err := c.ensureRBACStuff(postgres); err != nil {
+		// Ensure Service account, role, rolebinding, and PSP for database statefulsets
+		if err := c.ensureDatabaseRBAC(postgres); err != nil {
 			return kutil.VerbUnchanged, err
 		}
 	}

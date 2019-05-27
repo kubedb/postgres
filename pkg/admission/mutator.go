@@ -170,6 +170,9 @@ func setDefaultsFromDormantDB(extClient cs.Interface, postgres *api.Postgres) er
 	// Skip checking UpdateStrategy
 	ddbOriginSpec.UpdateStrategy = postgres.Spec.UpdateStrategy
 
+	// Skip checking ServiceAccountName
+	ddbOriginSpec.PodTemplate.Spec.ServiceAccountName = postgres.Spec.PodTemplate.Spec.ServiceAccountName
+
 	// Skip checking TerminationPolicy
 	ddbOriginSpec.TerminationPolicy = postgres.Spec.TerminationPolicy
 

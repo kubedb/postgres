@@ -122,7 +122,7 @@ func (c *Controller) createServiceAccount(db *api.Postgres, saName string) error
 	return err
 }
 
-func (c *Controller) createRoleBinding(db *api.Postgres) error {
+func (c *Controller) createRoleBinding(db *api.Postgres, saName string) error {
 	ref, rerr := reference.GetReference(clientsetscheme.Scheme, db)
 	if rerr != nil {
 		return rerr
@@ -145,7 +145,7 @@ func (c *Controller) createRoleBinding(db *api.Postgres) error {
 			in.Subjects = []rbac.Subject{
 				{
 					Kind:      rbac.ServiceAccountKind,
-					Name:      db.OffshootName(),
+					Name:      saName,
 					Namespace: db.Namespace,
 				},
 			}
@@ -199,26 +199,48 @@ func (c *Controller) getPolicyNames(db *api.Postgres) (string, string, error) {
 	return dbPolicyName, snapshotPolicyName, nil
 }
 
-func (c *Controller) ensureRBACStuff(postgres *api.Postgres) error {
-	dbPolicyName, snapshotPolicyName, err := c.getPolicyNames(postgres)
-	if err != nil {
+func (c *Controller) ensureDatabaseRBAC(postgres *api.Postgres) error {
+	saName := postgres.Spec.PodTemplate.Spec.ServiceAccountName
+	if saName == "" {
+		saName = postgres.OffshootName()
+		postgres.Spec.PodTemplate.Spec.ServiceAccountName = saName
+	}
+
+	sa, err := c.Client.CoreV1().ServiceAccounts(postgres.Namespace).Get(saName, metav1.GetOptions{})
+	if kerr.IsNotFound(err) {
+		// create service account, since it does not exist
+		if err = c.createServiceAccount(postgres, saName); err != nil {
+			if !kerr.IsAlreadyExists(err) {
+				return err
+			}
+		}
+	} else if err != nil {
 		return err
+	} else if !core_util.IsOwnedBy(sa, postgres) {
+		// user provided the service account, so do nothing.
+		return nil
 	}
 
 	// Create New Role
-	if err := c.ensureRole(postgres, dbPolicyName); err != nil {
+	pspName, _, err := c.getPolicyNames(postgres)
+	if err != nil {
+		return err
+	}
+	if err := c.ensureRole(postgres, pspName); err != nil {
 		return err
 	}
 
-	// Create New ServiceAccount
-	if err := c.createServiceAccount(postgres, postgres.OffshootName()); err != nil {
-		if !kerr.IsAlreadyExists(err) {
-			return err
-		}
+	// Create New RoleBinding
+	if err := c.createRoleBinding(postgres, saName); err != nil {
+		return err
 	}
 
-	// Create New RoleBinding
-	if err := c.createRoleBinding(postgres); err != nil {
+	return nil
+}
+
+func (c *Controller) ensureSnapshotRBAC(postgres *api.Postgres) error {
+	_, snapshotPolicyName, err := c.getPolicyNames(postgres)
+	if err != nil {
 		return err
 	}
 

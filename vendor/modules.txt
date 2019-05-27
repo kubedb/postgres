@@ -3,7 +3,7 @@ cloud.google.com/go/compute/metadata
 # github.com/Azure/azure-sdk-for-go v21.3.0+incompatible
 github.com/Azure/azure-sdk-for-go/storage
 github.com/Azure/azure-sdk-for-go/version
-# github.com/Azure/go-autorest v11.1.0+incompatible
+# github.com/Azure/go-autorest v11.1.2+incompatible
 github.com/Azure/go-autorest/autorest
 github.com/Azure/go-autorest/autorest/adal
 github.com/Azure/go-autorest/autorest/azure
@@ -483,6 +483,7 @@ k8s.io/api/apps/v1
 k8s.io/api/batch/v1
 k8s.io/api/policy/v1beta1
 k8s.io/api/rbac/v1beta1
+k8s.io/api/rbac/v1
 k8s.io/api/authentication/v1
 k8s.io/api/storage/v1beta1
 k8s.io/api/admissionregistration/v1beta1
@@ -506,7 +507,6 @@ k8s.io/api/networking/v1
 k8s.io/api/networking/v1beta1
 k8s.io/api/node/v1alpha1
 k8s.io/api/node/v1beta1
-k8s.io/api/rbac/v1
 k8s.io/api/rbac/v1alpha1
 k8s.io/api/scheduling/v1
 k8s.io/api/scheduling/v1alpha1
@@ -546,9 +546,9 @@ k8s.io/apimachinery/pkg/util/naming
 k8s.io/apimachinery/pkg/runtime/serializer/streaming
 k8s.io/apimachinery/pkg/util/net
 k8s.io/apimachinery/pkg/util/clock
+k8s.io/apimachinery/pkg/api/meta
 k8s.io/apimachinery/pkg/util/strategicpatch
 k8s.io/apimachinery/pkg/runtime/serializer/versioning
-k8s.io/apimachinery/pkg/api/meta
 k8s.io/apimachinery/pkg/util/validation
 k8s.io/apimachinery/pkg/util/waitgroup
 k8s.io/apimachinery/pkg/apis/meta/v1/unstructured
@@ -908,7 +908,7 @@ k8s.io/kube-openapi/pkg/schemaconv
 k8s.io/utils/buffer
 k8s.io/utils/trace
 k8s.io/utils/integer
-# kmodules.xyz/client-go v0.0.0-20190524133821-9c8a87771aea
+# kmodules.xyz/client-go v0.0.0-20190527113919-eb165836b702
 kmodules.xyz/client-go/logs
 kmodules.xyz/client-go
 kmodules.xyz/client-go/core/v1

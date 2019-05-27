@@ -132,7 +132,7 @@ func (c *Controller) ensureStatefulSet(
 		in = upsertCustomConfig(in, postgres)
 
 		if c.EnableRBAC {
-			in.Spec.Template.Spec.ServiceAccountName = postgres.OffshootName()
+			in.Spec.Template.Spec.ServiceAccountName = postgres.Spec.PodTemplate.Spec.ServiceAccountName
 		}
 		in.Spec.UpdateStrategy = postgres.Spec.UpdateStrategy
 
