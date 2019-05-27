@@ -10,7 +10,7 @@ export SELF_HOSTED=1
 export ARGS="" # Forward arguments to installer script
 
 REPO_ROOT="$GOPATH/src/github.com/kubedb/postgres"
-CLI_ROOT="$GOPATH/src/github.com/kubedb/cli"
+INSTALLER_ROOT="$GOPATH/src/github.com/kubedb/installer"
 
 pushd $REPO_ROOT
 
@@ -118,16 +118,16 @@ done
 # Update "CLI_BRANCH" in deploy/settings file to pull a particular CLI repo branch.
 if [ "$APPSCODE_ENV" = "dev" ]; then
   detect_tag ''
-  export KUBEDB_SCRIPT="cat $CLI_ROOT/"
+  export KUBEDB_SCRIPT="cat $INSTALLER_ROOT/"
   export CUSTOM_OPERATOR_TAG=$TAG
   echo ""
 
-  if [[ ! -d $CLI_ROOT ]]; then
+  if [[ ! -d $INSTALLER_ROOT ]]; then
     echo ">>> Cloning cli repo"
-    git clone -b $CLI_BRANCH https://github.com/kubedb/cli.git "${CLI_ROOT}"
-    pushd $CLI_ROOT
+    git clone -b $CLI_BRANCH https://github.com/kubedb/cli.git "${INSTALLER_ROOT}"
+    pushd $INSTALLER_ROOT
   else
-    pushd $CLI_ROOT
+    pushd $INSTALLER_ROOT
     detect_tag ''
     if [[ $git_branch != $CLI_BRANCH ]]; then
       git fetch --all
@@ -147,12 +147,12 @@ if [ "$SELF_HOSTED" -eq 1 ]; then
 fi
 
 if [ "$MINIKUBE" -eq 1 ]; then
-  cat $CLI_ROOT/hack/deploy/validating-webhook.yaml | $ONESSL envsubst | kubectl apply -f -
-  cat $CLI_ROOT/hack/deploy/mutating-webhook.yaml | $ONESSL envsubst | kubectl apply -f -
+  cat $INSTALLER_ROOT/deploy/validating-webhook.yaml | $ONESSL envsubst | kubectl apply -f -
+  cat $INSTALLER_ROOT/deploy/mutating-webhook.yaml | $ONESSL envsubst | kubectl apply -f -
   cat $REPO_ROOT/hack/dev/apiregistration.yaml | $ONESSL envsubst | kubectl apply -f -
-  cat $CLI_ROOT/hack/deploy/psp/postgres.yaml | $ONESSL envsubst | kubectl apply -f -
+  cat $INSTALLER_ROOT/deploy/psp/postgres.yaml | $ONESSL envsubst | kubectl apply -f -
   # Following line may give error if DBVersions CRD already not created
-  cat $CLI_ROOT/hack/deploy/kubedb-catalog/postgres.yaml | $ONESSL envsubst | kubectl apply -f - || true
+  cat $INSTALLER_ROOT/deploy/kubedb-catalog/postgres.yaml | $ONESSL envsubst | kubectl apply -f - || true
 
   if [ "$MINIKUBE_RUN" -eq 1 ]; then
     $REPO_ROOT/hack/make.py
@@ -167,7 +167,7 @@ if [ "$MINIKUBE" -eq 1 ]; then
   fi
 fi
 
-if [ $(pwd) = "$CLI_ROOT" ]; then
+if [ $(pwd) = "$INSTALLER_ROOT" ]; then
   popd
 fi
 popd

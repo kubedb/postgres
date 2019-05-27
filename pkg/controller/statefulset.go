@@ -157,6 +157,11 @@ func (c *Controller) ensureStatefulSet(
 			vt,
 		)
 	}
+
+	// ensure pdb
+	if err := c.CreateStatefulSetPodDisruptionBudget(statefulSet); err != nil {
+		return vt, err
+	}
 	return vt, nil
 }
 

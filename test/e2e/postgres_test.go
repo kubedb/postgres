@@ -464,6 +464,19 @@ var _ = Describe("Postgres", func() {
 				})
 
 			})
+
+			Context("PDB", func() {
+
+				It("should run evictions successfully", func() {
+					// Create Postgres
+					postgres.Spec.Replicas = types.Int32P(3)
+					createAndWaitForRunning()
+					//Evict a Postgres pod
+					By("Try to evict Pods")
+					err := f.EvictPodsFromStatefulSet(postgres.ObjectMeta)
+					Expect(err).NotTo(HaveOccurred())
+				})
+			})
 		})
 
 		Context("Snapshot", func() {
