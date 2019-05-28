@@ -12,6 +12,7 @@ import (
 	clientsetscheme "k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/tools/reference"
 	core_util "kmodules.xyz/client-go/core/v1"
+	meta_util "kmodules.xyz/client-go/meta"
 	rbac_util "kmodules.xyz/client-go/rbac/v1beta1"
 )
 
@@ -216,7 +217,7 @@ func (c *Controller) ensureDatabaseRBAC(postgres *api.Postgres) error {
 		}
 	} else if err != nil {
 		return err
-	} else if !core_util.IsOwnedBy(sa, postgres) {
+	} else if sa.Labels[meta_util.ManagedByLabelKey] != api.GenericKey {
 		// user provided the service account, so do nothing.
 		return nil
 	}
