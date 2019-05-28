@@ -217,7 +217,7 @@ func (c *Controller) ensureDatabaseRBAC(postgres *api.Postgres) error {
 		}
 	} else if err != nil {
 		return err
-	} else if !core_util.IsOwnedBy(sa, postgres) && api.GenericKey != sa.Labels[meta_util.ManagedByLabelKey] {
+	} else if sa.Labels[meta_util.ManagedByLabelKey] != api.GenericKey {
 		// user provided the service account, so do nothing.
 		return nil
 	}
