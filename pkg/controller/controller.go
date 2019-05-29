@@ -13,6 +13,7 @@ import (
 	api_listers "github.com/kubedb/apimachinery/client/listers/kubedb/v1alpha1"
 	amc "github.com/kubedb/apimachinery/pkg/controller"
 	drmnc "github.com/kubedb/apimachinery/pkg/controller/dormantdatabase"
+	"github.com/kubedb/apimachinery/pkg/controller/restoresession"
 	snapc "github.com/kubedb/apimachinery/pkg/controller/snapshot"
 	"github.com/kubedb/apimachinery/pkg/eventer"
 	core "k8s.io/api/core/v1"
@@ -31,6 +32,7 @@ import (
 	"kmodules.xyz/client-go/tools/queue"
 	appcat "kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1"
 	appcat_cs "kmodules.xyz/custom-resources/client/clientset/versioned/typed/appcatalog/v1alpha1"
+	scs "stash.appscode.dev/stash/client/clientset/versioned"
 )
 
 type Controller struct {
@@ -60,6 +62,7 @@ func New(
 	client kubernetes.Interface,
 	apiExtKubeClient crd_cs.ApiextensionsV1beta1Interface,
 	extClient cs.Interface,
+	stashClient scs.Interface,
 	dc dynamic.Interface,
 	appCatalogClient appcat_cs.AppcatalogV1alpha1Interface,
 	promClient pcm.MonitoringV1Interface,
@@ -72,6 +75,7 @@ func New(
 			ClientConfig:     clientConfig,
 			Client:           client,
 			ExtClient:        extClient,
+			StashClient:      stashClient,
 			ApiExtKubeClient: apiExtKubeClient,
 			DynamicClient:    dc,
 			AppCatalogClient: appCatalogClient,
@@ -106,6 +110,7 @@ func (c *Controller) Init() error {
 	c.initWatcher()
 	c.DrmnQueue = drmnc.NewController(c.Controller, c, c.Config, nil, c.recorder).AddEventHandlerFunc(c.selector)
 	c.SnapQueue, c.JobQueue = snapc.NewController(c.Controller, c, c.Config, nil, c.recorder).AddEventHandlerFunc(c.selector)
+	c.RSQueue = restoresession.NewController(c.Controller, c, c.Config, nil, c.recorder).AddEventHandlerFunc(c.selector)
 
 	return nil
 }
@@ -146,6 +151,24 @@ func (c *Controller) StartAndRunControllers(stopCh <-chan struct{}) {
 	log.Infoln("Starting KubeDB controller")
 	c.KubeInformerFactory.Start(stopCh)
 	c.KubedbInformerFactory.Start(stopCh)
+
+	go func() {
+		// start StashInformerFactory only if stash crds (ie, "restoreSession") are available.
+		if err := c.BlockOnStashOperator(stopCh); err != nil {
+			log.Errorln("error while waiting for restoreSession.", err)
+			return
+		}
+
+		// start informer factory
+		c.StashInformerFactory.Start(stopCh)
+		for t, v := range c.StashInformerFactory.WaitForCacheSync(stopCh) {
+			if !v {
+				log.Fatalf("%v timed out waiting for caches to sync", t)
+				return
+			}
+		}
+		c.RSQueue.Run(stopCh)
+	}()
 
 	// Wait for all involved caches to be synced, before processing items from the queue is started
 	for t, v := range c.KubeInformerFactory.WaitForCacheSync(stopCh) {

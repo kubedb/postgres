@@ -259,14 +259,13 @@ var (
 	procEqualSid                           = modadvapi32.NewProc("EqualSid")
 	procCheckTokenMembership               = modadvapi32.NewProc("CheckTokenMembership")
 	procOpenProcessToken                   = modadvapi32.NewProc("OpenProcessToken")
-	procGetCurrentThreadToken              = modadvapi32.NewProc("GetCurrentThreadToken")
 	procOpenThreadToken                    = modadvapi32.NewProc("OpenThreadToken")
-	procGetCurrentProcessToken             = modadvapi32.NewProc("GetCurrentProcessToken")
 	procImpersonateSelf                    = modadvapi32.NewProc("ImpersonateSelf")
 	procRevertToSelf                       = modadvapi32.NewProc("RevertToSelf")
 	procSetThreadToken                     = modadvapi32.NewProc("SetThreadToken")
 	procLookupPrivilegeValueW              = modadvapi32.NewProc("LookupPrivilegeValueW")
 	procAdjustTokenPrivileges              = modadvapi32.NewProc("AdjustTokenPrivileges")
+	procAdjustTokenGroups                  = modadvapi32.NewProc("AdjustTokenGroups")
 	procGetTokenInformation                = modadvapi32.NewProc("GetTokenInformation")
 	procSetTokenInformation                = modadvapi32.NewProc("SetTokenInformation")
 	procDuplicateTokenEx                   = modadvapi32.NewProc("DuplicateTokenEx")
@@ -2823,12 +2822,6 @@ func OpenProcessToken(process Handle, access uint32, token *Token) (err error) {
 	return
 }
 
-func GetCurrentThreadToken() (token Token) {
-	r0, _, _ := syscall.Syscall(procGetCurrentThreadToken.Addr(), 0, 0, 0, 0)
-	token = Token(r0)
-	return
-}
-
 func OpenThreadToken(thread Handle, access uint32, openAsSelf bool, token *Token) (err error) {
 	var _p0 uint32
 	if openAsSelf {
@@ -2844,12 +2837,6 @@ func OpenThreadToken(thread Handle, access uint32, openAsSelf bool, token *Token
 			err = syscall.EINVAL
 		}
 	}
-	return
-}
-
-func GetCurrentProcessToken() (token Token) {
-	r0, _, _ := syscall.Syscall(procGetCurrentProcessToken.Addr(), 0, 0, 0, 0)
-	token = Token(r0)
 	return
 }
 
@@ -2909,6 +2896,24 @@ func AdjustTokenPrivileges(token Token, disableAllPrivileges bool, newstate *Tok
 		_p0 = 0
 	}
 	r1, _, e1 := syscall.Syscall6(procAdjustTokenPrivileges.Addr(), 6, uintptr(token), uintptr(_p0), uintptr(unsafe.Pointer(newstate)), uintptr(buflen), uintptr(unsafe.Pointer(prevstate)), uintptr(unsafe.Pointer(returnlen)))
+	if r1 == 0 {
+		if e1 != 0 {
+			err = errnoErr(e1)
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
+
+func AdjustTokenGroups(token Token, resetToDefault bool, newstate *Tokengroups, buflen uint32, prevstate *Tokengroups, returnlen *uint32) (err error) {
+	var _p0 uint32
+	if resetToDefault {
+		_p0 = 1
+	} else {
+		_p0 = 0
+	}
+	r1, _, e1 := syscall.Syscall6(procAdjustTokenGroups.Addr(), 6, uintptr(token), uintptr(_p0), uintptr(unsafe.Pointer(newstate)), uintptr(buflen), uintptr(unsafe.Pointer(prevstate)), uintptr(unsafe.Pointer(returnlen)))
 	if r1 == 0 {
 		if e1 != 0 {
 			err = errnoErr(e1)

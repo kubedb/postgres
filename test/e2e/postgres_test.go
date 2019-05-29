@@ -7,7 +7,6 @@ import (
 
 	"github.com/appscode/go/log"
 	"github.com/appscode/go/types"
-	catalog "github.com/kubedb/apimachinery/apis/catalog/v1alpha1"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/kubedb/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1/util"
 	"github.com/kubedb/postgres/test/e2e/framework"
@@ -21,6 +20,8 @@ import (
 	core_util "kmodules.xyz/client-go/core/v1"
 	meta_util "kmodules.xyz/client-go/meta"
 	store "kmodules.xyz/objectstore-api/api/v1"
+	stashV1alpha1 "stash.appscode.dev/stash/apis/stash/v1alpha1"
+	stashV1beta1 "stash.appscode.dev/stash/apis/stash/v1beta1"
 )
 
 const (
@@ -43,7 +44,6 @@ var _ = Describe("Postgres", func() {
 		f                        *framework.Invocation
 		postgres                 *api.Postgres
 		garbagePostgres          *api.PostgresList
-		postgresVersion          *catalog.PostgresVersion
 		snapshot                 *api.Snapshot
 		secret                   *core.Secret
 		skipMessage              string
@@ -57,7 +57,6 @@ var _ = Describe("Postgres", func() {
 	BeforeEach(func() {
 		f = root.Invoke()
 		postgres = f.Postgres()
-		postgresVersion = f.PostgresVersion()
 		garbagePostgres = new(api.PostgresList)
 		snapshot = f.Snapshot()
 		secret = nil
@@ -70,11 +69,6 @@ var _ = Describe("Postgres", func() {
 	})
 
 	var createAndWaitForRunning = func() {
-
-		By("Ensuring PostgresVersion crd: " + postgresVersion.Spec.DB.Image)
-		err = f.CreatePostgresVersion(postgresVersion)
-		Expect(err).NotTo(HaveOccurred())
-
 		By("Creating Postgres: " + postgres.Name)
 		err = f.CreatePostgres(postgres)
 		Expect(err).NotTo(HaveOccurred())
@@ -254,12 +248,6 @@ var _ = Describe("Postgres", func() {
 
 		if secret != nil {
 			err := f.DeleteSecret(secret.ObjectMeta)
-			Expect(err).NotTo(HaveOccurred())
-		}
-
-		By("Deleting PostgresVersion crd")
-		err = f.DeletePostgresVersion(postgresVersion.ObjectMeta)
-		if err != nil && !kerr.IsNotFound(err) {
 			Expect(err).NotTo(HaveOccurred())
 		}
 
@@ -1104,6 +1092,160 @@ var _ = Describe("Postgres", func() {
 					})
 
 					It("should run successfully", shouldInitializeFromSnapshot)
+				})
+
+			})
+
+			// To run this test,
+			// 1st: Deploy stash latest operator
+			// 2nd: create postgres related tasks and functions from
+			// `github.com/kubedb/postgres/hack/dev/examples/stash01_config.yaml`
+			Context("With Stash/Restic", func() {
+				var bc *stashV1beta1.BackupConfiguration
+				var bs *stashV1beta1.BackupSession
+				var rs *stashV1beta1.RestoreSession
+				var repo *stashV1alpha1.Repository
+
+				BeforeEach(func() {
+					skipSnapshotDataChecking = true
+					if !f.FoundStashCRDs() {
+						Skip("Skipping tests for stash integration. reason: stash operator is not running.")
+					}
+				})
+
+				AfterEach(func() {
+					By("Deleting BackupConfiguration")
+					err := f.DeleteBackupConfiguration(bc.ObjectMeta)
+					Expect(err).NotTo(HaveOccurred())
+
+					By("Deleting BackupSession")
+					err = f.DeleteBackupSession(bs.ObjectMeta)
+					Expect(err).NotTo(HaveOccurred())
+
+					By("Deleting RestoreSession")
+					err = f.DeleteRestoreSession(rs.ObjectMeta)
+					Expect(err).NotTo(HaveOccurred())
+
+					By("Deleting Repository")
+					err = f.DeleteRepository(repo.ObjectMeta)
+					Expect(err).NotTo(HaveOccurred())
+
+					By("Deleting Stash RBACs")
+					err = f.DeleteStashPGRBAC(postgres.ObjectMeta)
+					Expect(err).NotTo(HaveOccurred())
+				})
+
+				var createAndWaitForInitializing = func() {
+					By("Creating Postgres: " + postgres.Name)
+					err = f.CreatePostgres(postgres)
+					Expect(err).NotTo(HaveOccurred())
+
+					By("Wait for Initializing postgres")
+					f.EventuallyPostgresPhase(postgres.ObjectMeta).Should(Equal(api.DatabasePhaseInitializing))
+
+					By("Wait for AppBinding to create")
+					f.EventuallyAppBinding(postgres.ObjectMeta).Should(BeTrue())
+
+					By("Check valid AppBinding Specs")
+					err = f.CheckAppBindingSpec(postgres.ObjectMeta)
+					Expect(err).NotTo(HaveOccurred())
+
+					By("Waiting for database to be ready")
+					f.EventuallyPingDatabase(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
+				}
+
+				var shouldInitializeFromStash = func() {
+					By("Ensuring Stash RBACs")
+					err := f.EnsureStashPGRBAC(postgres.ObjectMeta)
+					Expect(err).NotTo(HaveOccurred())
+
+					// Create and wait for running Postgres
+					createAndWaitForRunning()
+
+					By("Creating Schema")
+					f.EventuallyCreateSchema(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
+
+					By("Creating Table")
+					f.EventuallyCreateTable(postgres.ObjectMeta, dbName, dbUser, 3).Should(BeTrue())
+
+					By("Checking Table")
+					f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
+
+					By("Create Secret")
+					err = f.CreateSecret(secret)
+					Expect(err).NotTo(HaveOccurred())
+
+					By("Create Repositories")
+					err = f.CreateRepository(repo)
+					Expect(err).NotTo(HaveOccurred())
+
+					By("Create BackupConfiguration")
+					err = f.CreateBackupConfiguration(bc)
+					Expect(err).NotTo(HaveOccurred())
+
+					By("Create BackupSession")
+					err = f.CreateBackupSession(bs)
+					Expect(err).NotTo(HaveOccurred())
+
+					// eventually backupsession succeeded
+					By("Check for Succeeded backupsession")
+					f.EventuallyBackupSessionPhase(bs.ObjectMeta).Should(Equal(stashV1beta1.BackupSessionSucceeded))
+
+					oldPostgres, err := f.GetPostgres(postgres.ObjectMeta)
+					Expect(err).NotTo(HaveOccurred())
+
+					garbagePostgres.Items = append(garbagePostgres.Items, *oldPostgres)
+
+					By("Create postgres from stash")
+					*postgres = *f.Postgres()
+					rs = f.RestoreSession(postgres.ObjectMeta, oldPostgres.ObjectMeta)
+					postgres.Spec.DatabaseSecret = oldPostgres.Spec.DatabaseSecret
+					postgres.Spec.Init = &api.InitSpec{
+						StashRestoreSession: &core.LocalObjectReference{
+							Name: rs.Name,
+						},
+					}
+
+					// Create and wait for running Postgres
+					createAndWaitForInitializing()
+
+					By("Create RestoreSession")
+					err = f.CreateRestoreSession(rs)
+					Expect(err).NotTo(HaveOccurred())
+
+					// eventually backupsession succeeded
+					By("Check for Succeeded restoreSession")
+					f.EventuallyRestoreSessionPhase(rs.ObjectMeta).Should(Equal(stashV1beta1.RestoreSessionSucceeded))
+
+					By("Wait for Running postgres")
+					f.EventuallyPostgresRunning(postgres.ObjectMeta).Should(BeTrue())
+
+					By("Waiting for database to be ready")
+					f.EventuallyPingDatabase(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
+
+					By("Checking Table")
+					f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
+				}
+
+				Context("From GCS backend", func() {
+
+					BeforeEach(func() {
+						secret = f.SecretForGCSBackend()
+						secret = f.PatchSecretForRestic(secret)
+						bc = f.BackupConfiguration(postgres.ObjectMeta)
+						bs = f.BackupSession(postgres.ObjectMeta)
+						repo = f.Repository(postgres.ObjectMeta, secret.Name)
+
+						repo.Spec.Backend = store.Backend{
+							GCS: &store.GCSSpec{
+								Bucket: os.Getenv("GCS_BUCKET_NAME"),
+								Prefix: fmt.Sprintf("stash/%v/%v", postgres.Namespace, postgres.Name),
+							},
+							StorageSecretName: secret.Name,
+						}
+					})
+
+					It("should run successfully", shouldInitializeFromStash)
 				})
 
 			})
@@ -2220,7 +2362,7 @@ var _ = Describe("Postgres", func() {
 						},
 					}
 
-					if strings.HasPrefix(framework.DBVersion, "9") {
+					if strings.HasPrefix(framework.DBCatalogName, "9") {
 						walEnv = []core.EnvVar{
 							{
 								Name:  POSTGRES_INITDB_XLOGDIR,

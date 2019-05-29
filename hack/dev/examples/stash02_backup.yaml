@@ -1,0 +1,63 @@
+#apiVersion: kubedb.com/v1alpha1
+#kind: Postgres
+#metadata:
+#  name: hot-postgres
+#  namespace: demo
+#spec:
+#  version: "10.2-v2"
+#  storageType: Durable
+#  storage:
+#    storageClassName: "standard"
+#    accessModes:
+#    - ReadWriteOnce
+#    resources:
+#      requests:
+#        storage: 1Gi
+#  terminationPolicy: WipeOut
+
+---
+apiVersion: stash.appscode.com/v1alpha1
+kind: Repository
+metadata:
+  name: hello-repo
+  namespace: demo
+spec:
+  backend:
+    gcs:
+      bucket: kubedb-qa
+      prefix: hello-prefix
+    storageSecretName: gcs-secret
+
+---
+apiVersion: stash.appscode.com/v1beta1
+kind: BackupConfiguration
+metadata:
+  name: pg-backup-config
+  namespace: demo
+spec:
+  runtimeSettings:
+    pod:
+      serviceAccountName: pg-backup-restore
+#  schedule: "* * * * *"
+  task:
+    name: pg-backup-task
+  repository:
+    name: hello-repo
+  target:
+    ref:
+      apiVersion: appcatalog.appscode.com/v1alpha1
+      kind: AppBinding
+      name: hot-postgres
+  retentionPolicy:
+    keepLast: 5
+    prune: true
+
+---
+apiVersion: stash.appscode.com/v1beta1
+kind: BackupSession
+metadata:
+  name: pg-backup-01
+  namespace: demo
+spec:
+  backupConfiguration:
+    name: pg-backup-config

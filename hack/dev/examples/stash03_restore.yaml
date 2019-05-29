@@ -1,0 +1,44 @@
+apiVersion: kubedb.com/v1alpha1
+kind: Postgres
+metadata:
+  name: pg-restore
+  namespace: demo
+spec:
+  version: "10.2-v2"
+  databaseSecret:
+    secretName: hot-postgres-auth
+  storage:
+    storageClassName: "standard"
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 1Gi
+  terminationPolicy: WipeOut
+  init:
+    stashSource:
+      name: pg-restore-01
+
+---
+apiVersion: stash.appscode.com/v1beta1
+kind: RestoreSession
+metadata:
+  name: pg-restore-01
+  namespace: demo
+  labels:
+    kubedb.com/kind: Postgres
+spec:
+  runtimeSettings:
+    pod:
+      serviceAccountName: pg-backup-restore
+  task:
+    name: pg-restore-task
+  repository:
+    name: hello-repo
+  target:
+    ref:
+      apiVersion: appcatalog.appscode.com/v1alpha1
+      kind: AppBinding
+      name: pg-restore # target db to restore database
+  rules:
+  - snapshots: [latest]
