@@ -270,8 +270,8 @@ func FoundStashCRDs(apiExtClient crd_cs.ApiextensionsV1beta1Interface) bool {
 
 // BlockOnStashOperator waits for restoresession crd to come up.
 // It either waits until restoresession crd exists or throws error otherwise
-func (c *Controller) BlockOnStashOperator() error {
-	return wait.PollImmediateInfinite(time.Second*10, func() (bool, error) {
+func (c *Controller) BlockOnStashOperator(stopCh <-chan struct{}) error {
+	return wait.PollImmediateUntil(time.Second*10, func() (bool, error) {
 		return FoundStashCRDs(c.ApiExtKubeClient), nil
-	})
+	}, stopCh)
 }

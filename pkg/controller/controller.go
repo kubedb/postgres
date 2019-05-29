@@ -125,7 +125,6 @@ func (c *Controller) RunControllers(stopCh <-chan struct{}) {
 	c.DrmnQueue.Run(stopCh)
 	c.SnapQueue.Run(stopCh)
 	c.JobQueue.Run(stopCh)
-	c.RSQueue.Run(stopCh)
 }
 
 // Blocks caller. Intended to be called as a Go routine.
@@ -155,20 +154,20 @@ func (c *Controller) StartAndRunControllers(stopCh <-chan struct{}) {
 
 	go func() {
 		// start StashInformerFactory only if stash crds (ie, "restoreSession") are available.
-		if err := c.BlockOnStashOperator(); err != nil {
+		if err := c.BlockOnStashOperator(stopCh); err != nil {
 			log.Errorln("error while waiting for restoreSession.", err)
 			return
 		}
 
 		// start informer factory
 		c.StashInformerFactory.Start(stopCh)
-
 		for t, v := range c.StashInformerFactory.WaitForCacheSync(stopCh) {
 			if !v {
 				log.Fatalf("%v timed out waiting for caches to sync", t)
 				return
 			}
 		}
+		c.RSQueue.Run(stopCh)
 	}()
 
 	// Wait for all involved caches to be synced, before processing items from the queue is started

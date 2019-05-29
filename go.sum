@@ -256,8 +256,8 @@ github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORN
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
 github.com/kr/text v0.1.0 h1:45sCR5RtlFHMR4UwH9sdQ5TC8v0qDQCHnXt+kaKSTVE=
 github.com/kr/text v0.1.0/go.mod h1:4Jbv+DJW3UT/LiOwJeYQe1efqtUx/iVham/4vfdArNI=
-github.com/kubedb/apimachinery v0.0.0-20190529092539-0e7a57f24484 h1:9KcBAWyytRu1eKDDwlndxuLxjEnmh7I5sjKdRQx4RjI=
-github.com/kubedb/apimachinery v0.0.0-20190529092539-0e7a57f24484/go.mod h1:h7/Bly7FIssiPoFsUjHU0tCv7j0GsdspiP0QYk0akYY=
+github.com/kubedb/apimachinery v0.0.0-20190529152419-7517175ae10f h1:TGKhVjZqUI7Uu+KzX9LAzjfJW8YHdpa5+tiOd9d3Nl8=
+github.com/kubedb/apimachinery v0.0.0-20190529152419-7517175ae10f/go.mod h1:h7/Bly7FIssiPoFsUjHU0tCv7j0GsdspiP0QYk0akYY=
 github.com/kubernetes-csi/external-snapshotter v1.1.0 h1:godlw8BSOac5TMGH2rVPJrmllek3y8wuqd9JsJHgulw=
 github.com/kubernetes-csi/external-snapshotter v1.1.0/go.mod h1:oYfxnsuh48V1UDYORl77YQxQbbdokNy7D73phuFpksY=
 github.com/kubernetes-incubator/service-catalog v0.1.43/go.mod h1:D0CRODiXUJs6VCZDB15TmCkesbuizkac9fYEiTA78BA=
@@ -584,6 +584,7 @@ kmodules.xyz/objectstore-api v0.0.0-20190506085934-94c81c8acca9 h1:PlHk5XcNw2Sqe
 kmodules.xyz/objectstore-api v0.0.0-20190506085934-94c81c8acca9/go.mod h1:1HB+nnEbax/i2gAPFQRzL3pah1BpnVUcoTCzSgvP1Hw=
 kmodules.xyz/offshoot-api v0.0.0-20190513045534-4f3df05f40c2 h1:l6F8uo3hoLW8OFarID65Zz5qtvVkekGrtgZICGfpUVw=
 kmodules.xyz/offshoot-api v0.0.0-20190513045534-4f3df05f40c2/go.mod h1:x8mHwAqHV0QMkoZtp4rhlmxBswDsasxfaNOnKTJ52kI=
+kmodules.xyz/offshoot-api v0.0.0-20190527055803-91d8460d2992/go.mod h1:LT3dsKZJjJIWGGGyzLd6AR3YF5eXDc90B4zC54V3b7Q=
 kmodules.xyz/offshoot-api v0.0.0-20190527060812-295f97bb8061 h1:ge49on2TYYdSeYggSHB01u+YFvm89UvcHW278sbp7oM=
 kmodules.xyz/offshoot-api v0.0.0-20190527060812-295f97bb8061/go.mod h1:LT3dsKZJjJIWGGGyzLd6AR3YF5eXDc90B4zC54V3b7Q=
 kmodules.xyz/openshift v0.0.0-20190225002038-ca9787d09794/go.mod h1:OA2SQV7Rn2+E553Xfp0uY5nwG0A9FztRiaWgP12Ubz8=
@@ -600,3 +601,5 @@ sigs.k8s.io/yaml v1.1.0 h1:4A07+ZFc2wgJwo8YNlQpr1rVlgUDlxXHhPJciaPY5gs=
 sigs.k8s.io/yaml v1.1.0/go.mod h1:UJmg0vDUVViEyp3mgSv9WPwZCDxu4rQW1olrI1uml+o=
 stash.appscode.dev/stash v0.0.0-20190525101310-604af0d5fc92 h1:UMsL0fS18Wi+CFhwZb1lLGszTkTRMYtIiqs9ajC8yPQ=
 stash.appscode.dev/stash v0.0.0-20190525101310-604af0d5fc92/go.mod h1:2re3paY51weqwgq5JHuZV1miwKUpQfouAP1YYGm1TYc=
+stash.appscode.dev/stash v0.0.0-20190529085714-0a45b44ab960 h1:CMxKAtTWIYK7TEUegKYWirR0+5dTa5HCKSQZiLRkN88=
+stash.appscode.dev/stash v0.0.0-20190529085714-0a45b44ab960/go.mod h1:OzHzl7njiIPcyT333vBcSAh5joRb15MiWa4JWKiCUjQ=
