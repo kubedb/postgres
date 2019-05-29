@@ -189,10 +189,10 @@ func (f *Framework) EventuallyRestoreSessionPhase(meta metav1.ObjectMeta) Gomega
 }
 
 func (f *Framework) EnsureStashPGRBAC(meta metav1.ObjectMeta) error {
-	if err := f.CreateServiceAccount(meta); err != nil {
+	if err := f.CreateStashPGServiceAccount(meta); err != nil {
 		return err
 	}
-	if err := f.CreateRoleBinding(meta); err != nil {
+	if err := f.CreateStashPGRoleBinding(meta); err != nil {
 		return err
 	}
 	return nil
@@ -208,7 +208,7 @@ func (f *Framework) DeleteStashPGRBAC(meta metav1.ObjectMeta) error {
 	return nil
 }
 
-func (f *Framework) CreateServiceAccount(meta metav1.ObjectMeta) error {
+func (f *Framework) CreateStashPGServiceAccount(meta metav1.ObjectMeta) error {
 	// Create new ServiceAccount
 	_, _, err := core_util.CreateOrPatchServiceAccount(
 		f.kubeClient,
@@ -223,7 +223,7 @@ func (f *Framework) CreateServiceAccount(meta metav1.ObjectMeta) error {
 	return err
 }
 
-func (f *Framework) CreateRoleBinding(meta metav1.ObjectMeta) error {
+func (f *Framework) CreateStashPGRoleBinding(meta metav1.ObjectMeta) error {
 	// Ensure new RoleBindings
 	_, _, err := rbac_util.CreateOrPatchRoleBinding(
 		f.kubeClient,

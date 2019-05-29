@@ -1201,7 +1201,7 @@ var _ = Describe("Postgres", func() {
 					rs = f.RestoreSession(postgres.ObjectMeta, oldPostgres.ObjectMeta)
 					postgres.Spec.DatabaseSecret = oldPostgres.Spec.DatabaseSecret
 					postgres.Spec.Init = &api.InitSpec{
-						StashSource: &core.LocalObjectReference{
+						StashRestoreSession: &core.LocalObjectReference{
 							Name: rs.Name,
 						},
 					}
