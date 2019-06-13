@@ -429,7 +429,7 @@ func (c *Controller) UpsertDatabaseAnnotation(meta metav1.ObjectMeta, annotation
 	}
 
 	_, _, err = util.PatchPostgres(c.ExtClient.KubedbV1alpha1(), postgres, func(in *api.Postgres) *api.Postgres {
-		in.Annotations = core_util.UpsertMap(postgres.Annotations, annotation)
+		in.Annotations = core_util.UpsertMap(in.Annotations, annotation)
 		return in
 	})
 	return err

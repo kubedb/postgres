@@ -184,7 +184,7 @@ func setDefaultsFromDormantDB(extClient cs.Interface, postgres *api.Postgres) er
 
 	if _, err := meta_util.GetString(postgres.Annotations, api.AnnotationInitialized); err == kutil.ErrNotFound &&
 		postgres.Spec.Init != nil &&
-		postgres.Spec.Init.SnapshotSource != nil {
+		(postgres.Spec.Init.SnapshotSource != nil || postgres.Spec.Init.StashRestoreSession != nil) {
 		postgres.Annotations = core_util.UpsertMap(postgres.Annotations, map[string]string{
 			api.AnnotationInitialized: "",
 		})
