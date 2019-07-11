@@ -103,6 +103,7 @@ fi
 
 if [ "$OPERATOR_UPDATE" -eq 1 ]; then
   cowsay -f tux "Processing Operator images" || true
-  $REPO_ROOT/hack/docker/pg-operator/make.sh build
-  $REPO_ROOT/hack/docker/pg-operator/make.sh push
+  pushd $REPO_ROOT
+  make release
+  popd
 fi
