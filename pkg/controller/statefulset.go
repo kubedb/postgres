@@ -128,6 +128,7 @@ func (c *Controller) ensureStatefulSet(
 			}
 		}
 
+		in = upsertShm(in, postgres)
 		in = upsertDataVolume(in, postgres)
 		in = upsertCustomConfig(in, postgres)
 
@@ -502,6 +503,34 @@ func upsertInitWalSecret(statefulSet *apps.StatefulSet, secretName string) *apps
 			}
 			volumes := statefulSet.Spec.Template.Spec.Volumes
 			volumes = core_util.UpsertVolume(volumes, volume)
+			statefulSet.Spec.Template.Spec.Volumes = volumes
+			return statefulSet
+		}
+	}
+	return statefulSet
+}
+
+func upsertShm(statefulSet *apps.StatefulSet, postgress *api.Postgres) *apps.StatefulSet {
+	for i, container := range statefulSet.Spec.Template.Spec.Containers {
+		if container.Name == api.ResourceSingularPostgres {
+			volumeMount := core.VolumeMount{
+				Name:      "shared-memory",
+				MountPath: "/dev/shm",
+			}
+			volumeMounts := container.VolumeMounts
+			volumeMounts = core_util.UpsertVolumeMount(volumeMounts, volumeMount)
+			statefulSet.Spec.Template.Spec.Containers[i].VolumeMounts = volumeMounts
+
+			configVolume := core.Volume{
+				Name: "shared-memory",
+				VolumeSource: core.VolumeSource{
+					EmptyDir: &core.EmptyDirVolumeSource{
+						Medium: core.StorageMediumMemory,
+					},
+				},
+			}
+			volumes := statefulSet.Spec.Template.Spec.Volumes
+			volumes = core_util.UpsertVolume(volumes, configVolume)
 			statefulSet.Spec.Template.Spec.Volumes = volumes
 			return statefulSet
 		}
