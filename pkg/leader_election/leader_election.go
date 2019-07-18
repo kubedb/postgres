@@ -123,7 +123,7 @@ func RunLeaderElection() {
 			RetryPeriod:   time.Duration(retryPeriod) * time.Second,
 			Callbacks: leaderelection.LeaderCallbacks{
 				OnStartedLeading: func(ctx context.Context) {
-					log.Println("Got leadership, removing the trigger file")
+					log.Println("Got leadership, creating the trigger file")
 					if !ioutil.WriteString("/tmp/pg-failover-trigger", "") {
 						log.Fatalln("Failed to create trigger file")
 					}
