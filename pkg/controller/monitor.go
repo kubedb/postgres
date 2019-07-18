@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/appscode/go/log"
-	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kutil "kmodules.xyz/client-go"
@@ -12,6 +11,7 @@ import (
 	meta_util "kmodules.xyz/client-go/meta"
 	"kmodules.xyz/monitoring-agent-api/agents"
 	mona "kmodules.xyz/monitoring-agent-api/api/v1"
+	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
 )
 
 func (c *Controller) newMonitorController(postgres *api.Postgres) (mona.Agent, error) {

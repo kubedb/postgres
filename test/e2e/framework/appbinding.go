@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"time"
 
-	controller "github.com/kubedb/postgres/pkg/controller"
 	. "github.com/onsi/gomega"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	controller "kubedb.dev/postgres/pkg/controller"
 )
 
 func (f *Framework) EventuallyAppBinding(meta metav1.ObjectMeta) GomegaAsyncAssertion {

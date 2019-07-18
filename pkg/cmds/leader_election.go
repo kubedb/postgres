@@ -1,8 +1,8 @@
 package cmds
 
 import (
-	le "github.com/kubedb/postgres/pkg/leader_election"
 	"github.com/spf13/cobra"
+	le "kubedb.dev/postgres/pkg/leader_election"
 )
 
 func NewCmdLeaderElection() *cobra.Command {

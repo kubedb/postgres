@@ -5,11 +5,11 @@ import (
 	"strings"
 	"time"
 
-	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	core "k8s.io/api/core/v1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
+	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
 )
 
 const (

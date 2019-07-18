@@ -7,7 +7,7 @@ package xorm
 // Begin a transaction
 func (session *Session) Begin() error {
 	if session.isAutoCommit {
-		tx, err := session.DB().Begin()
+		tx, err := session.DB().BeginTx(session.ctx, nil)
 		if err != nil {
 			return err
 		}
@@ -24,6 +24,7 @@ func (session *Session) Rollback() error {
 	if !session.isAutoCommit && !session.isCommitedOrRollbacked {
 		session.saveLastSQL(session.engine.dialect.RollBackStr())
 		session.isCommitedOrRollbacked = true
+		session.isAutoCommit = true
 		return session.tx.Rollback()
 	}
 	return nil
@@ -34,6 +35,7 @@ func (session *Session) Commit() error {
 	if !session.isAutoCommit && !session.isCommitedOrRollbacked {
 		session.saveLastSQL("COMMIT")
 		session.isCommitedOrRollbacked = true
+		session.isAutoCommit = true
 		var err error
 		if err = session.tx.Commit(); err == nil {
 			// handle processors after tx committed
