@@ -9,7 +9,7 @@ export MINIKUBE_RUN=0
 export SELF_HOSTED=1
 export ARGS="" # Forward arguments to installer script
 
-REPO_ROOT="$GOPATH/src/github.com/kubedb/postgres"
+REPO_ROOT="$GOPATH/src/kubedb.dev/postgres"
 INSTALLER_ROOT="$GOPATH/src/github.com/kubedb/installer"
 
 pushd $REPO_ROOT

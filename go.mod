@@ -1,50 +1,42 @@
-module github.com/kubedb/postgres
+module kubedb.dev/postgres
 
 go 1.12
 
 require (
-	github.com/appscode/go v0.0.0-20190523031839-1468ee3a76e8
+	github.com/appscode/go v0.0.0-20190621064509-6b292c9166e3
 	github.com/codeskyblue/go-sh v0.0.0-20190412065543-76bd3d59ff27
-	github.com/coreos/prometheus-operator v0.29.0
+	github.com/coreos/prometheus-operator v0.30.0
 	github.com/denisenkom/go-mssqldb v0.0.0-20190423183735-731ef375ac02 // indirect
-	github.com/dnaeon/go-vcr v1.0.1 // indirect
-	github.com/go-sql-driver/mysql v1.4.1 // indirect
-	github.com/go-xorm/builder v0.0.0-20190422082613-0c156dfdb061 // indirect
-	github.com/go-xorm/core v0.6.0
-	github.com/go-xorm/xorm v0.7.0
-	github.com/graymeta/stow v0.1.0
-	github.com/kubedb/apimachinery v0.0.0-20190529152419-7517175ae10f
-	github.com/lib/pq v0.0.0-20190507191818-2ff3cb3adc01
-	github.com/mattn/go-sqlite3 v1.10.0 // indirect
+	github.com/go-xorm/core v0.6.2
+	github.com/go-xorm/xorm v0.7.3
+	github.com/lib/pq v1.1.0
 	github.com/onsi/ginkgo v1.8.0
 	github.com/onsi/gomega v1.5.0
 	github.com/pkg/errors v0.8.1
 	github.com/spf13/afero v1.2.2
-	github.com/spf13/cobra v0.0.4
+	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.3
-	github.com/ziutek/mymysql v1.5.4 // indirect
 	gomodules.xyz/cert v1.0.0
+	gomodules.xyz/stow v0.2.0
 	k8s.io/api v0.0.0-20190503110853-61630f889b3c
-	k8s.io/apiextensions-apiserver v0.0.0-20190508224317-421cff06bf05
+	k8s.io/apiextensions-apiserver v0.0.0-20190516231611-bf6753f2aa24
 	k8s.io/apimachinery v0.0.0-20190508063446-a3da69d3723c
-	k8s.io/apiserver v0.0.0-20190508223931-4756b09d7af2
-	k8s.io/cli-runtime v0.0.0-20190508184404-b26560c459bd // indirect
+	k8s.io/apiserver v0.0.0-20190516230822-f89599b3f645
 	k8s.io/client-go v11.0.0+incompatible
 	k8s.io/component-base v0.0.0-20190508223741-40efa6d42997 // indirect
-	k8s.io/klog v0.3.2 // indirect
 	k8s.io/kube-aggregator v0.0.0-20190508224022-f9852b6d3a84
-	kmodules.xyz/client-go v0.0.0-20190527113919-eb165836b702
+	kmodules.xyz/client-go v0.0.0-20190715080709-7162a6c90b04
 	kmodules.xyz/custom-resources v0.0.0-20190508103408-464e8324c3ec
-	kmodules.xyz/monitoring-agent-api v0.0.0-20190508125842-489150794b9b
-	kmodules.xyz/objectstore-api v0.0.0-20190506085934-94c81c8acca9
-	kmodules.xyz/offshoot-api v0.0.0-20190527060812-295f97bb8061
-	kmodules.xyz/webhook-runtime v0.0.0-20190508094945-962d01212c5b
-	stash.appscode.dev/stash v0.0.0-20190529085714-0a45b44ab960
+	kmodules.xyz/monitoring-agent-api v0.0.0-20190513065523-186af167f817
+	kmodules.xyz/objectstore-api v0.0.0-20190718002052-da668b440b0b
+	kmodules.xyz/offshoot-api v0.0.0-20190715115723-36c8fce142c1
+	kmodules.xyz/webhook-runtime v0.0.0-20190715115250-a84fbf77dd30
+	kubedb.dev/apimachinery v0.0.0-20190718012505-6973f90fefd0
+	stash.appscode.dev/stash v0.0.0-20190718015558-6bc80ce219d9
 )
 
 replace (
-	github.com/graymeta/stow => github.com/appscode/stow v0.0.0-20190506085026-ca5baa008ea3
-	gopkg.in/robfig/cron.v2 => github.com/appscode/cron v0.0.0-20170717094345-ca60c6d796d4
+	github.com/Azure/go-autorest => github.com/Azure/go-autorest/autorest v0.5.0
 	k8s.io/api => k8s.io/api v0.0.0-20190313235455-40a48860b5ab
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.0.0-20190315093550-53c4693659ed
 	k8s.io/apimachinery => github.com/kmodules/apimachinery v0.0.0-20190508045248-a52a97a7a2bf

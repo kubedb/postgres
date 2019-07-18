@@ -10,9 +10,6 @@ import (
 
 	"github.com/appscode/go/log"
 	shell "github.com/codeskyblue/go-sh"
-	"github.com/kubedb/apimachinery/apis"
-	catlog "github.com/kubedb/apimachinery/apis/catalog/v1alpha1"
-	"github.com/kubedb/postgres/pkg/cmds/server"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	crd_api "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
@@ -26,6 +23,9 @@ import (
 	apiext_util "kmodules.xyz/client-go/apiextensions/v1beta1"
 	discovery_util "kmodules.xyz/client-go/discovery"
 	meta_util "kmodules.xyz/client-go/meta"
+	"kubedb.dev/apimachinery/apis"
+	catlog "kubedb.dev/apimachinery/apis/catalog/v1alpha1"
+	"kubedb.dev/postgres/pkg/cmds/server"
 )
 
 func (f *Framework) isApiSvcReady(apiSvcName string) error {

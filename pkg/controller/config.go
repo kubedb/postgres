@@ -2,12 +2,6 @@ package controller
 
 import (
 	pcm "github.com/coreos/prometheus-operator/pkg/client/versioned/typed/monitoring/v1"
-	cs "github.com/kubedb/apimachinery/client/clientset/versioned"
-	amc "github.com/kubedb/apimachinery/pkg/controller"
-	"github.com/kubedb/apimachinery/pkg/controller/dormantdatabase"
-	"github.com/kubedb/apimachinery/pkg/controller/restoresession"
-	snapc "github.com/kubedb/apimachinery/pkg/controller/snapshot"
-	"github.com/kubedb/apimachinery/pkg/eventer"
 	crd_cs "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/dynamic"
@@ -16,6 +10,12 @@ import (
 	reg_util "kmodules.xyz/client-go/admissionregistration/v1beta1"
 	"kmodules.xyz/client-go/discovery"
 	appcat_cs "kmodules.xyz/custom-resources/client/clientset/versioned/typed/appcatalog/v1alpha1"
+	cs "kubedb.dev/apimachinery/client/clientset/versioned"
+	amc "kubedb.dev/apimachinery/pkg/controller"
+	"kubedb.dev/apimachinery/pkg/controller/dormantdatabase"
+	"kubedb.dev/apimachinery/pkg/controller/restoresession"
+	snapc "kubedb.dev/apimachinery/pkg/controller/snapshot"
+	"kubedb.dev/apimachinery/pkg/eventer"
 	scs "stash.appscode.dev/stash/client/clientset/versioned"
 )
 

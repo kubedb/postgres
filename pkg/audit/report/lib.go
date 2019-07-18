@@ -8,8 +8,8 @@ import (
 
 	"github.com/go-xorm/core"
 	"github.com/go-xorm/xorm"
-	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	pg "github.com/lib/pq"
+	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
 )
 
 func newXormEngine(username, password, host string, port int, dbName string) (*xorm.Engine, error) {

@@ -8,10 +8,6 @@ import (
 
 	"github.com/appscode/go/log"
 	"github.com/appscode/go/types"
-	catalog "github.com/kubedb/apimachinery/apis/catalog/v1alpha1"
-	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
-	"github.com/kubedb/apimachinery/pkg/eventer"
-	"github.com/kubedb/postgres/pkg/leader_election"
 	apps "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
@@ -24,6 +20,10 @@ import (
 	meta_util "kmodules.xyz/client-go/meta"
 	"kmodules.xyz/client-go/tools/analytics"
 	mona "kmodules.xyz/monitoring-agent-api/api/v1"
+	catalog "kubedb.dev/apimachinery/apis/catalog/v1alpha1"
+	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
+	"kubedb.dev/apimachinery/pkg/eventer"
+	"kubedb.dev/postgres/pkg/leader_election"
 )
 
 func (c *Controller) ensureStatefulSet(

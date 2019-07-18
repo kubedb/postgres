@@ -5,10 +5,10 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/graymeta/stow"
-	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
+	"gomodules.xyz/stow"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"kmodules.xyz/objectstore-api/osm"
+	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
 )
 
 func WalDataDir(postgres *api.Postgres) string {

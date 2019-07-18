@@ -3,8 +3,6 @@ package framework
 import (
 	"time"
 
-	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
-	"github.com/kubedb/apimachinery/pkg/controller"
 	. "github.com/onsi/gomega"
 	core "k8s.io/api/core/v1"
 	rbac "k8s.io/api/rbac/v1beta1"
@@ -13,6 +11,8 @@ import (
 	rbac_util "kmodules.xyz/client-go/rbac/v1beta1"
 	v1alpha13 "kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1"
 	ofst "kmodules.xyz/offshoot-api/api/v1"
+	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
+	"kubedb.dev/apimachinery/pkg/controller"
 	"stash.appscode.dev/stash/apis/stash/v1alpha1"
 	stashV1alpha1 "stash.appscode.dev/stash/apis/stash/v1alpha1"
 	"stash.appscode.dev/stash/apis/stash/v1beta1"

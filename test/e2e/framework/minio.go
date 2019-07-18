@@ -9,9 +9,8 @@ import (
 	"time"
 
 	"github.com/appscode/go/crypto/rand"
-	"github.com/graymeta/stow"
-	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	"gomodules.xyz/cert"
+	"gomodules.xyz/stow"
 	apps "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -23,6 +22,7 @@ import (
 	"kmodules.xyz/client-go/tools/portforward"
 	v1 "kmodules.xyz/objectstore-api/api/v1"
 	"kmodules.xyz/objectstore-api/osm"
+	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
 )
 
 const (

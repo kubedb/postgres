@@ -3,8 +3,8 @@ package controller
 import (
 	"fmt"
 
-	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
-	amv "github.com/kubedb/apimachinery/pkg/validator"
+	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
+	amv "kubedb.dev/apimachinery/pkg/validator"
 )
 
 func (c *Controller) ValidateSnapshot(snapshot *api.Snapshot) error {
