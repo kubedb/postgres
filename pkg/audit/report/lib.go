@@ -6,10 +6,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/go-xorm/core"
 	"github.com/go-xorm/xorm"
 	pg "github.com/lib/pq"
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
+	"xorm.io/core"
 )
 
 func newXormEngine(username, password, host string, port int, dbName string) (*xorm.Engine, error) {

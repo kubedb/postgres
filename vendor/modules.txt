@@ -22,7 +22,7 @@ github.com/NYTimes/gziphandler
 github.com/PuerkitoBio/purell
 # github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578
 github.com/PuerkitoBio/urlesc
-# github.com/appscode/go v0.0.0-20190621064509-6b292c9166e3
+# github.com/appscode/go v0.0.0-20190722173419-e454bf744023
 github.com/appscode/go/version
 github.com/appscode/go/runtime
 github.com/appscode/go/log
@@ -139,11 +139,7 @@ github.com/go-openapi/jsonreference
 github.com/go-openapi/spec
 # github.com/go-openapi/swag v0.19.0
 github.com/go-openapi/swag
-# github.com/go-xorm/builder v0.3.3
-github.com/go-xorm/builder
-# github.com/go-xorm/core v0.6.2
-github.com/go-xorm/core
-# github.com/go-xorm/xorm v0.7.3
+# github.com/go-xorm/xorm v0.7.4
 github.com/go-xorm/xorm
 # github.com/gogo/protobuf v1.2.1
 github.com/gogo/protobuf/proto
@@ -918,7 +914,7 @@ kmodules.xyz/client-go/tools/queue
 kmodules.xyz/client-go/tools/portforward
 kmodules.xyz/client-go/apiregistration/v1beta1
 kmodules.xyz/client-go/policy/v1beta1
-# kmodules.xyz/custom-resources v0.0.0-20190508103408-464e8324c3ec
+# kmodules.xyz/custom-resources v0.0.0-20190723185639-711575c0b8a9
 kmodules.xyz/custom-resources/client/clientset/versioned/scheme
 kmodules.xyz/custom-resources/client/clientset/versioned/typed/appcatalog/v1alpha1
 kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1
@@ -1011,7 +1007,7 @@ sigs.k8s.io/structured-merge-diff/value
 sigs.k8s.io/structured-merge-diff/schema
 # sigs.k8s.io/yaml v1.1.0
 sigs.k8s.io/yaml
-# stash.appscode.dev/stash v0.0.0-20190718015558-6bc80ce219d9
+# stash.appscode.dev/stash v0.0.0-20190718155146-3de534baa0a0
 stash.appscode.dev/stash/client/clientset/versioned
 stash.appscode.dev/stash/client/informers/externalversions
 stash.appscode.dev/stash/apis/stash/v1alpha1
@@ -1031,3 +1027,7 @@ stash.appscode.dev/stash/client/clientset/versioned/scheme
 stash.appscode.dev/stash/client/informers/externalversions/stash/v1alpha1
 stash.appscode.dev/stash/apis/repositories
 stash.appscode.dev/stash/client/listers/stash/v1alpha1
+# xorm.io/builder v0.3.5
+xorm.io/builder
+# xorm.io/core v0.6.3
+xorm.io/core

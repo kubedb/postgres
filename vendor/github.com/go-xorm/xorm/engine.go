@@ -20,8 +20,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-xorm/builder"
-	"github.com/go-xorm/core"
+	"xorm.io/builder"
+	"xorm.io/core"
 )
 
 // Engine is the major struct of xorm, it means a database manager.
@@ -923,7 +923,16 @@ func (engine *Engine) mapType(v reflect.Value) (*core.Table, error) {
 					engine:     engine,
 				}
 
-				if strings.ToUpper(tags[0]) == "EXTENDS" {
+				if strings.HasPrefix(strings.ToUpper(tags[0]), "EXTENDS") {
+					pStart := strings.Index(tags[0], "(")
+					if pStart > -1 && strings.HasSuffix(tags[0], ")") {
+						var tagPrefix = strings.TrimFunc(tags[0][pStart+1:len(tags[0])-1], func(r rune) bool {
+							return r == '\'' || r == '"'
+						})
+
+						ctx.params = []string{tagPrefix}
+					}
+
 					if err := ExtendsTagHandler(&ctx); err != nil {
 						return nil, err
 					}
