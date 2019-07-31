@@ -24,13 +24,13 @@ require (
 	k8s.io/component-base v0.0.0-20190508223741-40efa6d42997 // indirect
 	k8s.io/kube-aggregator v0.0.0-20190508224022-f9852b6d3a84
 	kmodules.xyz/client-go v0.0.0-20190715080709-7162a6c90b04
-	kmodules.xyz/custom-resources v0.0.0-20190723185639-711575c0b8a9
+	kmodules.xyz/custom-resources v0.0.0-20190730174012-d0224972f055
 	kmodules.xyz/monitoring-agent-api v0.0.0-20190513065523-186af167f817
 	kmodules.xyz/objectstore-api v0.0.0-20190718002052-da668b440b0b
 	kmodules.xyz/offshoot-api v0.0.0-20190715115723-36c8fce142c1
 	kmodules.xyz/webhook-runtime v0.0.0-20190715115250-a84fbf77dd30
-	kubedb.dev/apimachinery v0.0.0-20190718012505-6973f90fefd0
-	stash.appscode.dev/stash v0.0.0-20190718155146-3de534baa0a0
+	kubedb.dev/apimachinery v0.0.0-20190731225000-6539c67a4a28
+	stash.appscode.dev/stash v0.0.0-20190730144328-4ec6caf83810
 	xorm.io/core v0.6.3
 )
 
