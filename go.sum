@@ -665,8 +665,9 @@ kmodules.xyz/client-go v0.0.0-20190508091620-0d215c04352f/go.mod h1:R1t4K2wWb6PT
 kmodules.xyz/client-go v0.0.0-20190715080709-7162a6c90b04 h1:17h0mshnlihkZMP6LqMmpliCQIknKasjdNGWyZCCmV4=
 kmodules.xyz/client-go v0.0.0-20190715080709-7162a6c90b04/go.mod h1:3h1/ZglH6fV2uv3p9AB1JnHUknhWniShJ7fBJfSf7Js=
 kmodules.xyz/custom-resources v0.0.0-20190508103408-464e8324c3ec/go.mod h1:0C61XSEPGexAmkrayynpNnCTacvkwn4802CRAQ5tUPI=
-kmodules.xyz/custom-resources v0.0.0-20190723185639-711575c0b8a9 h1:wLeUF4rEVaQxIgXHLNcLQiTCZWzgmU78erhWCHKhKUg=
 kmodules.xyz/custom-resources v0.0.0-20190723185639-711575c0b8a9/go.mod h1:0C61XSEPGexAmkrayynpNnCTacvkwn4802CRAQ5tUPI=
+kmodules.xyz/custom-resources v0.0.0-20190730174012-d0224972f055 h1:w5CZ2h0pkofl6gAtchAP79vEuMAkbyRngU1jV9lzfWc=
+kmodules.xyz/custom-resources v0.0.0-20190730174012-d0224972f055/go.mod h1:0C61XSEPGexAmkrayynpNnCTacvkwn4802CRAQ5tUPI=
 kmodules.xyz/monitoring-agent-api v0.0.0-20190513065523-186af167f817 h1:BibWdS5W/vFZyQLHYNdBu3axBJymBHB1U2GuMsOeCTs=
 kmodules.xyz/monitoring-agent-api v0.0.0-20190513065523-186af167f817/go.mod h1:ohfJV+DVctL54ybtYXE/XA0DOnGy/9KPrJht4rs4Ngw=
 kmodules.xyz/objectstore-api v0.0.0-20190715131036-28ef070833ef/go.mod h1:SwUpd3z5BvdUks/Nh8Wtyp8US2ATxhxQmMathe4lyOM=
@@ -678,8 +679,8 @@ kmodules.xyz/openshift v0.0.0-20190225002038-ca9787d09794/go.mod h1:OA2SQV7Rn2+E
 kmodules.xyz/openshift v0.0.0-20190508141315-99ec9fc946bf/go.mod h1:5l0No0OizfJ55sjDDpi0TgtGYWgmhy+F+i4+6DN61Ak=
 kmodules.xyz/webhook-runtime v0.0.0-20190715115250-a84fbf77dd30 h1:laqTozueJ7IDWmKuS2ARiRbjbGt2U/tzd9opPFrhidU=
 kmodules.xyz/webhook-runtime v0.0.0-20190715115250-a84fbf77dd30/go.mod h1:sojwlxXyjyHoF0arpK238DnHsecWij9VpWf50HtyBzE=
-kubedb.dev/apimachinery v0.0.0-20190718012505-6973f90fefd0 h1:Ryjxxu7oNGYSP4aBDh+S5uCjWw8Z7YQ5ITcbt6MhrTA=
-kubedb.dev/apimachinery v0.0.0-20190718012505-6973f90fefd0/go.mod h1:PaUCqKJTTeaq2X2SINnhcewUhk8PouE5x8QypLZJQ2Q=
+kubedb.dev/apimachinery v0.0.0-20190731225000-6539c67a4a28 h1:s+sIhmeijIQij4CxMv7Rqk1zfOo8mb15LvjM6chcLRA=
+kubedb.dev/apimachinery v0.0.0-20190731225000-6539c67a4a28/go.mod h1:PaUCqKJTTeaq2X2SINnhcewUhk8PouE5x8QypLZJQ2Q=
 pack.ag/amqp v0.8.0/go.mod h1:4/cbmt4EJXSKlG6LCfWHoqmN0uFdy5i/+YFz+fTfhV4=
 pack.ag/amqp v0.11.0/go.mod h1:4/cbmt4EJXSKlG6LCfWHoqmN0uFdy5i/+YFz+fTfhV4=
 rsc.io/binaryregexp v0.2.0/go.mod h1:qTv7/COck+e2FymRvadv62gMdZztPaShugOCi3I+8D8=
@@ -690,8 +691,8 @@ sigs.k8s.io/structured-merge-diff v0.0.0-20190302045857-e85c7b244fd2/go.mod h1:w
 sigs.k8s.io/yaml v1.1.0 h1:4A07+ZFc2wgJwo8YNlQpr1rVlgUDlxXHhPJciaPY5gs=
 sigs.k8s.io/yaml v1.1.0/go.mod h1:UJmg0vDUVViEyp3mgSv9WPwZCDxu4rQW1olrI1uml+o=
 stash.appscode.dev/stash v0.0.0-20190717091949-1c51a7c58f08/go.mod h1:IZ1tG/VuTCKpxLVMKAd4OVJu6HJKSJXSW2ycWxJprCA=
-stash.appscode.dev/stash v0.0.0-20190718155146-3de534baa0a0 h1:IfdPCuDR0Gv5MvpdjxUxA8sWOsrJNU7JPrPxmbDhLbQ=
-stash.appscode.dev/stash v0.0.0-20190718155146-3de534baa0a0/go.mod h1:IZ1tG/VuTCKpxLVMKAd4OVJu6HJKSJXSW2ycWxJprCA=
+stash.appscode.dev/stash v0.0.0-20190730144328-4ec6caf83810 h1:MH0bv/OgVaT6PuEgLddgyDaOw5wDWdlNQpSWVdYnBZs=
+stash.appscode.dev/stash v0.0.0-20190730144328-4ec6caf83810/go.mod h1:KRJ1jYA+ExThV8pFDde2ls3G8jr0fjJTn74G/+EngXY=
 xorm.io/builder v0.3.5 h1:EilU39fvWDxjb1cDaELpYhsF+zziRBhew8xk4pngO+A=
 xorm.io/builder v0.3.5/go.mod h1:ZFbByS/KxZI1FKRjL05PyJ4YrK2bcxlUaAxdum5aTR8=
 xorm.io/core v0.6.3 h1:n1NhVZt1s2oLw1BZfX2ocIJsHyso259uPgg63BGr37M=
