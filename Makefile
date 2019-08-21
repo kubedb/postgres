@@ -264,7 +264,8 @@ unit-tests: $(BUILD_DIRS)
 #
 # NB: -t is used to catch ctrl-c interrupt from keyboard and -t will be problematic for CI.
 
-STORAGE_CLASS ?= standard
+GINKGO_ARGS ?=
+TEST_ARGS   ?=
 
 .PHONY: e2e-tests
 e2e-tests: $(BUILD_DIRS)
@@ -289,9 +290,8 @@ e2e-tests: $(BUILD_DIRS)
 	        VERSION=$(VERSION)                                  \
 	        DOCKER_REGISTRY=$(REGISTRY)                         \
 	        TAG=$(TAG)                                          \
-	        STORAGE_CLASS=$(STORAGE_CLASS)                      \
-	        TEST_ARGS=\"$(TEST_ARGS)\"                            \
-	        GINKGO_ARGS=\"$(GINKGO_ARGS)\"                          \
+	        GINKGO_ARGS='$(GINKGO_ARGS)'                        \
+	        TEST_ARGS='$(TEST_ARGS)'                            \
 	        ./hack/e2e.sh                                       \
 	    "
 

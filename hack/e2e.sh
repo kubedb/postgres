@@ -20,16 +20,10 @@ export CGO_ENABLED=0
 export GO111MODULE=on
 export GOFLAGS="-mod=vendor"
 
-echo "Running e2e tests:"
-echo "ginkgo -r --v --progress --trace ${GINKGO_ARGS:-} test -- \\
-    --docker-registry=${DOCKER_REGISTRY:-kubedbci} \\
-    --selfhosted-operator=${SELFHOSTED_OPERATOR:-true} \\
-    --storageclass=${STORAGE_CLASS:-standard} \\
-    ${EXTRA_ARGS:-}"
+GINKGO_ARGS=${GINKGO_ARGS:-}
+TEST_ARGS=${TEST_ARGS:-}
+DOCKER_REGISTRY=${DOCKER_REGISTRY:-}
 
-ginkgo -r --v --progress --trace ${GINKGO_ARGS:-} test -- \
-    --docker-registry=${DOCKER_REGISTRY:-kubedbci} \
-    --selfhosted-operator=${SELFHOSTED_OPERATOR:-true} \
-    --storageclass=${STORAGE_CLASS:-standard} \
-    ${EXTRA_ARGS:-}
-echo
+echo "Running e2e tests:"
+cmd="ginkgo -r --v --progress --trace ${GINKGO_ARGS} test -- --docker-registry=${DOCKER_REGISTRY} ${TEST_ARGS}"
+echo $cmd; $cmd
