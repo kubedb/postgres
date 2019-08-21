@@ -229,7 +229,7 @@ docker-manifest-%:
 .PHONY: test
 test: unit-tests e2e-tests
 
-# -t to catch ctrl-c interrupt
+# NB: -t is used to catch ctrl-c interrupt from keyboard and -t will be problematic for CI.
 unit-tests: $(BUILD_DIRS)
 	@docker run                                                 \
 	    -it                                                     \
@@ -250,14 +250,8 @@ unit-tests: $(BUILD_DIRS)
 	        ./hack/test.sh $(SRC_PKGS)                          \
 	    "
 
-# - e2e-tests can take both ginkgo args (as GINKGO_ARGS) and program/test args (as TEST_ARGS).
-#       make e2e-tests TEST_ARGS="--db-catalog=10.2-v4" GINKGO_ARGS="--flakeAttempts=2"
-#
-# - Run Parallel tests in ginkgo using GINKGO_ARGS="-p -stream" or, GINKGO_ARGS="-nodes=2 -stream"
-#       make e2e-tests GINKGO_ARGS="-p -stream"
-#
-# - All in one:
-#       make e2e-tests STORAGE_CLASS=standard TEST_ARGS="--selfhosted-operator=false --db-catalog=10.2-v4" GINKGO_ARGS="-p -stream --flakeAttempts=2"
+# - e2e-tests can hold both ginkgo args (as GINKGO_ARGS) and program/test args (as TEST_ARGS).
+#       make e2e-tests TEST_ARGS="--selfhosted-operator=false --storageclass=standard" GINKGO_ARGS="--flakeAttempts=2"
 #
 # - Minimalist:
 #       make e2e-tests
@@ -295,11 +289,9 @@ e2e-tests: $(BUILD_DIRS)
 	        ./hack/e2e.sh                                       \
 	    "
 
-
 .PHONY: e2e-parallel
 e2e-parallel:
 	@$(MAKE) e2e-tests GINKGO_ARGS="-p -stream" --no-print-directory
-
 
 ADDTL_LINTERS   := goconst,gofmt,goimports,unparam
 
