@@ -295,6 +295,12 @@ e2e-tests: $(BUILD_DIRS)
 	        ./hack/e2e.sh                                       \
 	    "
 
+
+.PHONY: e2e-parallel
+e2e-parallel:
+	@$(MAKE) e2e-tests GINKGO_ARGS="-p -stream" --no-print-directory
+
+
 ADDTL_LINTERS   := goconst,gofmt,goimports,unparam
 
 .PHONY: lint
