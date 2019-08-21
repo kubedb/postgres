@@ -46,6 +46,7 @@ endif
 ### These variables should not need tweaking.
 ###
 
+SRC_PKGS := cmd pkg # directories which hold app source excluding tests (not vendored)
 SRC_DIRS := cmd pkg test hack/gendocs # directories which hold app source (not vendored)
 
 DOCKER_PLATFORMS := linux/amd64 linux/arm linux/arm64
@@ -225,9 +226,13 @@ docker-manifest-%:
 	DOCKER_CLI_EXPERIMENTAL=enabled docker manifest create -a $(IMAGE):$(VERSION_$*) $(foreach PLATFORM,$(DOCKER_PLATFORMS),$(IMAGE):$(VERSION_$*)_$(subst /,_,$(PLATFORM)))
 	DOCKER_CLI_EXPERIMENTAL=enabled docker manifest push $(IMAGE):$(VERSION_$*)
 
-test: $(BUILD_DIRS)
+.PHONY: test
+test: unit-tests e2e-tests
+
+# -t to catch ctrl-c interrupt
+unit-tests: $(BUILD_DIRS)
 	@docker run                                                 \
-	    -i                                                      \
+	    -it                                                     \
 	    --rm                                                    \
 	    -u $$(id -u):$$(id -g)                                  \
 	    -v $$(pwd):/src                                         \
@@ -242,7 +247,52 @@ test: $(BUILD_DIRS)
 	        ARCH=$(ARCH)                                        \
 	        OS=$(OS)                                            \
 	        VERSION=$(VERSION)                                  \
-	        ./hack/test.sh $(SRC_DIRS)                          \
+	        ./hack/test.sh $(SRC_PKGS)                          \
+	    "
+
+# - e2e-tests can take both ginkgo args (as GINKGO_ARGS) and program/test args (as TEST_ARGS).
+#       make e2e-tests TEST_ARGS="--db-catalog=10.2-v4" GINKGO_ARGS="--flakeAttempts=2"
+#
+# - Run Parallel tests in ginkgo using GINKGO_ARGS="-p -stream" or, GINKGO_ARGS="-nodes=2 -stream"
+#       make e2e-tests GINKGO_ARGS="-p -stream"
+#
+# - All in one:
+#       make e2e-tests STORAGE_CLASS=standard TEST_ARGS="--selfhosted-operator=false --db-catalog=10.2-v4" GINKGO_ARGS="-p -stream --flakeAttempts=2"
+#
+# - Minimalist:
+#       make e2e-tests
+#
+# NB: -t is used to catch ctrl-c interrupt from keyboard and -t will be problematic for CI.
+
+STORAGE_CLASS ?= standard
+
+.PHONY: e2e-tests
+e2e-tests: $(BUILD_DIRS)
+	@docker run                                                 \
+	    -it                                                     \
+	    --rm                                                    \
+	    -u $$(id -u):$$(id -g)                                  \
+	    -v $$(pwd):/src                                         \
+	    -w /src                                                 \
+	    --net=host                                              \
+	    -v $(HOME)/.kube:/.kube                                 \
+	    -v $$(pwd)/.go/bin/$(OS)_$(ARCH):/go/bin                \
+	    -v $$(pwd)/.go/bin/$(OS)_$(ARCH):/go/bin/$(OS)_$(ARCH)  \
+	    -v $$(pwd)/.go/cache:/.cache                            \
+	    --env HTTP_PROXY=$(HTTP_PROXY)                          \
+	    --env HTTPS_PROXY=$(HTTPS_PROXY)                        \
+	    --env-file=$$(pwd)/hack/config/.env                     \
+	    $(BUILD_IMAGE)                                          \
+	    /bin/bash -c "                                          \
+	        ARCH=$(ARCH)                                        \
+	        OS=$(OS)                                            \
+	        VERSION=$(VERSION)                                  \
+	        DOCKER_REGISTRY=$(REGISTRY)                         \
+	        TAG=$(TAG)                                          \
+	        STORAGE_CLASS=$(STORAGE_CLASS)                      \
+	        TEST_ARGS=\"$(TEST_ARGS)\"                            \
+	        GINKGO_ARGS=\"$(GINKGO_ARGS)\"                          \
+	        ./hack/e2e.sh                                       \
 	    "
 
 ADDTL_LINTERS   := goconst,gofmt,goimports,unparam
