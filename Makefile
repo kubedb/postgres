@@ -46,7 +46,8 @@ endif
 ### These variables should not need tweaking.
 ###
 
-SRC_DIRS := cmd pkg test hack/gendocs # directories which hold app source (not vendored)
+SRC_PKGS := cmd pkg # directories which hold app source excluding tests (not vendored)
+SRC_DIRS := $(SRC_PKGS) test hack/gendocs # directories which hold app source (not vendored)
 
 DOCKER_PLATFORMS := linux/amd64 linux/arm linux/arm64
 BIN_PLATFORMS    := $(DOCKER_PLATFORMS) windows/amd64 darwin/amd64
@@ -225,9 +226,13 @@ docker-manifest-%:
 	DOCKER_CLI_EXPERIMENTAL=enabled docker manifest create -a $(IMAGE):$(VERSION_$*) $(foreach PLATFORM,$(DOCKER_PLATFORMS),$(IMAGE):$(VERSION_$*)_$(subst /,_,$(PLATFORM)))
 	DOCKER_CLI_EXPERIMENTAL=enabled docker manifest push $(IMAGE):$(VERSION_$*)
 
-test: $(BUILD_DIRS)
+.PHONY: test
+test: unit-tests e2e-tests
+
+# NB: -t is used to catch ctrl-c interrupt from keyboard and -t will be problematic for CI.
+unit-tests: $(BUILD_DIRS)
 	@docker run                                                 \
-	    -i                                                      \
+	    -it                                                     \
 	    --rm                                                    \
 	    -u $$(id -u):$$(id -g)                                  \
 	    -v $$(pwd):/src                                         \
@@ -242,8 +247,52 @@ test: $(BUILD_DIRS)
 	        ARCH=$(ARCH)                                        \
 	        OS=$(OS)                                            \
 	        VERSION=$(VERSION)                                  \
-	        ./hack/test.sh $(SRC_DIRS)                          \
+	        ./hack/test.sh $(SRC_PKGS)                          \
 	    "
+
+# - e2e-tests can hold both ginkgo args (as GINKGO_ARGS) and program/test args (as TEST_ARGS).
+#       make e2e-tests TEST_ARGS="--selfhosted-operator=false --storageclass=standard" GINKGO_ARGS="--flakeAttempts=2"
+#
+# - Minimalist:
+#       make e2e-tests
+#
+# NB: -t is used to catch ctrl-c interrupt from keyboard and -t will be problematic for CI.
+
+GINKGO_ARGS ?=
+TEST_ARGS   ?=
+
+.PHONY: e2e-tests
+e2e-tests: $(BUILD_DIRS)
+	@docker run                                                 \
+	    -it                                                     \
+	    --rm                                                    \
+	    -u $$(id -u):$$(id -g)                                  \
+	    -v $$(pwd):/src                                         \
+	    -w /src                                                 \
+	    --net=host                                              \
+	    -v $(HOME)/.kube:/.kube                                 \
+	    -v $(HOME)/.credentials:$(HOME)/.credentials            \
+	    -v $$(pwd)/.go/bin/$(OS)_$(ARCH):/go/bin                \
+	    -v $$(pwd)/.go/bin/$(OS)_$(ARCH):/go/bin/$(OS)_$(ARCH)  \
+	    -v $$(pwd)/.go/cache:/.cache                            \
+	    --env HTTP_PROXY=$(HTTP_PROXY)                          \
+	    --env HTTPS_PROXY=$(HTTPS_PROXY)                        \
+	    --env-file=$$(pwd)/hack/config/.env                     \
+	    $(BUILD_IMAGE)                                          \
+	    /bin/bash -c "                                          \
+	        ARCH=$(ARCH)                                        \
+	        OS=$(OS)                                            \
+	        VERSION=$(VERSION)                                  \
+	        DOCKER_REGISTRY=$(REGISTRY)                         \
+	        TAG=$(TAG)                                          \
+	        GINKGO_ARGS='$(GINKGO_ARGS)'                        \
+	        TEST_ARGS='$(TEST_ARGS)'                            \
+	        ./hack/e2e.sh                                       \
+	    "
+
+.PHONY: e2e-parallel
+e2e-parallel:
+	@$(MAKE) e2e-tests GINKGO_ARGS="-p -stream" --no-print-directory
 
 ADDTL_LINTERS   := goconst,gofmt,goimports,unparam
 

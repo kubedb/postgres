@@ -23,19 +23,18 @@ require (
 	k8s.io/client-go v11.0.0+incompatible
 	k8s.io/component-base v0.0.0-20190508223741-40efa6d42997 // indirect
 	k8s.io/kube-aggregator v0.0.0-20190508224022-f9852b6d3a84
-	kmodules.xyz/client-go v0.0.0-20190715080709-7162a6c90b04
+	kmodules.xyz/client-go v0.0.0-20190802200916-043217632b6a
 	kmodules.xyz/custom-resources v0.0.0-20190730174012-d0224972f055
 	kmodules.xyz/monitoring-agent-api v0.0.0-20190513065523-186af167f817
 	kmodules.xyz/objectstore-api v0.0.0-20190718002052-da668b440b0b
 	kmodules.xyz/offshoot-api v0.0.0-20190715115723-36c8fce142c1
 	kmodules.xyz/webhook-runtime v0.0.0-20190715115250-a84fbf77dd30
-	kubedb.dev/apimachinery v0.0.0-20190731225000-6539c67a4a28
+	kubedb.dev/apimachinery v0.0.0-20190801152009-3ee2a59976e1
 	stash.appscode.dev/stash v0.0.0-20190730144328-4ec6caf83810
-	xorm.io/core v0.6.3
 )
 
 replace (
-	github.com/Azure/go-autorest => github.com/Azure/go-autorest/autorest v0.5.0
+	github.com/Azure/go-autorest => github.com/Azure/go-autorest v12.4.2+incompatible
 	k8s.io/api => k8s.io/api v0.0.0-20190313235455-40a48860b5ab
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.0.0-20190315093550-53c4693659ed
 	k8s.io/apimachinery => github.com/kmodules/apimachinery v0.0.0-20190508045248-a52a97a7a2bf
