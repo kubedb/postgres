@@ -164,6 +164,10 @@ def test(type, *args):
         die(call('goimports -w cmd pkg test'))
         call('gofmt -s -w cmd pkg test')
         die(call('ginkgo -r -v -progress -trace test/e2e -- ' + " ".join(args)))
+    elif type == 'e2e-parallel':
+        die(call('goimports -w cmd pkg test'))
+        call('gofmt -s -w cmd pkg test')
+        die(call('ginkgo -p -stream -r -v -progress -trace test/e2e -- ' + " ".join(args)))
     else:
         print '{test e2e}'
 
