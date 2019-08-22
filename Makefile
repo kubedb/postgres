@@ -49,7 +49,7 @@ endif
 SRC_PKGS := cmd pkg # directories which hold app source excluding tests (not vendored)
 SRC_DIRS := $(SRC_PKGS) test hack/gendocs # directories which hold app source (not vendored)
 
-DOCKER_PLATFORMS := linux/amd64 linux/arm linux/arm64
+DOCKER_PLATFORMS := linux/amd64 linux/arm64
 BIN_PLATFORMS    := $(DOCKER_PLATFORMS) windows/amd64 darwin/amd64
 
 # Used internally.  Users should pass GOOS and/or GOARCH.
@@ -205,12 +205,12 @@ container: bin/.container-$(DOTFILE_IMAGE)-PROD bin/.container-$(DOTFILE_IMAGE)-
 bin/.container-$(DOTFILE_IMAGE)-%: bin/$(OS)_$(ARCH)/$(BIN) $(DOCKERFILE_%)
 	@echo "container: $(IMAGE):$(TAG_$*)"
 	@sed                                    \
-	    -e 's|{ARG_BIN}|$(BIN)|g'           \
-	    -e 's|{ARG_ARCH}|$(ARCH)|g'         \
-	    -e 's|{ARG_OS}|$(OS)|g'             \
-	    -e 's|{ARG_FROM}|$(BASEIMAGE_$*)|g' \
-	    $(DOCKERFILE_$*) > bin/.dockerfile-$*-$(OS)_$(ARCH)
-	@docker build --pull -t $(IMAGE):$(TAG_$*) -f bin/.dockerfile-$*-$(OS)_$(ARCH) .
+		-e 's|{ARG_BIN}|$(BIN)|g'           \
+		-e 's|{ARG_ARCH}|$(ARCH)|g'         \
+		-e 's|{ARG_OS}|$(OS)|g'             \
+		-e 's|{ARG_FROM}|$(BASEIMAGE_$*)|g' \
+		$(DOCKERFILE_$*) > bin/.dockerfile-$*-$(OS)_$(ARCH)
+	@DOCKER_CLI_EXPERIMENTAL=enabled docker buildx build --platform $(OS)/$(ARCH) --load --pull -t $(IMAGE):$(TAG_$*) -f bin/.dockerfile-$*-$(OS)_$(ARCH) .
 	@docker images -q $(IMAGE):$(TAG_$*) > $@
 	@echo
 
