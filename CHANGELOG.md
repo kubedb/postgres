@@ -1,5 +1,27 @@
 # Change Log
 
+## [v0.13.0-rc.0](https://github.com/kubedb/postgres/tree/v0.13.0-rc.0) (2019-08-22)
+[Full Changelog](https://github.com/kubedb/postgres/compare/0.12.0...v0.13.0-rc.0)
+
+**Merged pull requests:**
+
+- Add e2e test commands to Makefile [\#291](https://github.com/kubedb/postgres/pull/291) ([the-redback](https://github.com/the-redback))
+- Update dependencies [\#290](https://github.com/kubedb/postgres/pull/290) ([tamalsaha](https://github.com/tamalsaha))
+- Don't set annotation to AppBinding [\#289](https://github.com/kubedb/postgres/pull/289) ([hossainemruz](https://github.com/hossainemruz))
+- Set database version in AppBinding [\#288](https://github.com/kubedb/postgres/pull/288) ([hossainemruz](https://github.com/hossainemruz))
+- Change package path to kubedb.dev/postgres [\#287](https://github.com/kubedb/postgres/pull/287) ([tamalsaha](https://github.com/tamalsaha))
+- Add license header to Makefiles [\#285](https://github.com/kubedb/postgres/pull/285) ([tamalsaha](https://github.com/tamalsaha))
+- Implement proper shutdown procedure for postgres [\#284](https://github.com/kubedb/postgres/pull/284) ([martin31821](https://github.com/martin31821))
+- Fix UpsertDatabaseAnnotation\(\) function [\#283](https://github.com/kubedb/postgres/pull/283) ([hossainemruz](https://github.com/hossainemruz))
+- Add install, uninstall and purge command in Makefile [\#281](https://github.com/kubedb/postgres/pull/281) ([hossainemruz](https://github.com/hossainemruz))
+- Provide role and rolebinding for existing sa managed by kubedb [\#280](https://github.com/kubedb/postgres/pull/280) ([iamrz1](https://github.com/iamrz1))
+- Add Makefile [\#279](https://github.com/kubedb/postgres/pull/279) ([tamalsaha](https://github.com/tamalsaha))
+- Pod Disruption Budget for Postgres [\#278](https://github.com/kubedb/postgres/pull/278) ([iamrz1](https://github.com/iamrz1))
+- Update to k8s 1.14.0 client libraries using go.mod [\#277](https://github.com/kubedb/postgres/pull/277) ([tamalsaha](https://github.com/tamalsaha))
+- Handling resource ownership  [\#276](https://github.com/kubedb/postgres/pull/276) ([iamrz1](https://github.com/iamrz1))
+- Integrate stash/restic with postgres [\#273](https://github.com/kubedb/postgres/pull/273) ([the-redback](https://github.com/the-redback))
+- Add shared memory /dev/shm volume [\#269](https://github.com/kubedb/postgres/pull/269) ([olksdr](https://github.com/olksdr))
+
 ## [0.12.0](https://github.com/kubedb/postgres/tree/0.12.0) (2019-05-06)
 [Full Changelog](https://github.com/kubedb/postgres/compare/0.11.0...0.12.0)
 
