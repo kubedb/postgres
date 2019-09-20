@@ -115,10 +115,10 @@ func (fi *Invocation) CreateHTTPMinioServer() error {
 		return nil
 	}
 	//creating deployment for minio server
-	myDeploy := fi.MinioServerDeploymentHTTP()
+	mdeploy = fi.MinioServerDeploymentHTTP()
 	// if tls not enabled then don't mount secret for cacerts
 	//mdeploy.Spec.Template.Spec.Containers = fi.RemoveSecretVolumeMount(mdeploy.Spec.Template.Spec.Containers)
-	deploy, err := fi.CreateDeploymentForMinioServer(myDeploy)
+	deploy, err := fi.CreateDeploymentForMinioServer(mdeploy)
 	if err != nil {
 		return err
 	}
@@ -586,8 +586,8 @@ func (fi *Invocation) DeleteMinioServer() (err error) {
 	//wait for all postgres reources to wipeout
 	err = fi.DeleteSecretForMinioServer(mcred.ObjectMeta)
 	err = fi.DeletePVCForMinioServer(mpvc.ObjectMeta)
-	err = fi.DeleteDeploymentForMinioServer(mdeploy.ObjectMeta)
 	err = fi.DeleteServiceForMinioServer(msrvc.ObjectMeta)
+	err = fi.DeleteDeploymentForMinioServer(mdeploy.ObjectMeta)
 	return err
 }
 
@@ -599,10 +599,14 @@ func (f *Framework) DeletePVCForMinioServer(meta metav1.ObjectMeta) error {
 	return f.kubeClient.CoreV1().PersistentVolumeClaims(meta.Namespace).Delete(meta.Name, deleteInForeground())
 }
 
-func (f *Framework) DeleteDeploymentForMinioServer(meta metav1.ObjectMeta) error {
-	return f.kubeClient.AppsV1().Deployments(meta.Namespace).Delete(meta.Name, deleteInBackground())
-}
-
 func (f *Framework) DeleteServiceForMinioServer(meta metav1.ObjectMeta) error {
 	return f.kubeClient.CoreV1().Services(meta.Namespace).Delete(meta.Name, deleteInForeground())
+}
+
+func (f *Framework) DeleteDeploymentForMinioServer(meta metav1.ObjectMeta) error {
+	_, err := f.kubeClient.AppsV1().Deployments(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
+	if err == nil {
+		return f.kubeClient.AppsV1().Deployments(meta.Namespace).Delete(meta.Name, deleteInBackground())
+	}
+	return nil
 }

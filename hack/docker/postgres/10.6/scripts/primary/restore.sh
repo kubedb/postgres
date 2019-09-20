@@ -16,6 +16,7 @@ if [[ ${RESTORE_S3_PREFIX} != "" ]]; then
     export AWS_ENDPOINT=$RESTORE_S3_ENDPOINT
     export AWS_S3_FORCE_PATH_STYLE="true"
     export AWS_REGION="us-east-1"
+    [[ -e "$RESTORE_S3_REGION" ]] && export AWS_REGION=$RESTORE_S3_REGION
   fi
 
 elif [[ ${RESTORE_GS_PREFIX} != "" ]]; then

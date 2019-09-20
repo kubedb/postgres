@@ -20,10 +20,7 @@ DIST="$REPO_ROOT/dist"
 mkdir -p "$DIST"
 
 build_binary() {
-  pushd $REPO_ROOT
-  ./hack/builddeps.sh
-  ./hack/make.py build pg-operator
-  popd
+  make build
 }
 
 build_docker() {
@@ -35,7 +32,7 @@ build_docker() {
   mv wal-g-alpine-amd64 wal-g
 
   # Copy pg-operator
-  cp "$DIST/pg-operator/pg-operator-alpine-amd64" pg-operator
+  cp "$REPO_ROOT/bin/linux_amd64/pg-operator" pg-operator
   chmod 755 pg-operator
 
   local cmd="docker build --pull -t $DOCKER_REGISTRY/$IMG:$TAG ."

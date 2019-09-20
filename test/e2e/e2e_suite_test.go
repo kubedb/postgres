@@ -75,6 +75,7 @@ func TestE2e(t *testing.T) {
 }
 
 var _ = BeforeSuite(func() {
+	// Kubernetes config
 	By("Using kubeconfig from " + kubeconfigPath)
 	config, err := clientcmd.BuildConfigFromContext(kubeconfigPath, kubeContext)
 	Expect(err).NotTo(HaveOccurred())

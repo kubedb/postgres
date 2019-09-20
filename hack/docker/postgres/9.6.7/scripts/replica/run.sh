@@ -75,6 +75,7 @@ if [ "$ARCHIVE" == "wal-g" ]; then
       export AWS_ENDPOINT=$ARCHIVE_S3_ENDPOINT
       export AWS_S3_FORCE_PATH_STYLE="true"
       export AWS_REGION="us-east-1"
+      [[ -e "$ARCHIVE_S3_REGION" ]] && export AWS_REGION=$ARCHIVE_S3_REGION
     fi
   elif [[ ${ARCHIVE_GS_PREFIX} != "" ]]; then
     export WALE_GS_PREFIX="$ARCHIVE_GS_PREFIX"
