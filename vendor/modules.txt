@@ -22,7 +22,7 @@ github.com/NYTimes/gziphandler
 github.com/PuerkitoBio/purell
 # github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578
 github.com/PuerkitoBio/urlesc
-# github.com/appscode/go v0.0.0-20190808133642-1d4ef1f1c1e0
+# github.com/appscode/go v0.0.0-20191006073906-e3d193d493fc
 github.com/appscode/go/version
 github.com/appscode/go/runtime
 github.com/appscode/go/log
@@ -38,6 +38,7 @@ github.com/appscode/go/sets
 github.com/appscode/go/analytics
 github.com/appscode/go/net
 github.com/appscode/go/strings
+github.com/appscode/go/os
 github.com/appscode/go/homedir
 github.com/appscode/go/encoding/yaml
 # github.com/appscode/osm v0.12.0
@@ -382,7 +383,7 @@ gomodules.xyz/stow/google
 gomodules.xyz/stow/local
 gomodules.xyz/stow/s3
 gomodules.xyz/stow/swift
-# gomodules.xyz/version v0.0.0-20190507203204-7cec7ee542d3
+# gomodules.xyz/version v0.1.0
 gomodules.xyz/version
 # google.golang.org/api v0.2.0
 google.golang.org/api/storage/v1
@@ -898,26 +899,32 @@ kmodules.xyz/client-go/tools/queue
 kmodules.xyz/client-go/tools/portforward
 kmodules.xyz/client-go/apiregistration/v1beta1
 kmodules.xyz/client-go/policy/v1beta1
-# kmodules.xyz/custom-resources v0.0.0-20190808144301-114abf10dfe2
+# kmodules.xyz/custom-resources v0.0.0-20190927035424-65fe358bb045
 kmodules.xyz/custom-resources/client/clientset/versioned/scheme
-kmodules.xyz/custom-resources/client/clientset/versioned/typed/appcatalog/v1alpha1
+kmodules.xyz/custom-resources/client/clientset/versioned
 kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1
 kmodules.xyz/custom-resources/client/clientset/versioned/typed/appcatalog/v1alpha1/util
+kmodules.xyz/custom-resources/client/clientset/versioned/typed/appcatalog/v1alpha1
 kmodules.xyz/custom-resources/apis/appcatalog
+kmodules.xyz/custom-resources/client/informers/externalversions
+kmodules.xyz/custom-resources/client/informers/externalversions/appcatalog
+kmodules.xyz/custom-resources/client/informers/externalversions/internalinterfaces
+kmodules.xyz/custom-resources/client/informers/externalversions/appcatalog/v1alpha1
+kmodules.xyz/custom-resources/client/listers/appcatalog/v1alpha1
 # kmodules.xyz/monitoring-agent-api v0.0.0-20190808150221-601a4005b7f7
 kmodules.xyz/monitoring-agent-api/api/v1
 kmodules.xyz/monitoring-agent-api/agents
 kmodules.xyz/monitoring-agent-api/agents/coreosprometheusoperator
 kmodules.xyz/monitoring-agent-api/agents/prometheusbuiltin
-# kmodules.xyz/objectstore-api v0.0.0-20190808153322-733e8798e8de
+# kmodules.xyz/objectstore-api v0.0.0-20191006080053-fc8b57fadcf0
 kmodules.xyz/objectstore-api/osm
 kmodules.xyz/objectstore-api/api/v1
-# kmodules.xyz/offshoot-api v0.0.0-20190808152534-e3dc715f844b
+# kmodules.xyz/offshoot-api v0.0.0-20190901210649-de049192326c
 kmodules.xyz/offshoot-api/api/v1
 # kmodules.xyz/webhook-runtime v0.0.0-20190808145328-4186c470d56b
 kmodules.xyz/webhook-runtime/admission/v1beta1
 kmodules.xyz/webhook-runtime/registry/admissionreview/v1beta1
-# kubedb.dev/apimachinery v0.13.0-rc.0
+# kubedb.dev/apimachinery v0.13.0-rc.0.0.20191006094625-b862382f971e
 kubedb.dev/apimachinery/apis/kubedb/v1alpha1
 kubedb.dev/apimachinery/client/clientset/versioned
 kubedb.dev/apimachinery/pkg/validator

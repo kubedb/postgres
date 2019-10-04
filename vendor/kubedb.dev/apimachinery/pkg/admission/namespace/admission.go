@@ -103,9 +103,9 @@ func (a *NamespaceValidator) Admit(req *admission.AdmissionRequest) *admission.A
 						if err != nil {
 							return err
 						}
-						if !found ||
-							terminationPolicy == string(api.TerminationPolicyPause) ||
-							terminationPolicy == string(api.TerminationPolicyDoNotTerminate) {
+						if found &&
+							(terminationPolicy == string(api.TerminationPolicyPause) ||
+								terminationPolicy == string(api.TerminationPolicyDoNotTerminate)) {
 							return fmt.Errorf("%s %s/%s has termination policy `%s`", u.GetKind(), u.GetNamespace(), u.GetName(), terminationPolicy)
 						}
 						return nil

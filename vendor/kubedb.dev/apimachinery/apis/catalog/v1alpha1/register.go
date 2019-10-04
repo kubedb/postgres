@@ -53,6 +53,8 @@ func addKnownTypes(scheme *runtime.Scheme) error {
 		&RedisVersionList{},
 		&EtcdVersion{},
 		&EtcdVersionList{},
+		&ProxySQLVersion{},
+		&ProxySQLVersionList{},
 	)
 
 	scheme.AddKnownTypes(SchemeGroupVersion,

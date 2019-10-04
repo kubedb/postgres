@@ -199,6 +199,11 @@ func ValidatePostgres(client kubernetes.Interface, extClient cs.Interface, postg
 			return fmt.Errorf("postgres %s/%s is using deprecated version %v. Skipped processing",
 				postgres.Namespace, postgres.Name, postgresVersion.Name)
 		}
+
+		if err := postgresVersion.ValidateSpecs(); err != nil {
+			return fmt.Errorf("postgres %s/%s is using invalid postgresVersion %v. Skipped processing. reason: %v", postgres.Namespace,
+				postgres.Name, postgresVersion.Name, err)
+		}
 	}
 
 	// validate leader election configs. ref: https://github.com/kubernetes/client-go/blob/6134db91200ea474868bc6775e62cc294a74c6c6/tools/leaderelection/leaderelection.go#L73-L87

@@ -36,7 +36,7 @@ func (c *Controller) runDormantDatabase(key string) error {
 					log.Errorln(err)
 					return err
 				}
-				dormantDatabase, _, err = util.PatchDormantDatabase(c.ExtClient.KubedbV1alpha1(), dormantDatabase, func(in *api.DormantDatabase) *api.DormantDatabase {
+				_, _, err = util.PatchDormantDatabase(c.ExtClient.KubedbV1alpha1(), dormantDatabase, func(in *api.DormantDatabase) *api.DormantDatabase {
 					in.ObjectMeta = core_util.RemoveFinalizer(in.ObjectMeta, api.GenericKey)
 					return in
 				})
@@ -47,6 +47,10 @@ func (c *Controller) runDormantDatabase(key string) error {
 				in.ObjectMeta = core_util.AddFinalizer(in.ObjectMeta, api.GenericKey)
 				return in
 			})
+			if err != nil {
+				log.Errorln(err)
+				return err
+			}
 			if err := c.create(dormantDatabase); err != nil {
 				log.Errorln(err)
 				return err

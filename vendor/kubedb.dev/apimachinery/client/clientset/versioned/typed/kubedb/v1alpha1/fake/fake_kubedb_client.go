@@ -60,8 +60,16 @@ func (c *FakeKubedbV1alpha1) PerconaXtraDBs(namespace string) v1alpha1.PerconaXt
 	return &FakePerconaXtraDBs{c, namespace}
 }
 
+func (c *FakeKubedbV1alpha1) PgBouncers(namespace string) v1alpha1.PgBouncerInterface {
+	return &FakePgBouncers{c, namespace}
+}
+
 func (c *FakeKubedbV1alpha1) Postgreses(namespace string) v1alpha1.PostgresInterface {
 	return &FakePostgreses{c, namespace}
+}
+
+func (c *FakeKubedbV1alpha1) ProxySQLs(namespace string) v1alpha1.ProxySQLInterface {
+	return &FakeProxySQLs{c, namespace}
 }
 
 func (c *FakeKubedbV1alpha1) Redises(namespace string) v1alpha1.RedisInterface {

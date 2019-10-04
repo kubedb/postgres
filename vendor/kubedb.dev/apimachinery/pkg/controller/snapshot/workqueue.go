@@ -39,7 +39,7 @@ func (c *Controller) runSnapshot(key string) error {
 					log.Errorln(err)
 					return err
 				}
-				snapshot, _, err = util.PatchSnapshot(c.ExtClient.KubedbV1alpha1(), snapshot, func(in *api.Snapshot) *api.Snapshot {
+				_, _, err = util.PatchSnapshot(c.ExtClient.KubedbV1alpha1(), snapshot, func(in *api.Snapshot) *api.Snapshot {
 					in.ObjectMeta = core_util.RemoveFinalizer(in.ObjectMeta, api.GenericKey)
 					return in
 				})
@@ -50,6 +50,10 @@ func (c *Controller) runSnapshot(key string) error {
 				in.ObjectMeta = core_util.AddFinalizer(in.ObjectMeta, api.GenericKey)
 				return in
 			})
+			if err != nil {
+				log.Errorln(err)
+				return err
+			}
 			if err := c.create(snapshot); kutil.IsRequestRetryable(err) {
 				log.Errorln(err)
 				return err
