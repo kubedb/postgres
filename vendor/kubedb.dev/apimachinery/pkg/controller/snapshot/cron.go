@@ -168,9 +168,9 @@ func (s *snapshotInvoker) createScheduledSnapshot() error {
 		return fmt.Errorf("failed to get DB Catalog %v/%v. Reason: %v", catalogKind, catalogMetaObject, err)
 	}
 
-	if val, found, err := unstructured.NestedBool(updatedCatalog.UnstructuredContent(), "scheduleSpec", "deprecated"); err != nil {
+	if deprecated, found, err := unstructured.NestedBool(updatedCatalog.UnstructuredContent(), "scheduleSpec", "deprecated"); err != nil {
 		return fmt.Errorf("failed to get scheduleSpec.Deprecated value. Reason: %v", err)
-	} else if found && val == true {
+	} else if found && deprecated {
 		return fmt.Errorf("%v %s/%s is using deprecated version %v. Skipped processing scheduler",
 			dbKind, s.dbMetaObject.GetNamespace(), s.dbMetaObject.GetName(), catalogMetaObject)
 	}
@@ -190,12 +190,6 @@ func (s *snapshotInvoker) createScheduledSnapshot() error {
 
 	if len(snapshotList.Items) > 0 {
 		return errors.New("skipping scheduled Backup. One is still active")
-	}
-
-	// Set label. Elastic controller will detect this using label selector
-	labelMap = map[string]string{
-		api.LabelDatabaseKind: dbKind,
-		api.LabelDatabaseName: s.dbMetaObject.GetName(),
 	}
 
 	now := time.Now().UTC()

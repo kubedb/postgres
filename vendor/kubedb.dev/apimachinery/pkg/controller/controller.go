@@ -14,7 +14,8 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/cache"
 	"kmodules.xyz/client-go/tools/queue"
-	appcat_cs "kmodules.xyz/custom-resources/client/clientset/versioned/typed/appcatalog/v1alpha1"
+	appcat_cs "kmodules.xyz/custom-resources/client/clientset/versioned"
+	appcat_in "kmodules.xyz/custom-resources/client/informers/externalversions"
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
 	cs "kubedb.dev/apimachinery/client/clientset/versioned"
 	kubedbinformers "kubedb.dev/apimachinery/client/informers/externalversions"
@@ -33,7 +34,7 @@ type Controller struct {
 	// Dynamic client
 	DynamicClient dynamic.Interface
 	// AppCatalog client
-	AppCatalogClient appcat_cs.AppcatalogV1alpha1Interface
+	AppCatalogClient appcat_cs.Interface
 	// StashClient for stash
 	StashClient scs.Interface
 }
@@ -43,6 +44,7 @@ type Config struct {
 	KubeInformerFactory   informers.SharedInformerFactory
 	KubedbInformerFactory kubedbinformers.SharedInformerFactory
 	StashInformerFactory  stashInformers.SharedInformerFactory
+	AppCatInformerFactory appcat_in.SharedInformerFactory
 
 	// DormantDb queue
 	DrmnQueue    *queue.Worker
