@@ -77,7 +77,10 @@ endif
 # Directories that we need created to build/test.
 BUILD_DIRS  := bin/$(OS)_$(ARCH)     \
                .go/bin/$(OS)_$(ARCH) \
-               .go/cache
+               .go/cache             \
+               $(HOME)/.credentials  \
+               $(HOME)/.kube         \
+               $(HOME)/.minikube
 
 DOCKERFILE_PROD  = hack/docker/pg-operator/Dockerfile.in
 DOCKERFILE_DBG   = hack/docker/pg-operator/Dockerfile.dbg
@@ -115,12 +118,12 @@ all-container: $(addprefix container-, $(subst /,_, $(DOCKER_PLATFORMS)))
 all-push: $(addprefix push-, $(subst /,_, $(DOCKER_PLATFORMS)))
 
 version:
-	@echo version=$(VERSION)
-	@echo version_strategy=$(version_strategy)
-	@echo git_tag=$(git_tag)
-	@echo git_branch=$(git_branch)
-	@echo commit_hash=$(commit_hash)
-	@echo commit_timestamp=$(commit_timestamp)
+	@echo ::set-output name=version::$(VERSION)
+	@echo ::set-output name=version_strategy::$(version_strategy)
+	@echo ::set-output name=git_tag::$(git_tag)
+	@echo ::set-output name=git_branch::$(git_branch)
+	@echo ::set-output name=commit_hash::$(commit_hash)
+	@echo ::set-output name=commit_timestamp::$(commit_timestamp)
 
 gen:
 	@true
@@ -178,7 +181,7 @@ $(OUTBIN): .go/$(OUTBIN).stamp
 	    "
 	@if [ $(COMPRESS) = yes ] && [ $(OS) != darwin ]; then          \
 		echo "compressing $(OUTBIN)";                               \
-		docker run                                                  \
+		@docker run                                                 \
 		    -i                                                      \
 		    --rm                                                    \
 		    -u $$(id -u):$$(id -g)                                  \
@@ -229,10 +232,9 @@ docker-manifest-%:
 .PHONY: test
 test: unit-tests e2e-tests
 
-# NB: -t is used to catch ctrl-c interrupt from keyboard and -t will be problematic for CI.
 unit-tests: $(BUILD_DIRS)
 	@docker run                                                 \
-	    -it                                                     \
+	    -i                                                      \
 	    --rm                                                    \
 	    -u $$(id -u):$$(id -g)                                  \
 	    -v $$(pwd):/src                                         \
@@ -264,19 +266,21 @@ TEST_ARGS   ?=
 .PHONY: e2e-tests
 e2e-tests: $(BUILD_DIRS)
 	@docker run                                                 \
-	    -it                                                     \
+	    -i                                                      \
 	    --rm                                                    \
 	    -u $$(id -u):$$(id -g)                                  \
 	    -v $$(pwd):/src                                         \
 	    -w /src                                                 \
 	    --net=host                                              \
 	    -v $(HOME)/.kube:/.kube                                 \
+	    -v $(HOME)/.minikube:$(HOME)/.minikube                  \
 	    -v $(HOME)/.credentials:$(HOME)/.credentials            \
 	    -v $$(pwd)/.go/bin/$(OS)_$(ARCH):/go/bin                \
 	    -v $$(pwd)/.go/bin/$(OS)_$(ARCH):/go/bin/$(OS)_$(ARCH)  \
 	    -v $$(pwd)/.go/cache:/.cache                            \
 	    --env HTTP_PROXY=$(HTTP_PROXY)                          \
 	    --env HTTPS_PROXY=$(HTTPS_PROXY)                        \
+	    --env KUBECONFIG=$(KUBECONFIG)                          \
 	    --env-file=$$(pwd)/hack/config/.env                     \
 	    $(BUILD_IMAGE)                                          \
 	    /bin/bash -c "                                          \
@@ -285,6 +289,7 @@ e2e-tests: $(BUILD_DIRS)
 	        VERSION=$(VERSION)                                  \
 	        DOCKER_REGISTRY=$(REGISTRY)                         \
 	        TAG=$(TAG)                                          \
+	        KUBECONFIG=$${KUBECONFIG#$(HOME)}                   \
 	        GINKGO_ARGS='$(GINKGO_ARGS)'                        \
 	        TEST_ARGS='$(TEST_ARGS)'                            \
 	        ./hack/e2e.sh                                       \
@@ -321,7 +326,7 @@ $(BUILD_DIRS):
 .PHONY: install
 install:
 	@cd ../installer; \
-	APPSCODE_ENV=dev KUBEDB_DOCKER_REGISTRY=$(REGISTRY) KUBEDB_OPERATOR_TAG=$(TAG) KUBEDB_CATALOG=postgres ./deploy/kubedb.sh --operator-name=$(BIN)
+	APPSCODE_ENV=dev KUBEDB_OPERATOR_TAG=$(TAG) KUBEDB_CATALOG=postgres ./deploy/kubedb.sh --operator-name=$(BIN) --docker-registry=$(REGISTRY) --image-pull-secret=$(REGISTRY_SECRET)
 
 .PHONY: uninstall
 uninstall:

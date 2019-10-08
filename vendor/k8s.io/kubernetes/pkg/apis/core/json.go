@@ -1,5 +1,5 @@
 /*
-Copyright 2019 The Stash Authors.
+Copyright 2017 The Kubernetes Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,12 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// +k8s:deepcopy-gen=package
-// +k8s:conversion-gen=stash.appscode.dev/stash/apis/repositories
-// +k8s:openapi-gen=true
-// +k8s:defaulter-gen=TypeMeta
-// +kubebuilder:skip
+package core
 
-// Package v1alpha1 is the v1alpha1 version of the API.
-// +groupName=repositories.stash.appscode.com
-package v1alpha1
+import "encoding/json"
+
+// This file implements json marshaling/unmarshaling interfaces on objects that are currently marshaled into annotations
+// to prevent anyone from marshaling these internal structs.
+
+var _ = json.Marshaler(&AvoidPods{})
+var _ = json.Unmarshaler(&AvoidPods{})
+
+func (AvoidPods) MarshalJSON() ([]byte, error) { panic("do not marshal internal struct") }
+func (*AvoidPods) UnmarshalJSON([]byte) error  { panic("do not unmarshal to internal struct") }
