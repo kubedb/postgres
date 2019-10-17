@@ -82,7 +82,7 @@ if [ "$ARCHIVE" == "wal-g" ]; then
   fi
 
   pg_ctl -D "$PGDATA" -w start
-  PGUSER="postgres" wal-g backup-push "$PGDATA" >/dev/null
+  PGUSER="postgres" wal-g backup-push "$PGDATA"
   pg_ctl -D "$PGDATA" -m fast -w stop
 fi
 

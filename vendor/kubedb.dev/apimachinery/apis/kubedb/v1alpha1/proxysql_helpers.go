@@ -136,7 +136,7 @@ func (p ProxySQL) CustomResourceDefinition() *apiextensions.CustomResourceDefini
 		SpecDefinitionName:      "kubedb.dev/apimachinery/apis/kubedb/v1alpha1.ProxySQL",
 		EnableValidation:        true,
 		GetOpenAPIDefinitions:   GetOpenAPIDefinitions,
-		EnableStatusSubresource: apis.EnableStatusSubresource,
+		EnableStatusSubresource: true,
 		AdditionalPrinterColumns: []apiextensions.CustomResourceColumnDefinition{
 			{
 				Name:     "Version",

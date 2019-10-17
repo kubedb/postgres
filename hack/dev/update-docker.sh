@@ -100,9 +100,3 @@ if [ "$EXPORTER_UPDATE" -eq 1 ]; then
     ${REPO_ROOT}/hack/docker/postgres_exporter/${exporter}/make.sh
   done
 fi
-
-if [ "$OPERATOR_UPDATE" -eq 1 ]; then
-  cowsay -f tux "Processing Operator images" || true
-  $REPO_ROOT/hack/docker/pg-operator/make.sh build
-  $REPO_ROOT/hack/docker/pg-operator/make.sh push
-fi

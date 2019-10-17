@@ -32,51 +32,57 @@ func (f *Framework) EventuallyPVCCount(meta metav1.ObjectMeta) GomegaAsyncAssert
 	)
 }
 
-func (f *Invocation) GetPersistentVolumeClaim() *core.PersistentVolumeClaim {
+func (i *Invocation) GetPersistentVolumeClaim() *core.PersistentVolumeClaim {
 	return &core.PersistentVolumeClaim{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      f.app,
-			Namespace: f.namespace,
+			Name:      i.app,
+			Namespace: i.namespace,
+			Annotations: map[string]string{
+				"volume.beta.kubernetes.io/storage-class": i.StorageClass,
+			},
 		},
 		Spec: core.PersistentVolumeClaimSpec{
 			AccessModes: []core.PersistentVolumeAccessMode{
 				core.ReadWriteOnce,
 			},
-			StorageClassName: &f.StorageClass,
+			StorageClassName: &i.StorageClass,
 			Resources: core.ResourceRequirements{
 				Requests: core.ResourceList{
-					core.ResourceName(core.ResourceStorage): resource.MustParse("50Mi"),
+					core.ResourceStorage: resource.MustParse("50Mi"),
 				},
 			},
 		},
 	}
 }
 
-func (f *Invocation) GetNamedPersistentVolumeClaim(name string) *core.PersistentVolumeClaim {
+func (i *Invocation) GetNamedPersistentVolumeClaim(name string) *core.PersistentVolumeClaim {
 	return &core.PersistentVolumeClaim{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      f.app + name,
-			Namespace: f.namespace,
+			Name:      i.app + name,
+			Namespace: i.namespace,
+			Annotations: map[string]string{
+				"volume.beta.kubernetes.io/storage-class": i.StorageClass,
+			},
 		},
 		Spec: core.PersistentVolumeClaimSpec{
 			AccessModes: []core.PersistentVolumeAccessMode{
-				core.ReadWriteMany,
+				core.ReadWriteOnce,
 			},
-			StorageClassName: &f.StorageClass,
+			StorageClassName: &i.StorageClass,
 			Resources: core.ResourceRequirements{
 				Requests: core.ResourceList{
-					core.ResourceName(core.ResourceStorage): resource.MustParse("50Mi"),
+					core.ResourceStorage: resource.MustParse("50Mi"),
 				},
 			},
 		},
 	}
 }
 
-func (f *Invocation) CreatePersistentVolumeClaim(pvc *core.PersistentVolumeClaim) error {
-	_, err := f.kubeClient.CoreV1().PersistentVolumeClaims(pvc.Namespace).Create(pvc)
+func (i *Invocation) CreatePersistentVolumeClaim(pvc *core.PersistentVolumeClaim) error {
+	_, err := i.kubeClient.CoreV1().PersistentVolumeClaims(pvc.Namespace).Create(pvc)
 	return err
 }
 
-func (f *Invocation) DeletePersistentVolumeClaim(meta metav1.ObjectMeta) error {
-	return f.kubeClient.CoreV1().PersistentVolumeClaims(meta.Namespace).Delete(meta.Name, deleteInForeground())
+func (i *Invocation) DeletePersistentVolumeClaim(meta metav1.ObjectMeta) error {
+	return i.kubeClient.CoreV1().PersistentVolumeClaims(meta.Namespace).Delete(meta.Name, deleteInForeground())
 }

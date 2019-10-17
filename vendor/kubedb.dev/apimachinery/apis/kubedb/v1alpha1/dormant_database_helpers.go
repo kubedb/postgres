@@ -82,7 +82,7 @@ func (d DormantDatabase) CustomResourceDefinition() *apiextensions.CustomResourc
 		SpecDefinitionName:      "kubedb.dev/apimachinery/apis/kubedb/v1alpha1.DormantDatabase",
 		EnableValidation:        false,
 		GetOpenAPIDefinitions:   GetOpenAPIDefinitions,
-		EnableStatusSubresource: apis.EnableStatusSubresource,
+		EnableStatusSubresource: true,
 		AdditionalPrinterColumns: []apiextensions.CustomResourceColumnDefinition{
 			{
 				Name:     "Status",

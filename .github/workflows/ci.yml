@@ -70,6 +70,14 @@ jobs:
         cd installer
         git checkout master
 
+    - name: Install stash and addons
+      run: |
+        export KUBECONFIG="$(kind get kubeconfig-path)"
+        if [ -x "$(command -v helm)" ]; then
+            helm init --client-only
+        fi
+        make stash-install
+
     - name: Run e2e tests
       env:
         REGISTRY: kubedbci
@@ -85,4 +93,4 @@ jobs:
         echo "GOOGLE_SERVICE_ACCOUNT_JSON_KEY=$(echo $GOOGLE_SERVICE_ACCOUNT_JSON_KEY)" >> hack/config/.env
         make install
         echo
-        make e2e-tests
+        make e2e-parallel

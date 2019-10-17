@@ -268,10 +268,10 @@ e2e-tests: $(BUILD_DIRS)
 	@docker run                                                 \
 	    -i                                                      \
 	    --rm                                                    \
+	    --network=host                                          \
 	    -u $$(id -u):$$(id -g)                                  \
 	    -v $$(pwd):/src                                         \
 	    -w /src                                                 \
-	    --net=host                                              \
 	    -v $(HOME)/.kube:/.kube                                 \
 	    -v $(HOME)/.minikube:$(HOME)/.minikube                  \
 	    -v $(HOME)/.credentials:$(HOME)/.credentials            \
@@ -297,7 +297,7 @@ e2e-tests: $(BUILD_DIRS)
 
 .PHONY: e2e-parallel
 e2e-parallel:
-	@$(MAKE) e2e-tests GINKGO_ARGS="-p -stream" --no-print-directory
+	@$(MAKE) e2e-tests GINKGO_ARGS="-p -stream --flakeAttempts=2" --no-print-directory
 
 ADDTL_LINTERS   := goconst,gofmt,goimports,unparam
 
@@ -371,3 +371,19 @@ release:
 .PHONY: clean
 clean:
 	rm -rf .go bin
+
+# To test stash integration
+.PHONY: stash-install
+stash-install:
+	@curl -fsSL https://github.com/stashed/installer/raw/v0.9.0-rc.1/deploy/stash.sh | bash
+	@curl -fsSL https://github.com/stashed/catalog/raw/master/deploy/script.sh | bash -s -- --catalog=stash-postgres --docker-registry=stashed
+
+.PHONY: stash-uninstall
+stash-uninstall:
+	@curl -fsSL https://github.com/stashed/catalog/raw/v0.9.0-rc.1/deploy/script.sh | bash -s -- --catalog=stash-postgres --uninstall || true
+	@curl -fsSL https://github.com/stashed/installer/raw/master/deploy/stash.sh | bash -s -- --uninstall
+
+.PHONY: stash-purge
+stash-purge:
+	@cd /tmp
+	@curl -fsSL https://github.com/stashed/installer/raw/master/deploy/stash.sh | bash -s -- --uninstall --purge

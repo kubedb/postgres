@@ -12,7 +12,7 @@ import (
 )
 
 func (f *Framework) EventuallyWalDataFound(postgres *api.Postgres) GomegaAsyncAssertion {
-	if f.IsMinio() { // if it is minio
+	if f.IsMinio(postgres.Spec.Archiver.Storage) { // if it is minio
 		return Eventually(
 			func() bool {
 				found, err := f.checkMinioWalData(postgres)

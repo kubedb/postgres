@@ -3,15 +3,10 @@ module kubedb.dev/postgres
 go 1.12
 
 require (
-	github.com/Azure/azure-pipeline-go v0.1.9 // indirect
-	github.com/Azure/azure-storage-blob-go v0.6.0 // indirect
-	github.com/appscode/go v0.0.0-20191006073906-e3d193d493fc
+	github.com/appscode/go v0.0.0-20191016085057-e186b6c94a3b
 	github.com/codeskyblue/go-sh v0.0.0-20190412065543-76bd3d59ff27
 	github.com/coreos/prometheus-operator v0.30.1
-	github.com/go-ini/ini v1.25.4 // indirect
 	github.com/go-xorm/xorm v0.7.4
-	github.com/golang/snappy v0.0.1 // indirect
-	github.com/google/martian v2.1.1-0.20190517191504-25dcb96d9e51+incompatible // indirect
 	github.com/lib/pq v1.1.0
 	github.com/onsi/ginkgo v1.8.0
 	github.com/onsi/gomega v1.5.0
@@ -21,7 +16,7 @@ require (
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.3
 	gomodules.xyz/cert v1.0.0
-	gomodules.xyz/stow v0.2.0
+	gomodules.xyz/stow v0.2.2
 	google.golang.org/genproto v0.0.0-20190508193815-b515fa19cec8 // indirect
 	k8s.io/api v0.0.0-20190503110853-61630f889b3c
 	k8s.io/apiextensions-apiserver v0.0.0-20190516231611-bf6753f2aa24
@@ -29,14 +24,15 @@ require (
 	k8s.io/apiserver v0.0.0-20190516230822-f89599b3f645
 	k8s.io/client-go v11.0.0+incompatible
 	k8s.io/kube-aggregator v0.0.0-20190314000639-da8327669ac5
-	kmodules.xyz/client-go v0.0.0-20191014080252-6458e3cb3ca6
+	kmodules.xyz/client-go v0.0.0-20191016085444-3044854ca625
+	kmodules.xyz/constants v0.0.0-20191009183447-fbd33067b8a6
 	kmodules.xyz/custom-resources v0.0.0-20190927035424-65fe358bb045
 	kmodules.xyz/monitoring-agent-api v0.0.0-20190808150221-601a4005b7f7
 	kmodules.xyz/objectstore-api v0.0.0-20191014210450-ac380fa650a3
 	kmodules.xyz/offshoot-api v0.0.0-20190901210649-de049192326c
 	kmodules.xyz/webhook-runtime v0.0.0-20190808145328-4186c470d56b
-	kubedb.dev/apimachinery v0.13.0-rc.1.0.20191014201231-a75ba832df91
-	stash.appscode.dev/stash v0.9.0-rc.1.0.20191007102408-f5a271be821a
+	kubedb.dev/apimachinery v0.13.0-rc.1.0.20191019003934-41a05a4884ae
+	stash.appscode.dev/stash v0.9.0-rc.1.0.20191018180359-9ef3cfeba2a2
 )
 
 replace (

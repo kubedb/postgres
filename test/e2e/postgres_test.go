@@ -220,6 +220,8 @@ var _ = Describe("Postgres", func() {
 				Expect(err).NotTo(HaveOccurred())
 			}
 
+			By("Eventually dormant database is deleted")
+			f.EventuallyDormantDatabase(postgres.ObjectMeta).Should(BeFalse())
 		}
 
 		By("Wait for postgres resources to be wipedOut")
@@ -255,6 +257,14 @@ var _ = Describe("Postgres", func() {
 			By("Deleting Minio Server")
 			err = f.DeleteMinioServer()
 			Expect(err).NotTo(HaveOccurred())
+		}
+	})
+
+	// if secret is empty (no .env file) then skip
+	JustBeforeEach(func() {
+		if secret != nil && len(secret.Data) == 0 && (snapshot != nil && snapshot.Spec.Local == nil) &&
+			(postgres.Spec.Archiver != nil && postgres.Spec.Archiver.Storage != nil && postgres.Spec.Archiver.Storage.Local == nil) {
+			Skip("Missing repository credential")
 		}
 	})
 
@@ -544,18 +554,29 @@ var _ = Describe("Postgres", func() {
 				It("should take Snapshot successfully", shouldTakeSnapshot)
 
 				Context("Delete One Snapshot keeping others", func() {
+					var configMap *core.ConfigMap
 
 					BeforeEach(func() {
+						configMap = f.ConfigMapForInitialization()
+						err := f.CreateConfigMap(configMap)
+						Expect(err).NotTo(HaveOccurred())
+
 						postgres.Spec.Init = &api.InitSpec{
 							ScriptSource: &api.ScriptSourceSpec{
 								VolumeSource: core.VolumeSource{
-									GitRepo: &core.GitRepoVolumeSource{
-										Repository: "https://github.com/kubedb/postgres-init-scripts.git",
-										Directory:  ".",
+									ConfigMap: &core.ConfigMapVolumeSource{
+										LocalObjectReference: core.LocalObjectReference{
+											Name: configMap.Name,
+										},
 									},
 								},
 							},
 						}
+					})
+
+					AfterEach(func() {
+						err := f.DeleteConfigMap(configMap.ObjectMeta)
+						Expect(err).NotTo(HaveOccurred())
 					})
 
 					It("Delete One Snapshot keeping others", func() {
@@ -659,18 +680,29 @@ var _ = Describe("Postgres", func() {
 				})
 
 				Context("Delete One Snapshot keeping others", func() {
+					var configMap *core.ConfigMap
 
 					BeforeEach(func() {
+						configMap = f.ConfigMapForInitialization()
+						err := f.CreateConfigMap(configMap)
+						Expect(err).NotTo(HaveOccurred())
+
 						postgres.Spec.Init = &api.InitSpec{
 							ScriptSource: &api.ScriptSourceSpec{
 								VolumeSource: core.VolumeSource{
-									GitRepo: &core.GitRepoVolumeSource{
-										Repository: "https://github.com/kubedb/postgres-init-scripts.git",
-										Directory:  ".",
+									ConfigMap: &core.ConfigMapVolumeSource{
+										LocalObjectReference: core.LocalObjectReference{
+											Name: configMap.Name,
+										},
 									},
 								},
 							},
 						}
+					})
+
+					AfterEach(func() {
+						err := f.DeleteConfigMap(configMap.ObjectMeta)
+						Expect(err).NotTo(HaveOccurred())
 					})
 
 					It("Delete One Snapshot keeping others", func() {
@@ -732,18 +764,29 @@ var _ = Describe("Postgres", func() {
 				It("should take Snapshot successfully", shouldTakeSnapshot)
 
 				Context("Delete One Snapshot keeping others", func() {
+					var configMap *core.ConfigMap
 
 					BeforeEach(func() {
+						configMap = f.ConfigMapForInitialization()
+						err := f.CreateConfigMap(configMap)
+						Expect(err).NotTo(HaveOccurred())
+
 						postgres.Spec.Init = &api.InitSpec{
 							ScriptSource: &api.ScriptSourceSpec{
 								VolumeSource: core.VolumeSource{
-									GitRepo: &core.GitRepoVolumeSource{
-										Repository: "https://github.com/kubedb/postgres-init-scripts.git",
-										Directory:  ".",
+									ConfigMap: &core.ConfigMapVolumeSource{
+										LocalObjectReference: core.LocalObjectReference{
+											Name: configMap.Name,
+										},
 									},
 								},
 							},
 						}
+					})
+
+					AfterEach(func() {
+						err := f.DeleteConfigMap(configMap.ObjectMeta)
+						Expect(err).NotTo(HaveOccurred())
 					})
 
 					It("Delete One Snapshot keeping others", func() {
@@ -994,17 +1037,29 @@ var _ = Describe("Postgres", func() {
 
 			Context("With Script", func() {
 
+				var configMap *core.ConfigMap
+
 				BeforeEach(func() {
+					configMap = f.ConfigMapForInitialization()
+					err := f.CreateConfigMap(configMap)
+					Expect(err).NotTo(HaveOccurred())
+
 					postgres.Spec.Init = &api.InitSpec{
 						ScriptSource: &api.ScriptSourceSpec{
 							VolumeSource: core.VolumeSource{
-								GitRepo: &core.GitRepoVolumeSource{
-									Repository: "https://github.com/kubedb/postgres-init-scripts.git",
-									Directory:  ".",
+								ConfigMap: &core.ConfigMapVolumeSource{
+									LocalObjectReference: core.LocalObjectReference{
+										Name: configMap.Name,
+									},
 								},
 							},
 						},
 					}
+				})
+
+				AfterEach(func() {
+					err := f.DeleteConfigMap(configMap.ObjectMeta)
+					Expect(err).NotTo(HaveOccurred())
 				})
 
 				It("should run successfully", func() {
@@ -1118,7 +1173,7 @@ var _ = Describe("Postgres", func() {
 					err := f.DeleteBackupConfiguration(bc.ObjectMeta)
 					Expect(err).NotTo(HaveOccurred())
 
-					By("Deleting BackupSession")
+					By("Deleting BackupSession:" + bs.Name)
 					err = f.DeleteBackupSession(bs.ObjectMeta)
 					Expect(err).NotTo(HaveOccurred())
 
@@ -1128,10 +1183,6 @@ var _ = Describe("Postgres", func() {
 
 					By("Deleting Repository")
 					err = f.DeleteRepository(repo.ObjectMeta)
-					Expect(err).NotTo(HaveOccurred())
-
-					By("Deleting Stash RBACs")
-					err = f.DeleteStashPGRBAC(postgres.ObjectMeta)
 					Expect(err).NotTo(HaveOccurred())
 				})
 
@@ -1149,16 +1200,9 @@ var _ = Describe("Postgres", func() {
 					By("Check valid AppBinding Specs")
 					err = f.CheckAppBindingSpec(postgres.ObjectMeta)
 					Expect(err).NotTo(HaveOccurred())
-
-					By("Waiting for database to be ready")
-					f.EventuallyPingDatabase(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
 				}
 
 				var shouldInitializeFromStash = func() {
-					By("Ensuring Stash RBACs")
-					err := f.EnsureStashPGRBAC(postgres.ObjectMeta)
-					Expect(err).NotTo(HaveOccurred())
-
 					// Create and wait for running Postgres
 					createAndWaitForRunning()
 
@@ -1295,18 +1339,29 @@ var _ = Describe("Postgres", func() {
 			})
 
 			Context("With Init", func() {
+				var configMap *core.ConfigMap
 
 				BeforeEach(func() {
+					configMap = f.ConfigMapForInitialization()
+					err := f.CreateConfigMap(configMap)
+					Expect(err).NotTo(HaveOccurred())
+
 					postgres.Spec.Init = &api.InitSpec{
 						ScriptSource: &api.ScriptSourceSpec{
 							VolumeSource: core.VolumeSource{
-								GitRepo: &core.GitRepoVolumeSource{
-									Repository: "https://github.com/kubedb/postgres-init-scripts.git",
-									Directory:  ".",
+								ConfigMap: &core.ConfigMapVolumeSource{
+									LocalObjectReference: core.LocalObjectReference{
+										Name: configMap.Name,
+									},
 								},
 							},
 						},
 					}
+				})
+
+				AfterEach(func() {
+					err := f.DeleteConfigMap(configMap.ObjectMeta)
+					Expect(err).NotTo(HaveOccurred())
 				})
 
 				It("should resume DormantDatabase successfully", shouldResumeSuccessfully)
@@ -1394,19 +1449,31 @@ var _ = Describe("Postgres", func() {
 			})
 
 			Context("Resume Multiple times - with init", func() {
+				var configMap *core.ConfigMap
 
 				BeforeEach(func() {
+					configMap = f.ConfigMapForInitialization()
+					err := f.CreateConfigMap(configMap)
+					Expect(err).NotTo(HaveOccurred())
+
 					usedInitialized = true
 					postgres.Spec.Init = &api.InitSpec{
 						ScriptSource: &api.ScriptSourceSpec{
 							ScriptPath: "postgres-init-scripts/run.sh",
 							VolumeSource: core.VolumeSource{
-								GitRepo: &core.GitRepoVolumeSource{
-									Repository: "https://github.com/kubedb/postgres-init-scripts.git",
+								ConfigMap: &core.ConfigMapVolumeSource{
+									LocalObjectReference: core.LocalObjectReference{
+										Name: configMap.Name,
+									},
 								},
 							},
 						},
 					}
+				})
+
+				AfterEach(func() {
+					err := f.DeleteConfigMap(configMap.ObjectMeta)
+					Expect(err).NotTo(HaveOccurred())
 				})
 
 				It("should resume DormantDatabase successfully", func() {
@@ -1530,7 +1597,10 @@ var _ = Describe("Postgres", func() {
 			archiveAndInitializeFromArchive := func() {
 				// -- > 1st Postgres < --
 				err := f.CreateSecret(secret)
-				Expect(err).NotTo(HaveOccurred())
+				// Secret can be already created in Minio Tests
+				if err != nil && !kerr.IsAlreadyExists(err) {
+					Expect(err).NotTo(HaveOccurred())
+				}
 
 				// Create Postgres
 				createAndWaitForRunning()
@@ -1784,10 +1854,14 @@ var _ = Describe("Postgres", func() {
 
 				Context("With ca-cert", func() {
 					BeforeEach(func() {
-						By("Creating Minio server with cacert")
-						addrs, err := f.CreateMinioServer(true, nil)
-						Expect(err).NotTo(HaveOccurred())
 						secret = f.SecretForMinioBackend()
+						err := f.CreateSecret(secret)
+						Expect(err).NotTo(HaveOccurred())
+
+						By("Creating Minio server with cacert")
+						addrs, err := f.CreateMinioServer(true, nil, secret)
+						Expect(err).NotTo(HaveOccurred())
+
 						postgres.Spec.Archiver = &api.PostgresArchiverSpec{
 							Storage: &store.Backend{
 								StorageSecretName: secret.Name,
@@ -1845,10 +1919,14 @@ var _ = Describe("Postgres", func() {
 
 				Context("Without ca-cert", func() {
 					BeforeEach(func() {
-						By("Creating Minio server without cacert")
-						addrs, err := f.CreateMinioServer(false, nil)
-						Expect(err).NotTo(HaveOccurred())
 						secret = f.SecretForS3Backend()
+						err := f.CreateSecret(secret)
+						Expect(err).NotTo(HaveOccurred())
+
+						By("Creating Minio server without cacert")
+						addrs, err := f.CreateMinioServer(false, nil, secret)
+						Expect(err).NotTo(HaveOccurred())
+
 						postgres.Spec.Archiver = &api.PostgresArchiverSpec{
 							Storage: &store.Backend{
 								StorageSecretName: secret.Name,
@@ -1953,7 +2031,6 @@ var _ = Describe("Postgres", func() {
 							},
 						},
 					}
-
 				})
 
 				Context("Archive and Initialize from wal archive", func() {

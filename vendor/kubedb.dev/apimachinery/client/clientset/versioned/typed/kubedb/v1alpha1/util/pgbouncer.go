@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/golang/glog"
-	"github.com/pkg/errors"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -85,12 +84,7 @@ func UpdatePgBouncerStatus(
 	c cs.KubedbV1alpha1Interface,
 	in *api.PgBouncer,
 	transform func(*api.PgBouncerStatus) *api.PgBouncerStatus,
-	useSubresource ...bool,
 ) (result *api.PgBouncer, err error) {
-	if len(useSubresource) > 1 {
-		return nil, errors.Errorf("invalid value passed for useSubresource: %v", useSubresource)
-	}
-
 	apply := func(x *api.PgBouncer) *api.PgBouncer {
 		return &api.PgBouncer{
 			TypeMeta:   x.TypeMeta,
@@ -100,36 +94,31 @@ func UpdatePgBouncerStatus(
 		}
 	}
 
-	if len(useSubresource) == 1 && useSubresource[0] {
-		attempt := 0
-		cur := in.DeepCopy()
-		err = wait.PollImmediate(kutil.RetryInterval, kutil.RetryTimeout, func() (bool, error) {
-			attempt++
-			var e2 error
-			result, e2 = c.PgBouncers(in.Namespace).UpdateStatus(apply(cur))
-			if kerr.IsConflict(e2) {
-				latest, e3 := c.PgBouncers(in.Namespace).Get(in.Name, metav1.GetOptions{})
-				switch {
-				case e3 == nil:
-					cur = latest
-					return false, nil
-				case kutil.IsRequestRetryable(e3):
-					return false, nil
-				default:
-					return false, e3
-				}
-			} else if err != nil && !kutil.IsRequestRetryable(e2) {
-				return false, e2
+	attempt := 0
+	cur := in.DeepCopy()
+	err = wait.PollImmediate(kutil.RetryInterval, kutil.RetryTimeout, func() (bool, error) {
+		attempt++
+		var e2 error
+		result, e2 = c.PgBouncers(in.Namespace).UpdateStatus(apply(cur))
+		if kerr.IsConflict(e2) {
+			latest, e3 := c.PgBouncers(in.Namespace).Get(in.Name, metav1.GetOptions{})
+			switch {
+			case e3 == nil:
+				cur = latest
+				return false, nil
+			case kutil.IsRequestRetryable(e3):
+				return false, nil
+			default:
+				return false, e3
 			}
-			return e2 == nil, nil
-		})
-
-		if err != nil {
-			err = fmt.Errorf("failed to update status of PgBouncer %s/%s after %d attempts due to %v", in.Namespace, in.Name, attempt, err)
+		} else if err != nil && !kutil.IsRequestRetryable(e2) {
+			return false, e2
 		}
-		return
-	}
+		return e2 == nil, nil
+	})
 
-	result, _, err = PatchPgBouncerObject(c, in, apply(in))
+	if err != nil {
+		err = fmt.Errorf("failed to update status of PgBouncer %s/%s after %d attempts due to %v", in.Namespace, in.Name, attempt, err)
+	}
 	return
 }

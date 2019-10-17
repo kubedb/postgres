@@ -5,7 +5,6 @@ import (
 	"net"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/appscode/go/log"
@@ -15,15 +14,12 @@ import (
 	crd_api "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/discovery"
 	restclient "k8s.io/client-go/rest"
 	kApi "k8s.io/kube-aggregator/pkg/apis/apiregistration/v1beta1"
 	kutil "kmodules.xyz/client-go"
 	admsn_kutil "kmodules.xyz/client-go/admissionregistration/v1beta1"
 	apiext_util "kmodules.xyz/client-go/apiextensions/v1beta1"
-	discovery_util "kmodules.xyz/client-go/discovery"
 	meta_util "kmodules.xyz/client-go/meta"
-	"kubedb.dev/apimachinery/apis"
 	catlog "kubedb.dev/apimachinery/apis/catalog/v1alpha1"
 	"kubedb.dev/postgres/pkg/cmds/server"
 )
@@ -81,16 +77,6 @@ func (f *Framework) RunOperatorAndServer(config *restclient.Config, kubeconfigPa
 	}
 	err := apiext_util.RegisterCRDs(f.apiExtKubeClient, crds)
 	Expect(err).NotTo(HaveOccurred())
-
-	// Check and set EnableStatusSubresource=true for >=kubernetes v1.11
-	// Todo: remove this part and set EnableStatusSubresource=true automatically when subresources is must in kubedb.
-	discClient, err := discovery.NewDiscoveryClientForConfig(config)
-	Expect(err).NotTo(HaveOccurred())
-	serverVersion, err := discovery_util.GetBaseVersion(discClient)
-	Expect(err).NotTo(HaveOccurred())
-	if strings.Compare(serverVersion, "1.11") >= 0 {
-		apis.EnableStatusSubresource = true
-	}
 
 	sh := shell.NewSession()
 	args := []interface{}{"--minikube", fmt.Sprintf("--docker-registry=%v", DockerRegistry)}

@@ -1,7 +1,6 @@
 package v1beta1
 
 import (
-	"github.com/appscode/go/encoding/json/types"
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -30,8 +29,14 @@ type BackupSession struct {
 }
 
 type BackupSessionSpec struct {
+	// Invoker refers to the BackupConfiguration or BackupBatch being used to invoke this backup session
+	// +optional
+	Invoker BackupInvokerRef `json:"invoker,omitempty"`
+
 	// BackupConfiguration indicates the target BackupConfiguration crd
-	BackupConfiguration core.LocalObjectReference `json:"backupConfiguration,omitempty"`
+	// Deprecated: Use Invoker
+	// +optional
+	BackupConfiguration *core.LocalObjectReference `json:"backupConfiguration,omitempty"`
 }
 
 type BackupSessionPhase string
@@ -53,16 +58,12 @@ const (
 )
 
 type BackupSessionStatus struct {
-	// ObservedGeneration is the most recent generation observed for this resource. It corresponds to the
-	// resource's generation, which is updated on mutation by the API Server.
-	// +optional
-	ObservedGeneration *types.IntHash `json:"observedGeneration,omitempty"`
 	// Phase indicates the overall phase of the backup process for this BackupSession. Phase will be "Succeeded" only if
 	// phase of all hosts are "Succeeded". If any of the host fail to complete backup, Phase will be "Failed".
 	// +optional
 	Phase BackupSessionPhase `json:"phase,omitempty"`
 	// TotalHosts specifies total number of hosts that will be backed up for this BackupSession
-	// +Optional
+	// +optional
 	TotalHosts *int32 `json:"totalHosts,omitempty"`
 	// SessionDuration specify total time taken to complete current backup session (sum of backup duration of all hosts)
 	// +optional

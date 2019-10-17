@@ -296,7 +296,7 @@ func (m MongoDB) CustomResourceDefinition() *apiextensions.CustomResourceDefinit
 		SpecDefinitionName:      "kubedb.dev/apimachinery/apis/kubedb/v1alpha1.MongoDB",
 		EnableValidation:        true,
 		GetOpenAPIDefinitions:   GetOpenAPIDefinitions,
-		EnableStatusSubresource: apis.EnableStatusSubresource,
+		EnableStatusSubresource: true,
 		AdditionalPrinterColumns: []apiextensions.CustomResourceColumnDefinition{
 			{
 				Name:     "Version",
