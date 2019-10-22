@@ -1682,7 +1682,7 @@ var _ = Describe("Postgres", func() {
 				oldPostgres, err := f.GetPostgres(postgres.ObjectMeta)
 				Expect(err).NotTo(HaveOccurred())
 
-				By("Deleting postgres "+ postgres.Name)
+				By("Deleting postgres " + postgres.Name)
 				err = f.DeletePostgres(postgres.ObjectMeta)
 				Expect(err).NotTo(HaveOccurred())
 
@@ -1714,7 +1714,7 @@ var _ = Describe("Postgres", func() {
 				oldPostgres, err = f.GetPostgres(postgres.ObjectMeta)
 				Expect(err).NotTo(HaveOccurred())
 
-				By("Deleting postgres "+ postgres.Name)
+				By("Deleting postgres " + postgres.Name)
 				err = f.DeletePostgres(postgres.ObjectMeta)
 				Expect(err).NotTo(HaveOccurred())
 

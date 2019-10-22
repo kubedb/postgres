@@ -171,7 +171,7 @@ func (f *Framework) IsTLS() bool {
 }
 
 func (f *Framework) IsMinio(backend *v1.Backend) bool {
-	if backend == nil || backend.S3==nil {
+	if backend == nil || backend.S3 == nil {
 		return false
 	}
 	return backend.S3.Endpoint != "" && !strings.HasSuffix(backend.S3.Endpoint, ".amazonaws.com")

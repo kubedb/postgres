@@ -1,7 +1,6 @@
 package v1beta1
 
 import (
-	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -18,7 +17,8 @@ const (
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:path=backupsessions,singular=backupsession,categories={stash,appscode,all}
 // +kubebuilder:subresource:status
-// +kubebuilder:printcolumn:name="BackupConfiguration",type="string",JSONPath=".spec.backupConfiguration.name"
+// +kubebuilder:printcolumn:name="Invoker-Type",type="string",JSONPath=".spec.invoker.kind"
+// +kubebuilder:printcolumn:name="Invoker-Name",type="string",JSONPath=".spec.invoker.name"
 // +kubebuilder:printcolumn:name="Phase",type="string",JSONPath=".status.phase"
 // +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
 type BackupSession struct {
@@ -32,11 +32,6 @@ type BackupSessionSpec struct {
 	// Invoker refers to the BackupConfiguration or BackupBatch being used to invoke this backup session
 	// +optional
 	Invoker BackupInvokerRef `json:"invoker,omitempty"`
-
-	// BackupConfiguration indicates the target BackupConfiguration crd
-	// Deprecated: Use Invoker
-	// +optional
-	BackupConfiguration *core.LocalObjectReference `json:"backupConfiguration,omitempty"`
 }
 
 type BackupSessionPhase string

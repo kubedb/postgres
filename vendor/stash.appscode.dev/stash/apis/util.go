@@ -4,7 +4,8 @@ const (
 	StashKey   = "stash.appscode.com"
 	VersionTag = StashKey + "/tag"
 
-	KeyDeleteJobOnCompletion = StashKey + "/delete-job-on-completion"
+	KeyDeleteJobOnCompletion     = StashKey + "/delete-job-on-completion"
+	AllowDeletingJobOnCompletion = "true"
 )
 
 const (
@@ -16,6 +17,7 @@ const (
 	KindPersistentVolumeClaim = "PersistentVolumeClaim"
 	KindAppBinding            = "AppBinding"
 	KindDeploymentConfig      = "DeploymentConfig"
+	KindSecret                = "Secret"
 )
 
 const (

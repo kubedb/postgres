@@ -93,9 +93,6 @@ func (i *Invocation) BackupSession(meta metav1.ObjectMeta) *v1beta1.BackupSessio
 				Kind:     v1beta1.ResourceKindBackupConfiguration,
 				Name:     meta.Name,
 			},
-			BackupConfiguration: &core.LocalObjectReference{
-				Name: meta.Name,
-			},
 		},
 	}
 }
