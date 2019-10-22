@@ -234,11 +234,20 @@ func (c *Controller) ensureCombinedNode(postgres *api.Postgres, postgresVersion 
 						Value: fmt.Sprintf("s3://%v/%v", archiverStorage.S3.Bucket, WalDataDir(postgres)),
 					},
 				)
-				if archiverStorage.S3.Endpoint != "" {
+				if archiverStorage.S3.Endpoint != "" && !strings.HasSuffix(archiverStorage.S3.Endpoint, ".amazonaws.com") {
+					//means it is a  compatible storage
 					envList = append(envList,
 						core.EnvVar{
 							Name:  "ARCHIVE_S3_ENDPOINT",
 							Value: archiverStorage.S3.Endpoint,
+						},
+					)
+				}
+				if archiverStorage.S3.Region != "" {
+					envList = append(envList,
+						core.EnvVar{
+							Name:  "ARCHIVE_S3_REGION",
+							Value: archiverStorage.S3.Region,
 						},
 					)
 				}
@@ -702,11 +711,19 @@ func walRecoveryConfig(wal *api.PostgresWALSourceSpec) []core.EnvVar {
 				Value: fmt.Sprintf("s3://%v/%v", wal.S3.Bucket, wal.S3.Prefix),
 			},
 		)
-		if wal.S3.Endpoint != "" {
+		if wal.S3.Endpoint != "" && !strings.HasSuffix(wal.S3.Endpoint, ".amazonaws.com") {
 			envList = append(envList,
 				core.EnvVar{
 					Name:  "RESTORE_S3_ENDPOINT",
 					Value: wal.S3.Endpoint,
+				},
+			)
+		}
+		if wal.S3.Region != "" {
+			envList = append(envList,
+				core.EnvVar{
+					Name:  "RESTORE_S3_REGION",
+					Value: wal.S3.Region,
 				},
 			)
 		}

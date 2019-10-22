@@ -52,6 +52,26 @@ func (f *Invocation) GetPersistentVolumeClaim() *core.PersistentVolumeClaim {
 	}
 }
 
+func (f *Invocation) GetNamedPersistentVolumeClaim(name string) *core.PersistentVolumeClaim {
+	return &core.PersistentVolumeClaim{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      f.app + name,
+			Namespace: f.namespace,
+		},
+		Spec: core.PersistentVolumeClaimSpec{
+			AccessModes: []core.PersistentVolumeAccessMode{
+				core.ReadWriteMany,
+			},
+			StorageClassName: &f.StorageClass,
+			Resources: core.ResourceRequirements{
+				Requests: core.ResourceList{
+					core.ResourceName(core.ResourceStorage): resource.MustParse("50Mi"),
+				},
+			},
+		},
+	}
+}
+
 func (f *Invocation) CreatePersistentVolumeClaim(pvc *core.PersistentVolumeClaim) error {
 	_, err := f.kubeClient.CoreV1().PersistentVolumeClaims(pvc.Namespace).Create(pvc)
 	return err
