@@ -1682,6 +1682,13 @@ var _ = Describe("Postgres", func() {
 				oldPostgres, err := f.GetPostgres(postgres.ObjectMeta)
 				Expect(err).NotTo(HaveOccurred())
 
+				By("Deleting postgres "+ postgres.Name)
+				err = f.DeletePostgres(postgres.ObjectMeta)
+				Expect(err).NotTo(HaveOccurred())
+
+				By("Wait for postgres to be paused")
+				f.EventuallyDormantDatabaseStatus(postgres.ObjectMeta).Should(matcher.HavePaused())
+
 				garbagePostgres.Items = append(garbagePostgres.Items, *oldPostgres)
 
 				// -- > 1st Postgres end < --
@@ -1706,6 +1713,13 @@ var _ = Describe("Postgres", func() {
 
 				oldPostgres, err = f.GetPostgres(postgres.ObjectMeta)
 				Expect(err).NotTo(HaveOccurred())
+
+				By("Deleting postgres "+ postgres.Name)
+				err = f.DeletePostgres(postgres.ObjectMeta)
+				Expect(err).NotTo(HaveOccurred())
+
+				By("Wait for postgres to be paused")
+				f.EventuallyDormantDatabaseStatus(postgres.ObjectMeta).Should(matcher.HavePaused())
 
 				garbagePostgres.Items = append(garbagePostgres.Items, *oldPostgres)
 
