@@ -20,7 +20,7 @@ import (
 var (
 	DockerRegistry     = "kubedbci"
 	SelfHostedOperator = true
-	DBCatalogName      = "11.2-v1"
+	DBCatalogName      = "10.2-v5"
 	StashPGBackupTask  = "postgres-backup-10.2"
 	StashPGRestoreTask = "postgres-restore-10.2"
 )
