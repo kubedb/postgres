@@ -15,7 +15,8 @@
 
 SHELL=/bin/bash -o pipefail
 
-# The binary to build (just the basename).
+GO_PKG   := kubedb.dev
+REPO     := $(notdir $(shell pwd))
 BIN      := pg-operator
 COMPRESS ?= no
 
@@ -46,7 +47,7 @@ endif
 ### These variables should not need tweaking.
 ###
 
-SRC_PKGS := cmd pkg # directories which hold app source excluding tests (not vendored)
+SRC_PKGS := cmd pkg
 SRC_DIRS := $(SRC_PKGS) test hack/gendocs # directories which hold app source (not vendored)
 
 DOCKER_PLATFORMS := linux/amd64 linux/arm64
@@ -78,6 +79,7 @@ endif
 BUILD_DIRS  := bin/$(OS)_$(ARCH)     \
                .go/bin/$(OS)_$(ARCH) \
                .go/cache             \
+               hack/config           \
                $(HOME)/.credentials  \
                $(HOME)/.kube         \
                $(HOME)/.minikube
@@ -141,7 +143,10 @@ fmt: $(BUILD_DIRS)
 	    --env HTTP_PROXY=$(HTTP_PROXY)                          \
 	    --env HTTPS_PROXY=$(HTTPS_PROXY)                        \
 	    $(BUILD_IMAGE)                                          \
-	    ./hack/fmt.sh $(SRC_DIRS)
+	    /bin/bash -c "                                          \
+	        REPO_PKG=$(GO_PKG)                                  \
+	        ./hack/fmt.sh $(SRC_DIRS)                           \
+	    "
 
 build: $(OUTBIN)
 
@@ -268,10 +273,10 @@ e2e-tests: $(BUILD_DIRS)
 	@docker run                                                 \
 	    -i                                                      \
 	    --rm                                                    \
-	    --network=host                                          \
 	    -u $$(id -u):$$(id -g)                                  \
 	    -v $$(pwd):/src                                         \
 	    -w /src                                                 \
+	    --net=host                                              \
 	    -v $(HOME)/.kube:/.kube                                 \
 	    -v $(HOME)/.minikube:$(HOME)/.minikube                  \
 	    -v $(HOME)/.credentials:$(HOME)/.credentials            \
@@ -341,8 +346,26 @@ purge:
 .PHONY: dev
 dev: gen fmt push
 
+
+.PHONY: verify
+verify: verify-modules verify-gen
+
+.PHONY: verify-modules
+verify-modules:
+	GO111MODULE=on go mod tidy
+	GO111MODULE=on go mod vendor
+	@if !(git diff --exit-code HEAD); then \
+		echo "go module files are out of date"; exit 1; \
+	fi
+
+.PHONY: verify-gen
+verify-gen: gen fmt
+	@if !(git diff --exit-code HEAD); then \
+		echo "files are out of date, run make gen fmt"; exit 1; \
+	fi
+
 .PHONY: ci
-ci: lint test build #cover
+ci: verify lint build unit-tests #cover
 
 .PHONY: qa
 qa:

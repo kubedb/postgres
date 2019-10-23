@@ -19,12 +19,18 @@ jobs:
 
     - name: Set up Docker Buildx
       id: buildx
-      uses: crazy-max/ghaction-docker-buildx@master
+      uses: crazy-max/ghaction-docker-buildx@v1
       with:
         version: latest
 
     - name: Available platforms
       run: echo ${{ steps.buildx.outputs.platforms }}
+
+    - name: Run checks
+      run: |
+        sudo apt-get -qq update
+        sudo apt-get install -y bzr
+        make ci
 
     - name: Build
       env:
