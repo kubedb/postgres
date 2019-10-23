@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/appscode/go/log"
 	"github.com/appscode/go/types"
@@ -1679,17 +1678,9 @@ var _ = Describe("Postgres", func() {
 
 				By("Checking Archive")
 				f.EventuallyCountArchive(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
-				time.Sleep(time.Second * 10)
 
 				oldPostgres, err := f.GetPostgres(postgres.ObjectMeta)
 				Expect(err).NotTo(HaveOccurred())
-
-				By("Deleting postgres " + postgres.Name)
-				err = f.DeletePostgres(postgres.ObjectMeta)
-				Expect(err).NotTo(HaveOccurred())
-
-				By("Wait for postgres to be paused")
-				f.EventuallyDormantDatabaseStatus(postgres.ObjectMeta).Should(matcher.HavePaused())
 
 				garbagePostgres.Items = append(garbagePostgres.Items, *oldPostgres)
 
@@ -1712,17 +1703,9 @@ var _ = Describe("Postgres", func() {
 
 				By("Checking Archive")
 				f.EventuallyCountArchive(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
-				time.Sleep(time.Second * 10)
 
 				oldPostgres, err = f.GetPostgres(postgres.ObjectMeta)
 				Expect(err).NotTo(HaveOccurred())
-
-				By("Deleting postgres " + postgres.Name)
-				err = f.DeletePostgres(postgres.ObjectMeta)
-				Expect(err).NotTo(HaveOccurred())
-
-				By("Wait for postgres to be paused")
-				f.EventuallyDormantDatabaseStatus(postgres.ObjectMeta).Should(matcher.HavePaused())
 
 				garbagePostgres.Items = append(garbagePostgres.Items, *oldPostgres)
 
@@ -1776,7 +1759,7 @@ var _ = Describe("Postgres", func() {
 				f.EventuallyWalDataFound(postgres).Should(BeFalse())
 			}
 
-			FContext("In Local", func() {
+			Context("In Local", func() {
 				BeforeEach(func() {
 					skipWalDataChecking = true
 				})
