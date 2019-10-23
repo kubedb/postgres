@@ -67,6 +67,7 @@ dbversions=(
   10.2
   10.6
   11.1
+  11.2
 )
 
 exporters=(
