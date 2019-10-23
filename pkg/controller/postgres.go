@@ -253,7 +253,7 @@ func (c *Controller) initializeFromSnapshot(postgres *api.Postgres) error {
 	if err != nil {
 		return err
 	}
-	secret, err = c.Client.CoreV1().Secrets(secret.Namespace).Create(secret)
+	_, err = c.Client.CoreV1().Secrets(secret.Namespace).Create(secret)
 	if err != nil {
 		return err
 	}

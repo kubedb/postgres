@@ -62,10 +62,7 @@ CREATE SCHEMA "data" AUTHORIZATION "%s";`, userName)
 			}
 
 			_, err = db.Exec(sql)
-			if err != nil {
-				return false
-			}
-			return true
+			return err == nil
 		},
 		time.Minute*5,
 		time.Second*5,
@@ -77,7 +74,8 @@ var randChars = []rune("abcdefghijklmnopqrstuvwxyzabcdef")
 // Use this for generating random pat of a ID. Do not use this for generating short passwords or secrets.
 func characters(len int) string {
 	bytes := make([]byte, len)
-	rand.Read(bytes)
+	_, err := rand.Read(bytes)
+	Expect(err).NotTo(HaveOccurred())
 	r := make([]rune, len)
 	for i, b := range bytes {
 		r[i] = randChars[b>>3]
@@ -144,8 +142,6 @@ func (f *Framework) EventuallyCreateTable(meta metav1.ObjectMeta, dbName string,
 		time.Minute*5,
 		time.Second*5,
 	)
-
-	return nil
 }
 
 func (f *Framework) EventuallyCountTable(meta metav1.ObjectMeta, dbName string, userName string) GomegaAsyncAssertion {
@@ -180,11 +176,7 @@ func (f *Framework) EventuallyCountTable(meta metav1.ObjectMeta, dbName string, 
 }
 
 func (f *Framework) CheckPostgres(db *xorm.Engine) error {
-	err := db.Ping()
-	if err != nil {
-		return err
-	}
-	return nil
+	return db.Ping()
 }
 
 type PgStatArchiver struct {

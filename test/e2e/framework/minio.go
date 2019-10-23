@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/appscode/go/crypto/rand"
+	. "github.com/onsi/gomega"
 	"gomodules.xyz/cert"
 	"gomodules.xyz/stow"
 	apps "k8s.io/api/apps/v1"
@@ -426,15 +427,6 @@ func (i *Invocation) CreateService(obj core.Service) (*core.Service, error) {
 	return i.kubeClient.CoreV1().Services(obj.Namespace).Create(&obj)
 }
 
-//func (f *Framework) CreateMinioSecret(obj *core.Secret) (*core.Secret, error) {
-//	secret, err := f.kubeClient.CoreV1().Secrets(obj.Namespace).Get(obj.Name, metav1.GetOptions{})
-//	if err == nil {
-//		return secret, nil
-//	}
-//	newSecret, err := f.kubeClient.CoreV1().Secrets(obj.Namespace).Create(obj)
-//	return newSecret, err
-//}
-
 func (i *Invocation) MinioServiceAddress() string {
 	return fmt.Sprintf("%s.%s.svc:%d", MinioService, i.namespace, PORT)
 }
@@ -551,13 +543,16 @@ func (i *Invocation) MinioServerDeploymentHTTP() *apps.Deployment {
 	return deploy
 }
 
-func (i *Invocation) DeleteMinioServer() (err error) {
+func (i *Invocation) DeleteMinioServer() {
 	//wait for all postgres reources to wipeout
-	err = i.DeleteSecret(mcred.ObjectMeta)
+	err := i.DeleteSecret(mcred.ObjectMeta)
+	Expect(err).NotTo(HaveOccurred())
 	err = i.DeletePersistentVolumeClaim(mpvc.ObjectMeta)
+	Expect(err).NotTo(HaveOccurred())
 	err = i.DeleteServiceForMinioServer(msrvc.ObjectMeta)
+	Expect(err).NotTo(HaveOccurred())
 	err = i.DeleteDeploymentForMinioServer(mdeploy.ObjectMeta)
-	return err
+	Expect(err).NotTo(HaveOccurred())
 }
 
 func (f *Framework) DeleteServiceForMinioServer(meta metav1.ObjectMeta) error {

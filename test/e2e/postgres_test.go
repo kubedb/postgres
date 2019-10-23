@@ -255,8 +255,7 @@ var _ = Describe("Postgres", func() {
 
 		if !skipMinioDeployment {
 			By("Deleting Minio Server")
-			err = f.DeleteMinioServer()
-			Expect(err).NotTo(HaveOccurred())
+			f.DeleteMinioServer()
 		}
 	})
 
@@ -279,8 +278,7 @@ var _ = Describe("Postgres", func() {
 
 			Context("with custom SA Name", func() {
 				BeforeEach(func() {
-					var customSecret *core.Secret
-					customSecret = f.SecretForDatabaseAuthentication(postgres.ObjectMeta)
+					customSecret := f.SecretForDatabaseAuthentication(postgres.ObjectMeta)
 					postgres.Spec.DatabaseSecret = &core.SecretVolumeSource{
 						SecretName: customSecret.Name,
 					}

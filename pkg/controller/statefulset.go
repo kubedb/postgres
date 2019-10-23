@@ -128,7 +128,7 @@ func (c *Controller) ensureStatefulSet(
 			}
 		}
 
-		in = upsertShm(in, postgres)
+		in = upsertShm(in)
 		in = upsertDataVolume(in, postgres)
 		in = upsertCustomConfig(in, postgres)
 
@@ -519,7 +519,7 @@ func upsertInitWalSecret(statefulSet *apps.StatefulSet, secretName string) *apps
 	return statefulSet
 }
 
-func upsertShm(statefulSet *apps.StatefulSet, postgress *api.Postgres) *apps.StatefulSet {
+func upsertShm(statefulSet *apps.StatefulSet) *apps.StatefulSet {
 	for i, container := range statefulSet.Spec.Template.Spec.Containers {
 		if container.Name == api.ResourceSingularPostgres {
 			volumeMount := core.VolumeMount{

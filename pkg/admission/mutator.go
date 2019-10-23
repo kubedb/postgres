@@ -78,7 +78,7 @@ func (a *PostgresMutator) Admit(req *admission.AdmissionRequest) *admission.Admi
 	if err != nil {
 		return hookapi.StatusBadRequest(err)
 	}
-	dbMod, err := setDefaultValues(a.client, a.extClient, obj.(*api.Postgres).DeepCopy())
+	dbMod, err := setDefaultValues(a.extClient, obj.(*api.Postgres).DeepCopy())
 	if err != nil {
 		return hookapi.StatusForbidden(err)
 	} else if dbMod != nil {
@@ -96,7 +96,7 @@ func (a *PostgresMutator) Admit(req *admission.AdmissionRequest) *admission.Admi
 }
 
 // setDefaultValues provides the defaulting that is performed in mutating stage of creating/updating a Postgres database
-func setDefaultValues(client kubernetes.Interface, extClient cs.Interface, postgres *api.Postgres) (runtime.Object, error) {
+func setDefaultValues(extClient cs.Interface, postgres *api.Postgres) (runtime.Object, error) {
 	if postgres.Spec.Version == "" {
 		return nil, errors.New(`'spec.version' is missing`)
 	}

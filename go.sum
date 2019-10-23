@@ -69,6 +69,7 @@ github.com/blang/semver v3.5.1+incompatible/go.mod h1:kRBLl5iJ+tD4TcOOxsy/0fnweb
 github.com/brancz/gojsontoyaml v0.0.0-20190425155809-e8bd32d46b3d/go.mod h1:IyUJYN1gvWjtLF5ZuygmxbnsAyP3aJS6cHzIuZY50B0=
 github.com/campoy/embedmd v1.0.0/go.mod h1:oxyr9RCiSXg0M3VJ3ks0UGfp98BpSSGr0kpiX3MzVl8=
 github.com/cenk/backoff v2.0.0+incompatible/go.mod h1:7FtoeaSnHoZnmZzz47cM35Y9nSW7tNyaidugnHTaFDE=
+github.com/cenkalti/backoff v2.1.1+incompatible h1:tKJnvO2kl0zmb/jA5UKAt4VoEVw1qxKWjE/Bpp46npY=
 github.com/cenkalti/backoff v2.1.1+incompatible/go.mod h1:90ReRw6GdpyfrHakVjL/QHaoyV4aDUVVkXQJJJ3NXXM=
 github.com/census-instrumentation/opencensus-proto v0.1.0-0.20181214143942-ba49f56771b8/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
 github.com/census-instrumentation/opencensus-proto v0.1.0 h1:VwZ9smxzX8u14/125wHIX7ARV+YhR+L4JADswwxWK0Y=
@@ -116,6 +117,7 @@ github.com/dgrijalva/jwt-go v3.2.0+incompatible/go.mod h1:E3ru+11k8xSBh+hMPgOLZm
 github.com/dgryski/go-sip13 v0.0.0-20181026042036-e10d5fee7954/go.mod h1:vAd38F8PWV+bWy6jNmig1y/TA+kYO4g3RSRF0IAv0no=
 github.com/dnaeon/go-vcr v1.0.1 h1:r8L/HqC0Hje5AXMu1ooW8oyQyOFv4GxqpL0nRP7SLLY=
 github.com/dnaeon/go-vcr v1.0.1/go.mod h1:aBB1+wY4s93YsC3HHjMBMrwTj2R9FHDzUr9KyGc8n1E=
+github.com/docker/distribution v0.0.0-20170726174610-edc3ab29cdff h1:FKH02LHYqSmeWd3GBh0KIkM8JBpw3RrShgtcWShdWJg=
 github.com/docker/distribution v0.0.0-20170726174610-edc3ab29cdff/go.mod h1:J2gT2udsDAN96Uj4KfcMRqY0/ypR+oyYUYmja8H+y+w=
 github.com/docker/docker v0.0.0-20180612054059-a9fbbdc8dd87/go.mod h1:eEKB0N0r5NX/I1kEveEz05bcu8tLC/8azJZsviup8Sk=
 github.com/docker/go-connections v0.4.0/go.mod h1:Gbd7IOopHjR8Iph03tsViu4nIes5XhDvyHbTtUxmeec=
@@ -307,6 +309,7 @@ github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORN
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
 github.com/kr/text v0.1.0 h1:45sCR5RtlFHMR4UwH9sdQ5TC8v0qDQCHnXt+kaKSTVE=
 github.com/kr/text v0.1.0/go.mod h1:4Jbv+DJW3UT/LiOwJeYQe1efqtUx/iVham/4vfdArNI=
+github.com/kubernetes-csi/external-snapshotter v1.2.0 h1:3W+y0SOhQU+whefUN7M2o+/iIeUc2GdIRqXGhkNL8ng=
 github.com/kubernetes-csi/external-snapshotter v1.2.0/go.mod h1:oYfxnsuh48V1UDYORl77YQxQbbdokNy7D73phuFpksY=
 github.com/kubernetes-incubator/service-catalog v0.1.43/go.mod h1:D0CRODiXUJs6VCZDB15TmCkesbuizkac9fYEiTA78BA=
 github.com/kylelemons/godebug v0.0.0-20170820004349-d65d576e9348/go.mod h1:B69LEHPfb2qLo0BaaOLcbitczOKLWTsrBG9LczfCD4k=
@@ -366,6 +369,7 @@ github.com/onsi/gomega v1.4.1/go.mod h1:C1qb7wdrVGGVU+Z6iS04AVkA3Q65CEZX59MT0QO5
 github.com/onsi/gomega v1.4.3/go.mod h1:ex+gbHU/CVuBBDIJjb2X0qEXbFg53c61hWP/1CpauHY=
 github.com/onsi/gomega v1.5.0 h1:izbySO9zDPmjJ8rDjLvkA2zJHIo+HkYXHnf7eN7SSyo=
 github.com/onsi/gomega v1.5.0/go.mod h1:ex+gbHU/CVuBBDIJjb2X0qEXbFg53c61hWP/1CpauHY=
+github.com/opencontainers/go-digest v1.0.0-rc1 h1:WzifXhOVOEOuFYOJAW6aQqW0TooG2iki3E3Ii+WN7gQ=
 github.com/opencontainers/go-digest v1.0.0-rc1/go.mod h1:cMLVZDEM3+U2I4VmLI6N8jQYUd2OVphdqWwCJHrFt2s=
 github.com/opencontainers/image-spec v1.0.1/go.mod h1:BtxoFyWECRxE4U/7sNtV5W15zMzWCbyJoFRP3s7yZA0=
 github.com/opentracing-contrib/go-stdlib v0.0.0-20170113013457-1de4cc2120e7/go.mod h1:PLldrQSroqzH70Xl+1DQcGnefIbqsKR7UDaiux3zV+w=
@@ -572,6 +576,7 @@ golang.org/x/tools v0.0.0-20190328211700-ab21143f2384/go.mod h1:LCzVGOaR6xXOjkQ3
 golang.org/x/tools v0.0.0-20190425150028-36563e24a262/go.mod h1:RgjU9mgBXZiqYHBnxXauZ1Gv1EHHAz9KjViQ78xBX0Q=
 gomodules.xyz/cert v1.0.0 h1:9vcN2V4g9Ol8LGqHd0FWSO0N8SjIbFLombfVk8Js22o=
 gomodules.xyz/cert v1.0.0/go.mod h1:MG5H3SxZdkG8nng6QuQhXMTs+qt/qDLNXgUtbme82hQ=
+gomodules.xyz/envsubst v0.1.0 h1:xvS0A4NeRwa8y3qW/+jgc13nT3rW1nlcuePDJujHzBM=
 gomodules.xyz/envsubst v0.1.0/go.mod h1:2o5f7bd13XIITbE2ZKieE05YkqB2KDoZkqKccGebduA=
 gomodules.xyz/jsonpatch/v2 v2.0.0 h1:OyHbl+7IOECpPKfVK42oFr6N7+Y2dR+Jsb/IiDV3hOo=
 gomodules.xyz/jsonpatch/v2 v2.0.0/go.mod h1:IhYNNY4jnS53ZnfE4PAmpKtDpTCj1JFXc+3mwe7XcUU=
@@ -614,6 +619,7 @@ gopkg.in/fsnotify/fsnotify.v1 v1.4.7/go.mod h1:Fyux9zXlo4rWoMSIzpn9fDAYjalPqJ/K1
 gopkg.in/inf.v0 v0.9.0/go.mod h1:cWUDdTG/fYaXco+Dcufb5Vnc6Gp2YChqWtbxRZE0mXw=
 gopkg.in/inf.v0 v0.9.1 h1:73M5CoZyi3ZLMOyDlQh031Cx6N9NDJ2Vvfl76EDAgDc=
 gopkg.in/inf.v0 v0.9.1/go.mod h1:cWUDdTG/fYaXco+Dcufb5Vnc6Gp2YChqWtbxRZE0mXw=
+gopkg.in/ini.v1 v1.41.0 h1:Ka3ViY6gNYSKiVy71zXBEqKplnV35ImDLVG+8uoIklE=
 gopkg.in/ini.v1 v1.41.0/go.mod h1:pNLf8WUiyNEtQjuu5G5vTm06TEv9tsIgeAvK8hOrP4k=
 gopkg.in/kothar/go-backblaze.v0 v0.0.0-20190520213052-702d4e7eb465/go.mod h1:zJ2QpyDCYo1KvLXlmdnFlQAyF/Qfth0fB8239Qg7BIE=
 gopkg.in/mgo.v2 v2.0.0-20180705113604-9856a29383ce/go.mod h1:yeKp02qBN3iKW1OzL3MGk2IdtZzaj7SFntXj72NppTA=
@@ -658,9 +664,8 @@ k8s.io/kubernetes v1.14.0/go.mod h1:ocZa8+6APFNC2tX1DZASIbocyYT5jHzqFVsY5aoB7Jk=
 k8s.io/utils v0.0.0-20190514214443-0a167cbac756 h1:2XBbostlqrw13zVYimyqcj/Om2P4B26oMzv+m2cj//k=
 k8s.io/utils v0.0.0-20190514214443-0a167cbac756/go.mod h1:8k8uAuAQ0rXslZKaEWd0c3oVhZz7sSzSiPnVZayjIX0=
 kmodules.xyz/client-go v0.0.0-20190808141354-bbb9e14f60ab/go.mod h1:1GI6h5D31op/2D+Hrn9DhXW6iUd5wsHBQRoLeY7fndM=
-kmodules.xyz/client-go v0.0.0-20191016085444-3044854ca625/go.mod h1:wFUBDofZzgkLW1sFJT5SSt6/G3ph2P8zUi5v81q5BKQ=
-kmodules.xyz/client-go v0.0.0-20191021083014-0be9e7d5b970 h1:3XwVHSsPMMtTT4DWGRb97IyuuB4OtRSJf9KeaWTxdXQ=
-kmodules.xyz/client-go v0.0.0-20191021083014-0be9e7d5b970/go.mod h1:BChXGI3zd3lNSjUUfDcGmvufMdqrofLI/nrndcZ4LUo=
+kmodules.xyz/client-go v0.0.0-20191023042933-b12d1ccfaf57 h1:4IsITvsVOl0W8IRABEMOqEMyJYwTCmhmfpJVIpwD4lM=
+kmodules.xyz/client-go v0.0.0-20191023042933-b12d1ccfaf57/go.mod h1:BChXGI3zd3lNSjUUfDcGmvufMdqrofLI/nrndcZ4LUo=
 kmodules.xyz/constants v0.0.0-20191009183447-fbd33067b8a6 h1:JEerfubBfd98TetzNFn9xOgkVUGuQrbrR/iwkxjenIo=
 kmodules.xyz/constants v0.0.0-20191009183447-fbd33067b8a6/go.mod h1:DbiFk1bJ1KEO94t1SlAn7tzc+Zz95rSXgyUKa2nzPmY=
 kmodules.xyz/custom-resources v0.0.0-20190927035424-65fe358bb045 h1:DuvD64ouPDbv3egAUUCy5rBqs/vc218DeVVivcqfa+U=
@@ -671,11 +676,12 @@ kmodules.xyz/objectstore-api v0.0.0-20191014210450-ac380fa650a3 h1:64QSexLk/Dio4
 kmodules.xyz/objectstore-api v0.0.0-20191014210450-ac380fa650a3/go.mod h1:mT7lEi2IehAi64DomCPMPtlsWXOD5Fr3/mPqLIzU7T8=
 kmodules.xyz/offshoot-api v0.0.0-20190901210649-de049192326c h1:y54FqF02HNs2d4eJh6w+7Q2sfVLORzvZd/ueGm/t7Fg=
 kmodules.xyz/offshoot-api v0.0.0-20190901210649-de049192326c/go.mod h1:AzvHBjJvhFwUEiWrEKfdsgoqt5Ulio44Beo1vPoq7ww=
+kmodules.xyz/openshift v0.0.0-20190808144841-c8f9a927f1d1 h1:NmVj5+kPpUgoxRans2XZt5SXm9cVy8E3b4yHaeVzqak=
 kmodules.xyz/openshift v0.0.0-20190808144841-c8f9a927f1d1/go.mod h1:+E8HHcxBx6ja4oKOXZ6DCoQ+NjujODTgFOfgOe+ejXw=
 kmodules.xyz/webhook-runtime v0.0.0-20190808145328-4186c470d56b h1:yd/uzBgLgsir3X4kGoznJY7CdrkgfznsNKvD4p2xUaQ=
 kmodules.xyz/webhook-runtime v0.0.0-20190808145328-4186c470d56b/go.mod h1:X8J6YJvk3NqufXEDqcl2oFuL8T6+mV+AN30/miV4iJU=
-kubedb.dev/apimachinery v0.13.0-rc.1.0.20191021073928-03dbc5bfde63 h1:u4QU80Ns4ZdAX6tlaVfBF7p480qXJ8mCniv25Z4D0ME=
-kubedb.dev/apimachinery v0.13.0-rc.1.0.20191021073928-03dbc5bfde63/go.mod h1:AuDjUpYhwMrSsIkNr/JeTK6Ddk+wz4/CdnxlIDnbYaA=
+kubedb.dev/apimachinery v0.13.0-rc.2 h1:I/KXiJfXN/jB6zxHYsXhiVeuELjvsq17fFlTFwkIRb0=
+kubedb.dev/apimachinery v0.13.0-rc.2/go.mod h1:pBjAo1UtqY09U0oqkHoDVQCO+06+aYLh9/cy4F3wasI=
 labix.org/v2/mgo v0.0.0-20140701140051-000000000287/go.mod h1:Lg7AYkt1uXJoR9oeSZ3W/8IXLdvOfIITgZnommstyz4=
 launchpad.net/gocheck v0.0.0-20140225173054-000000000087/go.mod h1:hj7XX3B/0A+80Vse0e+BUHsHMTEhd0O4cpUHr/e/BUM=
 sigs.k8s.io/kustomize v2.0.3+incompatible h1:JUufWFNlI44MdtnjUqVnvh29rR37PQFzPbLXqhyOyX0=
@@ -684,9 +690,8 @@ sigs.k8s.io/structured-merge-diff v0.0.0-20190302045857-e85c7b244fd2 h1:9r5DY45e
 sigs.k8s.io/structured-merge-diff v0.0.0-20190302045857-e85c7b244fd2/go.mod h1:wWxsB5ozmmv/SG7nM11ayaAW51xMvak/t1r0CSlcokI=
 sigs.k8s.io/yaml v1.1.0 h1:4A07+ZFc2wgJwo8YNlQpr1rVlgUDlxXHhPJciaPY5gs=
 sigs.k8s.io/yaml v1.1.0/go.mod h1:UJmg0vDUVViEyp3mgSv9WPwZCDxu4rQW1olrI1uml+o=
-stash.appscode.dev/stash v0.9.0-rc.1.0.20191018180359-9ef3cfeba2a2/go.mod h1:N8pJqTaV01TZpspiGEGfRBkJTNHkJ0ihflN0LYx3wPw=
-stash.appscode.dev/stash v0.9.0-rc.1.0.20191022060711-926dcd20e0b6 h1:EoMUzc+ZDw2Tk+Ja9UKZOk9Pl6tmM1oyLGItoh5Boac=
-stash.appscode.dev/stash v0.9.0-rc.1.0.20191022060711-926dcd20e0b6/go.mod h1:/7d4j0Kga5PO6723gh0yT9q14Vng86EG5PGKjWKd1zM=
+stash.appscode.dev/stash v0.9.0-rc.2 h1:oZTmaDDTjANefmsNWYjqb0cqZYGl4JAeiewAlJJPnlE=
+stash.appscode.dev/stash v0.9.0-rc.2/go.mod h1:DgbSJa5P8tV+V9dX/CxURZDnudLvgnKyuZksJF/Fp7Q=
 xorm.io/builder v0.3.5 h1:EilU39fvWDxjb1cDaELpYhsF+zziRBhew8xk4pngO+A=
 xorm.io/builder v0.3.5/go.mod h1:ZFbByS/KxZI1FKRjL05PyJ4YrK2bcxlUaAxdum5aTR8=
 xorm.io/core v0.6.3 h1:n1NhVZt1s2oLw1BZfX2ocIJsHyso259uPgg63BGr37M=
