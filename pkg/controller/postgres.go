@@ -3,6 +3,12 @@ package controller
 import (
 	"fmt"
 
+	catalog "kubedb.dev/apimachinery/apis/catalog/v1alpha1"
+	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
+	"kubedb.dev/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1/util"
+	"kubedb.dev/apimachinery/pkg/eventer"
+	validator "kubedb.dev/postgres/pkg/admission"
+
 	"github.com/appscode/go/encoding/json/types"
 	"github.com/appscode/go/log"
 	"github.com/pkg/errors"
@@ -18,11 +24,6 @@ import (
 	dynamic_util "kmodules.xyz/client-go/dynamic"
 	meta_util "kmodules.xyz/client-go/meta"
 	storage "kmodules.xyz/objectstore-api/osm"
-	catalog "kubedb.dev/apimachinery/apis/catalog/v1alpha1"
-	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
-	"kubedb.dev/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1/util"
-	"kubedb.dev/apimachinery/pkg/eventer"
-	validator "kubedb.dev/postgres/pkg/admission"
 )
 
 func (c *Controller) create(postgres *api.Postgres) error {

@@ -4,6 +4,11 @@ import (
 	"flag"
 	"time"
 
+	cs "kubedb.dev/apimachinery/client/clientset/versioned"
+	kubedbinformers "kubedb.dev/apimachinery/client/informers/externalversions"
+	snapc "kubedb.dev/apimachinery/pkg/controller/snapshot"
+	"kubedb.dev/postgres/pkg/controller"
+
 	prom "github.com/coreos/prometheus-operator/pkg/client/versioned/typed/monitoring/v1"
 	"github.com/spf13/pflag"
 	core "k8s.io/api/core/v1"
@@ -14,10 +19,6 @@ import (
 	"kmodules.xyz/client-go/meta"
 	"kmodules.xyz/client-go/tools/cli"
 	appcat_cs "kmodules.xyz/custom-resources/client/clientset/versioned"
-	cs "kubedb.dev/apimachinery/client/clientset/versioned"
-	kubedbinformers "kubedb.dev/apimachinery/client/informers/externalversions"
-	snapc "kubedb.dev/apimachinery/pkg/controller/snapshot"
-	"kubedb.dev/postgres/pkg/controller"
 	scs "stash.appscode.dev/stash/client/clientset/versioned"
 	stashInformers "stash.appscode.dev/stash/client/informers/externalversions"
 )

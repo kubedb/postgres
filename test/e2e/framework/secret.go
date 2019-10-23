@@ -5,6 +5,9 @@ import (
 	"os"
 	"time"
 
+	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
+	"kubedb.dev/postgres/pkg/controller"
+
 	"github.com/appscode/go/crypto/rand"
 	"github.com/appscode/go/log"
 	. "github.com/onsi/gomega"
@@ -18,8 +21,6 @@ import (
 	"kmodules.xyz/constants/azure"
 	"kmodules.xyz/constants/google"
 	"kmodules.xyz/constants/openstack"
-	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
-	"kubedb.dev/postgres/pkg/controller"
 	"stash.appscode.dev/stash/pkg/restic"
 )
 

@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"time"
 
+	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
+	"kubedb.dev/postgres/pkg/controller"
+
 	. "github.com/onsi/gomega"
 	"gomodules.xyz/stow"
 	storage "kmodules.xyz/objectstore-api/osm"
-	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
-	"kubedb.dev/postgres/pkg/controller"
 )
 
 func (f *Framework) EventuallyWalDataFound(postgres *api.Postgres) GomegaAsyncAssertion {

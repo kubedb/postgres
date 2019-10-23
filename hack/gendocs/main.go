@@ -5,10 +5,11 @@ import (
 	"log"
 	"os"
 
+	"kubedb.dev/postgres/pkg/cmds"
+
 	"github.com/appscode/go/runtime"
 	"github.com/spf13/cobra/doc"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
-	"kubedb.dev/postgres/pkg/cmds"
 )
 
 // ref: https://github.com/spf13/cobra/blob/master/doc/md_docs.md

@@ -1,6 +1,17 @@
 package controller
 
 import (
+	catalog "kubedb.dev/apimachinery/apis/catalog/v1alpha1"
+	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
+	cs "kubedb.dev/apimachinery/client/clientset/versioned"
+	kutildb "kubedb.dev/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1/util"
+	api_listers "kubedb.dev/apimachinery/client/listers/kubedb/v1alpha1"
+	amc "kubedb.dev/apimachinery/pkg/controller"
+	drmnc "kubedb.dev/apimachinery/pkg/controller/dormantdatabase"
+	"kubedb.dev/apimachinery/pkg/controller/restoresession"
+	snapc "kubedb.dev/apimachinery/pkg/controller/snapshot"
+	"kubedb.dev/apimachinery/pkg/eventer"
+
 	"github.com/appscode/go/encoding/json/types"
 	"github.com/appscode/go/log"
 	pcm "github.com/coreos/prometheus-operator/pkg/client/versioned/typed/monitoring/v1"
@@ -20,16 +31,6 @@ import (
 	"kmodules.xyz/client-go/tools/queue"
 	appcat "kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1"
 	appcat_cs "kmodules.xyz/custom-resources/client/clientset/versioned"
-	catalog "kubedb.dev/apimachinery/apis/catalog/v1alpha1"
-	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
-	cs "kubedb.dev/apimachinery/client/clientset/versioned"
-	kutildb "kubedb.dev/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1/util"
-	api_listers "kubedb.dev/apimachinery/client/listers/kubedb/v1alpha1"
-	amc "kubedb.dev/apimachinery/pkg/controller"
-	drmnc "kubedb.dev/apimachinery/pkg/controller/dormantdatabase"
-	"kubedb.dev/apimachinery/pkg/controller/restoresession"
-	snapc "kubedb.dev/apimachinery/pkg/controller/snapshot"
-	"kubedb.dev/apimachinery/pkg/eventer"
 	scs "stash.appscode.dev/stash/client/clientset/versioned"
 )
 

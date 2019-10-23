@@ -7,6 +7,9 @@ import (
 	"path/filepath"
 	"time"
 
+	catlog "kubedb.dev/apimachinery/apis/catalog/v1alpha1"
+	"kubedb.dev/postgres/pkg/cmds/server"
+
 	"github.com/appscode/go/log"
 	shell "github.com/codeskyblue/go-sh"
 	. "github.com/onsi/ginkgo"
@@ -20,8 +23,6 @@ import (
 	admsn_kutil "kmodules.xyz/client-go/admissionregistration/v1beta1"
 	apiext_util "kmodules.xyz/client-go/apiextensions/v1beta1"
 	meta_util "kmodules.xyz/client-go/meta"
-	catlog "kubedb.dev/apimachinery/apis/catalog/v1alpha1"
-	"kubedb.dev/postgres/pkg/cmds/server"
 )
 
 func (f *Framework) isApiSvcReady(apiSvcName string) error {

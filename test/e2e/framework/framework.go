@@ -3,6 +3,9 @@ package framework
 import (
 	"path/filepath"
 
+	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
+	cs "kubedb.dev/apimachinery/client/clientset/versioned"
+
 	"github.com/appscode/go/crypto/rand"
 	. "github.com/onsi/gomega"
 	"github.com/spf13/afero"
@@ -12,8 +15,6 @@ import (
 	"k8s.io/client-go/rest"
 	ka "k8s.io/kube-aggregator/pkg/client/clientset_generated/clientset"
 	appcat_cs "kmodules.xyz/custom-resources/client/clientset/versioned/typed/appcatalog/v1alpha1"
-	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
-	cs "kubedb.dev/apimachinery/client/clientset/versioned"
 	scs "stash.appscode.dev/stash/client/clientset/versioned"
 )
 

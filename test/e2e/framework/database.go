@@ -6,12 +6,13 @@ import (
 	"strings"
 	"time"
 
+	"kubedb.dev/postgres/pkg/controller"
+
 	"github.com/go-xorm/xorm"
 	_ "github.com/lib/pq"
 	. "github.com/onsi/gomega"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"kmodules.xyz/client-go/tools/portforward"
-	"kubedb.dev/postgres/pkg/controller"
 )
 
 func (f *Framework) ForwardPort(meta metav1.ObjectMeta) (*portforward.Tunnel, error) {

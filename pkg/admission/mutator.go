@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"sync"
 
+	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
+	cs "kubedb.dev/apimachinery/client/clientset/versioned"
+
 	"github.com/appscode/go/log"
 	"github.com/appscode/go/types"
 	"github.com/pkg/errors"
@@ -19,8 +22,6 @@ import (
 	meta_util "kmodules.xyz/client-go/meta"
 	mona "kmodules.xyz/monitoring-agent-api/api/v1"
 	hookapi "kmodules.xyz/webhook-runtime/admission/v1beta1"
-	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
-	cs "kubedb.dev/apimachinery/client/clientset/versioned"
 )
 
 type PostgresMutator struct {
