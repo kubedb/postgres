@@ -10,11 +10,11 @@ source "$REPO_ROOT/hack/libbuild/common/kubedb_image.sh"
 DOCKER_REGISTRY=${DOCKER_REGISTRY:-kubedb}
 
 IMG=postgres
-SUFFIX=v5
+SUFFIX=v6
 DB_VERSION=9.6.7
 TAG="$DB_VERSION-$SUFFIX"
 
-WALG_VER=${WALG_VER:-0.2.9-ac}
+WALG_VER=${WALG_VER:-0.2.13-ac}
 
 DIST="$REPO_ROOT/dist"
 mkdir -p "$DIST"

@@ -1,10 +1,11 @@
 package v1beta1
 
 import (
+	"stash.appscode.dev/stash/apis/stash/v1alpha1"
+
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	ofst "kmodules.xyz/offshoot-api/api/v1"
-	"stash.appscode.dev/stash/apis/stash/v1alpha1"
 )
 
 const (
@@ -39,7 +40,7 @@ type BackupBlueprintSpec struct {
 	// RetentionPolicy indicates the policy to follow to clean old backup snapshots
 	RetentionPolicy v1alpha1.RetentionPolicy `json:"retentionPolicy"`
 	// RuntimeSettings allow to specify Resources, NodeSelector, Affinity, Toleration, ReadinessProbe etc.
-	//+optional
+	// +optional
 	RuntimeSettings ofst.RuntimeSettings `json:"runtimeSettings,omitempty"`
 	// Temp directory configuration for functions/sidecar
 	// An `EmptyDir` will always be mounted at /tmp with this settings

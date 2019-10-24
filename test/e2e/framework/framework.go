@@ -3,6 +3,9 @@ package framework
 import (
 	"path/filepath"
 
+	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
+	cs "kubedb.dev/apimachinery/client/clientset/versioned"
+
 	"github.com/appscode/go/crypto/rand"
 	. "github.com/onsi/gomega"
 	"github.com/spf13/afero"
@@ -12,15 +15,15 @@ import (
 	"k8s.io/client-go/rest"
 	ka "k8s.io/kube-aggregator/pkg/client/clientset_generated/clientset"
 	appcat_cs "kmodules.xyz/custom-resources/client/clientset/versioned/typed/appcatalog/v1alpha1"
-	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
-	cs "kubedb.dev/apimachinery/client/clientset/versioned"
 	scs "stash.appscode.dev/stash/client/clientset/versioned"
 )
 
 var (
 	DockerRegistry     = "kubedbci"
 	SelfHostedOperator = true
-	DBCatalogName      = "10.2-v4"
+	DBCatalogName      = "10.2-v5"
+	StashPGBackupTask  = "postgres-backup-10.2"
+	StashPGRestoreTask = "postgres-restore-10.2"
 )
 
 type Framework struct {
@@ -74,12 +77,12 @@ func (f *Framework) Invoke() *Invocation {
 	}
 }
 
-func (fi *Invocation) App() string {
-	return fi.app
+func (i *Invocation) App() string {
+	return i.app
 }
 
-func (fi *Invocation) ExtClient() cs.Interface {
-	return fi.dbClient
+func (i *Invocation) ExtClient() cs.Interface {
+	return i.dbClient
 }
 
 type Invocation struct {

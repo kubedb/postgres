@@ -16,7 +16,7 @@ if [ "$POSTGRES_INITDB_XLOGDIR" ]; then
   export POSTGRES_INITDB_ARGS="$POSTGRES_INITDB_ARGS --xlogdir $POSTGRES_INITDB_XLOGDIR"
 fi
 
-initdb $POSTGRES_INITDB_ARGS --pgdata="$PGDATA" >/dev/null
+initdb $POSTGRES_INITDB_ARGS --pgdata="$PGDATA"
 
 # setup postgresql.conf
 touch /tmp/postgresql.conf
@@ -34,7 +34,7 @@ mv /tmp/postgresql.conf "$PGDATA/postgresql.conf"
 {       echo 'host  replication postgres    0.0.0.0/0       md5'; }     >>"$PGDATA/pg_hba.conf"
 
 # start postgres
-pg_ctl -D "$PGDATA" -w start >/dev/null
+pg_ctl -D "$PGDATA" -w start
 
 export POSTGRES_USER=${POSTGRES_USER:-postgres}
 export POSTGRES_DB=${POSTGRES_DB:-$POSTGRES_USER}
@@ -77,7 +77,7 @@ for f in "$INITDB"/*; do
 done
 
 # stop server
-pg_ctl -D "$PGDATA" -m fast -w stop >/dev/null
+pg_ctl -D "$PGDATA" -m fast -w stop
 
 touch /tmp/postgresql.conf
 if [ "$STREAMING" == "synchronous" ]; then

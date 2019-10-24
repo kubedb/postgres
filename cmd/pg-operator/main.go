@@ -3,8 +3,9 @@ package main
 import (
 	"log"
 
-	"kmodules.xyz/client-go/logs"
 	"kubedb.dev/postgres/pkg/cmds"
+
+	"kmodules.xyz/client-go/logs"
 )
 
 func main() {

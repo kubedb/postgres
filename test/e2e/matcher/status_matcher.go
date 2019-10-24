@@ -1,8 +1,9 @@
 package matcher
 
 import (
-	"github.com/onsi/gomega/types"
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
+
+	"github.com/onsi/gomega/types"
 )
 
 func HavePaused() types.GomegaMatcher {

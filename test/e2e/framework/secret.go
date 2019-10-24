@@ -2,9 +2,11 @@ package framework
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"time"
+
+	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
+	"kubedb.dev/postgres/pkg/controller"
 
 	"github.com/appscode/go/crypto/rand"
 	"github.com/appscode/go/log"
@@ -15,9 +17,10 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	v1 "kmodules.xyz/client-go/core/v1"
 	meta_util "kmodules.xyz/client-go/meta"
-	store "kmodules.xyz/objectstore-api/api/v1"
-	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
-	"kubedb.dev/postgres/pkg/controller"
+	"kmodules.xyz/constants/aws"
+	"kmodules.xyz/constants/azure"
+	"kmodules.xyz/constants/google"
+	"kmodules.xyz/constants/openstack"
 	"stash.appscode.dev/stash/pkg/restic"
 )
 
@@ -38,8 +41,8 @@ func (i *Invocation) SecretForLocalBackend() *core.Secret {
 }
 
 func (i *Invocation) SecretForS3Backend() *core.Secret {
-	if os.Getenv(store.AWS_ACCESS_KEY_ID) == "" ||
-		os.Getenv(store.AWS_SECRET_ACCESS_KEY) == "" {
+	if os.Getenv(aws.AWS_ACCESS_KEY_ID) == "" ||
+		os.Getenv(aws.AWS_SECRET_ACCESS_KEY) == "" {
 		return &core.Secret{}
 	}
 
@@ -49,15 +52,15 @@ func (i *Invocation) SecretForS3Backend() *core.Secret {
 			Namespace: i.namespace,
 		},
 		Data: map[string][]byte{
-			store.AWS_ACCESS_KEY_ID:     []byte(os.Getenv(store.AWS_ACCESS_KEY_ID)),
-			store.AWS_SECRET_ACCESS_KEY: []byte(os.Getenv(store.AWS_SECRET_ACCESS_KEY)),
+			aws.AWS_ACCESS_KEY_ID:     []byte(os.Getenv(aws.AWS_ACCESS_KEY_ID)),
+			aws.AWS_SECRET_ACCESS_KEY: []byte(os.Getenv(aws.AWS_SECRET_ACCESS_KEY)),
 		},
 	}
 }
 
 func (i *Invocation) SecretForMinioBackend() *core.Secret {
-	if os.Getenv(store.AWS_ACCESS_KEY_ID) == "" ||
-		os.Getenv(store.AWS_SECRET_ACCESS_KEY) == "" {
+	if os.Getenv(aws.AWS_ACCESS_KEY_ID) == "" ||
+		os.Getenv(aws.AWS_SECRET_ACCESS_KEY) == "" {
 		return &core.Secret{}
 	}
 
@@ -67,17 +70,17 @@ func (i *Invocation) SecretForMinioBackend() *core.Secret {
 			Namespace: i.namespace,
 		},
 		Data: map[string][]byte{
-			store.AWS_ACCESS_KEY_ID:     []byte(os.Getenv(store.AWS_ACCESS_KEY_ID)),
-			store.AWS_SECRET_ACCESS_KEY: []byte(os.Getenv(store.AWS_SECRET_ACCESS_KEY)),
-			store.CA_CERT_DATA:          i.CertStore.CACertBytes(),
+			aws.AWS_ACCESS_KEY_ID:     []byte(os.Getenv(aws.AWS_ACCESS_KEY_ID)),
+			aws.AWS_SECRET_ACCESS_KEY: []byte(os.Getenv(aws.AWS_SECRET_ACCESS_KEY)),
+			aws.CA_CERT_DATA:          i.CertStore.CACertBytes(),
 		},
 	}
 }
 
 func (i *Invocation) SecretForMinioServer() *core.Secret {
 
-	if os.Getenv(store.AWS_ACCESS_KEY_ID) == "" ||
-		os.Getenv(store.AWS_SECRET_ACCESS_KEY) == "" {
+	if os.Getenv(aws.AWS_ACCESS_KEY_ID) == "" ||
+		os.Getenv(aws.AWS_SECRET_ACCESS_KEY) == "" {
 		return &core.Secret{}
 	}
 
@@ -93,25 +96,18 @@ func (i *Invocation) SecretForMinioServer() *core.Secret {
 			Namespace: i.namespace,
 		},
 		Data: map[string][]byte{
-			store.AWS_ACCESS_KEY_ID:     []byte(os.Getenv(store.AWS_ACCESS_KEY_ID)),
-			store.AWS_SECRET_ACCESS_KEY: []byte(os.Getenv(store.AWS_SECRET_ACCESS_KEY)),
-			MINIO_PUBLIC_CRT_NAME:       []byte(string(crt) + "\n" + string(i.CertStore.CACertBytes())),
-			MINIO_PRIVATE_KEY_NAME:      key,
+			aws.AWS_ACCESS_KEY_ID:     []byte(os.Getenv(aws.AWS_ACCESS_KEY_ID)),
+			aws.AWS_SECRET_ACCESS_KEY: []byte(os.Getenv(aws.AWS_SECRET_ACCESS_KEY)),
+			MINIO_PUBLIC_CRT_NAME:     []byte(string(crt) + "\n" + string(i.CertStore.CACertBytes())),
+			MINIO_PRIVATE_KEY_NAME:    key,
 		},
 	}
 }
 
 func (i *Invocation) SecretForGCSBackend() *core.Secret {
-	if os.Getenv(store.GOOGLE_PROJECT_ID) == "" ||
-		(os.Getenv("GOOGLE_APPLICATION_CREDENTIALS") == "" && os.Getenv(store.GOOGLE_SERVICE_ACCOUNT_JSON_KEY) == "") {
+	jsonKey := google.ServiceAccountFromEnv()
+	if jsonKey == "" || os.Getenv(google.GOOGLE_PROJECT_ID) == "" {
 		return &core.Secret{}
-	}
-
-	jsonKey := os.Getenv(store.GOOGLE_SERVICE_ACCOUNT_JSON_KEY)
-	if jsonKey == "" {
-		if keyBytes, err := ioutil.ReadFile(os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")); err == nil {
-			jsonKey = string(keyBytes)
-		}
 	}
 
 	return &core.Secret{
@@ -120,15 +116,15 @@ func (i *Invocation) SecretForGCSBackend() *core.Secret {
 			Namespace: i.namespace,
 		},
 		Data: map[string][]byte{
-			store.GOOGLE_PROJECT_ID:               []byte(os.Getenv(store.GOOGLE_PROJECT_ID)),
-			store.GOOGLE_SERVICE_ACCOUNT_JSON_KEY: []byte(jsonKey),
+			google.GOOGLE_PROJECT_ID:               []byte(os.Getenv(google.GOOGLE_PROJECT_ID)),
+			google.GOOGLE_SERVICE_ACCOUNT_JSON_KEY: []byte(jsonKey),
 		},
 	}
 }
 
 func (i *Invocation) SecretForAzureBackend() *core.Secret {
-	if os.Getenv(store.AZURE_ACCOUNT_NAME) == "" ||
-		os.Getenv(store.AZURE_ACCOUNT_KEY) == "" {
+	if os.Getenv(azure.AZURE_ACCOUNT_NAME) == "" ||
+		os.Getenv(azure.AZURE_ACCOUNT_KEY) == "" {
 		return &core.Secret{}
 	}
 
@@ -138,17 +134,17 @@ func (i *Invocation) SecretForAzureBackend() *core.Secret {
 			Namespace: i.namespace,
 		},
 		Data: map[string][]byte{
-			store.AZURE_ACCOUNT_NAME: []byte(os.Getenv(store.AZURE_ACCOUNT_NAME)),
-			store.AZURE_ACCOUNT_KEY:  []byte(os.Getenv(store.AZURE_ACCOUNT_KEY)),
+			azure.AZURE_ACCOUNT_NAME: []byte(os.Getenv(azure.AZURE_ACCOUNT_NAME)),
+			azure.AZURE_ACCOUNT_KEY:  []byte(os.Getenv(azure.AZURE_ACCOUNT_KEY)),
 		},
 	}
 }
 
 func (i *Invocation) SecretForSwiftBackend() *core.Secret {
-	if os.Getenv(store.OS_AUTH_URL) == "" ||
-		(os.Getenv(store.OS_TENANT_ID) == "" && os.Getenv(store.OS_TENANT_NAME) == "") ||
-		os.Getenv(store.OS_USERNAME) == "" ||
-		os.Getenv(store.OS_PASSWORD) == "" {
+	if os.Getenv(openstack.OS_AUTH_URL) == "" ||
+		(os.Getenv(openstack.OS_TENANT_ID) == "" && os.Getenv(openstack.OS_TENANT_NAME) == "") ||
+		os.Getenv(openstack.OS_USERNAME) == "" ||
+		os.Getenv(openstack.OS_PASSWORD) == "" {
 		return &core.Secret{}
 	}
 
@@ -158,12 +154,12 @@ func (i *Invocation) SecretForSwiftBackend() *core.Secret {
 			Namespace: i.namespace,
 		},
 		Data: map[string][]byte{
-			store.OS_AUTH_URL:    []byte(os.Getenv(store.OS_AUTH_URL)),
-			store.OS_TENANT_ID:   []byte(os.Getenv(store.OS_TENANT_ID)),
-			store.OS_TENANT_NAME: []byte(os.Getenv(store.OS_TENANT_NAME)),
-			store.OS_USERNAME:    []byte(os.Getenv(store.OS_USERNAME)),
-			store.OS_PASSWORD:    []byte(os.Getenv(store.OS_PASSWORD)),
-			store.OS_REGION_NAME: []byte(os.Getenv(store.OS_REGION_NAME)),
+			openstack.OS_AUTH_URL:    []byte(os.Getenv(openstack.OS_AUTH_URL)),
+			openstack.OS_TENANT_ID:   []byte(os.Getenv(openstack.OS_TENANT_ID)),
+			openstack.OS_TENANT_NAME: []byte(os.Getenv(openstack.OS_TENANT_NAME)),
+			openstack.OS_USERNAME:    []byte(os.Getenv(openstack.OS_USERNAME)),
+			openstack.OS_PASSWORD:    []byte(os.Getenv(openstack.OS_PASSWORD)),
+			openstack.OS_REGION_NAME: []byte(os.Getenv(openstack.OS_REGION_NAME)),
 		},
 	}
 }

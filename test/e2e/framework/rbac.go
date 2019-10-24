@@ -176,7 +176,8 @@ func (f *Framework) CreateRoleBinding(obj *rbac.RoleBinding) error {
 }
 
 func (f *Framework) DeleteRoleBinding(obj *rbac.RoleBinding) error {
-	err := f.kubeClient.RbacV1().RoleBindings(obj.Namespace).Delete(obj.Name, &metav1.DeleteOptions{})
-	err = v1beta1.WaitUntillRoleBindingDeleted(f.kubeClient, obj.ObjectMeta)
-	return err
+	if err := f.kubeClient.RbacV1().RoleBindings(obj.Namespace).Delete(obj.Name, &metav1.DeleteOptions{}); err != nil {
+		return err
+	}
+	return v1beta1.WaitUntillRoleBindingDeleted(f.kubeClient, obj.ObjectMeta)
 }

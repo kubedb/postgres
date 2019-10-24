@@ -5,12 +5,21 @@ import (
 	"os"
 	"strings"
 
+	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
+	"kubedb.dev/apimachinery/pkg/admission/dormantdatabase"
+	"kubedb.dev/apimachinery/pkg/admission/namespace"
+	"kubedb.dev/apimachinery/pkg/admission/snapshot"
+	"kubedb.dev/apimachinery/pkg/eventer"
+	mgAdmsn "kubedb.dev/postgres/pkg/admission"
+	"kubedb.dev/postgres/pkg/controller"
+
 	admission "k8s.io/api/admission/v1beta1"
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
+	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/version"
 	"k8s.io/apiserver/pkg/registry/rest"
 	genericapiserver "k8s.io/apiserver/pkg/server"
@@ -19,13 +28,6 @@ import (
 	dynamic_util "kmodules.xyz/client-go/dynamic"
 	hooks "kmodules.xyz/webhook-runtime/admission/v1beta1"
 	admissionreview "kmodules.xyz/webhook-runtime/registry/admissionreview/v1beta1"
-	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
-	"kubedb.dev/apimachinery/pkg/admission/dormantdatabase"
-	"kubedb.dev/apimachinery/pkg/admission/namespace"
-	"kubedb.dev/apimachinery/pkg/admission/snapshot"
-	"kubedb.dev/apimachinery/pkg/eventer"
-	mgAdmsn "kubedb.dev/postgres/pkg/admission"
-	"kubedb.dev/postgres/pkg/controller"
 )
 
 const (
@@ -38,7 +40,7 @@ var (
 )
 
 func init() {
-	admission.AddToScheme(Scheme)
+	utilruntime.Must(admission.AddToScheme(Scheme))
 
 	// we need to add the options to empty v1
 	// TODO fix the server code to avoid this

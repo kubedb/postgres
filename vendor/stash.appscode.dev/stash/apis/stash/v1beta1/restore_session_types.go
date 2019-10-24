@@ -1,7 +1,6 @@
 package v1beta1
 
 import (
-	"github.com/appscode/go/encoding/json/types"
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	ofst "kmodules.xyz/offshoot-api/api/v1"
@@ -49,11 +48,11 @@ type RestoreSessionSpec struct {
 	// +optional
 	Rules []Rule `json:"rules,omitempty"`
 	// RuntimeSettings allow to specify Resources, NodeSelector, Affinity, Toleration, ReadinessProbe etc.
-	//+optional
+	// +optional
 	RuntimeSettings ofst.RuntimeSettings `json:"runtimeSettings,omitempty"`
 	// Temp directory configuration for functions/sidecar
 	// An `EmptyDir` will always be mounted at /tmp with this settings
-	//+optional
+	// +optional
 	TempDir EmptyDirSettings `json:"tempDir,omitempty"`
 	// InterimVolumeTemplate specifies a template for a volume to hold targeted data temporarily
 	// before uploading to backend or inserting into target. It is only usable for job model.
@@ -107,16 +106,12 @@ const (
 )
 
 type RestoreSessionStatus struct {
-	// observedGeneration is the most recent generation observed for this resource. It corresponds to the
-	// resource's generation, which is updated on mutation by the API Server.
-	// +optional
-	ObservedGeneration *types.IntHash `json:"observedGeneration,omitempty"`
 	// Phase indicates the overall phase of the restore process for this RestoreSession. Phase will be "Succeeded" only if
 	// phase of all hosts are "Succeeded". If any of the host fail to complete restore, Phase will be "Failed".
 	// +optional
 	Phase RestoreSessionPhase `json:"phase,omitempty"`
 	// TotalHosts specifies total number of hosts that will be restored for this RestoreSession
-	// +Optional
+	// +optional
 	TotalHosts *int32 `json:"totalHosts,omitempty"`
 	// SessionDuration specify total time taken to complete current restore session (sum of restore duration of all hosts)
 	// +optional

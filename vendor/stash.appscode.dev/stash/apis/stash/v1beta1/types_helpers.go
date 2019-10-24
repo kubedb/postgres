@@ -1,8 +1,9 @@
 package v1beta1
 
 import (
-	"k8s.io/kube-openapi/pkg/common"
 	"stash.appscode.dev/stash/apis/stash/v1alpha1"
+
+	"k8s.io/kube-openapi/pkg/common"
 )
 
 const (
@@ -12,10 +13,7 @@ const (
 
 // TODO: complete
 func (t TargetRef) IsWorkload() bool {
-	if t.Kind == "Deployment" {
-		return true
-	}
-	return false
+	return t.Kind == "Deployment"
 }
 
 func GetOpenAPIDefinitionsWithRetentionPolicy(ref common.ReferenceCallback) map[string]common.OpenAPIDefinition {

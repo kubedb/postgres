@@ -5,9 +5,11 @@ import (
 	"log"
 	"os"
 
+	"kubedb.dev/postgres/pkg/cmds"
+
 	"github.com/appscode/go/runtime"
 	"github.com/spf13/cobra/doc"
-	"kubedb.dev/postgres/pkg/cmds"
+	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 )
 
 // ref: https://github.com/spf13/cobra/blob/master/doc/md_docs.md
@@ -23,5 +25,5 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	doc.GenMarkdownTree(rootCmd, dir)
+	utilruntime.Must(doc.GenMarkdownTree(rootCmd, dir))
 }

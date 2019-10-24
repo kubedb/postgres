@@ -6,6 +6,11 @@ import (
 	"strconv"
 	"strings"
 
+	catalog "kubedb.dev/apimachinery/apis/catalog/v1alpha1"
+	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
+	"kubedb.dev/apimachinery/pkg/eventer"
+	"kubedb.dev/postgres/pkg/leader_election"
+
 	"github.com/appscode/go/log"
 	"github.com/appscode/go/types"
 	apps "k8s.io/api/apps/v1"
@@ -20,10 +25,6 @@ import (
 	meta_util "kmodules.xyz/client-go/meta"
 	"kmodules.xyz/client-go/tools/analytics"
 	mona "kmodules.xyz/monitoring-agent-api/api/v1"
-	catalog "kubedb.dev/apimachinery/apis/catalog/v1alpha1"
-	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
-	"kubedb.dev/apimachinery/pkg/eventer"
-	"kubedb.dev/postgres/pkg/leader_election"
 )
 
 func (c *Controller) ensureStatefulSet(
@@ -128,7 +129,7 @@ func (c *Controller) ensureStatefulSet(
 			}
 		}
 
-		in = upsertShm(in, postgres)
+		in = upsertShm(in)
 		in = upsertDataVolume(in, postgres)
 		in = upsertCustomConfig(in, postgres)
 
@@ -519,7 +520,7 @@ func upsertInitWalSecret(statefulSet *apps.StatefulSet, secretName string) *apps
 	return statefulSet
 }
 
-func upsertShm(statefulSet *apps.StatefulSet, postgress *api.Postgres) *apps.StatefulSet {
+func upsertShm(statefulSet *apps.StatefulSet) *apps.StatefulSet {
 	for i, container := range statefulSet.Spec.Template.Spec.Containers {
 		if container.Name == api.ResourceSingularPostgres {
 			volumeMount := core.VolumeMount{

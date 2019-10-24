@@ -19,12 +19,18 @@ jobs:
 
     - name: Set up Docker Buildx
       id: buildx
-      uses: crazy-max/ghaction-docker-buildx@master
+      uses: crazy-max/ghaction-docker-buildx@v1
       with:
         version: latest
 
     - name: Available platforms
       run: echo ${{ steps.buildx.outputs.platforms }}
+
+    - name: Run checks
+      run: |
+        sudo apt-get -qq update
+        sudo apt-get install -y bzr
+        make ci
 
     - name: Build
       env:
@@ -70,6 +76,14 @@ jobs:
         cd installer
         git checkout master
 
+    - name: Install stash and addons
+      run: |
+        export KUBECONFIG="$(kind get kubeconfig-path)"
+        if [ -x "$(command -v helm)" ]; then
+            helm init --client-only
+        fi
+        make stash-install
+
     - name: Run e2e tests
       env:
         REGISTRY: kubedbci
@@ -85,4 +99,4 @@ jobs:
         echo "GOOGLE_SERVICE_ACCOUNT_JSON_KEY=$(echo $GOOGLE_SERVICE_ACCOUNT_JSON_KEY)" >> hack/config/.env
         make install
         echo
-        make e2e-tests
+        make e2e-parallel

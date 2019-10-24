@@ -72,7 +72,7 @@ done
 
 echo "Fetching archived backup..."
 # fetch backup
-wal-g backup-fetch "$PGDATA" "$BACKUP_NAME" >/dev/null
+wal-g backup-fetch "$PGDATA" "$BACKUP_NAME"
 
 # create missing folders
 mkdir -p "$PGDATA"/{pg_tblspc,pg_twophase,pg_stat,pg_commit_ts}/
@@ -123,7 +123,7 @@ mv /tmp/postgresql.conf "$PGDATA/postgresql.conf"
 rm "$PGDATA/recovery.done" &>/dev/null
 
 # start server for recovery process
-pg_ctl -D "$PGDATA" -W start >/dev/null
+pg_ctl -D "$PGDATA" -W start
 
 # this file will trigger recovery
 touch '/tmp/pg-failover-trigger'
@@ -137,4 +137,4 @@ done
 # create PID if misssing
 postmaster -D "$PGDATA" &>/dev/null
 
-pg_ctl -D "$PGDATA" -w stop >/dev/null
+pg_ctl -D "$PGDATA" -w stop

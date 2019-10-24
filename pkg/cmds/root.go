@@ -4,16 +4,18 @@ import (
 	"flag"
 	"os"
 
+	"kubedb.dev/apimachinery/client/clientset/versioned/scheme"
+
 	"github.com/appscode/go/flags"
 	"github.com/appscode/go/log/golog"
 	v "github.com/appscode/go/version"
 	"github.com/spf13/cobra"
+	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	genericapiserver "k8s.io/apiserver/pkg/server"
 	clientsetscheme "k8s.io/client-go/kubernetes/scheme"
 	"kmodules.xyz/client-go/logs"
 	"kmodules.xyz/client-go/tools/cli"
 	appcatscheme "kmodules.xyz/custom-resources/client/clientset/versioned/scheme"
-	"kubedb.dev/apimachinery/client/clientset/versioned/scheme"
 )
 
 func NewRootCmd(version string) *cobra.Command {
@@ -24,8 +26,8 @@ func NewRootCmd(version string) *cobra.Command {
 			flags.DumpAll(c.Flags())
 			cli.SendAnalytics(c, version)
 
-			scheme.AddToScheme(clientsetscheme.Scheme)
-			appcatscheme.AddToScheme(clientsetscheme.Scheme)
+			utilruntime.Must(scheme.AddToScheme(clientsetscheme.Scheme))
+			utilruntime.Must(appcatscheme.AddToScheme(clientsetscheme.Scheme))
 			cli.LoggerOptions = golog.ParseFlags(c.Flags())
 		},
 	}
