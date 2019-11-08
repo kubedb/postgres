@@ -19,11 +19,8 @@ jobs:
     steps:
     - name: test version - todo delete
       run: |
-        echo ${{ matrix.k8s }} || true
-        echo ${{ matrix.kubedb-pg }}  || true
-        echo ${ matrix.k8s }  || true
-        echo ${ matrix.kubedb-pg }  || true
-
+        echo ${{ matrix.k8s }}
+        echo ${{ matrix.kubedb-pg }}
 
     - name: Check out code into the Go module directory
       uses: actions/checkout@v1
