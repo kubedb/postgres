@@ -51,7 +51,7 @@ func (i *Invocation) BackupConfiguration(meta metav1.ObjectMeta) *v1beta1.Backup
 			},
 			BackupConfigurationTemplateSpec: v1beta1.BackupConfigurationTemplateSpec{
 				Task: v1beta1.TaskRef{
-					Name: StashPGBackupTask,
+					Name: i.getStashPGBackupTaskName(),
 				},
 				Target: &v1beta1.BackupTarget{
 					Ref: v1beta1.TargetRef{
@@ -145,7 +145,7 @@ func (i *Invocation) RestoreSession(meta, oldMeta metav1.ObjectMeta) *v1beta1.Re
 		},
 		Spec: v1beta1.RestoreSessionSpec{
 			Task: v1beta1.TaskRef{
-				Name: StashPGRestoreTask,
+				Name: i.getStashPGRestoreTaskName(),
 			},
 			Repository: core.LocalObjectReference{
 				Name: oldMeta.Name,
@@ -185,4 +185,18 @@ func (f *Framework) EventuallyRestoreSessionPhase(meta metav1.ObjectMeta) Gomega
 		time.Minute*10,
 		time.Second*5,
 	)
+}
+
+func (f *Framework) getStashPGBackupTaskName() string {
+	pgVersion, err := f.dbClient.CatalogV1alpha1().PostgresVersions().Get(DBCatalogName, metav1.GetOptions{})
+	Expect(err).NotTo(HaveOccurred())
+
+	return "postgres-backup-" + pgVersion.Spec.Version
+}
+
+func (f *Framework) getStashPGRestoreTaskName() string {
+	pgVersion, err := f.dbClient.CatalogV1alpha1().PostgresVersions().Get(DBCatalogName, metav1.GetOptions{})
+	Expect(err).NotTo(HaveOccurred())
+
+	return "postgres-restore-" + pgVersion.Spec.Version
 }
