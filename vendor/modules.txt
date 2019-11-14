@@ -1001,6 +1001,7 @@ stash.appscode.dev/stash/client/clientset/versioned
 stash.appscode.dev/stash/client/informers/externalversions
 stash.appscode.dev/stash/apis/stash/v1alpha1
 stash.appscode.dev/stash/apis/stash/v1beta1
+stash.appscode.dev/stash/client/clientset/versioned/typed/stash/v1beta1/util
 stash.appscode.dev/stash/pkg/restic
 stash.appscode.dev/stash/client/clientset/versioned/typed/repositories/v1alpha1
 stash.appscode.dev/stash/client/clientset/versioned/typed/stash/v1alpha1

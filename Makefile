@@ -431,7 +431,7 @@ stash-install:
 
 .PHONY: stash-uninstall
 stash-uninstall:
-	@curl -fsSL https://github.com/stashed/catalog/raw/v0.9.0-rc.2/deploy/script.sh | bash -s -- --catalog=stash-postgres --uninstall || true
+	@curl -fsSL https://github.com/stashed/catalog/raw/master/deploy/script.sh | bash -s -- --catalog=stash-postgres --uninstall || true
 	@curl -fsSL https://github.com/stashed/installer/raw/master/deploy/stash.sh | bash -s -- --uninstall
 
 .PHONY: stash-purge
