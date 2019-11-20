@@ -147,6 +147,31 @@ func (c *Controller) create(postgres *api.Postgres) error {
 		}
 	}
 
+	// get current sts status
+	ok, err := c.CheckStatefulSetIsReady(postgres.Namespace, postgres.Name)
+	if err != nil {
+		log.Errorln(err)
+		return err
+	}
+	if !ok {
+		log.Infof("sts %s is not ready. ", postgres.Name)
+
+		if postgres.Status.Phase == api.DatabasePhaseRunning {
+			// sts is change from ready to not ready, we should change to Failed, may be can add a new phase such as recovering
+			_, err := util.UpdatePostgresStatus(c.ExtClient.KubedbV1alpha1(), postgres, func(in *api.PostgresStatus) *api.PostgresStatus {
+				in.Phase = api.DatabasePhaseFailed
+				in.ObservedGeneration = types.NewIntHash(postgres.Generation, meta_util.GenerationHash(postgres))
+				return in
+			})
+			if err != nil {
+				return err
+			}
+		}
+
+		// watch next time
+		return nil
+	}
+
 	pg, err := util.UpdatePostgresStatus(c.ExtClient.KubedbV1alpha1(), postgres, func(in *api.PostgresStatus) *api.PostgresStatus {
 		in.Phase = api.DatabasePhaseRunning
 		in.ObservedGeneration = types.NewIntHash(postgres.Generation, meta_util.GenerationHash(postgres))

@@ -29,6 +29,10 @@ func (c *Controller) initWatcher() {
 	c.pgQueue = queue.New("Postgres", c.MaxNumRequeues, c.NumThreads, c.runPostgres)
 	c.pgLister = c.KubedbInformerFactory.Kubedb().V1alpha1().Postgreses().Lister()
 	c.pgInformer.AddEventHandler(queue.NewObservableUpdateHandler(c.pgQueue.GetQueue(), true))
+
+	// listen sub resources sts
+	stsInformer := c.KubeInformerFactory.Apps().V1().StatefulSets().Informer()
+	stsInformer.AddEventHandler(queue.NewObservableUpdateHandler(c.pgQueue.GetQueue(), false))
 }
 
 func (c *Controller) runPostgres(key string) error {

@@ -21,6 +21,7 @@ import (
 	"strconv"
 	"strings"
 
+	"k8s.io/apimachinery/pkg/util/wait"
 	catalog "kubedb.dev/apimachinery/apis/catalog/v1alpha1"
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
 	"kubedb.dev/apimachinery/pkg/eventer"
@@ -162,7 +163,7 @@ func (c *Controller) ensureStatefulSet(
 
 	if vt == kutil.VerbCreated || vt == kutil.VerbPatched {
 		// Check StatefulSet Pod status
-		if err := c.CheckStatefulSetPodStatus(statefulSet); err != nil {
+		if err := c.CheckStatefulSetCreated(statefulSet); err != nil {
 			return kutil.VerbUnchanged, err
 		}
 
@@ -182,17 +183,35 @@ func (c *Controller) ensureStatefulSet(
 	return vt, nil
 }
 
-func (c *Controller) CheckStatefulSetPodStatus(statefulSet *apps.StatefulSet) error {
-	err := core_util.WaitUntilPodRunningBySelector(
-		c.Client,
-		statefulSet.Namespace,
-		statefulSet.Spec.Selector,
-		int(types.Int32(statefulSet.Spec.Replicas)),
-	)
+func (c *Controller) CheckStatefulSetCreated(statefulSet *apps.StatefulSet) error {
+	// just wait statefulSet created
+	return wait.PollImmediate(kutil.RetryInterval, kutil.ReadinessTimeout, func() (bool, error) {
+		if _, err := c.Client.AppsV1().StatefulSets(statefulSet.Namespace).Get(statefulSet.Name, metav1.GetOptions{}); err == nil {
+			return true, nil
+		}
+		return false, nil
+	})
+}
+
+func (c *Controller) CheckStatefulSetIsReady(namespace, name string) (bool, error) {
+	// just wait statefulSet created
+	sts, err := c.Client.AppsV1().StatefulSets(namespace).Get(name, metav1.GetOptions{});
 	if err != nil {
-		return err
+		return false, err
 	}
-	return nil
+	if types.Int32(sts.Spec.Replicas) != sts.Status.Replicas {
+		return false, nil
+	}
+
+	if sts.Status.Replicas != sts.Status.ReadyReplicas {
+		return false, nil
+	}
+
+	if sts.Status.CurrentReplicas != sts.Status.Replicas {
+		return false, nil
+	}
+
+	return true, nil
 }
 
 func (c *Controller) ensureCombinedNode(postgres *api.Postgres, postgresVersion *catalog.PostgresVersion) (kutil.VerbType, error) {
