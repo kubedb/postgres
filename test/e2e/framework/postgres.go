@@ -24,7 +24,6 @@ import (
 	"kubedb.dev/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1/util"
 
 	"github.com/appscode/go/crypto/rand"
-	jtypes "github.com/appscode/go/encoding/json/types"
 	"github.com/appscode/go/types"
 	. "github.com/onsi/gomega"
 	core "k8s.io/api/core/v1"
@@ -55,7 +54,7 @@ func (i *Invocation) Postgres() *api.Postgres {
 			},
 		},
 		Spec: api.PostgresSpec{
-			Version:  jtypes.StrYo(DBCatalogName),
+			Version:  DBCatalogName,
 			Replicas: types.Int32P(1),
 			Storage: &core.PersistentVolumeClaimSpec{
 				Resources: core.ResourceRequirements{

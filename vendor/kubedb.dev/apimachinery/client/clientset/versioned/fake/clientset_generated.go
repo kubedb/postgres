@@ -1,5 +1,5 @@
 /*
-Copyright 2019 The KubeDB Authors.
+Copyright The KubeDB Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -24,6 +24,8 @@ import (
 	fakecatalogv1alpha1 "kubedb.dev/apimachinery/client/clientset/versioned/typed/catalog/v1alpha1/fake"
 	configv1alpha1 "kubedb.dev/apimachinery/client/clientset/versioned/typed/config/v1alpha1"
 	fakeconfigv1alpha1 "kubedb.dev/apimachinery/client/clientset/versioned/typed/config/v1alpha1/fake"
+	dbav1alpha1 "kubedb.dev/apimachinery/client/clientset/versioned/typed/dba/v1alpha1"
+	fakedbav1alpha1 "kubedb.dev/apimachinery/client/clientset/versioned/typed/dba/v1alpha1/fake"
 	kubedbv1alpha1 "kubedb.dev/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1"
 	fakekubedbv1alpha1 "kubedb.dev/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1/fake"
 
@@ -46,7 +48,7 @@ func NewSimpleClientset(objects ...runtime.Object) *Clientset {
 		}
 	}
 
-	cs := &Clientset{}
+	cs := &Clientset{tracker: o}
 	cs.discovery = &fakediscovery.FakeDiscovery{Fake: &cs.Fake}
 	cs.AddReactor("*", "*", testing.ObjectReaction(o))
 	cs.AddWatchReactor("*", func(action testing.Action) (handled bool, ret watch.Interface, err error) {
@@ -68,10 +70,15 @@ func NewSimpleClientset(objects ...runtime.Object) *Clientset {
 type Clientset struct {
 	testing.Fake
 	discovery *fakediscovery.FakeDiscovery
+	tracker   testing.ObjectTracker
 }
 
 func (c *Clientset) Discovery() discovery.DiscoveryInterface {
 	return c.discovery
+}
+
+func (c *Clientset) Tracker() testing.ObjectTracker {
+	return c.tracker
 }
 
 var _ clientset.Interface = &Clientset{}
@@ -84,6 +91,11 @@ func (c *Clientset) CatalogV1alpha1() catalogv1alpha1.CatalogV1alpha1Interface {
 // ConfigV1alpha1 retrieves the ConfigV1alpha1Client
 func (c *Clientset) ConfigV1alpha1() configv1alpha1.ConfigV1alpha1Interface {
 	return &fakeconfigv1alpha1.FakeConfigV1alpha1{Fake: &c.Fake}
+}
+
+// DbaV1alpha1 retrieves the DbaV1alpha1Client
+func (c *Clientset) DbaV1alpha1() dbav1alpha1.DbaV1alpha1Interface {
+	return &fakedbav1alpha1.FakeDbaV1alpha1{Fake: &c.Fake}
 }
 
 // KubedbV1alpha1 retrieves the KubedbV1alpha1Client
