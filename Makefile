@@ -360,9 +360,10 @@ install:
 		--set catalog.mongo=false \
 		--set catalog.mysql=false \
 		--set catalog.perconaxtradb=false \
+		--set catalog.pgbouncer=false \
 		--set catalog.postgres=true \
-		--set catalog.redis=false \
-		--set catalog.proxysql=false
+		--set catalog.proxysql=false \
+		--set catalog.redis=false
 
 .PHONY: uninstall
 uninstall:
