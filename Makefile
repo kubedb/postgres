@@ -20,8 +20,6 @@ REPO     := $(notdir $(shell pwd))
 BIN      := pg-operator
 COMPRESS ?= no
 
-include Makefile.stash
-
 # Where to push the docker image.
 REGISTRY ?= kubedb
 
@@ -95,6 +93,8 @@ DOCKER_REPO_ROOT := /go/src/$(GO_PKG)/$(REPO)
 # If you want to build all containers, see the 'all-container' rule.
 # If you want to build AND push all containers, see the 'all-push' rule.
 all: fmt build
+
+include Makefile.stash
 
 # For the following OS/ARCH expansions, we transform OS/ARCH into OS_ARCH
 # because make pattern rules don't match with embedded '/' characters.
