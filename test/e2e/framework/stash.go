@@ -108,7 +108,7 @@ func (f *Framework) DeleteRepository(meta metav1.ObjectMeta) error {
 
 func (f *Framework) EventuallySnapshotInRepository(meta metav1.ObjectMeta) GomegaAsyncAssertion {
 	return Eventually(
-		func() int {
+		func() int64 {
 			repository, err := f.stashClient.StashV1alpha1().Repositories(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
 			Expect(err).NotTo(HaveOccurred())
 

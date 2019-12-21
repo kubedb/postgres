@@ -19,6 +19,12 @@ jobs:
         db: [11.2-v1, 11.1-v3, 10.6-v3, 10.2-v5, 9.6-v5, 9.6.7-v5]
     steps:
 
+    - name: Set up Go 1.13
+      uses: actions/setup-go@v1
+      with:
+        go-version: 1.13
+      id: go
+
     - name: Check out code into the Go module directory
       uses: actions/checkout@v1
 

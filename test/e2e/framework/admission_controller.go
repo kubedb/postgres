@@ -112,7 +112,6 @@ func (f *Framework) RunOperatorAndServer(config *restclient.Config, kubeconfigPa
 	serverOpt.RecommendedOptions.Authorization.RemoteKubeConfigFile = kubeconfigPath
 	serverOpt.RecommendedOptions.Authentication.RemoteKubeConfigFile = kubeconfigPath
 
-	serverOpt.ExtraOptions.EnableRBAC = true
 	serverOpt.ExtraOptions.EnableMutatingWebhook = true
 	serverOpt.ExtraOptions.EnableValidatingWebhook = true
 
