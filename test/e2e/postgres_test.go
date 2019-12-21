@@ -253,8 +253,8 @@ var _ = Describe("Postgres", func() {
 		// Delete test resource
 		deleteTestResource()
 
-		for _, pg := range garbagePostgres.Items {
-			*postgres = pg
+		for i := len(garbagePostgres.Items) - 1; i >= 0; i-- {
+			*postgres = garbagePostgres.Items[i]
 			// Delete test resource
 			deleteTestResource()
 		}
@@ -1171,7 +1171,6 @@ var _ = Describe("Postgres", func() {
 			// `kubedb.dev/postgres/hack/dev/examples/stash01_config.yaml`
 			Context("With Stash/Restic", func() {
 				var bc *stashV1beta1.BackupConfiguration
-				var bs *stashV1beta1.BackupSession
 				var rs *stashV1beta1.RestoreSession
 				var repo *stashV1alpha1.Repository
 
@@ -1185,10 +1184,6 @@ var _ = Describe("Postgres", func() {
 				AfterEach(func() {
 					By("Deleting BackupConfiguration")
 					err := f.DeleteBackupConfiguration(bc.ObjectMeta)
-					Expect(err).NotTo(HaveOccurred())
-
-					By("Deleting BackupSession:" + bs.Name)
-					err = f.DeleteBackupSession(bs.ObjectMeta)
 					Expect(err).NotTo(HaveOccurred())
 
 					By("Deleting RestoreSession")
@@ -1233,21 +1228,20 @@ var _ = Describe("Postgres", func() {
 					err = f.CreateSecret(secret)
 					Expect(err).NotTo(HaveOccurred())
 
-					By("Create Repositories")
+					By("Create Stash-Repositories")
 					err = f.CreateRepository(repo)
 					Expect(err).NotTo(HaveOccurred())
 
-					By("Create BackupConfiguration")
+					By("Create Stash-BackupConfiguration")
 					err = f.CreateBackupConfiguration(bc)
 					Expect(err).NotTo(HaveOccurred())
 
-					By("Create BackupSession")
-					err = f.CreateBackupSession(bs)
-					Expect(err).NotTo(HaveOccurred())
+					By("Check for snapshot count in stash-repository")
+					f.EventuallySnapshotInRepository(repo.ObjectMeta).Should(matcher.MoreThan(2))
 
-					// eventually backupsession succeeded
-					By("Check for Succeeded backupsession")
-					f.EventuallyBackupSessionPhase(bs.ObjectMeta).Should(Equal(stashV1beta1.BackupSessionSucceeded))
+					By("Pause BackupConfiguration scheduling")
+					err = f.PauseBackupConfiguration(bc.ObjectMeta)
+					Expect(err).NotTo(HaveOccurred())
 
 					oldPostgres, err := f.GetPostgres(postgres.ObjectMeta)
 					Expect(err).NotTo(HaveOccurred())
@@ -1291,7 +1285,6 @@ var _ = Describe("Postgres", func() {
 						secret = f.SecretForGCSBackend()
 						secret = f.PatchSecretForRestic(secret)
 						bc = f.BackupConfiguration(postgres.ObjectMeta)
-						bs = f.BackupSession(postgres.ObjectMeta)
 						repo = f.Repository(postgres.ObjectMeta, secret.Name)
 
 						repo.Spec.Backend = store.Backend{
@@ -1639,6 +1632,7 @@ var _ = Describe("Postgres", func() {
 				// -- > 1st Postgres end < --
 
 				// -- > 2nd Postgres < --
+				postgres2nd.Spec.DatabaseSecret = oldPostgres.Spec.DatabaseSecret
 				*postgres = *postgres2nd
 
 				// Create Postgres
@@ -1664,6 +1658,7 @@ var _ = Describe("Postgres", func() {
 				// -- > 2nd Postgres end < --
 
 				// -- > 3rd Postgres < --
+				postgres3rd.Spec.DatabaseSecret = oldPostgres.Spec.DatabaseSecret
 				*postgres = *postgres3rd
 
 				// Create Postgres
@@ -1701,6 +1696,7 @@ var _ = Describe("Postgres", func() {
 				// -- > 1st Postgres end < --
 
 				// -- > 2nd Postgres < --
+				postgres2nd.Spec.DatabaseSecret = oldPostgres.Spec.DatabaseSecret
 				*postgres = *postgres2nd
 
 				// Create Postgres
@@ -1726,6 +1722,7 @@ var _ = Describe("Postgres", func() {
 				// -- > 2nd Postgres end < --
 
 				// -- > 3rd Postgres < --
+				postgres3rd.Spec.DatabaseSecret = oldPostgres.Spec.DatabaseSecret
 				*postgres = *postgres3rd
 
 				// Create Postgres
@@ -1776,10 +1773,6 @@ var _ = Describe("Postgres", func() {
 			Context("In Local", func() {
 				BeforeEach(func() {
 					skipWalDataChecking = true
-				})
-
-				Context("With EmptyDir as Archive backend", func() {
-					By("By definition, WAL files can not be initialized from EmptyDir. Skipping Test.")
 				})
 
 				Context("With PVC as Archive backend", func() {
@@ -2048,6 +2041,17 @@ var _ = Describe("Postgres", func() {
 				})
 
 				Context("Archive and Initialize from wal archive", func() {
+
+					It("should archive and should resume from archive successfully", archiveAndInitializeFromArchive)
+				})
+
+				Context("With dedicated Elasticsearch", func() {
+
+					BeforeEach(func() {
+						postgres.Spec.Replicas = types.Int32P(3)
+						postgres2nd.Spec.Replicas = types.Int32P(3)
+						postgres3rd.Spec.Replicas = types.Int32P(3)
+					})
 
 					It("should archive and should resume from archive successfully", archiveAndInitializeFromArchive)
 				})
