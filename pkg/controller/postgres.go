@@ -31,6 +31,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/wait"
 	kutil "kmodules.xyz/client-go"
 	core_util "kmodules.xyz/client-go/core/v1"
 	dynamic_util "kmodules.xyz/client-go/dynamic"
@@ -333,6 +334,26 @@ func (c *Controller) setOwnerReferenceToOffshoots(postgres *api.Postgres, owner 
 	// If TerminationPolicy is "wipeOut", delete snapshots and secrets,
 	// else, keep it intact.
 	if postgres.Spec.TerminationPolicy == api.TerminationPolicyWipeOut {
+		// at first, pause the database transactions by deleting the statefulsets. otherwise wiping out may not be accurate.
+		// because, while operator is trying to delete the wal data, the database pod may still trying to push new data.
+		policy := metav1.DeletePropagationForeground
+		if err := c.Client.AppsV1().
+			StatefulSets(postgres.Namespace).
+			Delete(
+				postgres.OffshootName(),
+				&metav1.DeleteOptions{PropagationPolicy: &policy},
+			); err != nil && !kerr.IsNotFound(err) {
+			return errors.Wrap(err, "error in deletion of statefulsets")
+		}
+		// Let's give statefulsets some time to breath and then be deleted.
+		if err := wait.PollImmediate(kutil.RetryInterval, kutil.GCTimeout, func() (bool, error) {
+			podList, err := c.Client.CoreV1().Pods(postgres.Namespace).List(metav1.ListOptions{
+				LabelSelector: selector.String(),
+			})
+			return len(podList.Items) == 0, err
+		}); err != nil {
+			fmt.Printf("got error while waiting for db pods to be deleted: %v. coninuing with further deletion steps.\n", err.Error())
+		}
 		if err := dynamic_util.EnsureOwnerReferenceForSelector(
 			c.DynamicClient,
 			api.SchemeGroupVersion.WithResource(api.ResourcePluralSnapshot),
@@ -346,7 +367,9 @@ func (c *Controller) setOwnerReferenceToOffshoots(postgres *api.Postgres, owner 
 		}
 		// if wal archiver was configured, remove wal data from backend
 		if postgres.Spec.Archiver != nil {
-			return c.wipeOutWalData(postgres.ObjectMeta, &postgres.Spec)
+			if err := c.wipeOutWalData(postgres.ObjectMeta, &postgres.Spec); err != nil {
+				return err
+			}
 		}
 	} else {
 		// Make sure snapshot and secret's ownerreference is removed.

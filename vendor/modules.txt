@@ -397,7 +397,7 @@ gomodules.xyz/cert
 gomodules.xyz/cert/certstore
 # gomodules.xyz/jsonpatch/v2 v2.0.1
 gomodules.xyz/jsonpatch/v2
-# gomodules.xyz/stow v0.2.3
+# gomodules.xyz/stow v0.2.4
 gomodules.xyz/stow
 gomodules.xyz/stow/azure
 gomodules.xyz/stow/google

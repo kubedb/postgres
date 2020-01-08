@@ -15,7 +15,8 @@ require (
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.5
 	gomodules.xyz/cert v1.0.2
-	gomodules.xyz/stow v0.2.3
+	gomodules.xyz/stow v0.2.4
+	gomodules.xyz/version v0.1.0
 	k8s.io/api v0.0.0-20191122220107-b5267f2975e0
 	k8s.io/apiextensions-apiserver v0.0.0-20191114105449-027877536833
 	k8s.io/apimachinery v0.16.5-beta.1

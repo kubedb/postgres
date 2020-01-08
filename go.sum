@@ -630,6 +630,8 @@ gomodules.xyz/jsonpatch/v2 v2.0.1 h1:xyiBuvkD2g5n7cYzx6u2sxQvsAy4QJsZFCzGVdzOXZ0
 gomodules.xyz/jsonpatch/v2 v2.0.1/go.mod h1:IhYNNY4jnS53ZnfE4PAmpKtDpTCj1JFXc+3mwe7XcUU=
 gomodules.xyz/stow v0.2.3 h1:019jXAX2+QsY5qCytwqpRRG+wZ7HaESZzsQ1vuhTV00=
 gomodules.xyz/stow v0.2.3/go.mod h1:S9/zV1kNAWAvqmdum0oByA4+aNdTdoK9hKb1bObf1BI=
+gomodules.xyz/stow v0.2.4 h1:TwsLIE8OAN3hkUR45CJwbJEoqYzWv33yuuq++ZkYdyo=
+gomodules.xyz/stow v0.2.4/go.mod h1:aAgUEHyZ+4nKznyVupMMkP0JX9MXW1ZRrbRGaclp3E0=
 gomodules.xyz/version v0.1.0 h1:inGItCg/egI0jPMeIE0SQkiDIJaodOMoCrxYqasQLR0=
 gomodules.xyz/version v0.1.0/go.mod h1:Y8xuV02mL/45psyPKG3NCVOwvAOy6T5Kx0l3rCjKSjU=
 gonum.org/v1/gonum v0.0.0-20190331200053-3d26580ed485/go.mod h1:2ltnJ7xHfj0zHS40VVPYEAAMTa3ZGguvHGBSJeRWqE0=

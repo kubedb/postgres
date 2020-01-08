@@ -28,28 +28,25 @@ import (
 )
 
 func (f *Framework) EventuallyWalDataFound(postgres *api.Postgres) GomegaAsyncAssertion {
-	if f.IsMinio(postgres.Spec.Archiver.Storage) { // if it is minio
-		return Eventually(
-			func() bool {
-				found, err := f.checkMinioWalData(postgres)
-				Expect(err).NotTo(HaveOccurred())
-				return found
-			},
-			time.Minute*5,
-			time.Second*5,
-		)
-	} else {
-		return Eventually(
-			func() bool {
-				found, err := f.checkWalData(postgres)
-				Expect(err).NotTo(HaveOccurred())
-				return found
-			},
-			time.Minute*5,
-			time.Second*5,
-		)
-	}
-
+	var err error
+	defer func() {
+		if err != nil {
+			fmt.Println(err)
+		}
+	}()
+	return Eventually(
+		func() bool {
+			var found bool
+			if f.IsMinio(postgres.Spec.Archiver.Storage) { // if it is minio
+				found, err = f.checkMinioWalData(postgres)
+			} else {
+				found, err = f.checkWalData(postgres)
+			}
+			return found
+		},
+		time.Minute*10,
+		time.Second*5,
+	)
 }
 
 func (f *Framework) checkWalData(postgres *api.Postgres) (bool, error) {

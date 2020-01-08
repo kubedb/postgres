@@ -16,6 +16,7 @@ limitations under the License.
 package matcher
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/onsi/gomega/types"
@@ -32,7 +33,15 @@ type countMatcher struct {
 }
 
 func (matcher *countMatcher) Match(actual interface{}) (success bool, err error) {
-	total := actual.(int)
+	var total int
+	if val, ok := actual.(int); ok {
+		total = val
+	} else if val, ok := actual.(int64); ok {
+		// the interface can be int64 as well
+		total = int(val)
+	} else {
+		return false, errors.New("match is neither int nor int64")
+	}
 	return total >= matcher.expected, nil
 }
 
