@@ -196,7 +196,6 @@ func (c *Controller) createDormantDatabase(postgres *api.Postgres) (*api.Dormant
 					Namespace:         postgres.Namespace,
 					Labels:            postgres.Labels,
 					Annotations:       postgres.Annotations,
-					CreationTimestamp: postgres.CreationTimestamp,
 				},
 				Spec: api.OriginSpec{
 					Postgres: &(postgres.Spec),

@@ -44,11 +44,18 @@ const (
 	MySQLGroupModeMultiPrimary  MySQLGroupMode = "Multi-Primary"
 )
 
+// Mysql defines a Mysql database.
+
 // +genclient
 // +k8s:openapi-gen=true
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// Mysql defines a Mysql database.
+// +kubebuilder:object:root=true
+// +kubebuilder:resource:path=mysqls,singular=mysql,shortName=my,categories={datastore,kubedb,appscode,all}
+// +kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="Version",type="string",JSONPath=".spec.version"
+// +kubebuilder:printcolumn:name="Status",type="string",JSONPath=".status.phase"
+// +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
 type MySQL struct {
 	metav1.TypeMeta   `json:",inline,omitempty"`
 	metav1.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
@@ -106,9 +113,17 @@ type MySQLSpec struct {
 	// Template.
 	UpdateStrategy apps.StatefulSetUpdateStrategy `json:"updateStrategy,omitempty" protobuf:"bytes,13,opt,name=updateStrategy"`
 
+	// Indicates that the database is paused and controller will not sync any changes made to this spec.
+	// +optional
+	Paused bool `json:"paused,omitempty" protobuf:"varint,14,opt,name=paused"`
+
+	// Indicates that the database is halted and all offshoot Kubernetes resources except PVCs are deleted.
+	// +optional
+	Halted bool `json:"halted,omitempty" protobuf:"varint,15,opt,name=halted"`
+
 	// TerminationPolicy controls the delete operation for database
 	// +optional
-	TerminationPolicy TerminationPolicy `json:"terminationPolicy,omitempty" protobuf:"bytes,14,opt,name=terminationPolicy,casttype=TerminationPolicy"`
+	TerminationPolicy TerminationPolicy `json:"terminationPolicy,omitempty" protobuf:"bytes,16,opt,name=terminationPolicy,casttype=TerminationPolicy"`
 }
 
 type MySQLClusterTopology struct {

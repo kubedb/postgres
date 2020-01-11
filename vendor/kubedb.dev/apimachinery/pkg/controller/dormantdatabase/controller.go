@@ -69,7 +69,7 @@ func (c *Controller) EnsureCustomResourceDefinitions() error {
 	crd := []*crd_api.CustomResourceDefinition{
 		api.DormantDatabase{}.CustomResourceDefinition(),
 	}
-	return crdutils.RegisterCRDs(c.ApiExtKubeClient, crd)
+	return crdutils.RegisterCRDs(c.Client.Discovery(), c.ApiExtKubeClient, crd)
 }
 
 func (c *Controller) InitInformer() cache.SharedIndexInformer {

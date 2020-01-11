@@ -95,6 +95,10 @@ type ProxySQLSpec struct {
 	// employed to update Pods in the StatefulSet when a revision is made to
 	// Template.
 	UpdateStrategy apps.StatefulSetUpdateStrategy `json:"updateStrategy,omitempty" protobuf:"bytes,10,opt,name=updateStrategy"`
+
+	// Indicates that the database is paused and controller will not sync any changes made to this spec.
+	// +optional
+	Paused bool `json:"paused,omitempty" protobuf:"varint,11,opt,name=paused"`
 }
 
 type ProxySQLBackendSpec struct {

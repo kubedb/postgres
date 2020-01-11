@@ -24,8 +24,12 @@ import (
 	kubedbinformers "kubedb.dev/apimachinery/client/informers/externalversions"
 
 	"github.com/appscode/go/log/golog"
+	cm "github.com/jetstack/cert-manager/pkg/client/clientset/versioned"
+	cmInformers "github.com/jetstack/cert-manager/pkg/client/informers/externalversions"
 	batch "k8s.io/api/batch/v1"
+	ext_cs "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	crd_cs "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
+	externalInformers "k8s.io/apiextensions-apiserver/pkg/client/informers/externalversions"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/dynamic"
@@ -54,14 +58,20 @@ type Controller struct {
 	AppCatalogClient appcat_cs.Interface
 	// StashClient for stash
 	StashClient scs.Interface
+	//CertManagerClient for cert-manger
+	CertManagerClient cm.Interface
+	// externalClient for crd
+	ExternalClient ext_cs.Interface
 }
 
 type Config struct {
 	// Informer factory
-	KubeInformerFactory   informers.SharedInformerFactory
-	KubedbInformerFactory kubedbinformers.SharedInformerFactory
-	StashInformerFactory  stashInformers.SharedInformerFactory
-	AppCatInformerFactory appcat_in.SharedInformerFactory
+	KubeInformerFactory        informers.SharedInformerFactory
+	KubedbInformerFactory      kubedbinformers.SharedInformerFactory
+	StashInformerFactory       stashInformers.SharedInformerFactory
+	AppCatInformerFactory      appcat_in.SharedInformerFactory
+	ExternalInformerFactory    externalInformers.SharedInformerFactory
+	CertManagerInformerFactory cmInformers.SharedInformerFactory
 
 	// DormantDb queue
 	DrmnQueue    *queue.Worker
