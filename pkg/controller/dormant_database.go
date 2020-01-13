@@ -192,10 +192,10 @@ func (c *Controller) createDormantDatabase(postgres *api.Postgres) (*api.Dormant
 		Spec: api.DormantDatabaseSpec{
 			Origin: api.Origin{
 				PartialObjectMeta: ofst.PartialObjectMeta{
-					Name:              postgres.Name,
-					Namespace:         postgres.Namespace,
-					Labels:            postgres.Labels,
-					Annotations:       postgres.Annotations,
+					Name:        postgres.Name,
+					Namespace:   postgres.Namespace,
+					Labels:      postgres.Labels,
+					Annotations: postgres.Annotations,
 				},
 				Spec: api.OriginSpec{
 					Postgres: &(postgres.Spec),
