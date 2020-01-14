@@ -70,7 +70,7 @@ func (c *Controller) EnsureCustomResourceDefinitions() error {
 	crd := []*crd_api.CustomResourceDefinition{
 		api.Snapshot{}.CustomResourceDefinition(),
 	}
-	return crdutils.RegisterCRDs(c.ApiExtKubeClient, crd)
+	return crdutils.RegisterCRDs(c.Client.Discovery(), c.ApiExtKubeClient, crd)
 }
 
 // InitInformer ensures snapshot watcher and returns queue.Worker.

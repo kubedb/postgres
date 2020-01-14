@@ -34,9 +34,8 @@ import (
 )
 
 var (
-	DockerRegistry     = "kubedbci"
-	SelfHostedOperator = true
-	DBCatalogName      = "10.2-v5"
+	DockerRegistry = "kubedbci"
+	DBCatalogName  = "10.2-v5"
 )
 
 type Framework struct {

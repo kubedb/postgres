@@ -19,12 +19,15 @@ import (
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
 	cs_util "kubedb.dev/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1/util"
 
+	"github.com/appscode/go/log"
 	"github.com/pkg/errors"
 	core "k8s.io/api/core/v1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/util/sets"
+	"k8s.io/apimachinery/pkg/util/wait"
+	kutil "kmodules.xyz/client-go"
 	core_util "kmodules.xyz/client-go/core/v1"
 	dynamic_util "kmodules.xyz/client-go/dynamic"
 	meta_util "kmodules.xyz/client-go/meta"
@@ -50,6 +53,10 @@ func (c *Controller) WaitUntilPaused(drmn *api.DormantDatabase) error {
 	}
 
 	if err := c.waitUntilRBACStuffDeleted(db); err != nil {
+		return err
+	}
+
+	if err := c.waitUntilPostgresDeleted(db); err != nil {
 		return err
 	}
 
@@ -88,6 +95,16 @@ func (c *Controller) waitUntilRBACStuffDeleted(postgres *api.Postgres) error {
 	return nil
 }
 
+func (c *Controller) waitUntilPostgresDeleted(postgres *api.Postgres) error {
+	log.Infof("waiting for postgres %v/%v to be deleted\n", postgres.Namespace, postgres.Name)
+	return wait.PollImmediate(kutil.RetryInterval, kutil.ReadinessTimeout, func() (bool, error) {
+		if _, err := c.ExtClient.KubedbV1alpha1().Postgreses(postgres.Namespace).Get(postgres.Name, metav1.GetOptions{}); err != nil && kerr.IsNotFound(err) {
+			return true, nil
+		}
+		return false, nil
+	})
+}
+
 // WipeOutDatabase is an Interface of *amc.Controller.
 // It verifies and deletes secrets and other left overs of DBs except Snapshot and PVC.
 func (c *Controller) WipeOutDatabase(drmn *api.DormantDatabase) error {
@@ -112,8 +129,14 @@ func (c *Controller) wipeOutDatabase(meta metav1.ObjectMeta, secrets []string, r
 	}
 	unusedSecrets := sets.NewString(secrets...).Difference(secretUsed)
 
+	//Dont delete unused secrets that are not owned by kubeDB
 	for _, unusedSecret := range unusedSecrets.List() {
 		secret, err := c.Client.CoreV1().Secrets(meta.Namespace).Get(unusedSecret, metav1.GetOptions{})
+		//Maybe user has delete this secret
+		if kerr.IsNotFound(err) {
+			unusedSecrets.Delete(secret.Name)
+			continue
+		}
 		if err != nil {
 			return errors.Wrap(err, "error in getting db secret")
 		}
@@ -169,11 +192,10 @@ func (c *Controller) createDormantDatabase(postgres *api.Postgres) (*api.Dormant
 		Spec: api.DormantDatabaseSpec{
 			Origin: api.Origin{
 				PartialObjectMeta: ofst.PartialObjectMeta{
-					Name:              postgres.Name,
-					Namespace:         postgres.Namespace,
-					Labels:            postgres.Labels,
-					Annotations:       postgres.Annotations,
-					CreationTimestamp: postgres.CreationTimestamp,
+					Name:        postgres.Name,
+					Namespace:   postgres.Namespace,
+					Labels:      postgres.Labels,
+					Annotations: postgres.Annotations,
 				},
 				Spec: api.OriginSpec{
 					Postgres: &(postgres.Spec),

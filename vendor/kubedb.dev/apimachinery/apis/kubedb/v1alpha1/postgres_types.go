@@ -113,9 +113,17 @@ type PostgresSpec struct {
 	// Template.
 	UpdateStrategy apps.StatefulSetUpdateStrategy `json:"updateStrategy,omitempty" protobuf:"bytes,17,opt,name=updateStrategy"`
 
+	// Indicates that the database is paused and controller will not sync any changes made to this spec.
+	// +optional
+	Paused bool `json:"paused,omitempty" protobuf:"varint,18,opt,name=paused"`
+
+	// Indicates that the database is halted and all offshoot Kubernetes resources except PVCs are deleted.
+	// +optional
+	Halted bool `json:"halted,omitempty" protobuf:"varint,19,opt,name=halted"`
+
 	// TerminationPolicy controls the delete operation for database
 	// +optional
-	TerminationPolicy TerminationPolicy `json:"terminationPolicy,omitempty" protobuf:"bytes,18,opt,name=terminationPolicy,casttype=TerminationPolicy"`
+	TerminationPolicy TerminationPolicy `json:"terminationPolicy,omitempty" protobuf:"bytes,20,opt,name=terminationPolicy,casttype=TerminationPolicy"`
 }
 
 type PostgresArchiverSpec struct {

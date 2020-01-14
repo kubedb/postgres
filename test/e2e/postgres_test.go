@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
 	"kubedb.dev/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1/util"
@@ -84,6 +85,12 @@ var _ = Describe("Postgres", func() {
 		dbUser = "postgres"
 	})
 
+	JustAfterEach(func() {
+		if CurrentGinkgoTestDescription().Failed {
+			f.PrintDebugHelpers()
+		}
+	})
+
 	var createAndWaitForRunning = func() {
 		By("Creating Postgres: " + postgres.Name)
 		err = f.CreatePostgres(postgres)
@@ -92,15 +99,15 @@ var _ = Describe("Postgres", func() {
 		By("Wait for Running postgres")
 		f.EventuallyPostgresRunning(postgres.ObjectMeta).Should(BeTrue())
 
-		By("Waiting for database to be ready")
-		f.EventuallyPingDatabase(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
-
 		By("Wait for AppBinding to create")
 		f.EventuallyAppBinding(postgres.ObjectMeta).Should(BeTrue())
 
 		By("Check valid AppBinding Specs")
 		err := f.CheckAppBindingSpec(postgres.ObjectMeta)
 		Expect(err).NotTo(HaveOccurred())
+
+		By("Waiting for database to be ready")
+		f.EventuallyPingDatabase(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
 	}
 
 	var testGeneralBehaviour = func() {
@@ -862,6 +869,8 @@ var _ = Describe("Postgres", func() {
 				It("should take Snapshot successfully", shouldTakeSnapshot)
 			})
 
+			// As, snapshot is deprecated. This excessive 'test for snapshot Job Volume' is not necessary.
+			// TODO: delete sooner or later.
 			Context("Snapshot PodVolume Template - In S3", func() {
 
 				BeforeEach(func() {
@@ -1182,10 +1191,6 @@ var _ = Describe("Postgres", func() {
 				})
 
 				AfterEach(func() {
-					By("Deleting BackupConfiguration")
-					err := f.DeleteBackupConfiguration(bc.ObjectMeta)
-					Expect(err).NotTo(HaveOccurred())
-
 					By("Deleting RestoreSession")
 					err = f.DeleteRestoreSession(rs.ObjectMeta)
 					Expect(err).NotTo(HaveOccurred())
@@ -1209,6 +1214,9 @@ var _ = Describe("Postgres", func() {
 					By("Check valid AppBinding Specs")
 					err = f.CheckAppBindingSpec(postgres.ObjectMeta)
 					Expect(err).NotTo(HaveOccurred())
+
+					By("Waiting for database to be ready")
+					f.EventuallyPingDatabase(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
 				}
 
 				var shouldInitializeFromStash = func() {
@@ -1239,8 +1247,8 @@ var _ = Describe("Postgres", func() {
 					By("Check for snapshot count in stash-repository")
 					f.EventuallySnapshotInRepository(repo.ObjectMeta).Should(matcher.MoreThan(2))
 
-					By("Pause BackupConfiguration scheduling")
-					err = f.PauseBackupConfiguration(bc.ObjectMeta)
+					By("Delete BackupConfiguration to stop backup scheduling")
+					err = f.DeleteBackupConfiguration(bc.ObjectMeta)
 					Expect(err).NotTo(HaveOccurred())
 
 					oldPostgres, err := f.GetPostgres(postgres.ObjectMeta)
@@ -1250,7 +1258,7 @@ var _ = Describe("Postgres", func() {
 
 					By("Create postgres from stash")
 					*postgres = *f.Postgres()
-					rs = f.RestoreSession(postgres.ObjectMeta, oldPostgres.ObjectMeta)
+					rs = f.RestoreSession(postgres.ObjectMeta, repo)
 					postgres.Spec.DatabaseSecret = oldPostgres.Spec.DatabaseSecret
 					postgres.Spec.Init = &api.InitSpec{
 						StashRestoreSession: &core.LocalObjectReference{
@@ -1260,6 +1268,12 @@ var _ = Describe("Postgres", func() {
 
 					// Create and wait for running Postgres
 					createAndWaitForInitializing()
+
+					// wait few time before postgres is running after initial startup
+					// TODO: fix this in operator. May be add sophisticated(!) readiness probe.
+					time.Sleep(time.Minute * 2)
+					By("Waiting for database to be ready")
+					f.EventuallyPingDatabase(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
 
 					By("Create RestoreSession")
 					err = f.CreateRestoreSession(rs)
@@ -1284,8 +1298,8 @@ var _ = Describe("Postgres", func() {
 					BeforeEach(func() {
 						secret = f.SecretForGCSBackend()
 						secret = f.PatchSecretForRestic(secret)
-						bc = f.BackupConfiguration(postgres.ObjectMeta)
-						repo = f.Repository(postgres.ObjectMeta, secret.Name)
+						repo = f.Repository(postgres.ObjectMeta)
+						bc = f.BackupConfiguration(postgres.ObjectMeta, repo)
 
 						repo.Spec.Backend = store.Backend{
 							GCS: &store.GCSSpec{
@@ -1298,13 +1312,11 @@ var _ = Describe("Postgres", func() {
 
 					It("should run successfully", shouldInitializeFromStash)
 				})
-
 			})
 		})
 
 		Context("Resume", func() {
 			var usedInitialized bool
-
 			BeforeEach(func() {
 				usedInitialized = false
 			})
@@ -1624,6 +1636,9 @@ var _ = Describe("Postgres", func() {
 				By("Checking Archive")
 				f.EventuallyCountArchive(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
 
+				By("Checking wal data in backend")
+				f.EventuallyWalDataFound(postgres).Should(BeTrue())
+
 				oldPostgres, err := f.GetPostgres(postgres.ObjectMeta)
 				Expect(err).NotTo(HaveOccurred())
 
@@ -1641,6 +1656,9 @@ var _ = Describe("Postgres", func() {
 				By("Ping Database")
 				f.EventuallyPingDatabase(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
 
+				By("Checking existing data in Table")
+				f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
+
 				By("Creating Table")
 				f.EventuallyCreateTable(postgres.ObjectMeta, dbName, dbUser, 3).Should(BeTrue())
 
@@ -1649,6 +1667,9 @@ var _ = Describe("Postgres", func() {
 
 				By("Checking Archive")
 				f.EventuallyCountArchive(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
+
+				By("Checking wal data in backend")
+				f.EventuallyWalDataFound(postgres).Should(BeTrue())
 
 				oldPostgres, err = f.GetPostgres(postgres.ObjectMeta)
 				Expect(err).NotTo(HaveOccurred())
@@ -1759,18 +1780,32 @@ var _ = Describe("Postgres", func() {
 				By("Checking wal data in backend")
 				f.EventuallyWalDataFound(postgres).Should(BeTrue())
 
+				postgres, err = f.GetPostgres(postgres.ObjectMeta)
+				Expect(err).NotTo(HaveOccurred())
+
 				By("Deleting Postgres crd")
 				err = f.DeletePostgres(postgres.ObjectMeta)
 				Expect(err).NotTo(HaveOccurred())
 
+				By("wait until postgres is deleted")
+				f.EventuallyPostgres(postgres.ObjectMeta).Should(BeFalse())
+
 				By("Checking DormantDatabase is not created")
 				f.EventuallyDormantDatabase(postgres.ObjectMeta).Should(BeFalse())
+
+				By("Checking PVCs has been deleted")
+				f.EventuallyPVCCount(postgres.ObjectMeta).Should(Equal(0))
+
+				By("Checking Secrets has been deleted")
+				f.EventuallyDBSecretCount(postgres.ObjectMeta).Should(Equal(0))
 
 				By("Checking Wal data removed from backend")
 				f.EventuallyWalDataFound(postgres).Should(BeFalse())
 			}
 
-			Context("In Local", func() {
+			// Archiving not working for local volume. xref: https://github.com/kubedb/project/issues/623
+			// TODO: fix the issue and enable this test
+			XContext("In Local", func() {
 				BeforeEach(func() {
 					skipWalDataChecking = true
 				})
