@@ -265,7 +265,7 @@ func ValidatePostgres(client kubernetes.Interface, extClient cs.Interface, postg
 		return fmt.Errorf(`'spec.terminationPolicy' is missing`)
 	}
 
-	if postgres.Spec.StorageType == api.StorageTypeEphemeral && postgres.Spec.TerminationPolicy == api.TerminationPolicyPause {
+	if postgres.Spec.StorageType == api.StorageTypeEphemeral && postgres.Spec.TerminationPolicy == api.TerminationPolicyHalt {
 		return fmt.Errorf(`'spec.terminationPolicy: Pause' can not be used for 'Ephemeral' storage`)
 	}
 

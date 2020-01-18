@@ -59,10 +59,6 @@ func (c *Controller) runPostgres(key string) error {
 				return err
 			}
 		} else {
-			if postgres.Spec.Paused {
-				return nil
-			}
-
 			postgres, _, err = util.PatchPostgres(c.ExtClient.KubedbV1alpha1(), postgres, func(in *api.Postgres) *api.Postgres {
 				in.ObjectMeta = core_util.AddFinalizer(in.ObjectMeta, api.GenericKey)
 				return in
@@ -70,6 +66,11 @@ func (c *Controller) runPostgres(key string) error {
 			if err != nil {
 				return err
 			}
+
+			if postgres.Spec.Paused {
+				return nil
+			}
+
 			if postgres.Spec.Halted {
 				if err := c.halt(postgres); err != nil {
 					log.Errorln(err)
