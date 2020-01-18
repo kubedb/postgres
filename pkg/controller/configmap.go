@@ -16,7 +16,7 @@ limitations under the License.
 package controller
 
 import (
-	le "kubedb.dev/postgres/pkg/leader_election"
+	le "kubedb.dev/pg-leader-election/pkg/leader_election"
 
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

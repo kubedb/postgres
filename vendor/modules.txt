@@ -967,7 +967,7 @@ k8s.io/utils/integer
 k8s.io/utils/path
 k8s.io/utils/pointer
 k8s.io/utils/trace
-# kmodules.xyz/client-go v0.0.0-20200108114229-70ba8841e60f
+# kmodules.xyz/client-go v0.0.0-20200116162153-e083ae16abca
 kmodules.xyz/client-go
 kmodules.xyz/client-go/admissionregistration/v1beta1
 kmodules.xyz/client-go/apiextensions/v1beta1
@@ -1064,6 +1064,8 @@ kubedb.dev/apimachinery/pkg/controller/restoresession
 kubedb.dev/apimachinery/pkg/controller/snapshot
 kubedb.dev/apimachinery/pkg/eventer
 kubedb.dev/apimachinery/pkg/validator
+# kubedb.dev/pg-leader-election v0.1.1
+kubedb.dev/pg-leader-election/pkg/leader_election
 # sigs.k8s.io/kustomize v2.0.3+incompatible => sigs.k8s.io/kustomize v2.0.3+incompatible
 sigs.k8s.io/kustomize/pkg/commands/build
 sigs.k8s.io/kustomize/pkg/constants
