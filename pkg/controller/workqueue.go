@@ -45,6 +45,7 @@ func (c *Controller) runPostgres(key string) error {
 		// Note that you also have to check the uid if you have a local controlled resource, which
 		// is dependent on the actual instance, to detect that a Postgres was recreated with the same name
 		postgres := obj.(*api.Postgres).DeepCopy()
+
 		if postgres.DeletionTimestamp != nil {
 			if core_util.HasFinalizer(postgres.ObjectMeta, api.GenericKey) {
 				if err := c.terminate(postgres); err != nil {
@@ -58,6 +59,10 @@ func (c *Controller) runPostgres(key string) error {
 				return err
 			}
 		} else {
+			if postgres.Spec.Paused {
+				return nil
+			}
+
 			postgres, _, err = util.PatchPostgres(c.ExtClient.KubedbV1alpha1(), postgres, func(in *api.Postgres) *api.Postgres {
 				in.ObjectMeta = core_util.AddFinalizer(in.ObjectMeta, api.GenericKey)
 				return in
@@ -65,10 +70,18 @@ func (c *Controller) runPostgres(key string) error {
 			if err != nil {
 				return err
 			}
-			if err := c.create(postgres); err != nil {
-				log.Errorln(err)
-				c.pushFailureEvent(postgres, err.Error())
-				return err
+			if postgres.Spec.Halted {
+				if err := c.halt(postgres); err != nil {
+					log.Errorln(err)
+					c.pushFailureEvent(postgres, err.Error())
+					return err
+				}
+			} else {
+				if err := c.create(postgres); err != nil {
+					log.Errorln(err)
+					c.pushFailureEvent(postgres, err.Error())
+					return err
+				}
 			}
 		}
 	}

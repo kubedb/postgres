@@ -83,11 +83,6 @@ func (m MySQL) GoverningServiceName() string {
 	return m.OffshootName() + "-gvr"
 }
 
-// Snapshot service account name.
-func (m MySQL) SnapshotSAName() string {
-	return fmt.Sprintf("%v-snapshot", m.OffshootName())
-}
-
 func (m MySQL) PeerName(idx int) string {
 	return fmt.Sprintf("%s-%d.%s.%s", m.OffshootName(), idx, m.GoverningServiceName(), m.Namespace)
 }
@@ -168,9 +163,6 @@ func (m *MySQLSpec) SetDefaults() {
 	if m == nil {
 		return
 	}
-
-	// perform defaulting
-	m.BackupSchedule.SetDefaults()
 
 	if m.StorageType == "" {
 		m.StorageType = StorageTypeDurable

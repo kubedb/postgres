@@ -29,10 +29,6 @@ type FakeKubedbV1alpha1 struct {
 	*testing.Fake
 }
 
-func (c *FakeKubedbV1alpha1) DormantDatabases(namespace string) v1alpha1.DormantDatabaseInterface {
-	return &FakeDormantDatabases{c, namespace}
-}
-
 func (c *FakeKubedbV1alpha1) Elasticsearches(namespace string) v1alpha1.ElasticsearchInterface {
 	return &FakeElasticsearches{c, namespace}
 }
@@ -75,10 +71,6 @@ func (c *FakeKubedbV1alpha1) ProxySQLs(namespace string) v1alpha1.ProxySQLInterf
 
 func (c *FakeKubedbV1alpha1) Redises(namespace string) v1alpha1.RedisInterface {
 	return &FakeRedises{c, namespace}
-}
-
-func (c *FakeKubedbV1alpha1) Snapshots(namespace string) v1alpha1.SnapshotInterface {
-	return &FakeSnapshots{c, namespace}
 }
 
 // RESTClient returns a RESTClient that is used to communicate

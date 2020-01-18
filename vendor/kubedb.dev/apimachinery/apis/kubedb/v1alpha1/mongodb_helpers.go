@@ -179,11 +179,6 @@ func (m MongoDB) GvrSvcName(name string) string {
 	return name + "-gvr"
 }
 
-// Snapshot service account name.
-func (m MongoDB) SnapshotSAName() string {
-	return fmt.Sprintf("%v-snapshot", m.OffshootName())
-}
-
 // HostAddress returns serviceName for standalone mongodb.
 // and, for replica set = <replName>/<host1>,<host2>,<host3>
 // Here, host1 = <pod-name>.<governing-serviceName>
@@ -326,9 +321,6 @@ func (m *MongoDBSpec) SetDefaults(mgVersion *v1alpha1.MongoDBVersion) {
 	if m == nil {
 		return
 	}
-
-	// perform defaulting
-	m.BackupSchedule.SetDefaults()
 
 	if m.StorageType == "" {
 		m.StorageType = StorageTypeDurable

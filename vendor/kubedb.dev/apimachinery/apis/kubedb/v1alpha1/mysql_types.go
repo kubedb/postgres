@@ -88,10 +88,6 @@ type MySQLSpec struct {
 	// +optional
 	Init *InitSpec `json:"init,omitempty" protobuf:"bytes,7,opt,name=init"`
 
-	// BackupSchedule spec to specify how database backup will be taken
-	// +optional
-	BackupSchedule *BackupScheduleSpec `json:"backupSchedule,omitempty" protobuf:"bytes,8,opt,name=backupSchedule"`
-
 	// Monitor is used monitor database instance
 	// +optional
 	Monitor *mona.AgentSpec `json:"monitor,omitempty" protobuf:"bytes,9,opt,name=monitor"`

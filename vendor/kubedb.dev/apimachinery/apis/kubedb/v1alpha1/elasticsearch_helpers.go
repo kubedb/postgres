@@ -82,11 +82,6 @@ func (e *Elasticsearch) MasterServiceName() string {
 	return fmt.Sprintf("%v-master", e.ServiceName())
 }
 
-// Snapshot service account name.
-func (e Elasticsearch) SnapshotSAName() string {
-	return fmt.Sprintf("%v-snapshot", e.OffshootName())
-}
-
 func (e *Elasticsearch) GetConnectionScheme() string {
 	scheme := "http"
 	if e.Spec.EnableSSL {
@@ -171,9 +166,6 @@ func (e *ElasticsearchSpec) SetDefaults() {
 	if e == nil {
 		return
 	}
-
-	// perform defaulting
-	e.BackupSchedule.SetDefaults()
 
 	if !e.DisableSecurity && e.AuthPlugin == v1alpha1.ElasticsearchAuthPluginNone {
 		e.DisableSecurity = true

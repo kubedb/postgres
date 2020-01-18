@@ -97,7 +97,7 @@ jobs:
         cd ..
         git clone https://github.com/kubedb/installer.git
         cd installer
-        git checkout master
+        git checkout del-dorm
 
     - name: Install stash and addons
       run: |

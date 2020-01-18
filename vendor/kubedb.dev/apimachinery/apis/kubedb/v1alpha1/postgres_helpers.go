@@ -78,11 +78,6 @@ func (p Postgres) ServiceName() string {
 	return p.OffshootName()
 }
 
-// Snapshot service account name.
-func (p Postgres) SnapshotSAName() string {
-	return fmt.Sprintf("%v-snapshot", p.OffshootName())
-}
-
 type postgresApp struct {
 	*Postgres
 }
@@ -159,9 +154,6 @@ func (p *PostgresSpec) SetDefaults() {
 	if p == nil {
 		return
 	}
-
-	// perform defaulting
-	p.BackupSchedule.SetDefaults()
 
 	if p.StorageType == "" {
 		p.StorageType = StorageTypeDurable

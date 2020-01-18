@@ -1880,20 +1880,6 @@ spec:
                       - volumePath
                       type: object
                   type: object
-                snapshotSource:
-                  properties:
-                    args:
-                      items:
-                        type: string
-                      type: array
-                    name:
-                      type: string
-                    namespace:
-                      type: string
-                  required:
-                  - name
-                  - namespace
-                  type: object
                 stashRestoreSession:
                   properties:
                     name:

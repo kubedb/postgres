@@ -80,11 +80,8 @@ spec:
               properties:
                 databasePolicyName:
                   type: string
-                snapshotterPolicyName:
-                  type: string
               required:
               - databasePolicyName
-              - snapshotterPolicyName
               type: object
             tools:
               properties:

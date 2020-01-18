@@ -285,8 +285,6 @@ github.com/onsi/gomega/matchers/support/goraph/edge
 github.com/onsi/gomega/matchers/support/goraph/node
 github.com/onsi/gomega/matchers/support/goraph/util
 github.com/onsi/gomega/types
-# github.com/orcaman/concurrent-map v0.0.0-20190826125027-8c72a8bb44f6
-github.com/orcaman/concurrent-map
 # github.com/pborman/uuid v1.2.0
 github.com/pborman/uuid
 # github.com/peterbourgon/diskv v2.0.1+incompatible
@@ -1019,7 +1017,7 @@ kmodules.xyz/prober/api/v1
 # kmodules.xyz/webhook-runtime v0.0.0-20191127075323-d4bfdee6974d
 kmodules.xyz/webhook-runtime/admission/v1beta1
 kmodules.xyz/webhook-runtime/registry/admissionreview/v1beta1
-# kubedb.dev/apimachinery v0.13.0-rc.2.0.20200111104535-722f0b216a67
+# kubedb.dev/apimachinery v0.13.0-rc.3.0.20200114104836-b93778c17cf6
 kubedb.dev/apimachinery/api/crds
 kubedb.dev/apimachinery/apis
 kubedb.dev/apimachinery/apis/catalog
@@ -1053,15 +1051,9 @@ kubedb.dev/apimachinery/client/informers/externalversions/kubedb/v1alpha1
 kubedb.dev/apimachinery/client/listers/catalog/v1alpha1
 kubedb.dev/apimachinery/client/listers/dba/v1alpha1
 kubedb.dev/apimachinery/client/listers/kubedb/v1alpha1
-kubedb.dev/apimachinery/pkg/admission
-kubedb.dev/apimachinery/pkg/admission/dormantdatabase
 kubedb.dev/apimachinery/pkg/admission/namespace
-kubedb.dev/apimachinery/pkg/admission/snapshot
 kubedb.dev/apimachinery/pkg/controller
-kubedb.dev/apimachinery/pkg/controller/dormantdatabase
-kubedb.dev/apimachinery/pkg/controller/job
 kubedb.dev/apimachinery/pkg/controller/restoresession
-kubedb.dev/apimachinery/pkg/controller/snapshot
 kubedb.dev/apimachinery/pkg/eventer
 kubedb.dev/apimachinery/pkg/validator
 # kubedb.dev/pg-leader-election v0.1.1

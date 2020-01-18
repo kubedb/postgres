@@ -478,8 +478,6 @@ github.com/opencontainers/runc v1.0.0-rc2.0.20190611121236-6cc515888830/go.mod h
 github.com/opencontainers/runtime-spec v1.0.0/go.mod h1:jwyrGlmzljRJv/Fgzds9SsS/C5hL+LL3ko9hs6T5lQ0=
 github.com/opencontainers/selinux v1.2.2/go.mod h1:+BLncwf63G4dgOzykXAxcmnFlUaOlkDdmw/CqsW6pjs=
 github.com/openshift/prom-label-proxy v0.1.1-0.20191016113035-b8153a7f39f1/go.mod h1:p5MuxzsYP1JPsNGwtjtcgRHHlGziCJJfztff91nNixw=
-github.com/orcaman/concurrent-map v0.0.0-20190826125027-8c72a8bb44f6 h1:lNCW6THrCKBiJBpz8kbVGjC7MgdCGKwuvBgc7LoD6sw=
-github.com/orcaman/concurrent-map v0.0.0-20190826125027-8c72a8bb44f6/go.mod h1:Lu3tH6HLW3feq74c2GC+jIMS/K2CFcDWnWD9XkenwhI=
 github.com/ory/dockertest v3.3.4+incompatible/go.mod h1:1vX4m9wsvi00u5bseYwXaSnhNrne+V0E6LAcBILJdPs=
 github.com/pascaldekloe/goe v0.1.0/go.mod h1:lzWF7FIEvWOWxwDKqyGYQf6ZUaNfKdP144TG7ZOy1lc=
 github.com/patrickmn/go-cache v2.1.0+incompatible/go.mod h1:3Qf8kWWT7OJRJbdiICTKqZju1ZixQ/KpMGzzAfe6+WQ=
@@ -831,8 +829,8 @@ kmodules.xyz/prober v0.0.0-20191216013129-7c91e2b0edb2 h1:wxHidC0FZfaHTRG8ADG9qd
 kmodules.xyz/prober v0.0.0-20191216013129-7c91e2b0edb2/go.mod h1:YdapXw+AMO1U/yYZloDA0dTiha89Rv1iqK05Jh7qQQY=
 kmodules.xyz/webhook-runtime v0.0.0-20191127075323-d4bfdee6974d h1:qLWf0Xk2sAWT9qWBcodkinrzt0jkYTKhuHCsbwpXutE=
 kmodules.xyz/webhook-runtime v0.0.0-20191127075323-d4bfdee6974d/go.mod h1:aaaxyAmKOpw0ey3LrpBkqWq0LTl35f9PW6mhwVDBMow=
-kubedb.dev/apimachinery v0.13.0-rc.2.0.20200111104535-722f0b216a67 h1:FYq1T1rYf1dgA7IK+OeszHbCYNtcxJv7FVCAKMVOU0Q=
-kubedb.dev/apimachinery v0.13.0-rc.2.0.20200111104535-722f0b216a67/go.mod h1:E7vyf5egSHPkJtCXStcIOz85AiSHB1NffLNXMI3VSiU=
+kubedb.dev/apimachinery v0.13.0-rc.3.0.20200114104836-b93778c17cf6 h1:ZAKmyHsvRnG+NNdMGNCfWvWXBfjx71lF+TCskf9nbc4=
+kubedb.dev/apimachinery v0.13.0-rc.3.0.20200114104836-b93778c17cf6/go.mod h1:uOGZQdcOjfOOz+Knox5erwpl/lOBhn5KOhH+CWkzdN8=
 kubedb.dev/pg-leader-election v0.1.1 h1:HuZDK3q9Uhz2txZIDk4nt9pkdTz6aGoo/sdF4NRK/nQ=
 kubedb.dev/pg-leader-election v0.1.1/go.mod h1:v02XNFptgb9ExaPrQP9dYIMcmszR6xhsDoPt+VZef8I=
 launchpad.net/gocheck v0.0.0-20140225173054-000000000087/go.mod h1:hj7XX3B/0A+80Vse0e+BUHsHMTEhd0O4cpUHr/e/BUM=

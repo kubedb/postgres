@@ -76,11 +76,6 @@ func (p PgBouncer) ServiceName() string {
 	return p.OffshootName()
 }
 
-// Snapshot service account name.
-func (p PgBouncer) SnapshotSAName() string {
-	return fmt.Sprintf("%v-snapshot", p.OffshootName())
-}
-
 type pgbouncerApp struct {
 	*PgBouncer
 }

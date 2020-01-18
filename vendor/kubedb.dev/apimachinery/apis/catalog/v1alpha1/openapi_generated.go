@@ -17614,14 +17614,8 @@ func schema_apimachinery_apis_catalog_v1alpha1_ElasticsearchVersionPodSecurityPo
 							Format: "",
 						},
 					},
-					"snapshotterPolicyName": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
 				},
-				Required: []string{"databasePolicyName", "snapshotterPolicyName"},
+				Required: []string{"databasePolicyName"},
 			},
 		},
 	}
@@ -18258,14 +18252,8 @@ func schema_apimachinery_apis_catalog_v1alpha1_MongoDBVersionPodSecurityPolicy(r
 							Format: "",
 						},
 					},
-					"snapshotterPolicyName": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
 				},
-				Required: []string{"databasePolicyName", "snapshotterPolicyName"},
+				Required: []string{"databasePolicyName"},
 			},
 		},
 	}
@@ -18509,14 +18497,8 @@ func schema_apimachinery_apis_catalog_v1alpha1_MySQLVersionPodSecurityPolicy(ref
 							Format: "",
 						},
 					},
-					"snapshotterPolicyName": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
 				},
-				Required: []string{"databasePolicyName", "snapshotterPolicyName"},
+				Required: []string{"databasePolicyName"},
 			},
 		},
 	}
@@ -19126,14 +19108,8 @@ func schema_apimachinery_apis_catalog_v1alpha1_PostgresVersionPodSecurityPolicy(
 							Format: "",
 						},
 					},
-					"snapshotterPolicyName": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
 				},
-				Required: []string{"databasePolicyName", "snapshotterPolicyName"},
+				Required: []string{"databasePolicyName"},
 			},
 		},
 	}
