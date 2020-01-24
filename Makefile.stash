@@ -18,15 +18,20 @@ SHELL=/bin/bash -o pipefail
 # To test stash integration
 .PHONY: stash-install
 stash-install:
-	@curl -fsSL https://github.com/stashed/installer/raw/v0.9.0-rc.2/deploy/stash.sh | bash
-	@curl -fsSL https://github.com/stashed/catalog/raw/master/deploy/script.sh | bash -s -- --catalog=stash-postgres --docker-registry=stashed
+	helm repo add appscode https://charts.appscode.com/stable/; \
+	helm repo update; \
+	helm install stash-operator appscode/stash \
+		--version v0.9.0-rc.4 \
+		--namespace kube-system; \
+	kubectl wait --for=condition=Ready pods -n kube-system -l app=stash --timeout=5m; \
+	kubectl wait --for=condition=Available apiservice -l app=stash --timeout=5m
+	curl -fsSL https://github.com/stashed/catalog/raw/v0.2.0/deploy/script.sh | bash -s -- --catalog=stash-postgres --docker-registry=stashed
 
 .PHONY: stash-uninstall
 stash-uninstall:
-	@curl -fsSL https://github.com/stashed/catalog/raw/v0.9.0-rc.2/deploy/script.sh | bash -s -- --catalog=stash-postgres --uninstall || true
-	@curl -fsSL https://github.com/stashed/installer/raw/master/deploy/stash.sh | bash -s -- --uninstall
+	curl -fsSL https://github.com/stashed/catalog/raw/v0.2.0/deploy/script.sh | bash -s -- --catalog=stash-postgres --uninstall || true
+	helm uninstall stash --namespace=kube-system || true
 
 .PHONY: stash-purge
-stash-purge:
-	@cd /tmp
-	@curl -fsSL https://github.com/stashed/installer/raw/master/deploy/stash.sh | bash -s -- --uninstall --purge
+stash-purge: stash-uninstall
+	kubectl delete crds -l app=stash
