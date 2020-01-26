@@ -28,6 +28,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	reg_util "kmodules.xyz/client-go/admissionregistration/v1beta1"
+	core_util "kmodules.xyz/client-go/core/v1"
 	"kmodules.xyz/client-go/discovery"
 	appcat_cs "kmodules.xyz/custom-resources/client/clientset/versioned"
 	scs "stash.appscode.dev/stash/client/clientset/versioned"
@@ -62,6 +63,12 @@ func (c *OperatorConfig) New() (*Controller, error) {
 		return nil, err
 	}
 	recorder := eventer.NewEventRecorder(c.KubeClient, "Postgres operator")
+
+	topology, err := core_util.DetectTopology(c.KubeClient)
+	if err != nil {
+		return nil, err
+	}
+
 	ctrl := New(
 		c.ClientConfig,
 		c.KubeClient,
@@ -72,6 +79,7 @@ func (c *OperatorConfig) New() (*Controller, error) {
 		c.AppCatalogClient,
 		c.PromClient,
 		c.Config,
+		topology,
 		recorder,
 	)
 

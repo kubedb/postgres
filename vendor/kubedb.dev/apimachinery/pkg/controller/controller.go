@@ -36,6 +36,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/cache"
+	core_util "kmodules.xyz/client-go/core/v1"
 	"kmodules.xyz/client-go/tools/queue"
 	appcat_cs "kmodules.xyz/custom-resources/client/clientset/versioned"
 	appcat_in "kmodules.xyz/custom-resources/client/informers/externalversions"
@@ -61,6 +62,8 @@ type Controller struct {
 	CertManagerClient cm.Interface
 	// externalClient for crd
 	ExternalClient ext_cs.Interface
+	// Cluster topology when the operator started
+	ClusterTopology *core_util.Topology
 }
 
 type Config struct {

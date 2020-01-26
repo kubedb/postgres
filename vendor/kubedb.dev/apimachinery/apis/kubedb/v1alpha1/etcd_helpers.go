@@ -142,24 +142,20 @@ func (e *Etcd) SetDefaults() {
 	if e == nil {
 		return
 	}
-	e.Spec.SetDefaults()
-}
-
-func (e *EtcdSpec) SetDefaults() {
-	if e == nil {
-		return
-	}
-
 	// perform defaulting
-	if e.StorageType == "" {
-		e.StorageType = StorageTypeDurable
+	if e.Spec.StorageType == "" {
+		e.Spec.StorageType = StorageTypeDurable
 	}
-	if e.UpdateStrategy.Type == "" {
-		e.UpdateStrategy.Type = apps.RollingUpdateStatefulSetStrategyType
+	if e.Spec.UpdateStrategy.Type == "" {
+		e.Spec.UpdateStrategy.Type = apps.RollingUpdateStatefulSetStrategyType
 	}
-	if e.TerminationPolicy == "" {
-		e.TerminationPolicy = TerminationPolicyDelete
+	if e.Spec.TerminationPolicy == "" {
+		e.Spec.TerminationPolicy = TerminationPolicyDelete
+	} else if e.Spec.TerminationPolicy == TerminationPolicyPause {
+		e.Spec.TerminationPolicy = TerminationPolicyHalt
 	}
+
+	e.Spec.Monitor.SetDefaults()
 }
 
 func (e *EtcdSpec) GetSecrets() []string {

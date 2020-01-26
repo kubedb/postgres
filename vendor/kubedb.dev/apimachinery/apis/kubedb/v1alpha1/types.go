@@ -62,7 +62,9 @@ const (
 	DatabasePhaseInitializing DatabasePhase = "Initializing"
 	// used for Databases that are paused
 	DatabasePhasePaused DatabasePhase = "Paused"
-	// used for Databases that are Failed
+	// used for Databases that are halted
+	DatabasePhaseHalted DatabasePhase = "Halted"
+	// used for Databases that are failed
 	DatabasePhaseFailed DatabasePhase = "Failed"
 )
 
