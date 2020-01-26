@@ -113,7 +113,7 @@ func setDefaultValues(postgres *api.Postgres) (runtime.Object, error) {
 
 	if postgres.Spec.Halted {
 		if postgres.Spec.TerminationPolicy == api.TerminationPolicyDoNotTerminate {
-			return nil, errors.New(`'spec.halted'' can not be true. If you want to halt the database, Unset terminationPolicy to 'DoNotTerminate' `)
+			return nil, errors.New(`Can't halt, since termination policy is 'DoNotTerminate'`)
 		}
 		postgres.Spec.TerminationPolicy = api.TerminationPolicyHalt
 	}
