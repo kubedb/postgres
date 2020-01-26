@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+
 package e2e_test
 
 import (
@@ -127,8 +128,8 @@ var _ = Describe("Postgres", func() {
 		})
 		Expect(err).NotTo(HaveOccurred())
 
-		By("Wait for halted/paused postgres")
-		f.EventuallyPostgresPhase(postgres.ObjectMeta).Should(Equal(api.DatabasePhasePaused))
+		By("Wait for halted postgres")
+		f.EventuallyPostgresPhase(postgres.ObjectMeta).Should(Equal(api.DatabasePhaseHalted))
 
 		By("Resume Postgres: Update postgres to set spec.halted = false")
 		_, err = f.PatchPostgres(postgres.ObjectMeta, func(in *api.Postgres) *api.Postgres {
@@ -659,7 +660,7 @@ var _ = Describe("Postgres", func() {
 						err := f.DeletePostgres(postgres.ObjectMeta)
 						Expect(err).NotTo(HaveOccurred())
 
-						By("Wait for postgres to be paused")
+						By("Wait for postgres to be halted")
 						f.EventuallyPostgres(postgres.ObjectMeta).Should(BeFalse())
 
 						// Create Postgres object again to resume it
@@ -1398,13 +1399,13 @@ var _ = Describe("Postgres", func() {
 					err = f.DeletePostgres(postgres.ObjectMeta)
 					Expect(err).Should(HaveOccurred())
 
-					By("Postgres is not paused. Check for postgres")
+					By("Postgres is not halted. Check for postgres")
 					f.EventuallyPostgres(postgres.ObjectMeta).Should(BeTrue())
 
 					By("Check for Running postgres")
 					f.EventuallyPostgresRunning(postgres.ObjectMeta).Should(BeTrue())
 
-					By("Update postgres to set spec.terminationPolicy = Pause")
+					By("Update postgres to set spec.terminationPolicy = Halt")
 					_, err := f.PatchPostgres(postgres.ObjectMeta, func(in *api.Postgres) *api.Postgres {
 						in.Spec.TerminationPolicy = api.TerminationPolicyHalt
 						return in
@@ -1424,8 +1425,8 @@ var _ = Describe("Postgres", func() {
 					})
 					Expect(err).NotTo(HaveOccurred())
 
-					By("Wait for halted/paused postgres")
-					f.EventuallyPostgresPhase(postgres.ObjectMeta).Should(Equal(api.DatabasePhasePaused))
+					By("Wait for halted postgres")
+					f.EventuallyPostgresPhase(postgres.ObjectMeta).Should(Equal(api.DatabasePhaseHalted))
 
 					By("Resume Postgres: Update postgres to set spec.halted = false")
 					_, err = f.PatchPostgres(postgres.ObjectMeta, func(in *api.Postgres) *api.Postgres {

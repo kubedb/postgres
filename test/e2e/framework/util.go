@@ -83,7 +83,7 @@ func (f *Framework) PrintDebugHelpers() {
 		fmt.Println(err)
 	}
 	fmt.Println("\n======================================[ Describe Snapshots ]===================================================")
-	if err := sh.Command("/usr/bin/kubectl", "describe", "snap", "-n", f.Namespace()).Run(); err != nil {
+	if err := sh.Command("/usr/bin/kubectl", "describe", "snapshot", "-n", f.Namespace()).Run(); err != nil {
 		fmt.Println(err)
 	}
 	fmt.Println("\n======================================[ Describe Postgres ]===================================================")
