@@ -210,7 +210,7 @@ var cases = []struct {
 		"foo",
 		"default",
 		admission.Update,
-		pauseDatabase(samplePostgres()),
+		haltDatabase(samplePostgres()),
 		samplePostgres(),
 		false,
 		true,
@@ -230,7 +230,7 @@ var cases = []struct {
 		"foo",
 		"default",
 		admission.Delete,
-		pauseDatabase(samplePostgres()),
+		haltDatabase(samplePostgres()),
 		api.Postgres{},
 		true,
 		true,
@@ -321,7 +321,9 @@ func editSpecMonitor(old api.Postgres) api.Postgres {
 	old.Spec.Monitor = &mona.AgentSpec{
 		Agent: mona.AgentPrometheusBuiltin,
 		Prometheus: &mona.PrometheusSpec{
-			Port: 5670,
+			Exporter: &mona.PrometheusExporterSpec{
+				Port: 5670,
+			},
 		},
 	}
 	return old
@@ -330,12 +332,12 @@ func editSpecMonitor(old api.Postgres) api.Postgres {
 // should be failed because more fields required for COreOS Monitoring
 func editSpecInvalidMonitor(old api.Postgres) api.Postgres {
 	old.Spec.Monitor = &mona.AgentSpec{
-		Agent: mona.AgentCoreOSPrometheus,
+		Agent: mona.AgentPrometheusOperator,
 	}
 	return old
 }
 
-func pauseDatabase(old api.Postgres) api.Postgres {
-	old.Spec.TerminationPolicy = api.TerminationPolicyPause
+func haltDatabase(old api.Postgres) api.Postgres {
+	old.Spec.TerminationPolicy = api.TerminationPolicyHalt
 	return old
 }

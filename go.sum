@@ -830,8 +830,8 @@ kmodules.xyz/prober v0.0.0-20191216013129-7c91e2b0edb2 h1:wxHidC0FZfaHTRG8ADG9qd
 kmodules.xyz/prober v0.0.0-20191216013129-7c91e2b0edb2/go.mod h1:YdapXw+AMO1U/yYZloDA0dTiha89Rv1iqK05Jh7qQQY=
 kmodules.xyz/webhook-runtime v0.0.0-20191127075323-d4bfdee6974d h1:qLWf0Xk2sAWT9qWBcodkinrzt0jkYTKhuHCsbwpXutE=
 kmodules.xyz/webhook-runtime v0.0.0-20191127075323-d4bfdee6974d/go.mod h1:aaaxyAmKOpw0ey3LrpBkqWq0LTl35f9PW6mhwVDBMow=
-kubedb.dev/apimachinery v0.13.0-rc.3.0.20200126000130-c046f6731cde h1:C7fWlT/Sfgxnp5Uum18hUDJCCFjELa98F4uw80rZIEw=
-kubedb.dev/apimachinery v0.13.0-rc.3.0.20200126000130-c046f6731cde/go.mod h1:IVOZ8gHUebFT40io6A/dGVGCkSXk+ZdDCulNYilaKyc=
+kubedb.dev/apimachinery v0.13.0-rc.3.0.20200126044229-b32bf152d9ca h1:iFiod3lh8OBftg5KPZXLnU2fXwMR289uYB4t+rcq9P8=
+kubedb.dev/apimachinery v0.13.0-rc.3.0.20200126044229-b32bf152d9ca/go.mod h1:IVOZ8gHUebFT40io6A/dGVGCkSXk+ZdDCulNYilaKyc=
 kubedb.dev/pg-leader-election v0.1.1 h1:HuZDK3q9Uhz2txZIDk4nt9pkdTz6aGoo/sdF4NRK/nQ=
 kubedb.dev/pg-leader-election v0.1.1/go.mod h1:v02XNFptgb9ExaPrQP9dYIMcmszR6xhsDoPt+VZef8I=
 launchpad.net/gocheck v0.0.0-20140225173054-000000000087/go.mod h1:hj7XX3B/0A+80Vse0e+BUHsHMTEhd0O4cpUHr/e/BUM=

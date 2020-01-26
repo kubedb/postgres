@@ -138,8 +138,11 @@ func setMonitoringPort(postgres *api.Postgres) {
 		if postgres.Spec.Monitor.Prometheus == nil {
 			postgres.Spec.Monitor.Prometheus = &mona.PrometheusSpec{}
 		}
-		if postgres.Spec.Monitor.Prometheus.Port == 0 {
-			postgres.Spec.Monitor.Prometheus.Port = api.PrometheusExporterPortNumber
+		if postgres.Spec.Monitor.Prometheus.Exporter == nil {
+			postgres.Spec.Monitor.Prometheus.Exporter = &mona.PrometheusExporterSpec{}
+		}
+		if postgres.Spec.Monitor.Prometheus.Exporter.Port == 0 {
+			postgres.Spec.Monitor.Prometheus.Exporter.Port = api.PrometheusExporterPortNumber
 		}
 	}
 }

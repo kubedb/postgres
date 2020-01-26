@@ -190,18 +190,18 @@ func (c *Controller) ensurePostgresNode(postgres *api.Postgres, postgresVersion 
 
 func (c *Controller) halt(db *api.Postgres) error {
 	if db.Spec.Halted && db.Spec.TerminationPolicy != api.TerminationPolicyHalt {
-		return errors.New("can't halt db. 'spec.terminationPolicy' is not 'Pause'")
+		return errors.New("can't halt db. 'spec.terminationPolicy' is not 'Halt'")
 	}
 	log.Infof("Halting Postgres %v/%v", db.Namespace, db.Name)
-	if err := c.pauseDatabase(db); err != nil {
+	if err := c.haltDatabase(db); err != nil {
 		return err
 	}
 	if err := c.waitUntilPaused(db); err != nil {
 		return err
 	}
-	log.Infof("update status of Postgres %v/%v to Paused.", db.Namespace, db.Name)
+	log.Infof("update status of Postgres %v/%v to Halted.", db.Namespace, db.Name)
 	if _, err := util.UpdatePostgresStatus(c.ExtClient.KubedbV1alpha1(), db, func(in *api.PostgresStatus) *api.PostgresStatus {
-		in.Phase = api.DatabasePhasePaused
+		in.Phase = api.DatabasePhaseHalted
 		in.ObservedGeneration = db.Generation
 		return in
 	}); err != nil {
