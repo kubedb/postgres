@@ -17,7 +17,7 @@ package controller
 
 import (
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
-	le "kubedb.dev/postgres/pkg/leader_election"
+	le "kubedb.dev/pg-leader-election/pkg/leader_election"
 
 	apps "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"
