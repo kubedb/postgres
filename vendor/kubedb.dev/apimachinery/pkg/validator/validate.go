@@ -79,11 +79,12 @@ func ValidateMonitorSpec(monitorSpec *mona.AgentSpec) error {
 
 	if monitorSpec.Agent.Vendor() == mona.VendorPrometheus {
 		if monitorSpec.Prometheus != nil &&
-			monitorSpec.Prometheus.Port >= 1024 &&
-			monitorSpec.Prometheus.Port <= 65535 {
+			monitorSpec.Prometheus.Exporter != nil &&
+			monitorSpec.Prometheus.Exporter.Port >= 1024 &&
+			monitorSpec.Prometheus.Exporter.Port <= 65535 {
 			return nil
 		}
-		return fmt.Errorf(`invalid 'Monitor.Prometheus' in '%v'. Prometheus.Port value must be between 1024 and 65535, inclusive`, string(specData))
+		return fmt.Errorf(`invalid 'Monitor.Prometheus' in '%v'. prometheus.exporter.port value must be between 1024 and 65535, inclusive`, string(specData))
 	}
 
 	return fmt.Errorf(`invalid 'Agent' in '%v'`, string(specData))
