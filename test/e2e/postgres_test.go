@@ -33,9 +33,7 @@ import (
 	core "k8s.io/api/core/v1"
 	rbac "k8s.io/api/rbac/v1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/api/resource"
 	core_util "kmodules.xyz/client-go/core/v1"
-	meta_util "kmodules.xyz/client-go/meta"
 	store "kmodules.xyz/objectstore-api/api/v1"
 	stashV1alpha1 "stash.appscode.dev/stash/apis/stash/v1alpha1"
 	stashV1beta1 "stash.appscode.dev/stash/apis/stash/v1beta1"
@@ -57,28 +55,24 @@ const (
 
 var _ = Describe("Postgres", func() {
 	var (
-		err                      error
-		f                        *framework.Invocation
-		postgres                 *api.Postgres
-		garbagePostgres          *api.PostgresList
-		snapshot                 *api.Snapshot
-		secret                   *core.Secret
-		skipMessage              string
-		skipSnapshotDataChecking bool
-		skipWalDataChecking      bool
-		skipMinioDeployment      bool
-		dbName                   string
-		dbUser                   string
+		err                 error
+		f                   *framework.Invocation
+		postgres            *api.Postgres
+		garbagePostgres     *api.PostgresList
+		secret              *core.Secret
+		skipMessage         string
+		skipWalDataChecking bool
+		skipMinioDeployment bool
+		dbName              string
+		dbUser              string
 	)
 
 	BeforeEach(func() {
 		f = root.Invoke()
 		postgres = f.Postgres()
 		garbagePostgres = new(api.PostgresList)
-		snapshot = f.Snapshot()
 		secret = nil
 		skipMessage = ""
-		skipSnapshotDataChecking = true
 		skipWalDataChecking = true
 		skipMinioDeployment = true
 		dbName = "postgres"
@@ -126,20 +120,22 @@ var _ = Describe("Postgres", func() {
 		By("Checking Table")
 		f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
 
-		By("Delete postgres")
-		err = f.DeletePostgres(postgres.ObjectMeta)
+		By("Halt Postgres: Update postgres to set spec.halted = true")
+		_, err := f.PatchPostgres(postgres.ObjectMeta, func(in *api.Postgres) *api.Postgres {
+			in.Spec.Halted = true
+			return in
+		})
 		Expect(err).NotTo(HaveOccurred())
 
-		By("Wait for postgres to be paused")
-		f.EventuallyDormantDatabaseStatus(postgres.ObjectMeta).Should(matcher.HavePaused())
+		By("Wait for halted/paused postgres")
+		f.EventuallyPostgresPhase(postgres.ObjectMeta).Should(Equal(api.DatabasePhasePaused))
 
-		// Create Postgres object again to resume it
-		By("Create Postgres: " + postgres.Name)
-		err = f.CreatePostgres(postgres)
+		By("Resume Postgres: Update postgres to set spec.halted = false")
+		_, err = f.PatchPostgres(postgres.ObjectMeta, func(in *api.Postgres) *api.Postgres {
+			in.Spec.Halted = false
+			return in
+		})
 		Expect(err).NotTo(HaveOccurred())
-
-		By("Wait for DormantDatabase to be deleted")
-		f.EventuallyDormantDatabase(postgres.ObjectMeta).Should(BeFalse())
 
 		By("Wait for Running postgres")
 		f.EventuallyPostgresRunning(postgres.ObjectMeta).Should(BeTrue())
@@ -148,28 +144,7 @@ var _ = Describe("Postgres", func() {
 		f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
 	}
 
-	var shouldTakeSnapshot = func() {
-		// Create and wait for running Postgres
-		createAndWaitForRunning()
-
-		By("Create Secret")
-		err := f.CreateSecret(secret)
-		Expect(err).NotTo(HaveOccurred())
-
-		By("Create Snapshot")
-		err = f.CreateSnapshot(snapshot)
-		Expect(err).NotTo(HaveOccurred())
-
-		By("Check for Succeeded snapshot")
-		f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(api.SnapshotPhaseSucceeded))
-
-		if !skipSnapshotDataChecking {
-			By("Check for snapshot data")
-			f.EventuallySnapshotDataFound(snapshot).Should(BeTrue())
-		}
-	}
-
-	var shouldInsertDataAndTakeSnapshot = func() {
+	var shouldRunAndInsertData = func() {
 		// Create and wait for running Postgres
 		createAndWaitForRunning()
 
@@ -181,22 +156,6 @@ var _ = Describe("Postgres", func() {
 
 		By("Checking Table")
 		f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
-
-		By("Create Secret")
-		err = f.CreateSecret(secret)
-		Expect(err).NotTo(HaveOccurred())
-
-		By("Create Snapshot")
-		err = f.CreateSnapshot(snapshot)
-		Expect(err).NotTo(HaveOccurred())
-
-		By("Check for Succeeded snapshot")
-		f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(api.SnapshotPhaseSucceeded))
-
-		if !skipSnapshotDataChecking {
-			By("Check for snapshot data")
-			f.EventuallySnapshotDataFound(snapshot).Should(BeTrue())
-		}
 	}
 
 	var deleteTestResource = func() {
@@ -204,48 +163,31 @@ var _ = Describe("Postgres", func() {
 			Skip("Skipping")
 		}
 
-		By("Check if Postgres " + postgres.Name + " exists.")
-		pg, err := f.GetPostgres(postgres.ObjectMeta)
-		if err != nil {
-			if kerr.IsNotFound(err) {
-				// Postgres was not created. Hence, rest of cleanup is not necessary.
-				return
-			}
-			Expect(err).NotTo(HaveOccurred())
+		By("Check if postgres " + postgres.Name + " exists.")
+		mg, err := f.GetPostgres(postgres.ObjectMeta)
+		if err != nil && kerr.IsNotFound(err) {
+			// Postgres was not created. Hence, rest of cleanup is not necessary.
+			return
 		}
+		Expect(err).NotTo(HaveOccurred())
 
-		By("Delete postgres: " + postgres.Name)
+		By("Update postgres to set spec.terminationPolicy = WipeOut")
+		_, err = f.PatchPostgres(mg.ObjectMeta, func(in *api.Postgres) *api.Postgres {
+			in.Spec.TerminationPolicy = api.TerminationPolicyWipeOut
+			return in
+		})
+		Expect(err).NotTo(HaveOccurred())
+
+		By("Delete postgres")
 		err = f.DeletePostgres(postgres.ObjectMeta)
-		if err != nil {
-			if kerr.IsNotFound(err) {
-				// Postgres was not created. Hence, rest of cleanup is not necessary.
-				log.Infof("Skipping rest of cleanup. Reason: Postgres %s is not found.", postgres.Name)
-				return
-			}
-			Expect(err).NotTo(HaveOccurred())
+		if err != nil && kerr.IsNotFound(err) {
+			// Postgres was not created. Hence, rest of cleanup is not necessary.
+			return
 		}
+		Expect(err).NotTo(HaveOccurred())
 
-		if pg.Spec.TerminationPolicy == api.TerminationPolicyPause {
-
-			By("Wait for postgres to be paused")
-			f.EventuallyDormantDatabaseStatus(postgres.ObjectMeta).Should(matcher.HavePaused())
-
-			By("Set DormantDatabase Spec.WipeOut to true")
-			_, err := f.PatchDormantDatabase(postgres.ObjectMeta, func(in *api.DormantDatabase) *api.DormantDatabase {
-				in.Spec.WipeOut = true
-				return in
-			})
-			Expect(err).NotTo(HaveOccurred())
-
-			By("Delete Dormant Database")
-			err = f.DeleteDormantDatabase(postgres.ObjectMeta)
-			if !kerr.IsNotFound(err) {
-				Expect(err).NotTo(HaveOccurred())
-			}
-
-			By("Eventually dormant database is deleted")
-			f.EventuallyDormantDatabase(postgres.ObjectMeta).Should(BeFalse())
-		}
+		By("Wait for postgres to be deleted")
+		f.EventuallyPostgres(postgres.ObjectMeta).Should(BeFalse())
 
 		By("Wait for postgres resources to be wipedOut")
 		f.EventuallyWipedOut(postgres.ObjectMeta).Should(Succeed())
@@ -266,14 +208,11 @@ var _ = Describe("Postgres", func() {
 			deleteTestResource()
 		}
 
-		if !skipSnapshotDataChecking {
-			By("Check for snapshot data")
-			f.EventuallySnapshotDataFound(snapshot).Should(BeFalse())
-		}
-
 		if secret != nil {
 			err := f.DeleteSecret(secret.ObjectMeta)
-			Expect(err).NotTo(HaveOccurred())
+			if !kerr.IsNotFound(err) {
+				Expect(err).NotTo(HaveOccurred())
+			}
 		}
 
 		if !skipMinioDeployment {
@@ -284,7 +223,7 @@ var _ = Describe("Postgres", func() {
 
 	// if secret is empty (no .env file) then skip
 	JustBeforeEach(func() {
-		if secret != nil && len(secret.Data) == 0 && (snapshot != nil && snapshot.Spec.Local == nil) &&
+		if secret != nil && len(secret.Data) == 0 &&
 			(postgres.Spec.Archiver != nil && postgres.Spec.Archiver.Storage != nil && postgres.Spec.Archiver.Storage.Local == nil) {
 			Skip("Missing repository credential")
 		}
@@ -308,7 +247,7 @@ var _ = Describe("Postgres", func() {
 					err := f.CreateSecret(customSecret)
 					Expect(err).NotTo(HaveOccurred())
 					postgres.Spec.PodTemplate.Spec.ServiceAccountName = "my-custom-sa"
-					postgres.Spec.TerminationPolicy = api.TerminationPolicyPause
+					postgres.Spec.TerminationPolicy = api.TerminationPolicyHalt
 				})
 				It("should start and resume successfully", func() {
 					//shouldTakeSnapshot()
@@ -316,6 +255,7 @@ var _ = Describe("Postgres", func() {
 					if postgres == nil {
 						Skip("Skipping")
 					}
+
 					By("Check if Postgres " + postgres.Name + " exists.")
 					_, err := f.GetPostgres(postgres.ObjectMeta)
 					if err != nil {
@@ -337,8 +277,8 @@ var _ = Describe("Postgres", func() {
 						Expect(err).NotTo(HaveOccurred())
 					}
 
-					By("Wait for postgres to be paused")
-					f.EventuallyDormantDatabaseStatus(postgres.ObjectMeta).Should(matcher.HavePaused())
+					By("Wait for postgres to be deleted")
+					f.EventuallyPostgres(postgres.ObjectMeta).Should(BeFalse())
 
 					By("Resume PG")
 					createAndWaitForRunning()
@@ -348,13 +288,7 @@ var _ = Describe("Postgres", func() {
 			Context("With Custom Resources", func() {
 
 				BeforeEach(func() {
-					skipSnapshotDataChecking = false
-					snapshot.Spec.DatabaseName = postgres.Name
 					secret = f.SecretForGCSBackend()
-					snapshot.Spec.StorageSecretName = secret.Name
-					snapshot.Spec.GCS = &store.GCSSpec{
-						Bucket: os.Getenv(GCS_BUCKET_NAME),
-					}
 				})
 				Context("with custom SA", func() {
 					var customSAForDB *core.ServiceAccount
@@ -369,7 +303,6 @@ var _ = Describe("Postgres", func() {
 						customSAForDB = f.ServiceAccount()
 						postgres.Spec.PodTemplate.Spec.ServiceAccountName = customSAForDB.Name
 						customSAForSnapshot = f.ServiceAccount()
-						snapshot.Spec.PodTemplate.Spec.ServiceAccountName = customSAForSnapshot.Name
 
 						customRoleForDB = f.RoleForPostgres(postgres.ObjectMeta)
 						customRoleForSnapshot = f.RoleForSnapshot(postgres.ObjectMeta)
@@ -397,54 +330,12 @@ var _ = Describe("Postgres", func() {
 						err = f.CreateRoleBinding(customRoleBindingForSnapshot)
 						Expect(err).NotTo(HaveOccurred())
 					})
-					It("should take snapshot successfully", func() {
-						shouldTakeSnapshot()
+					It("should run successfully", func() {
+						testGeneralBehaviour()
 					})
-					It("should init from snapshot successfully", func() {
-						By("Start initializing From Snapshot")
-						// create postgres and take snapshot
-						shouldInsertDataAndTakeSnapshot()
-
-						oldPostgres, err := f.GetPostgres(postgres.ObjectMeta)
-						Expect(err).NotTo(HaveOccurred())
-
-						garbagePostgres.Items = append(garbagePostgres.Items, *oldPostgres)
-
-						By("Create postgres from snapshot")
-						*postgres = *f.Postgres()
-						postgres.Spec.DatabaseSecret = oldPostgres.Spec.DatabaseSecret
-						postgres.Spec.Init = &api.InitSpec{
-							SnapshotSource: &api.SnapshotSourceSpec{
-								Namespace: snapshot.Namespace,
-								Name:      snapshot.Name,
-							},
-						}
-
-						//Create New role and bind it to existing SA
-						By("Get new Role and RB")
-						customRoleForReplayDB := f.RoleForPostgres(postgres.ObjectMeta)
-						customRoleBindingForReplayDB := f.RoleBinding(customSAForDB.Name, customRoleForReplayDB.Name)
-
-						By("Create Database Role")
-						err = f.CreateRole(customRoleForReplayDB)
-						Expect(err).NotTo(HaveOccurred())
-						By("Create Database RoleBinding")
-						err = f.CreateRoleBinding(customRoleBindingForReplayDB)
-						Expect(err).NotTo(HaveOccurred())
-
-						postgres.Spec.PodTemplate.Spec.ServiceAccountName = customSAForDB.Name
-
-						// Create and wait for running Postgres
-						createAndWaitForRunning()
-
-						By("Check Table")
-						f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
-					})
-
 				})
 
 				Context("with custom Secret", func() {
-					var kubedbSecret *core.Secret
 					var customSecret *core.Secret
 					BeforeEach(func() {
 
@@ -459,26 +350,11 @@ var _ = Describe("Postgres", func() {
 						err := f.CreateSecret(customSecret)
 						Expect(err).NotTo(HaveOccurred())
 
-						shouldTakeSnapshot()
+						testGeneralBehaviour()
 						deleteTestResource()
 						By("Verifying Database Secret is present")
 						err = f.CheckSecret(customSecret)
 						Expect(err).NotTo(HaveOccurred())
-					})
-					It("should delete labelled secret successfully", func() {
-						kubedbSecret = f.SecretForDatabaseAuthenticationWithLabel(postgres.ObjectMeta)
-						postgres.Spec.DatabaseSecret = &core.SecretVolumeSource{
-							SecretName: kubedbSecret.Name,
-						}
-						By("Create Database Secret")
-						err = f.CreateSecret(kubedbSecret)
-						Expect(err).NotTo(HaveOccurred())
-
-						shouldTakeSnapshot()
-						deleteTestResource()
-						By("Verify Database Secret is not present")
-						err = f.CheckSecret(kubedbSecret)
-						Expect(err).To(HaveOccurred())
 					})
 				})
 
@@ -494,564 +370,6 @@ var _ = Describe("Postgres", func() {
 					By("Try to evict Pods")
 					err := f.EvictPodsFromStatefulSet(postgres.ObjectMeta)
 					Expect(err).NotTo(HaveOccurred())
-				})
-			})
-		})
-
-		Context("Snapshot", func() {
-
-			BeforeEach(func() {
-				skipSnapshotDataChecking = false
-				snapshot.Spec.DatabaseName = postgres.Name
-			})
-
-			Context("In Local", func() {
-
-				BeforeEach(func() {
-					skipSnapshotDataChecking = true
-					secret = f.SecretForLocalBackend()
-					snapshot.Spec.StorageSecretName = secret.Name
-				})
-
-				Context("With EmptyDir as Snapshot's backend", func() {
-					BeforeEach(func() {
-						snapshot.Spec.Local = &store.LocalSpec{
-							MountPath: "/repo",
-							VolumeSource: core.VolumeSource{
-								EmptyDir: &core.EmptyDirVolumeSource{},
-							},
-						}
-					})
-
-					It("should take Snapshot successfully", shouldTakeSnapshot)
-				})
-
-				Context("With PVC as Snapshot's backend", func() {
-					var snapPVC *core.PersistentVolumeClaim
-
-					BeforeEach(func() {
-						snapPVC = f.GetPersistentVolumeClaim()
-						err := f.CreatePersistentVolumeClaim(snapPVC)
-						Expect(err).NotTo(HaveOccurred())
-
-						snapshot.Spec.Local = &store.LocalSpec{
-							MountPath: "/repo",
-							VolumeSource: core.VolumeSource{
-								PersistentVolumeClaim: &core.PersistentVolumeClaimVolumeSource{
-									ClaimName: snapPVC.Name,
-								},
-							},
-						}
-					})
-
-					AfterEach(func() {
-						err := f.DeletePersistentVolumeClaim(snapPVC.ObjectMeta)
-						Expect(err).NotTo(HaveOccurred())
-					})
-
-					It("should delete Snapshot successfully", func() {
-						shouldTakeSnapshot()
-
-						By("Deleting Snapshot")
-						err := f.DeleteSnapshot(snapshot.ObjectMeta)
-						Expect(err).NotTo(HaveOccurred())
-
-						By("Waiting Snapshot to be deleted")
-						f.EventuallySnapshot(snapshot.ObjectMeta).Should(BeFalse())
-					})
-				})
-			})
-
-			Context("In S3", func() {
-
-				BeforeEach(func() {
-					secret = f.SecretForS3Backend()
-					snapshot.Spec.StorageSecretName = secret.Name
-					snapshot.Spec.S3 = &store.S3Spec{
-						Bucket: os.Getenv(S3_BUCKET_NAME),
-					}
-				})
-
-				It("should take Snapshot successfully", shouldTakeSnapshot)
-
-				Context("Delete One Snapshot keeping others", func() {
-					var configMap *core.ConfigMap
-
-					BeforeEach(func() {
-						configMap = f.ConfigMapForInitialization()
-						err := f.CreateConfigMap(configMap)
-						Expect(err).NotTo(HaveOccurred())
-
-						postgres.Spec.Init = &api.InitSpec{
-							ScriptSource: &api.ScriptSourceSpec{
-								VolumeSource: core.VolumeSource{
-									ConfigMap: &core.ConfigMapVolumeSource{
-										LocalObjectReference: core.LocalObjectReference{
-											Name: configMap.Name,
-										},
-									},
-								},
-							},
-						}
-					})
-
-					AfterEach(func() {
-						err := f.DeleteConfigMap(configMap.ObjectMeta)
-						Expect(err).NotTo(HaveOccurred())
-					})
-
-					It("Delete One Snapshot keeping others", func() {
-						// Create Postgres and take Snapshot
-						shouldTakeSnapshot()
-
-						oldSnapshot := snapshot.DeepCopy()
-
-						// New snapshot that has old snapshot's name in prefix
-						snapshot.Name += "-2"
-
-						By(fmt.Sprintf("Create Snapshot %v", snapshot.Name))
-						err = f.CreateSnapshot(snapshot)
-						Expect(err).NotTo(HaveOccurred())
-
-						By("Check for Succeeded snapshot")
-						f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(api.SnapshotPhaseSucceeded))
-
-						if !skipSnapshotDataChecking {
-							By("Check for snapshot data")
-							f.EventuallySnapshotDataFound(snapshot).Should(BeTrue())
-						}
-
-						// delete old snapshot
-						By(fmt.Sprintf("Delete old Snapshot %v", snapshot.Name))
-						err = f.DeleteSnapshot(oldSnapshot.ObjectMeta)
-						Expect(err).NotTo(HaveOccurred())
-
-						By("Waiting for old Snapshot to be deleted")
-						f.EventuallySnapshot(oldSnapshot.ObjectMeta).Should(BeFalse())
-						if !skipSnapshotDataChecking {
-							By(fmt.Sprintf("Check data for old snapshot %v", oldSnapshot.Name))
-							f.EventuallySnapshotDataFound(oldSnapshot).Should(BeFalse())
-						}
-
-						// check remaining snapshot
-						By(fmt.Sprintf("Checking another Snapshot %v still exists", snapshot.Name))
-						_, err = f.GetSnapshot(snapshot.ObjectMeta)
-						Expect(err).NotTo(HaveOccurred())
-
-						if !skipSnapshotDataChecking {
-							By(fmt.Sprintf("Check data for remaining snapshot %v", snapshot.Name))
-							f.EventuallySnapshotDataFound(snapshot).Should(BeTrue())
-						}
-					})
-				})
-			})
-
-			Context("In GCS", func() {
-
-				BeforeEach(func() {
-					secret = f.SecretForGCSBackend()
-					snapshot.Spec.StorageSecretName = secret.Name
-					snapshot.Spec.GCS = &store.GCSSpec{
-						Bucket: os.Getenv(GCS_BUCKET_NAME),
-					}
-				})
-
-				It("should take Snapshot successfully", shouldTakeSnapshot)
-
-				Context("faulty snapshot", func() {
-					BeforeEach(func() {
-						skipSnapshotDataChecking = true
-						snapshot.Spec.StorageSecretName = secret.Name
-						snapshot.Spec.GCS = &store.GCSSpec{
-							Bucket: "nonexisting",
-						}
-					})
-					It("snapshot should fail", func() {
-						// Create and wait for running db
-						createAndWaitForRunning()
-
-						By("Create Secret")
-						err := f.CreateSecret(secret)
-						Expect(err).NotTo(HaveOccurred())
-
-						By("Create Snapshot")
-						err = f.CreateSnapshot(snapshot)
-						Expect(err).NotTo(HaveOccurred())
-
-						By("Check for failed snapshot")
-						f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(api.SnapshotPhaseFailed))
-					})
-				})
-
-				Context("with custom username and password", func() {
-					var customSecret *core.Secret
-					BeforeEach(func() {
-						customSecret = f.SecretForDatabaseAuthentication(postgres.ObjectMeta)
-						postgres.Spec.DatabaseSecret = &core.SecretVolumeSource{
-							SecretName: customSecret.Name,
-						}
-					})
-					It("should take snapshot successfully", func() {
-						By("Create Database Secret")
-						err := f.CreateSecret(customSecret)
-						Expect(err).NotTo(HaveOccurred())
-
-						shouldTakeSnapshot()
-					})
-				})
-
-				Context("Delete One Snapshot keeping others", func() {
-					var configMap *core.ConfigMap
-
-					BeforeEach(func() {
-						configMap = f.ConfigMapForInitialization()
-						err := f.CreateConfigMap(configMap)
-						Expect(err).NotTo(HaveOccurred())
-
-						postgres.Spec.Init = &api.InitSpec{
-							ScriptSource: &api.ScriptSourceSpec{
-								VolumeSource: core.VolumeSource{
-									ConfigMap: &core.ConfigMapVolumeSource{
-										LocalObjectReference: core.LocalObjectReference{
-											Name: configMap.Name,
-										},
-									},
-								},
-							},
-						}
-					})
-
-					AfterEach(func() {
-						err := f.DeleteConfigMap(configMap.ObjectMeta)
-						Expect(err).NotTo(HaveOccurred())
-					})
-
-					It("Delete One Snapshot keeping others", func() {
-						// Create Postgres and take Snapshot
-						shouldTakeSnapshot()
-
-						oldSnapshot := snapshot.DeepCopy()
-
-						// New snapshot that has old snapshot's name in prefix
-						snapshot.Name += "-2"
-
-						By(fmt.Sprintf("Create Snapshot %v", snapshot.Name))
-						err = f.CreateSnapshot(snapshot)
-						Expect(err).NotTo(HaveOccurred())
-
-						By("Check for Succeeded snapshot")
-						f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(api.SnapshotPhaseSucceeded))
-
-						if !skipSnapshotDataChecking {
-							By("Check for snapshot data")
-							f.EventuallySnapshotDataFound(snapshot).Should(BeTrue())
-						}
-
-						// delete old snapshot
-						By(fmt.Sprintf("Delete old Snapshot %v", snapshot.Name))
-						err = f.DeleteSnapshot(oldSnapshot.ObjectMeta)
-						Expect(err).NotTo(HaveOccurred())
-
-						By("Waiting for old Snapshot to be deleted")
-						f.EventuallySnapshot(oldSnapshot.ObjectMeta).Should(BeFalse())
-						if !skipSnapshotDataChecking {
-							By(fmt.Sprintf("Check data for old snapshot %v", oldSnapshot.Name))
-							f.EventuallySnapshotDataFound(oldSnapshot).Should(BeFalse())
-						}
-
-						// check remaining snapshot
-						By(fmt.Sprintf("Checking another Snapshot %v still exists", snapshot.Name))
-						_, err = f.GetSnapshot(snapshot.ObjectMeta)
-						Expect(err).NotTo(HaveOccurred())
-
-						if !skipSnapshotDataChecking {
-							By(fmt.Sprintf("Check data for remaining snapshot %v", snapshot.Name))
-							f.EventuallySnapshotDataFound(snapshot).Should(BeTrue())
-						}
-					})
-				})
-			})
-
-			Context("In Azure", func() {
-
-				BeforeEach(func() {
-					secret = f.SecretForAzureBackend()
-					snapshot.Spec.StorageSecretName = secret.Name
-					snapshot.Spec.Azure = &store.AzureSpec{
-						Container: os.Getenv(AZURE_CONTAINER_NAME),
-					}
-				})
-
-				It("should take Snapshot successfully", shouldTakeSnapshot)
-
-				Context("Delete One Snapshot keeping others", func() {
-					var configMap *core.ConfigMap
-
-					BeforeEach(func() {
-						configMap = f.ConfigMapForInitialization()
-						err := f.CreateConfigMap(configMap)
-						Expect(err).NotTo(HaveOccurred())
-
-						postgres.Spec.Init = &api.InitSpec{
-							ScriptSource: &api.ScriptSourceSpec{
-								VolumeSource: core.VolumeSource{
-									ConfigMap: &core.ConfigMapVolumeSource{
-										LocalObjectReference: core.LocalObjectReference{
-											Name: configMap.Name,
-										},
-									},
-								},
-							},
-						}
-					})
-
-					AfterEach(func() {
-						err := f.DeleteConfigMap(configMap.ObjectMeta)
-						Expect(err).NotTo(HaveOccurred())
-					})
-
-					It("Delete One Snapshot keeping others", func() {
-						// Create Postgres and take Snapshot
-						shouldTakeSnapshot()
-
-						oldSnapshot := snapshot.DeepCopy()
-
-						// New snapshot that has old snapshot's name in prefix
-						snapshot.Name += "-2"
-
-						By(fmt.Sprintf("Create Snapshot %v", snapshot.Name))
-						err = f.CreateSnapshot(snapshot)
-						Expect(err).NotTo(HaveOccurred())
-
-						By("Check for Succeeded snapshot")
-						f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(api.SnapshotPhaseSucceeded))
-
-						if !skipSnapshotDataChecking {
-							By("Check for snapshot data")
-							f.EventuallySnapshotDataFound(snapshot).Should(BeTrue())
-						}
-
-						// delete old snapshot
-						By(fmt.Sprintf("Delete old Snapshot %v", snapshot.Name))
-						err = f.DeleteSnapshot(oldSnapshot.ObjectMeta)
-						Expect(err).NotTo(HaveOccurred())
-
-						By("Waiting for old Snapshot to be deleted")
-						f.EventuallySnapshot(oldSnapshot.ObjectMeta).Should(BeFalse())
-						if !skipSnapshotDataChecking {
-							By(fmt.Sprintf("Check data for old snapshot %v", oldSnapshot.Name))
-							f.EventuallySnapshotDataFound(oldSnapshot).Should(BeFalse())
-						}
-
-						// check remaining snapshot
-						By(fmt.Sprintf("Checking another Snapshot %v still exists", snapshot.Name))
-						_, err = f.GetSnapshot(snapshot.ObjectMeta)
-						Expect(err).NotTo(HaveOccurred())
-
-						if !skipSnapshotDataChecking {
-							By(fmt.Sprintf("Check data for remaining snapshot %v", snapshot.Name))
-							f.EventuallySnapshotDataFound(snapshot).Should(BeTrue())
-						}
-					})
-				})
-			})
-
-			Context("In Swift", func() {
-
-				BeforeEach(func() {
-					secret = f.SecretForSwiftBackend()
-					snapshot.Spec.StorageSecretName = secret.Name
-					snapshot.Spec.Swift = &store.SwiftSpec{
-						Container: os.Getenv(SWIFT_CONTAINER_NAME),
-					}
-				})
-
-				It("should take Snapshot successfully", shouldTakeSnapshot)
-			})
-
-			// As, snapshot is deprecated. This excessive 'test for snapshot Job Volume' is not necessary.
-			// TODO: delete sooner or later.
-			Context("Snapshot PodVolume Template - In S3", func() {
-
-				BeforeEach(func() {
-					secret = f.SecretForS3Backend()
-					snapshot.Spec.StorageSecretName = secret.Name
-					snapshot.Spec.S3 = &store.S3Spec{
-						Bucket: os.Getenv(S3_BUCKET_NAME),
-					}
-				})
-
-				var shouldHandleJobVolumeSuccessfully = func() {
-					// Create and wait for running Postgres
-					createAndWaitForRunning()
-
-					By("Get Postgres")
-					es, err := f.GetPostgres(postgres.ObjectMeta)
-					Expect(err).NotTo(HaveOccurred())
-					postgres.Spec = es.Spec
-
-					By("Create Secret")
-					err = f.CreateSecret(secret)
-					Expect(err).NotTo(HaveOccurred())
-
-					// determine pvcSpec and storageType for job
-					// start
-					pvcSpec := snapshot.Spec.PodVolumeClaimSpec
-					if pvcSpec == nil {
-						pvcSpec = postgres.Spec.Storage
-					}
-					st := snapshot.Spec.StorageType
-					if st == nil {
-						st = &postgres.Spec.StorageType
-					}
-					Expect(st).NotTo(BeNil())
-					// end
-
-					By("Create Snapshot")
-					err = f.CreateSnapshot(snapshot)
-					if *st == api.StorageTypeDurable && pvcSpec == nil {
-						By("Create Snapshot should have failed")
-						Expect(err).Should(HaveOccurred())
-						return
-					} else {
-						Expect(err).NotTo(HaveOccurred())
-					}
-
-					By("Get Snapshot")
-					snap, err := f.GetSnapshot(snapshot.ObjectMeta)
-					Expect(err).NotTo(HaveOccurred())
-					snapshot.Spec = snap.Spec
-
-					if *st == api.StorageTypeEphemeral {
-						storageSize := "0"
-						if pvcSpec != nil {
-							if sz, found := pvcSpec.Resources.Requests[core.ResourceStorage]; found {
-								storageSize = sz.String()
-							}
-						}
-						By(fmt.Sprintf("Check for Job Empty volume size: %v", storageSize))
-						f.EventuallyJobVolumeEmptyDirSize(snapshot.ObjectMeta).Should(Equal(storageSize))
-					} else if *st == api.StorageTypeDurable {
-						sz, found := pvcSpec.Resources.Requests[core.ResourceStorage]
-						Expect(found).NotTo(BeFalse())
-
-						By("Check for Job PVC Volume size from snapshot")
-						f.EventuallyJobPVCSize(snapshot.ObjectMeta).Should(Equal(sz.String()))
-					}
-
-					By("Check for succeeded snapshot")
-					f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(api.SnapshotPhaseSucceeded))
-
-					if !skipSnapshotDataChecking {
-						By("Check for snapshot data")
-						f.EventuallySnapshotDataFound(snapshot).Should(BeTrue())
-					}
-				}
-
-				// db StorageType Scenarios
-				// ==============> Start
-				var dbStorageTypeScenarios = func() {
-					Context("DBStorageType - Durable", func() {
-						BeforeEach(func() {
-							postgres.Spec.StorageType = api.StorageTypeDurable
-							postgres.Spec.Storage = &core.PersistentVolumeClaimSpec{
-								Resources: core.ResourceRequirements{
-									Requests: core.ResourceList{
-										core.ResourceStorage: resource.MustParse(framework.DBPvcStorageSize),
-									},
-								},
-								StorageClassName: types.StringP(root.StorageClass),
-							}
-
-						})
-
-						It("should Handle Job Volume Successfully", shouldHandleJobVolumeSuccessfully)
-					})
-
-					Context("DBStorageType - Ephemeral", func() {
-						BeforeEach(func() {
-							postgres.Spec.StorageType = api.StorageTypeEphemeral
-							postgres.Spec.TerminationPolicy = api.TerminationPolicyWipeOut
-						})
-
-						Context("DBPvcSpec is nil", func() {
-							BeforeEach(func() {
-								postgres.Spec.Storage = nil
-							})
-
-							It("should Handle Job Volume Successfully", shouldHandleJobVolumeSuccessfully)
-						})
-
-						Context("DBPvcSpec is given [not nil]", func() {
-							BeforeEach(func() {
-								postgres.Spec.Storage = &core.PersistentVolumeClaimSpec{
-									Resources: core.ResourceRequirements{
-										Requests: core.ResourceList{
-											core.ResourceStorage: resource.MustParse(framework.DBPvcStorageSize),
-										},
-									},
-									StorageClassName: types.StringP(root.StorageClass),
-								}
-							})
-
-							It("should Handle Job Volume Successfully", shouldHandleJobVolumeSuccessfully)
-						})
-					})
-				}
-				// End <==============
-
-				// Snapshot PVC Scenarios
-				// ==============> Start
-				var snapshotPvcScenarios = func() {
-					Context("Snapshot PVC is given [not nil]", func() {
-						BeforeEach(func() {
-							snapshot.Spec.PodVolumeClaimSpec = &core.PersistentVolumeClaimSpec{
-								Resources: core.ResourceRequirements{
-									Requests: core.ResourceList{
-										core.ResourceStorage: resource.MustParse(framework.JobPvcStorageSize),
-									},
-								},
-								StorageClassName: types.StringP(root.StorageClass),
-							}
-						})
-
-						dbStorageTypeScenarios()
-					})
-
-					Context("Snapshot PVC is nil", func() {
-						BeforeEach(func() {
-							snapshot.Spec.PodVolumeClaimSpec = nil
-						})
-
-						dbStorageTypeScenarios()
-					})
-				}
-				// End <==============
-
-				Context("Snapshot StorageType is nil", func() {
-					BeforeEach(func() {
-						snapshot.Spec.StorageType = nil
-					})
-
-					snapshotPvcScenarios()
-				})
-
-				Context("Snapshot StorageType is Ephemeral", func() {
-					BeforeEach(func() {
-						ephemeral := api.StorageTypeEphemeral
-						snapshot.Spec.StorageType = &ephemeral
-					})
-
-					snapshotPvcScenarios()
-				})
-
-				Context("Snapshot StorageType is Durable", func() {
-					BeforeEach(func() {
-						durable := api.StorageTypeDurable
-						snapshot.Spec.StorageType = &durable
-					})
-
-					snapshotPvcScenarios()
 				})
 			})
 		})
@@ -1095,85 +413,6 @@ var _ = Describe("Postgres", func() {
 
 			})
 
-			Context("With Snapshot", func() {
-
-				var shouldInitializeFromSnapshot = func() {
-					// create postgres and take snapshot
-					shouldInsertDataAndTakeSnapshot()
-
-					oldPostgres, err := f.GetPostgres(postgres.ObjectMeta)
-					Expect(err).NotTo(HaveOccurred())
-
-					garbagePostgres.Items = append(garbagePostgres.Items, *oldPostgres)
-
-					By("Create postgres from snapshot")
-					*postgres = *f.Postgres()
-					postgres.Spec.DatabaseSecret = oldPostgres.Spec.DatabaseSecret
-					postgres.Spec.Init = &api.InitSpec{
-						SnapshotSource: &api.SnapshotSourceSpec{
-							Namespace: snapshot.Namespace,
-							Name:      snapshot.Name,
-						},
-					}
-
-					// Create and wait for running Postgres
-					createAndWaitForRunning()
-
-					By("Checking Table")
-					f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
-				}
-
-				Context("From Local backend", func() {
-					var snapPVC *core.PersistentVolumeClaim
-
-					BeforeEach(func() {
-
-						skipSnapshotDataChecking = true
-						snapPVC = f.GetPersistentVolumeClaim()
-						err := f.CreatePersistentVolumeClaim(snapPVC)
-						Expect(err).NotTo(HaveOccurred())
-
-						secret = f.SecretForLocalBackend()
-						snapshot.Spec.DatabaseName = postgres.Name
-						snapshot.Spec.StorageSecretName = secret.Name
-
-						snapshot.Spec.Local = &store.LocalSpec{
-							MountPath: "/repo",
-							VolumeSource: core.VolumeSource{
-								PersistentVolumeClaim: &core.PersistentVolumeClaimVolumeSource{
-									ClaimName: snapPVC.Name,
-								},
-							},
-						}
-					})
-
-					AfterEach(func() {
-						err := f.DeletePersistentVolumeClaim(snapPVC.ObjectMeta)
-						Expect(err).NotTo(HaveOccurred())
-					})
-
-					It("should initialize successfully", shouldInitializeFromSnapshot)
-				})
-
-				Context("From GCS backend", func() {
-
-					BeforeEach(func() {
-
-						skipSnapshotDataChecking = false
-						secret = f.SecretForGCSBackend()
-						snapshot.Spec.StorageSecretName = secret.Name
-						snapshot.Spec.DatabaseName = postgres.Name
-
-						snapshot.Spec.GCS = &store.GCSSpec{
-							Bucket: os.Getenv(GCS_BUCKET_NAME),
-						}
-					})
-
-					It("should run successfully", shouldInitializeFromSnapshot)
-				})
-
-			})
-
 			// To run this test,
 			// 1st: Deploy stash latest operator
 			// 2nd: create postgres related tasks and functions from
@@ -1184,7 +423,6 @@ var _ = Describe("Postgres", func() {
 				var repo *stashV1alpha1.Repository
 
 				BeforeEach(func() {
-					skipSnapshotDataChecking = true
 					if !f.FoundStashCRDs() {
 						Skip("Skipping tests for stash integration. reason: stash operator is not running.")
 					}
@@ -1329,16 +567,13 @@ var _ = Describe("Postgres", func() {
 				err := f.DeletePostgres(postgres.ObjectMeta)
 				Expect(err).NotTo(HaveOccurred())
 
-				By("Wait for postgres to be paused")
-				f.EventuallyDormantDatabaseStatus(postgres.ObjectMeta).Should(matcher.HavePaused())
+				By("Wait for postgres to be deleted")
+				f.EventuallyPostgres(postgres.ObjectMeta).Should(BeFalse())
 
 				// Create Postgres object again to resume it
 				By("Create Postgres: " + postgres.Name)
 				err = f.CreatePostgres(postgres)
 				Expect(err).NotTo(HaveOccurred())
-
-				By("Wait for DormantDatabase to be deleted")
-				f.EventuallyDormantDatabase(postgres.ObjectMeta).Should(BeFalse())
 
 				By("Wait for Running postgres")
 				f.EventuallyPostgresRunning(postgres.ObjectMeta).Should(BeTrue())
@@ -1386,87 +621,6 @@ var _ = Describe("Postgres", func() {
 				It("should resume DormantDatabase successfully", shouldResumeSuccessfully)
 			})
 
-			Context("With Snapshot Init", func() {
-
-				BeforeEach(func() {
-					skipSnapshotDataChecking = false
-					secret = f.SecretForGCSBackend()
-					snapshot.Spec.StorageSecretName = secret.Name
-					snapshot.Spec.GCS = &store.GCSSpec{
-						Bucket: os.Getenv(GCS_BUCKET_NAME),
-					}
-					snapshot.Spec.DatabaseName = postgres.Name
-				})
-
-				It("should resume successfully", func() {
-					// create postgres and take snapshot
-					shouldInsertDataAndTakeSnapshot()
-
-					oldPostgres, err := f.GetPostgres(postgres.ObjectMeta)
-					Expect(err).NotTo(HaveOccurred())
-
-					garbagePostgres.Items = append(garbagePostgres.Items, *oldPostgres)
-
-					By("Create postgres from snapshot")
-					*postgres = *f.Postgres()
-					postgres.Spec.Init = &api.InitSpec{
-						SnapshotSource: &api.SnapshotSourceSpec{
-							Namespace: snapshot.Namespace,
-							Name:      snapshot.Name,
-						},
-					}
-
-					By("Creating init Snapshot Postgres without secret name" + postgres.Name)
-					err = f.CreatePostgres(postgres)
-					Expect(err).Should(HaveOccurred())
-
-					// for snapshot init, user have to use older secret,
-					postgres.Spec.DatabaseSecret = oldPostgres.Spec.DatabaseSecret
-					// Create and wait for running Postgres
-					createAndWaitForRunning()
-
-					By("Ping Database")
-					f.EventuallyPingDatabase(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
-
-					By("Checking Table")
-					f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
-
-					By("Again delete and resume  " + postgres.Name)
-
-					By("Delete postgres")
-					err = f.DeletePostgres(postgres.ObjectMeta)
-					Expect(err).NotTo(HaveOccurred())
-
-					By("Wait for postgres to be paused")
-					f.EventuallyDormantDatabaseStatus(postgres.ObjectMeta).Should(matcher.HavePaused())
-
-					// Create Postgres object again to resume it
-					By("Create Postgres: " + postgres.Name)
-					err = f.CreatePostgres(postgres)
-					Expect(err).NotTo(HaveOccurred())
-
-					By("Wait for DormantDatabase to be deleted")
-					f.EventuallyDormantDatabase(postgres.ObjectMeta).Should(BeFalse())
-
-					By("Wait for Running postgres")
-					f.EventuallyPostgresRunning(postgres.ObjectMeta).Should(BeTrue())
-
-					postgres, err = f.GetPostgres(postgres.ObjectMeta)
-					Expect(err).NotTo(HaveOccurred())
-					Expect(postgres.Spec.Init).ShouldNot(BeNil())
-
-					By("Ping Database")
-					f.EventuallyPingDatabase(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
-
-					By("Checking Table")
-					f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
-
-					By("Checking postgres crd has kubedb.com/initialized annotation")
-					_, err = meta_util.GetString(postgres.Annotations, api.AnnotationInitialized)
-					Expect(err).NotTo(HaveOccurred())
-				})
-			})
-
 			Context("Resume Multiple times - with init", func() {
 				var configMap *core.ConfigMap
 
@@ -1506,15 +660,12 @@ var _ = Describe("Postgres", func() {
 						Expect(err).NotTo(HaveOccurred())
 
 						By("Wait for postgres to be paused")
-						f.EventuallyDormantDatabaseStatus(postgres.ObjectMeta).Should(matcher.HavePaused())
+						f.EventuallyPostgres(postgres.ObjectMeta).Should(BeFalse())
 
 						// Create Postgres object again to resume it
 						By("Create Postgres: " + postgres.Name)
 						err = f.CreatePostgres(postgres)
 						Expect(err).NotTo(HaveOccurred())
-
-						By("Wait for DormantDatabase to be deleted")
-						f.EventuallyDormantDatabase(postgres.ObjectMeta).Should(BeFalse())
 
 						By("Wait for Running postgres")
 						f.EventuallyPostgresRunning(postgres.ObjectMeta).Should(BeTrue())
@@ -1522,76 +673,6 @@ var _ = Describe("Postgres", func() {
 						_, err = f.GetPostgres(postgres.ObjectMeta)
 						Expect(err).NotTo(HaveOccurred())
 					}
-				})
-			})
-		})
-
-		Context("SnapshotScheduler", func() {
-
-			BeforeEach(func() {
-				secret = f.SecretForLocalBackend()
-			})
-
-			Context("With Startup", func() {
-
-				BeforeEach(func() {
-					postgres.Spec.BackupSchedule = &api.BackupScheduleSpec{
-						CronExpression: "@every 1m",
-						Backend: store.Backend{
-							StorageSecretName: secret.Name,
-							Local: &store.LocalSpec{
-								MountPath: "/repo",
-								VolumeSource: core.VolumeSource{
-									EmptyDir: &core.EmptyDirVolumeSource{},
-								},
-							},
-						},
-					}
-				})
-
-				It("should run scheduler successfully", func() {
-					By("Create Secret")
-					err := f.CreateSecret(secret)
-					Expect(err).NotTo(HaveOccurred())
-
-					// Create and wait for running Postgres
-					createAndWaitForRunning()
-
-					By("Count multiple Snapshot")
-					f.EventuallySnapshotCount(postgres.ObjectMeta).Should(matcher.MoreThan(3))
-				})
-			})
-
-			Context("With Update", func() {
-				It("should run scheduler successfully", func() {
-					// Create and wait for running Postgres
-					createAndWaitForRunning()
-
-					By("Create Secret")
-					err := f.CreateSecret(secret)
-					Expect(err).NotTo(HaveOccurred())
-
-					By("Update postgres")
-					_, err = f.PatchPostgres(postgres.ObjectMeta, func(in *api.Postgres) *api.Postgres {
-						in.Spec.BackupSchedule = &api.BackupScheduleSpec{
-							CronExpression: "@every 1m",
-							Backend: store.Backend{
-								StorageSecretName: secret.Name,
-								Local: &store.LocalSpec{
-									MountPath: "/repo",
-									VolumeSource: core.VolumeSource{
-										EmptyDir: &core.EmptyDirVolumeSource{},
-									},
-								},
-							},
-						}
-
-						return in
-					})
-					Expect(err).NotTo(HaveOccurred())
-
-					By("Count multiple Snapshot")
-					f.EventuallySnapshotCount(postgres.ObjectMeta).Should(matcher.MoreThan(3))
 				})
 			})
 		})
@@ -1789,9 +870,6 @@ var _ = Describe("Postgres", func() {
 
 				By("wait until postgres is deleted")
 				f.EventuallyPostgres(postgres.ObjectMeta).Should(BeFalse())
-
-				By("Checking DormantDatabase is not created")
-				f.EventuallyDormantDatabase(postgres.ObjectMeta).Should(BeFalse())
 
 				By("Checking PVCs has been deleted")
 				f.EventuallyPVCCount(postgres.ObjectMeta).Should(Equal(0))
@@ -2303,19 +1381,12 @@ var _ = Describe("Postgres", func() {
 		Context("Termination Policy", func() {
 
 			BeforeEach(func() {
-				skipSnapshotDataChecking = false
 				secret = f.SecretForGCSBackend()
-				snapshot.Spec.StorageSecretName = secret.Name
-				snapshot.Spec.GCS = &store.GCSSpec{
-					Bucket: os.Getenv(GCS_BUCKET_NAME),
-				}
-				snapshot.Spec.DatabaseName = postgres.Name
 			})
 
 			Context("with TerminationPolicyDoNotTerminate", func() {
 
 				BeforeEach(func() {
-					skipSnapshotDataChecking = true
 					postgres.Spec.TerminationPolicy = api.TerminationPolicyDoNotTerminate
 				})
 
@@ -2335,48 +1406,33 @@ var _ = Describe("Postgres", func() {
 
 					By("Update postgres to set spec.terminationPolicy = Pause")
 					_, err := f.PatchPostgres(postgres.ObjectMeta, func(in *api.Postgres) *api.Postgres {
-						in.Spec.TerminationPolicy = api.TerminationPolicyPause
+						in.Spec.TerminationPolicy = api.TerminationPolicyHalt
 						return in
 					})
 					Expect(err).NotTo(HaveOccurred())
 				})
 			})
 
-			Context("with TerminationPolicyPause (default)", func() {
+			Context("with TerminationPolicyHalt", func() {
 
 				It("should create DormantDatabase and resume from it", func() {
-					// Run Postgres and take snapshot
-					shouldInsertDataAndTakeSnapshot()
-
-					By("Deleting Postgres crd")
-					err = f.DeletePostgres(postgres.ObjectMeta)
+					shouldRunAndInsertData()
+					By("Halt Postgres: Update postgres to set spec.halted = true")
+					_, err := f.PatchPostgres(postgres.ObjectMeta, func(in *api.Postgres) *api.Postgres {
+						in.Spec.Halted = true
+						return in
+					})
 					Expect(err).NotTo(HaveOccurred())
 
-					// DormantDatabase.Status= paused, means postgres object is deleted
-					By("Waiting for postgres to be paused")
-					f.EventuallyDormantDatabaseStatus(postgres.ObjectMeta).Should(matcher.HavePaused())
+					By("Wait for halted/paused postgres")
+					f.EventuallyPostgresPhase(postgres.ObjectMeta).Should(Equal(api.DatabasePhasePaused))
 
-					By("Checking PVC hasn't been deleted")
-					f.EventuallyPVCCount(postgres.ObjectMeta).Should(Equal(1))
-
-					By("Checking Secret hasn't been deleted")
-					f.EventuallyDBSecretCount(postgres.ObjectMeta).Should(Equal(1))
-
-					By("Checking snapshot hasn't been deleted")
-					f.EventuallySnapshot(snapshot.ObjectMeta).Should(BeTrue())
-
-					if !skipSnapshotDataChecking {
-						By("Check for snapshot data")
-						f.EventuallySnapshotDataFound(snapshot).Should(BeTrue())
-					}
-
-					// Create Postgres object again to resume it
-					By("Create (resume) Postgres: " + postgres.Name)
-					err = f.CreatePostgres(postgres)
+					By("Resume Postgres: Update postgres to set spec.halted = false")
+					_, err = f.PatchPostgres(postgres.ObjectMeta, func(in *api.Postgres) *api.Postgres {
+						in.Spec.Halted = false
+						return in
+					})
 					Expect(err).NotTo(HaveOccurred())
-
-					By("Wait for DormantDatabase to be deleted")
-					f.EventuallyDormantDatabase(postgres.ObjectMeta).Should(BeFalse())
 
 					By("Wait for Running postgres")
 					f.EventuallyPostgresRunning(postgres.ObjectMeta).Should(BeTrue())
@@ -2392,15 +1448,8 @@ var _ = Describe("Postgres", func() {
 					postgres.Spec.TerminationPolicy = api.TerminationPolicyDelete
 				})
 
-				AfterEach(func() {
-					By("Deleting snapshot: " + snapshot.Name)
-					err := f.DeleteSnapshot(snapshot.ObjectMeta)
-					Expect(err).NotTo(HaveOccurred())
-				})
-
 				It("should not create DormantDatabase and should not delete secret and snapshot", func() {
-					// Run Postgres and take snapshot
-					shouldInsertDataAndTakeSnapshot()
+					createAndWaitForRunning()
 
 					By("Delete postgres")
 					err = f.DeletePostgres(postgres.ObjectMeta)
@@ -2409,22 +1458,11 @@ var _ = Describe("Postgres", func() {
 					By("wait until postgres is deleted")
 					f.EventuallyPostgres(postgres.ObjectMeta).Should(BeFalse())
 
-					By("Checking DormantDatabase is not created")
-					f.EventuallyDormantDatabase(postgres.ObjectMeta).Should(BeFalse())
-
 					By("Checking PVC has been deleted")
 					f.EventuallyPVCCount(postgres.ObjectMeta).Should(Equal(0))
 
 					By("Checking Secret hasn't been deleted")
 					f.EventuallyDBSecretCount(postgres.ObjectMeta).Should(Equal(1))
-
-					By("Checking Snapshot hasn't been deleted")
-					f.EventuallySnapshot(snapshot.ObjectMeta).Should(BeTrue())
-
-					if !skipSnapshotDataChecking {
-						By("Check for intact snapshot data")
-						f.EventuallySnapshotDataFound(snapshot).Should(BeTrue())
-					}
 				})
 			})
 
@@ -2436,7 +1474,7 @@ var _ = Describe("Postgres", func() {
 
 				It("should not create DormantDatabase and should wipeOut all", func() {
 					// Run Postgres and take snapshot
-					shouldInsertDataAndTakeSnapshot()
+					createAndWaitForRunning()
 
 					By("Delete postgres")
 					err = f.DeletePostgres(postgres.ObjectMeta)
@@ -2445,14 +1483,8 @@ var _ = Describe("Postgres", func() {
 					By("wait until postgres is deleted")
 					f.EventuallyPostgres(postgres.ObjectMeta).Should(BeFalse())
 
-					By("Checking DormantDatabase is not created")
-					f.EventuallyDormantDatabase(postgres.ObjectMeta).Should(BeFalse())
-
 					By("Checking PVCs has been deleted")
 					f.EventuallyPVCCount(postgres.ObjectMeta).Should(Equal(0))
-
-					By("Checking Snapshots has been deleted")
-					f.EventuallySnapshot(snapshot.ObjectMeta).Should(BeFalse())
 
 					By("Checking Secrets has been deleted")
 					f.EventuallyDBSecretCount(postgres.ObjectMeta).Should(Equal(0))
@@ -2648,10 +1680,10 @@ var _ = Describe("Postgres", func() {
 					It("should run successfully", shouldRunSuccessfully)
 				})
 
-				Context("With TerminationPolicyPause", func() {
+				Context("With TerminationPolicyHalt", func() {
 
 					BeforeEach(func() {
-						postgres.Spec.TerminationPolicy = api.TerminationPolicyPause
+						postgres.Spec.TerminationPolicy = api.TerminationPolicyHalt
 					})
 
 					It("should reject to create Postgres object", func() {

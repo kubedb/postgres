@@ -86,8 +86,7 @@ type MySQLVersionInitContainer struct {
 
 // MySQLVersionPodSecurityPolicy is the MySQL pod security policies
 type MySQLVersionPodSecurityPolicy struct {
-	DatabasePolicyName    string `json:"databasePolicyName" protobuf:"bytes,1,opt,name=databasePolicyName"`
-	SnapshotterPolicyName string `json:"snapshotterPolicyName" protobuf:"bytes,2,opt,name=snapshotterPolicyName"`
+	DatabasePolicyName string `json:"databasePolicyName" protobuf:"bytes,1,opt,name=databasePolicyName"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

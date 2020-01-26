@@ -64,7 +64,7 @@ func (i *Invocation) Postgres() *api.Postgres {
 				},
 				StorageClassName: types.StringP(i.StorageClass),
 			},
-			TerminationPolicy: api.TerminationPolicyPause,
+			TerminationPolicy: api.TerminationPolicyHalt,
 		},
 	}
 }

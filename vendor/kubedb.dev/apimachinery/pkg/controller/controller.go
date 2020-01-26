@@ -26,7 +26,6 @@ import (
 	"github.com/appscode/go/log/golog"
 	cm "github.com/jetstack/cert-manager/pkg/client/clientset/versioned"
 	cmInformers "github.com/jetstack/cert-manager/pkg/client/informers/externalversions"
-	batch "k8s.io/api/batch/v1"
 	ext_cs "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	crd_cs "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
 	externalInformers "k8s.io/apiextensions-apiserver/pkg/client/informers/externalversions"
@@ -37,6 +36,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/cache"
+	core_util "kmodules.xyz/client-go/core/v1"
 	"kmodules.xyz/client-go/tools/queue"
 	appcat_cs "kmodules.xyz/custom-resources/client/clientset/versioned"
 	appcat_in "kmodules.xyz/custom-resources/client/informers/externalversions"
@@ -62,6 +62,8 @@ type Controller struct {
 	CertManagerClient cm.Interface
 	// externalClient for crd
 	ExternalClient ext_cs.Interface
+	// Cluster topology when the operator started
+	ClusterTopology *core_util.Topology
 }
 
 type Config struct {
@@ -73,15 +75,6 @@ type Config struct {
 	ExternalInformerFactory    externalInformers.SharedInformerFactory
 	CertManagerInformerFactory cmInformers.SharedInformerFactory
 
-	// DormantDb queue
-	DrmnQueue    *queue.Worker
-	DrmnInformer cache.SharedIndexInformer
-	// job queue
-	JobQueue    *queue.Worker
-	JobInformer cache.SharedIndexInformer
-	// snapshot queue
-	SnapQueue    *queue.Worker
-	SnapInformer cache.SharedIndexInformer
 	// restoreSession queue
 	RSQueue    *queue.Worker
 	RSInformer cache.SharedIndexInformer
@@ -99,20 +92,8 @@ type Config struct {
 	EnableMutatingWebhook   bool
 }
 
-type Snapshotter interface {
-	ValidateSnapshot(*api.Snapshot) error
+type DBHelper interface {
 	GetDatabase(metav1.ObjectMeta) (runtime.Object, error)
-	GetSnapshotter(*api.Snapshot) (*batch.Job, error)
-	WipeOutSnapshot(*api.Snapshot) error
 	SetDatabaseStatus(metav1.ObjectMeta, api.DatabasePhase, string) error
 	UpsertDatabaseAnnotation(metav1.ObjectMeta, map[string]string) error
-}
-
-type Deleter interface {
-	// WaitUntilPaused will block until db pods and service are deleted. PV/PVC will remain intact.
-	WaitUntilPaused(*api.DormantDatabase) error
-	// WipeOutDatabase won't need to handle snapshots and PVCs.
-	// All other elements of database will be Wipedout on WipeOutDatabase function.
-	// Ex: secrets, wal-g data and other staff that is required.
-	WipeOutDatabase(*api.DormantDatabase) error
 }

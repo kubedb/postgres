@@ -22,6 +22,7 @@ import (
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
 
 	shell "github.com/codeskyblue/go-sh"
+	. "github.com/onsi/gomega"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -93,4 +94,62 @@ func (f *Framework) PrintDebugHelpers() {
 	if err := sh.Command("/usr/bin/kubectl", "describe", "nodes").Run(); err != nil {
 		fmt.Println(err)
 	}
+}
+
+func (f *Framework) EventuallyWipedOut(meta metav1.ObjectMeta) GomegaAsyncAssertion {
+	return Eventually(
+		func() error {
+			labelMap := map[string]string{
+				api.LabelDatabaseName: meta.Name,
+				api.LabelDatabaseKind: api.ResourceKindPostgres,
+			}
+			labelSelector := labels.SelectorFromSet(labelMap)
+
+			// check if pvcs is wiped out
+			pvcList, err := f.kubeClient.CoreV1().PersistentVolumeClaims(meta.Namespace).List(
+				metav1.ListOptions{
+					LabelSelector: labelSelector.String(),
+				},
+			)
+			if err != nil {
+				return err
+			}
+			if len(pvcList.Items) > 0 {
+				fmt.Println("PVCs have not wiped out yet")
+				return fmt.Errorf("PVCs have not wiped out yet")
+			}
+
+			// check if secrets are wiped out
+			secretList, err := f.kubeClient.CoreV1().Secrets(meta.Namespace).List(
+				metav1.ListOptions{
+					LabelSelector: labelSelector.String(),
+				},
+			)
+			if err != nil {
+				return err
+			}
+			if len(secretList.Items) > 0 {
+				fmt.Println("secrets have not wiped out yet")
+				return fmt.Errorf("secrets have not wiped out yet")
+			}
+
+			// check if appbinds are wiped out
+			appBindingList, err := f.appCatalogClient.AppBindings(meta.Namespace).List(
+				metav1.ListOptions{
+					LabelSelector: labelSelector.String(),
+				},
+			)
+			if err != nil {
+				return err
+			}
+			if len(appBindingList.Items) > 0 {
+				fmt.Println("appBindings have not wiped out yet")
+				return fmt.Errorf("appBindings have not wiped out yet")
+			}
+
+			return nil
+		},
+		time.Minute*10,
+		time.Second*5,
+	)
 }

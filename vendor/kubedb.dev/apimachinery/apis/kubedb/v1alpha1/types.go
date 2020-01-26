@@ -19,15 +19,11 @@ package v1alpha1
 import (
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	store "kmodules.xyz/objectstore-api/api/v1"
-	ofst "kmodules.xyz/offshoot-api/api/v1"
 )
 
 type InitSpec struct {
-	ScriptSource *ScriptSourceSpec `json:"scriptSource,omitempty" protobuf:"bytes,1,opt,name=scriptSource"`
-	// Deprecated
-	SnapshotSource *SnapshotSourceSpec    `json:"snapshotSource,omitempty" protobuf:"bytes,2,opt,name=snapshotSource"`
-	PostgresWAL    *PostgresWALSourceSpec `json:"postgresWAL,omitempty" protobuf:"bytes,3,opt,name=postgresWAL"`
+	ScriptSource *ScriptSourceSpec      `json:"scriptSource,omitempty" protobuf:"bytes,1,opt,name=scriptSource"`
+	PostgresWAL  *PostgresWALSourceSpec `json:"postgresWAL,omitempty" protobuf:"bytes,3,opt,name=postgresWAL"`
 	// Name of stash restoreSession in same namespace of kubedb object.
 	// ref: https://github.com/stashed/stash/blob/09af5d319bb5be889186965afb04045781d6f926/apis/stash/v1beta1/restore_session_types.go#L22
 	StashRestoreSession *core.LocalObjectReference `json:"stashRestoreSession,omitempty" protobuf:"bytes,4,opt,name=stashRestoreSession"`
@@ -36,36 +32,6 @@ type InitSpec struct {
 type ScriptSourceSpec struct {
 	ScriptPath        string `json:"scriptPath,omitempty" protobuf:"bytes,1,opt,name=scriptPath"`
 	core.VolumeSource `json:",inline,omitempty" protobuf:"bytes,2,opt,name=volumeSource"`
-}
-
-type SnapshotSourceSpec struct {
-	Namespace string `json:"namespace" protobuf:"bytes,1,opt,name=namespace"`
-	Name      string `json:"name" protobuf:"bytes,2,opt,name=name"`
-	// Arguments to the restore job
-	Args []string `json:"args,omitempty" protobuf:"bytes,3,rep,name=args"`
-}
-
-type BackupScheduleSpec struct {
-	CronExpression string `json:"cronExpression,omitempty" protobuf:"bytes,1,opt,name=cronExpression"`
-
-	// Snapshot Spec
-	store.Backend `json:",inline" protobuf:"bytes,2,opt,name=backend"`
-
-	// StorageType can be durable or ephemeral.
-	// If not given, database storage type will be used.
-	// +optional
-	StorageType *StorageType `json:"storageType,omitempty" protobuf:"bytes,3,opt,name=storageType,casttype=StorageType"`
-
-	// PodTemplate is an optional configuration for pods used to take database snapshots
-	// +optional
-	PodTemplate ofst.PodTemplateSpec `json:"podTemplate,omitempty" protobuf:"bytes,4,opt,name=podTemplate"`
-
-	// PodVolumeClaimSpec is used to specify temporary storage for backup/restore Job.
-	// If not given, database's PvcSpec will be used.
-	// If storageType is durable, then a PVC will be created using this PVCSpec.
-	// If storageType is ephemeral, then an empty directory will be created of size PvcSpec.Resources.Requests[core.ResourceStorage].
-	// +optional
-	PodVolumeClaimSpec *core.PersistentVolumeClaimSpec `json:"podVolumeClaimSpec,omitempty" protobuf:"bytes,5,opt,name=podVolumeClaimSpec"`
 }
 
 // LeaderElectionConfig contains essential attributes of leader election.
@@ -94,7 +60,11 @@ const (
 	DatabasePhaseCreating DatabasePhase = "Creating"
 	// used for Databases that are currently initializing
 	DatabasePhaseInitializing DatabasePhase = "Initializing"
-	// used for Databases that are Failed
+	// used for Databases that are paused
+	DatabasePhasePaused DatabasePhase = "Paused"
+	// used for Databases that are halted
+	DatabasePhaseHalted DatabasePhase = "Halted"
+	// used for Databases that are failed
 	DatabasePhaseFailed DatabasePhase = "Failed"
 )
 
@@ -113,11 +83,11 @@ const (
 	// Pauses database into a DormantDatabase
 	// Deprecated: Use spec.halted = true
 	TerminationPolicyPause TerminationPolicy = "Pause"
-	// Deletes database pods, service but leave the PVCs and snapshot data intact.
+	// Deletes database pods, service but leave the PVCs and stash backup data intact.
 	TerminationPolicyHalt TerminationPolicy = "Halt"
-	// Deletes database pods, service, pvcs but leave the snapshot data intact.
+	// Deletes database pods, service, pvcs but leave the stash backup data intact.
 	TerminationPolicyDelete TerminationPolicy = "Delete"
-	// Deletes database pods, service, pvcs and snapshot data.
+	// Deletes database pods, service, pvcs and stash backup data.
 	TerminationPolicyWipeOut TerminationPolicy = "WipeOut"
 	// Rejects attempt to delete database using ValidationWebhook. This replaces spec.doNotPause = true
 	TerminationPolicyDoNotTerminate TerminationPolicy = "DoNotTerminate"

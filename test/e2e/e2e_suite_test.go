@@ -118,10 +118,6 @@ var _ = BeforeSuite(func() {
 var _ = AfterSuite(func() {
 	By("Delete left over Postgres objects")
 	root.CleanPostgres()
-	By("Delete left over Dormant Database objects")
-	root.CleanDormantDatabase()
-	By("Delete left over Snapshot objects")
-	root.CleanSnapshot()
 	By("Delete left over workloads if exists any")
 	root.CleanWorkloadLeftOvers()
 	By("Delete Namespace")
