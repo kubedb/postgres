@@ -55,59 +55,6 @@ spec:
           type: object
         spec:
           properties:
-            certificateSecret:
-              description: Secret for KeyFile or SSL certificates. Contains `tls.pem`
-                or keyfile `key.txt` depending on enableSSL.
-              properties:
-                defaultMode:
-                  description: 'Optional: mode bits to use on created files by default.
-                    Must be a value between 0 and 0777. Defaults to 0644. Directories
-                    within the path are not affected by this setting. This might be
-                    in conflict with other options that affect the file mode, like
-                    fsGroup, and the result can be other mode bits set.'
-                  format: int32
-                  type: integer
-                items:
-                  description: If unspecified, each key-value pair in the Data field
-                    of the referenced Secret will be projected into the volume as
-                    a file whose name is the key and content is the value. If specified,
-                    the listed keys will be projected into the specified paths, and
-                    unlisted keys will not be present. If a key is specified which
-                    is not present in the Secret, the volume setup will error unless
-                    it is marked optional. Paths must be relative and may not contain
-                    the '..' path or start with '..'.
-                  items:
-                    description: Maps a string key to a path within a volume.
-                    properties:
-                      key:
-                        description: The key to project.
-                        type: string
-                      mode:
-                        description: 'Optional: mode bits to use on this file, must
-                          be a value between 0 and 0777. If not specified, the volume
-                          defaultMode will be used. This might be in conflict with
-                          other options that affect the file mode, like fsGroup, and
-                          the result can be other mode bits set.'
-                        format: int32
-                        type: integer
-                      path:
-                        description: The relative path of the file to map the key
-                          to. May not be an absolute path. May not contain the path
-                          element '..'. May not start with the string '..'.
-                        type: string
-                    required:
-                    - key
-                    - path
-                    type: object
-                  type: array
-                optional:
-                  description: Specify whether the Secret or its keys must be defined
-                  type: boolean
-                secretName:
-                  description: 'Name of the secret in the pod''s namespace to use.
-                    More info: https://kubernetes.io/docs/concepts/storage/volumes#secret'
-                  type: string
-              type: object
             clusterAuthMode:
               description: 'ClusterAuthMode for replicaset or sharding. (default will
                 be x509 if sslmode is not `disabled`.) See available ClusterAuthMode:
@@ -3837,6 +3784,59 @@ spec:
                       type: string
                   type: object
               type: object
+            keyFile:
+              description: Secret for KeyFile. Contains keyfile `key.txt` if spec.clusterAuthMode
+                == keyFile || sendKeyFile
+              properties:
+                defaultMode:
+                  description: 'Optional: mode bits to use on created files by default.
+                    Must be a value between 0 and 0777. Defaults to 0644. Directories
+                    within the path are not affected by this setting. This might be
+                    in conflict with other options that affect the file mode, like
+                    fsGroup, and the result can be other mode bits set.'
+                  format: int32
+                  type: integer
+                items:
+                  description: If unspecified, each key-value pair in the Data field
+                    of the referenced Secret will be projected into the volume as
+                    a file whose name is the key and content is the value. If specified,
+                    the listed keys will be projected into the specified paths, and
+                    unlisted keys will not be present. If a key is specified which
+                    is not present in the Secret, the volume setup will error unless
+                    it is marked optional. Paths must be relative and may not contain
+                    the '..' path or start with '..'.
+                  items:
+                    description: Maps a string key to a path within a volume.
+                    properties:
+                      key:
+                        description: The key to project.
+                        type: string
+                      mode:
+                        description: 'Optional: mode bits to use on this file, must
+                          be a value between 0 and 0777. If not specified, the volume
+                          defaultMode will be used. This might be in conflict with
+                          other options that affect the file mode, like fsGroup, and
+                          the result can be other mode bits set.'
+                        format: int32
+                        type: integer
+                      path:
+                        description: The relative path of the file to map the key
+                          to. May not be an absolute path. May not contain the path
+                          element '..'. May not start with the string '..'.
+                        type: string
+                    required:
+                    - key
+                    - path
+                    type: object
+                  type: array
+                optional:
+                  description: Specify whether the Secret or its keys must be defined
+                  type: boolean
+                secretName:
+                  description: 'Name of the secret in the pod''s namespace to use.
+                    More info: https://kubernetes.io/docs/concepts/storage/volumes#secret'
+                  type: string
+              type: object
             monitor:
               description: Monitor is used monitor database instance
               properties:
@@ -6991,63 +6991,6 @@ spec:
             replicaSet:
               description: MongoDB replica set
               properties:
-                keyFile:
-                  description: 'Deprecated: Use spec.certificateSecret'
-                  properties:
-                    defaultMode:
-                      description: 'Optional: mode bits to use on created files by
-                        default. Must be a value between 0 and 0777. Defaults to 0644.
-                        Directories within the path are not affected by this setting.
-                        This might be in conflict with other options that affect the
-                        file mode, like fsGroup, and the result can be other mode
-                        bits set.'
-                      format: int32
-                      type: integer
-                    items:
-                      description: If unspecified, each key-value pair in the Data
-                        field of the referenced Secret will be projected into the
-                        volume as a file whose name is the key and content is the
-                        value. If specified, the listed keys will be projected into
-                        the specified paths, and unlisted keys will not be present.
-                        If a key is specified which is not present in the Secret,
-                        the volume setup will error unless it is marked optional.
-                        Paths must be relative and may not contain the '..' path or
-                        start with '..'.
-                      items:
-                        description: Maps a string key to a path within a volume.
-                        properties:
-                          key:
-                            description: The key to project.
-                            type: string
-                          mode:
-                            description: 'Optional: mode bits to use on this file,
-                              must be a value between 0 and 0777. If not specified,
-                              the volume defaultMode will be used. This might be in
-                              conflict with other options that affect the file mode,
-                              like fsGroup, and the result can be other mode bits
-                              set.'
-                            format: int32
-                            type: integer
-                          path:
-                            description: The relative path of the file to map the
-                              key to. May not be an absolute path. May not contain
-                              the path element '..'. May not start with the string
-                              '..'.
-                            type: string
-                        required:
-                        - key
-                        - path
-                        type: object
-                      type: array
-                    optional:
-                      description: Specify whether the Secret or its keys must be
-                        defined
-                      type: boolean
-                    secretName:
-                      description: 'Name of the secret in the pod''s namespace to
-                        use. More info: https://kubernetes.io/docs/concepts/storage/volumes#secret'
-                      type: string
-                  type: object
                 name:
                   description: Name of replicaset
                   type: string
@@ -15368,8 +15311,9 @@ spec:
                       format: int32
                       type: integer
                     strategy:
-                      description: The deployment strategy to use to replace existing
-                        pods with new ones.
+                      description: 'The deployment strategy to use to replace existing
+                        pods with new ones. Deprecated: Deployment has been Replaced
+                        by StatefulSet. MongosNode now uses spec.updateStrategy'
                       properties:
                         rollingUpdate:
                           description: 'Rolling update config params. Present only
@@ -19697,6 +19641,67 @@ spec:
             terminationPolicy:
               description: TerminationPolicy controls the delete operation for database
               type: string
+            tls:
+              description: TLS contains tls configurations for client and server.
+              properties:
+                certificate:
+                  description: 'Certificate provides server certificate options used
+                    by PgBouncer pods. These options are passed to a cert-manager
+                    Certificate object. xref: https://github.com/jetstack/cert-manager/blob/v0.12.0/pkg/apis/certmanager/v1alpha2/types_certificate.go#L71-L146'
+                  properties:
+                    dnsNames:
+                      description: DNSNames is a list of subject alt names to be used
+                        on the Certificate.
+                      items:
+                        type: string
+                      type: array
+                    duration:
+                      description: Certificate default Duration
+                      type: string
+                    ipAddresses:
+                      description: IPAddresses is a list of IP addresses to be used
+                        on the Certificate
+                      items:
+                        type: string
+                      type: array
+                    organization:
+                      description: Organization is the organization to be used on
+                        the Certificate
+                      items:
+                        type: string
+                      type: array
+                    renewBefore:
+                      description: Certificate renew before expiration duration
+                      type: string
+                    uriSANs:
+                      description: URISANs is a list of URI Subject Alternative Names
+                        to be set on this Certificate.
+                      items:
+                        type: string
+                      type: array
+                  type: object
+                issuerRef:
+                  description: IssuerRef is a reference to a Certificate Issuer.
+                  properties:
+                    apiGroup:
+                      description: APIGroup is the group for the resource being referenced.
+                        If APIGroup is not specified, the specified Kind must be in
+                        the core API group. For any other third-party types, APIGroup
+                        is required.
+                      type: string
+                    kind:
+                      description: Kind is the type of resource being referenced
+                      type: string
+                    name:
+                      description: Name is the name of resource being referenced
+                      type: string
+                  required:
+                  - kind
+                  - name
+                  type: object
+              required:
+              - issuerRef
+              type: object
             updateStrategy:
               description: updateStrategy indicates the StatefulSetUpdateStrategy
                 that will be employed to update Pods in the StatefulSet when a revision

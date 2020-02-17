@@ -403,6 +403,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"kubedb.dev/apimachinery/apis/catalog/v1alpha1.MySQLVersionInitContainer":             schema_apimachinery_apis_catalog_v1alpha1_MySQLVersionInitContainer(ref),
 		"kubedb.dev/apimachinery/apis/catalog/v1alpha1.MySQLVersionList":                      schema_apimachinery_apis_catalog_v1alpha1_MySQLVersionList(ref),
 		"kubedb.dev/apimachinery/apis/catalog/v1alpha1.MySQLVersionPodSecurityPolicy":         schema_apimachinery_apis_catalog_v1alpha1_MySQLVersionPodSecurityPolicy(ref),
+		"kubedb.dev/apimachinery/apis/catalog/v1alpha1.MySQLVersionReplicationModeDetector":   schema_apimachinery_apis_catalog_v1alpha1_MySQLVersionReplicationModeDetector(ref),
 		"kubedb.dev/apimachinery/apis/catalog/v1alpha1.MySQLVersionSpec":                      schema_apimachinery_apis_catalog_v1alpha1_MySQLVersionSpec(ref),
 		"kubedb.dev/apimachinery/apis/catalog/v1alpha1.MySQLVersionTools":                     schema_apimachinery_apis_catalog_v1alpha1_MySQLVersionTools(ref),
 		"kubedb.dev/apimachinery/apis/catalog/v1alpha1.PerconaXtraDBVersion":                  schema_apimachinery_apis_catalog_v1alpha1_PerconaXtraDBVersion(ref),
@@ -18551,6 +18552,26 @@ func schema_apimachinery_apis_catalog_v1alpha1_MySQLVersionPodSecurityPolicy(ref
 	}
 }
 
+func schema_apimachinery_apis_catalog_v1alpha1_MySQLVersionReplicationModeDetector(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "MySQLVersionReplicationModeDetector is the image for the MySQL replication mode detector",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"image": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+				},
+				Required: []string{"image"},
+			},
+		},
+	}
+}
+
 func schema_apimachinery_apis_catalog_v1alpha1_MySQLVersionSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
@@ -18583,6 +18604,12 @@ func schema_apimachinery_apis_catalog_v1alpha1_MySQLVersionSpec(ref common.Refer
 							Ref:         ref("kubedb.dev/apimachinery/apis/catalog/v1alpha1.MySQLVersionTools"),
 						},
 					},
+					"replicationModeDetector": {
+						SchemaProps: spec.SchemaProps{
+							Description: "ReplicationModeDetector Image",
+							Ref:         ref("kubedb.dev/apimachinery/apis/catalog/v1alpha1.MySQLVersionReplicationModeDetector"),
+						},
+					},
 					"deprecated": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Deprecated versions usable but regarded as obsolete and best avoided, typically due to having been superseded.",
@@ -18603,11 +18630,11 @@ func schema_apimachinery_apis_catalog_v1alpha1_MySQLVersionSpec(ref common.Refer
 						},
 					},
 				},
-				Required: []string{"version", "db", "exporter", "tools", "initContainer", "podSecurityPolicies"},
+				Required: []string{"version", "db", "exporter", "tools", "replicationModeDetector", "initContainer", "podSecurityPolicies"},
 			},
 		},
 		Dependencies: []string{
-			"kubedb.dev/apimachinery/apis/catalog/v1alpha1.MySQLVersionDatabase", "kubedb.dev/apimachinery/apis/catalog/v1alpha1.MySQLVersionExporter", "kubedb.dev/apimachinery/apis/catalog/v1alpha1.MySQLVersionInitContainer", "kubedb.dev/apimachinery/apis/catalog/v1alpha1.MySQLVersionPodSecurityPolicy", "kubedb.dev/apimachinery/apis/catalog/v1alpha1.MySQLVersionTools"},
+			"kubedb.dev/apimachinery/apis/catalog/v1alpha1.MySQLVersionDatabase", "kubedb.dev/apimachinery/apis/catalog/v1alpha1.MySQLVersionExporter", "kubedb.dev/apimachinery/apis/catalog/v1alpha1.MySQLVersionInitContainer", "kubedb.dev/apimachinery/apis/catalog/v1alpha1.MySQLVersionPodSecurityPolicy", "kubedb.dev/apimachinery/apis/catalog/v1alpha1.MySQLVersionReplicationModeDetector", "kubedb.dev/apimachinery/apis/catalog/v1alpha1.MySQLVersionTools"},
 	}
 }
 

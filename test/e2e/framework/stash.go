@@ -27,10 +27,10 @@ import (
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1alpha13 "kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1"
-	"stash.appscode.dev/stash/apis/stash/v1alpha1"
-	stashV1alpha1 "stash.appscode.dev/stash/apis/stash/v1alpha1"
-	"stash.appscode.dev/stash/apis/stash/v1beta1"
-	v1beta1_util "stash.appscode.dev/stash/client/clientset/versioned/typed/stash/v1beta1/util"
+	"stash.appscode.dev/apimachinery/apis/stash/v1alpha1"
+	stashV1alpha1 "stash.appscode.dev/apimachinery/apis/stash/v1alpha1"
+	"stash.appscode.dev/apimachinery/apis/stash/v1beta1"
+	v1beta1_util "stash.appscode.dev/apimachinery/client/clientset/versioned/typed/stash/v1beta1/util"
 )
 
 func (f *Framework) FoundStashCRDs() bool {

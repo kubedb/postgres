@@ -30,7 +30,7 @@ import (
 	"k8s.io/client-go/rest"
 	ka "k8s.io/kube-aggregator/pkg/client/clientset_generated/clientset"
 	appcat_cs "kmodules.xyz/custom-resources/client/clientset/versioned/typed/appcatalog/v1alpha1"
-	scs "stash.appscode.dev/stash/client/clientset/versioned"
+	scs "stash.appscode.dev/apimachinery/client/clientset/versioned"
 )
 
 var (

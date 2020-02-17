@@ -594,7 +594,7 @@ message MongoDBMongosNode {
   optional MongoDBNode mongoDBNode = 5;
 
   // The deployment strategy to use to replace existing pods with new ones.
-  // +optional
+  // Deprecated: Deployment has been Replaced by StatefulSet. MongosNode now uses spec.updateStrategy
   optional k8s.io.api.apps.v1.DeploymentStrategy strategy = 4;
 }
 
@@ -618,9 +618,6 @@ message MongoDBNode {
 message MongoDBReplicaSet {
   // Name of replicaset
   optional string name = 1;
-
-  // Deprecated: Use spec.certificateSecret
-  optional k8s.io.api.core.v1.SecretVolumeSource keyFile = 2;
 }
 
 message MongoDBShardNode {
@@ -671,49 +668,53 @@ message MongoDBSpec {
   // Database authentication secret
   optional k8s.io.api.core.v1.SecretVolumeSource databaseSecret = 7;
 
-  // Secret for KeyFile or SSL certificates. Contains `tls.pem` or keyfile `key.txt` depending on enableSSL.
-  optional k8s.io.api.core.v1.SecretVolumeSource certificateSecret = 8;
-
   // ClusterAuthMode for replicaset or sharding. (default will be x509 if sslmode is not `disabled`.)
   // See available ClusterAuthMode: https://docs.mongodb.com/manual/reference/program/mongod/#cmdoption-mongod-clusterauthmode
-  optional string clusterAuthMode = 9;
+  optional string clusterAuthMode = 8;
 
   // SSLMode for both standalone and clusters. (default, disabled.)
   // See more options: https://docs.mongodb.com/manual/reference/program/mongod/#cmdoption-mongod-sslmode
-  optional string sslMode = 10;
+  optional string sslMode = 9;
 
   // Init is used to initialize database
   // +optional
-  optional InitSpec init = 11;
+  optional InitSpec init = 10;
 
   // Monitor is used monitor database instance
   // +optional
-  optional kmodules.xyz.monitoring_agent_api.api.v1.AgentSpec monitor = 13;
+  optional kmodules.xyz.monitoring_agent_api.api.v1.AgentSpec monitor = 11;
 
   // ConfigSource is an optional field to provide custom configuration file for database (i.e mongod.cnf).
   // If specified, this file will be used as configuration file otherwise default configuration file will be used.
-  optional k8s.io.api.core.v1.VolumeSource configSource = 14;
+  optional k8s.io.api.core.v1.VolumeSource configSource = 12;
 
   // PodTemplate is an optional configuration for pods used to expose database
   // +optional
-  optional kmodules.xyz.offshoot_api.api.v1.PodTemplateSpec podTemplate = 15;
+  optional kmodules.xyz.offshoot_api.api.v1.PodTemplateSpec podTemplate = 13;
 
   // ServiceTemplate is an optional configuration for service used to expose database
   // +optional
-  optional kmodules.xyz.offshoot_api.api.v1.ServiceTemplateSpec serviceTemplate = 16;
+  optional kmodules.xyz.offshoot_api.api.v1.ServiceTemplateSpec serviceTemplate = 14;
 
   // updateStrategy indicates the StatefulSetUpdateStrategy that will be
   // employed to update Pods in the StatefulSet when a revision is made to
   // Template.
-  optional k8s.io.api.apps.v1.StatefulSetUpdateStrategy updateStrategy = 17;
+  optional k8s.io.api.apps.v1.StatefulSetUpdateStrategy updateStrategy = 15;
 
   // Indicates that the database is paused and controller will not sync any changes made to this spec.
   // +optional
-  optional bool paused = 18;
+  optional bool paused = 16;
 
   // Indicates that the database is halted and all offshoot Kubernetes resources except PVCs are deleted.
   // +optional
-  optional bool halted = 19;
+  optional bool halted = 17;
+
+  // TLS contains tls configurations for client and server.
+  // +optional
+  optional TLSConfig tls = 18;
+
+  // Secret for KeyFile. Contains keyfile `key.txt` if spec.clusterAuthMode == keyFile || sendKeyFile
+  optional k8s.io.api.core.v1.SecretVolumeSource keyFile = 19;
 
   // TerminationPolicy controls the delete operation for database
   // +optional
@@ -834,9 +835,13 @@ message MySQLSpec {
   // +optional
   optional bool halted = 15;
 
+  // TLS contains tls configurations for client and server.
+  // +optional
+  optional TLSConfig tls = 16;
+
   // TerminationPolicy controls the delete operation for database
   // +optional
-  optional string terminationPolicy = 16;
+  optional string terminationPolicy = 17;
 }
 
 message MySQLStatus {
@@ -922,9 +927,13 @@ message PerconaXtraDBSpec {
   // +optional
   optional bool halted = 13;
 
+  // TLS contains tls configurations for client and server.
+  // +optional
+  optional TLSConfig tls = 14;
+
   // TerminationPolicy controls the delete operation for database
   // +optional
-  optional string terminationPolicy = 14;
+  optional string terminationPolicy = 15;
 }
 
 message PerconaXtraDBStatus {
@@ -1105,9 +1114,13 @@ message PostgresSpec {
   // +optional
   optional bool halted = 19;
 
+  // TLS contains tls configurations for client and server.
+  // +optional
+  optional TLSConfig tls = 20;
+
   // TerminationPolicy controls the delete operation for database
   // +optional
-  optional string terminationPolicy = 20;
+  optional string terminationPolicy = 21;
 }
 
 message PostgresStatus {
@@ -1199,9 +1212,13 @@ message ProxySQLSpec {
   // Template.
   optional k8s.io.api.apps.v1.StatefulSetUpdateStrategy updateStrategy = 10;
 
+  // TLS contains tls configurations for client and server.
+  // +optional
+  optional TLSConfig tls = 11;
+
   // Indicates that the database is paused and controller will not sync any changes made to this spec.
   // +optional
-  optional bool paused = 11;
+  optional bool paused = 12;
 }
 
 message ProxySQLStatus {

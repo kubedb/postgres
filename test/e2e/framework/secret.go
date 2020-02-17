@@ -36,7 +36,7 @@ import (
 	"kmodules.xyz/constants/azure"
 	"kmodules.xyz/constants/google"
 	"kmodules.xyz/constants/openstack"
-	"stash.appscode.dev/stash/pkg/restic"
+	"stash.appscode.dev/apimachinery/pkg/restic"
 )
 
 var (

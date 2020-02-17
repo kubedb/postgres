@@ -53,9 +53,16 @@ const (
 	ElasticsearchNodePort     = 9300
 	ElasticsearchNodePortName = "transport"
 
-	MongoDBShardPort    = 27017
-	MongoDBConfigdbPort = 27017
-	MongoDBMongosPort   = 27017
+	MongoDBShardPort                  = 27017
+	MongoDBConfigdbPort               = 27017
+	MongoDBMongosPort                 = 27017
+	MongoDBKeyFileSecretSuffix        = "-key"
+	MongoDBExternalClientSecretSuffix = "-client-cert"
+	MongoDBExporterClientSecretSuffix = "-exporter-cert"
+	MongoDBServerSecretSuffix         = "-server-cert"
+	MongoDBPEMSecretSuffix            = "-pem"
+	MongoDBClientCertOrganization     = DatabaseNamePrefix + ":client"
+	MongoDBCertificateCN              = "root"
 
 	MySQLUserKey         = "username"
 	MySQLPasswordKey     = "password"
@@ -96,4 +103,12 @@ const (
 	RedisShardKey   = RedisKey + "/shard"
 	RedisNodePort   = 6379
 	RedisGossipPort = 16379
+
+	PgBouncerServingClientSuffix      = "-serving-client-cert"
+	PgBouncerExporterClientCertSuffix = "-exporter-cert"
+	PgBouncerServingServerSuffix      = "-serving-server-cert"
+	PgBouncerUpstreamServerCA         = "upstream-server-ca.crt"
+
+	LocalHost   = "localhost"
+	LocalHostIP = "127.0.0.1"
 )

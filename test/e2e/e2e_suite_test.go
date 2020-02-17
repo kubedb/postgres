@@ -39,7 +39,7 @@ import (
 	"kmodules.xyz/client-go/logs"
 	"kmodules.xyz/client-go/tools/clientcmd"
 	appcat_cs "kmodules.xyz/custom-resources/client/clientset/versioned/typed/appcatalog/v1alpha1"
-	scs "stash.appscode.dev/stash/client/clientset/versioned"
+	scs "stash.appscode.dev/apimachinery/client/clientset/versioned"
 )
 
 // To Run E2E tests:
