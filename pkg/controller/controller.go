@@ -43,7 +43,7 @@ import (
 	"kmodules.xyz/client-go/tools/queue"
 	appcat "kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1"
 	appcat_cs "kmodules.xyz/custom-resources/client/clientset/versioned"
-	scs "stash.appscode.dev/stash/client/clientset/versioned"
+	scs "stash.appscode.dev/apimachinery/client/clientset/versioned"
 )
 
 type Controller struct {

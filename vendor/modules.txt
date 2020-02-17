@@ -965,7 +965,7 @@ k8s.io/utils/integer
 k8s.io/utils/path
 k8s.io/utils/pointer
 k8s.io/utils/trace
-# kmodules.xyz/client-go v0.0.0-20200125212626-a094b2ba24c6
+# kmodules.xyz/client-go v0.0.0-20200216080917-08714f78f885
 kmodules.xyz/client-go
 kmodules.xyz/client-go/admissionregistration/v1beta1
 kmodules.xyz/client-go/apiextensions/v1beta1
@@ -1007,17 +1007,17 @@ kmodules.xyz/monitoring-agent-api/agents/coreosprometheusoperator
 kmodules.xyz/monitoring-agent-api/agents/prometheus
 kmodules.xyz/monitoring-agent-api/agents/prometheusbuiltin
 kmodules.xyz/monitoring-agent-api/api/v1
-# kmodules.xyz/objectstore-api v0.0.0-20191127144749-5881939b57f0
+# kmodules.xyz/objectstore-api v0.0.0-20200214040336-fe8f39a4210d
 kmodules.xyz/objectstore-api/api/v1
 kmodules.xyz/objectstore-api/osm
-# kmodules.xyz/offshoot-api v0.0.0-20200103145223-2c4f520520d2
+# kmodules.xyz/offshoot-api v0.0.0-20200216080509-45ee6418d1c1
 kmodules.xyz/offshoot-api/api/v1
 # kmodules.xyz/prober v0.0.0-20191216013129-7c91e2b0edb2
 kmodules.xyz/prober/api/v1
 # kmodules.xyz/webhook-runtime v0.0.0-20191127075323-d4bfdee6974d
 kmodules.xyz/webhook-runtime/admission/v1beta1
 kmodules.xyz/webhook-runtime/registry/admissionreview/v1beta1
-# kubedb.dev/apimachinery v0.13.0-rc.3.0.20200126044229-b32bf152d9ca
+# kubedb.dev/apimachinery v0.13.0-rc.4
 kubedb.dev/apimachinery/api/crds
 kubedb.dev/apimachinery/apis
 kubedb.dev/apimachinery/apis/catalog
@@ -1089,28 +1089,28 @@ sigs.k8s.io/structured-merge-diff/typed
 sigs.k8s.io/structured-merge-diff/value
 # sigs.k8s.io/yaml v1.1.0 => sigs.k8s.io/yaml v1.1.0
 sigs.k8s.io/yaml
-# stash.appscode.dev/stash v0.9.0-rc.4
-stash.appscode.dev/stash/api/crds
-stash.appscode.dev/stash/apis
-stash.appscode.dev/stash/apis/repositories
-stash.appscode.dev/stash/apis/repositories/v1alpha1
-stash.appscode.dev/stash/apis/stash
-stash.appscode.dev/stash/apis/stash/v1alpha1
-stash.appscode.dev/stash/apis/stash/v1beta1
-stash.appscode.dev/stash/client/clientset/versioned
-stash.appscode.dev/stash/client/clientset/versioned/scheme
-stash.appscode.dev/stash/client/clientset/versioned/typed/repositories/v1alpha1
-stash.appscode.dev/stash/client/clientset/versioned/typed/stash/v1alpha1
-stash.appscode.dev/stash/client/clientset/versioned/typed/stash/v1beta1
-stash.appscode.dev/stash/client/clientset/versioned/typed/stash/v1beta1/util
-stash.appscode.dev/stash/client/informers/externalversions
-stash.appscode.dev/stash/client/informers/externalversions/internalinterfaces
-stash.appscode.dev/stash/client/informers/externalversions/stash
-stash.appscode.dev/stash/client/informers/externalversions/stash/v1alpha1
-stash.appscode.dev/stash/client/informers/externalversions/stash/v1beta1
-stash.appscode.dev/stash/client/listers/stash/v1alpha1
-stash.appscode.dev/stash/client/listers/stash/v1beta1
-stash.appscode.dev/stash/pkg/restic
+# stash.appscode.dev/apimachinery v0.9.0-rc.6
+stash.appscode.dev/apimachinery/api/crds
+stash.appscode.dev/apimachinery/apis
+stash.appscode.dev/apimachinery/apis/repositories
+stash.appscode.dev/apimachinery/apis/repositories/v1alpha1
+stash.appscode.dev/apimachinery/apis/stash
+stash.appscode.dev/apimachinery/apis/stash/v1alpha1
+stash.appscode.dev/apimachinery/apis/stash/v1beta1
+stash.appscode.dev/apimachinery/client/clientset/versioned
+stash.appscode.dev/apimachinery/client/clientset/versioned/scheme
+stash.appscode.dev/apimachinery/client/clientset/versioned/typed/repositories/v1alpha1
+stash.appscode.dev/apimachinery/client/clientset/versioned/typed/stash/v1alpha1
+stash.appscode.dev/apimachinery/client/clientset/versioned/typed/stash/v1beta1
+stash.appscode.dev/apimachinery/client/clientset/versioned/typed/stash/v1beta1/util
+stash.appscode.dev/apimachinery/client/informers/externalversions
+stash.appscode.dev/apimachinery/client/informers/externalversions/internalinterfaces
+stash.appscode.dev/apimachinery/client/informers/externalversions/stash
+stash.appscode.dev/apimachinery/client/informers/externalversions/stash/v1alpha1
+stash.appscode.dev/apimachinery/client/informers/externalversions/stash/v1beta1
+stash.appscode.dev/apimachinery/client/listers/stash/v1alpha1
+stash.appscode.dev/apimachinery/client/listers/stash/v1beta1
+stash.appscode.dev/apimachinery/pkg/restic
 # xorm.io/builder v0.3.6
 xorm.io/builder
 # xorm.io/core v0.7.2-0.20190928055935-90aeac8d08eb

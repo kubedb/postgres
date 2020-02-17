@@ -7198,6 +7198,67 @@ spec:
             terminationPolicy:
               description: TerminationPolicy controls the delete operation for database
               type: string
+            tls:
+              description: TLS contains tls configurations for client and server.
+              properties:
+                certificate:
+                  description: 'Certificate provides server certificate options used
+                    by PgBouncer pods. These options are passed to a cert-manager
+                    Certificate object. xref: https://github.com/jetstack/cert-manager/blob/v0.12.0/pkg/apis/certmanager/v1alpha2/types_certificate.go#L71-L146'
+                  properties:
+                    dnsNames:
+                      description: DNSNames is a list of subject alt names to be used
+                        on the Certificate.
+                      items:
+                        type: string
+                      type: array
+                    duration:
+                      description: Certificate default Duration
+                      type: string
+                    ipAddresses:
+                      description: IPAddresses is a list of IP addresses to be used
+                        on the Certificate
+                      items:
+                        type: string
+                      type: array
+                    organization:
+                      description: Organization is the organization to be used on
+                        the Certificate
+                      items:
+                        type: string
+                      type: array
+                    renewBefore:
+                      description: Certificate renew before expiration duration
+                      type: string
+                    uriSANs:
+                      description: URISANs is a list of URI Subject Alternative Names
+                        to be set on this Certificate.
+                      items:
+                        type: string
+                      type: array
+                  type: object
+                issuerRef:
+                  description: IssuerRef is a reference to a Certificate Issuer.
+                  properties:
+                    apiGroup:
+                      description: APIGroup is the group for the resource being referenced.
+                        If APIGroup is not specified, the specified Kind must be in
+                        the core API group. For any other third-party types, APIGroup
+                        is required.
+                      type: string
+                    kind:
+                      description: Kind is the type of resource being referenced
+                      type: string
+                    name:
+                      description: Name is the name of resource being referenced
+                      type: string
+                  required:
+                  - kind
+                  - name
+                  type: object
+              required:
+              - issuerRef
+              type: object
             updateStrategy:
               description: updateStrategy indicates the StatefulSetUpdateStrategy
                 that will be employed to update Pods in the StatefulSet when a revision
