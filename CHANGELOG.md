@@ -1,5 +1,27 @@
 # Change Log
 
+## [Unreleased](https://github.com/kubedb/postgres/tree/HEAD)
+
+[Full Changelog](https://github.com/kubedb/postgres/compare/v0.13.0-rc.0...HEAD)
+
+**Merged pull requests:**
+
+- Use stash.appscode.dev/apimachinery@v0.9.0-rc.6 [\#308](https://github.com/kubedb/postgres/pull/308) ([tamalsaha](https://github.com/tamalsaha))
+- Change Pause to Halt [\#307](https://github.com/kubedb/postgres/pull/307) ([tamalsaha](https://github.com/tamalsaha))
+- Use stash@v0.9.0-rc.4 release [\#306](https://github.com/kubedb/postgres/pull/306) ([tamalsaha](https://github.com/tamalsaha))
+- Introduce spec.halted and removed dormant and snapshot crd [\#305](https://github.com/kubedb/postgres/pull/305) ([the-redback](https://github.com/the-redback))
+- Moved leader election to kubedb/pg-leader-election [\#304](https://github.com/kubedb/postgres/pull/304) ([the-redback](https://github.com/the-redback))
+- Make e2e tests stable in github actions [\#303](https://github.com/kubedb/postgres/pull/303) ([the-redback](https://github.com/the-redback))
+- Use charts to install operator [\#302](https://github.com/kubedb/postgres/pull/302) ([tamalsaha](https://github.com/tamalsaha))
+- Update client-go to kubernetes-1.16.3 [\#301](https://github.com/kubedb/postgres/pull/301) ([tamalsaha](https://github.com/tamalsaha))
+- feat: allow changes to nodeSelector [\#298](https://github.com/kubedb/postgres/pull/298) ([bchrobot](https://github.com/bchrobot))
+- Take out postgres docker images and Matrix test [\#297](https://github.com/kubedb/postgres/pull/297) ([the-redback](https://github.com/the-redback))
+- Add license header to files [\#296](https://github.com/kubedb/postgres/pull/296) ([tamalsaha](https://github.com/tamalsaha))
+- Fix E2E testing for github actions [\#295](https://github.com/kubedb/postgres/pull/295) ([the-redback](https://github.com/the-redback))
+- Validate DBVersionSpecs and fixed broken build [\#294](https://github.com/kubedb/postgres/pull/294) ([the-redback](https://github.com/the-redback))
+- Run e2e tests using GitHub actions [\#293](https://github.com/kubedb/postgres/pull/293) ([tamalsaha](https://github.com/tamalsaha))
+- Minio and S3 compatible storage fixes [\#292](https://github.com/kubedb/postgres/pull/292) ([iamrz1](https://github.com/iamrz1))
+
 ## [v0.13.0-rc.0](https://github.com/kubedb/postgres/tree/v0.13.0-rc.0) (2019-08-22)
 [Full Changelog](https://github.com/kubedb/postgres/compare/0.12.0...v0.13.0-rc.0)
 
