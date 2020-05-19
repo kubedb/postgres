@@ -21,10 +21,9 @@ stash-install:
 stash-install:
 	helm repo add appscode https://charts.appscode.com/stable/; \
 	helm repo update; \
-	helm install stash-operator appscode/stash \
+	helm install stash-operator appscode/stash --wait \
 		--version v0.9.0-rc.6 \
 		--namespace kube-system; \
-	kubectl wait --for=condition=Ready pods -n kube-system -l 'app.kubernetes.io/name=stash,app.kubernetes.io/instance=stash-operator' --timeout=5m; \
 	kubectl wait --for=condition=Available apiservice -l 'app.kubernetes.io/name=stash,app.kubernetes.io/instance=stash-operator' --timeout=5m
 	curl -fsSL https://github.com/stashed/catalog/raw/v0.3.0/deploy/script.sh | bash -s -- --catalog=stash-postgres --docker-registry=stashed
 
@@ -35,4 +34,4 @@ stash-uninstall:
 
 .PHONY: stash-purge
 stash-purge: stash-uninstall
-	kubectl delete crds -l app=stash
+	kubectl delete crds -l app.kubernetes.io/name=stash
