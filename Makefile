@@ -67,7 +67,7 @@ TAG              := $(VERSION)_$(OS)_$(ARCH)
 TAG_PROD         := $(TAG)
 TAG_DBG          := $(VERSION)-dbg_$(OS)_$(ARCH)
 
-GO_VERSION       ?= 1.14.2
+GO_VERSION       ?= 1.14
 BUILD_IMAGE      ?= appscode/golang-dev:$(GO_VERSION)
 
 OUTBIN = bin/$(OS)_$(ARCH)/$(BIN)
@@ -333,6 +333,7 @@ $(BUILD_DIRS):
 	@mkdir -p $@
 
 REGISTRY_SECRET ?=
+ENTERPRISE_TAG  ?= v0.1.0-alpha.0
 
 ifeq ($(strip $(REGISTRY_SECRET)),)
 	IMAGE_PULL_SECRETS =
@@ -349,7 +350,7 @@ install:
 		--set operator.repository=pg-operator \
 		--set operator.tag=$(TAG) \
 		--set enterprise.enabled=true \
-		--set enterprise.tag=c5436b50_linux_amd64 \
+		--set enterprise.tag=$(ENTERPRISE_TAG) \
 		--set imagePullPolicy=Always \
 		$(IMAGE_PULL_SECRETS); \
 	kubectl wait --for=condition=Available apiservice -l 'app.kubernetes.io/name=kubedb,app.kubernetes.io/instance=kubedb' --timeout=5m; \
