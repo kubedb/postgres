@@ -16,6 +16,7 @@ limitations under the License.
 package framework
 
 import (
+	"context"
 	"time"
 
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
@@ -25,6 +26,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
+	meta_util "kmodules.xyz/client-go/meta"
 )
 
 func (f *Framework) EventuallyPVCCount(meta metav1.ObjectMeta) GomegaAsyncAssertion {
@@ -36,6 +38,7 @@ func (f *Framework) EventuallyPVCCount(meta metav1.ObjectMeta) GomegaAsyncAssert
 	return Eventually(
 		func() int {
 			pvcList, err := f.kubeClient.CoreV1().PersistentVolumeClaims(meta.Namespace).List(
+				context.TODO(),
 				metav1.ListOptions{
 					LabelSelector: labelSelector.String(),
 				},
@@ -95,10 +98,10 @@ func (i *Invocation) GetNamedPersistentVolumeClaim(name string) *core.Persistent
 }
 
 func (i *Invocation) CreatePersistentVolumeClaim(pvc *core.PersistentVolumeClaim) error {
-	_, err := i.kubeClient.CoreV1().PersistentVolumeClaims(pvc.Namespace).Create(pvc)
+	_, err := i.kubeClient.CoreV1().PersistentVolumeClaims(pvc.Namespace).Create(context.TODO(), pvc, metav1.CreateOptions{})
 	return err
 }
 
 func (i *Invocation) DeletePersistentVolumeClaim(meta metav1.ObjectMeta) error {
-	return i.kubeClient.CoreV1().PersistentVolumeClaims(meta.Namespace).Delete(meta.Name, deleteInForeground())
+	return i.kubeClient.CoreV1().PersistentVolumeClaims(meta.Namespace).Delete(context.TODO(), meta.Name, meta_util.DeleteInForeground())
 }

@@ -16,6 +16,7 @@ limitations under the License.
 package framework
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"os"
@@ -34,6 +35,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/wait"
 	apps_util "kmodules.xyz/client-go/apps/v1"
+	meta_util "kmodules.xyz/client-go/meta"
 	"kmodules.xyz/client-go/tools/portforward"
 	v1 "kmodules.xyz/objectstore-api/api/v1"
 	"kmodules.xyz/objectstore-api/osm"
@@ -127,7 +129,7 @@ func (i *Invocation) CreateHTTPMinioServer(minioBackendSecret *core.Secret) erro
 	if err != nil {
 		return err
 	}
-	if err = apps_util.WaitUntilDeploymentReady(i.kubeClient, deploy.ObjectMeta); err != nil {
+	if err = apps_util.WaitUntilDeploymentReady(context.TODO(), i.kubeClient, deploy.ObjectMeta); err != nil {
 		return err
 	}
 
@@ -170,7 +172,7 @@ func (i *Invocation) CreateHTTPSMinioServer(minioBackendSecret *core.Secret) err
 		return err
 	}
 
-	err = apps_util.WaitUntilDeploymentReady(i.kubeClient, deploy.ObjectMeta)
+	err = apps_util.WaitUntilDeploymentReady(context.TODO(), i.kubeClient, deploy.ObjectMeta)
 	if err != nil {
 		return err
 	}
@@ -209,7 +211,7 @@ func (f *Framework) ForwardMinioPort(clientPodName string) (*portforward.Tunnel,
 
 func (i *Invocation) CreateBucket(deployment *apps.Deployment, minioBackendSecret *core.Secret, tls bool) error {
 	endPoint := ""
-	podlist, err := i.kubeClient.CoreV1().Pods(deployment.ObjectMeta.Namespace).List(metav1.ListOptions{LabelSelector: metav1.FormatLabelSelector(deployment.Spec.Selector)})
+	podlist, err := i.kubeClient.CoreV1().Pods(deployment.ObjectMeta.Namespace).List(context.TODO(), metav1.ListOptions{LabelSelector: metav1.FormatLabelSelector(deployment.Spec.Selector)})
 	if err != nil {
 		return err
 	}
@@ -275,7 +277,7 @@ func (i *Invocation) CreateMinioBucket(bucketName string, minioBackendSecret *co
 }
 
 func (i *Invocation) CreateDeploymentForMinioServer(obj *apps.Deployment) (*apps.Deployment, error) {
-	newDeploy, err := i.kubeClient.AppsV1().Deployments(obj.Namespace).Create(obj)
+	newDeploy, err := i.kubeClient.AppsV1().Deployments(obj.Namespace).Create(context.TODO(), obj, metav1.CreateOptions{})
 	return newDeploy, err
 }
 
@@ -439,7 +441,7 @@ func (i *Invocation) ServiceForMinioServer() core.Service {
 }
 
 func (i *Invocation) CreateService(obj core.Service) (*core.Service, error) {
-	return i.kubeClient.CoreV1().Services(obj.Namespace).Create(&obj)
+	return i.kubeClient.CoreV1().Services(obj.Namespace).Create(context.TODO(), &obj, metav1.CreateOptions{})
 }
 
 func (i *Invocation) MinioServiceAddress() string {
@@ -571,9 +573,9 @@ func (i *Invocation) DeleteMinioServer() {
 }
 
 func (f *Framework) DeleteServiceForMinioServer(meta metav1.ObjectMeta) error {
-	return f.kubeClient.CoreV1().Services(meta.Namespace).Delete(meta.Name, deleteInForeground())
+	return f.kubeClient.CoreV1().Services(meta.Namespace).Delete(context.TODO(), meta.Name, meta_util.DeleteInForeground())
 }
 
 func (f *Framework) DeleteDeploymentForMinioServer(meta metav1.ObjectMeta) error {
-	return f.kubeClient.AppsV1().Deployments(meta.Namespace).Delete(meta.Name, deleteInBackground())
+	return f.kubeClient.AppsV1().Deployments(meta.Namespace).Delete(context.TODO(), meta.Name, meta_util.DeleteInBackground())
 }

@@ -19,6 +19,8 @@ limitations under the License.
 package fake
 
 import (
+	"context"
+
 	v1alpha1 "kubedb.dev/apimachinery/apis/ops/v1alpha1"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -40,7 +42,7 @@ var proxysqlopsrequestsResource = schema.GroupVersionResource{Group: "ops.kubedb
 var proxysqlopsrequestsKind = schema.GroupVersionKind{Group: "ops.kubedb.com", Version: "v1alpha1", Kind: "ProxySQLOpsRequest"}
 
 // Get takes name of the proxySQLOpsRequest, and returns the corresponding proxySQLOpsRequest object, and an error if there is any.
-func (c *FakeProxySQLOpsRequests) Get(name string, options v1.GetOptions) (result *v1alpha1.ProxySQLOpsRequest, err error) {
+func (c *FakeProxySQLOpsRequests) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1alpha1.ProxySQLOpsRequest, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewGetAction(proxysqlopsrequestsResource, c.ns, name), &v1alpha1.ProxySQLOpsRequest{})
 
@@ -51,7 +53,7 @@ func (c *FakeProxySQLOpsRequests) Get(name string, options v1.GetOptions) (resul
 }
 
 // List takes label and field selectors, and returns the list of ProxySQLOpsRequests that match those selectors.
-func (c *FakeProxySQLOpsRequests) List(opts v1.ListOptions) (result *v1alpha1.ProxySQLOpsRequestList, err error) {
+func (c *FakeProxySQLOpsRequests) List(ctx context.Context, opts v1.ListOptions) (result *v1alpha1.ProxySQLOpsRequestList, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewListAction(proxysqlopsrequestsResource, proxysqlopsrequestsKind, c.ns, opts), &v1alpha1.ProxySQLOpsRequestList{})
 
@@ -73,14 +75,14 @@ func (c *FakeProxySQLOpsRequests) List(opts v1.ListOptions) (result *v1alpha1.Pr
 }
 
 // Watch returns a watch.Interface that watches the requested proxySQLOpsRequests.
-func (c *FakeProxySQLOpsRequests) Watch(opts v1.ListOptions) (watch.Interface, error) {
+func (c *FakeProxySQLOpsRequests) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
 		InvokesWatch(testing.NewWatchAction(proxysqlopsrequestsResource, c.ns, opts))
 
 }
 
 // Create takes the representation of a proxySQLOpsRequest and creates it.  Returns the server's representation of the proxySQLOpsRequest, and an error, if there is any.
-func (c *FakeProxySQLOpsRequests) Create(proxySQLOpsRequest *v1alpha1.ProxySQLOpsRequest) (result *v1alpha1.ProxySQLOpsRequest, err error) {
+func (c *FakeProxySQLOpsRequests) Create(ctx context.Context, proxySQLOpsRequest *v1alpha1.ProxySQLOpsRequest, opts v1.CreateOptions) (result *v1alpha1.ProxySQLOpsRequest, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewCreateAction(proxysqlopsrequestsResource, c.ns, proxySQLOpsRequest), &v1alpha1.ProxySQLOpsRequest{})
 
@@ -91,7 +93,7 @@ func (c *FakeProxySQLOpsRequests) Create(proxySQLOpsRequest *v1alpha1.ProxySQLOp
 }
 
 // Update takes the representation of a proxySQLOpsRequest and updates it. Returns the server's representation of the proxySQLOpsRequest, and an error, if there is any.
-func (c *FakeProxySQLOpsRequests) Update(proxySQLOpsRequest *v1alpha1.ProxySQLOpsRequest) (result *v1alpha1.ProxySQLOpsRequest, err error) {
+func (c *FakeProxySQLOpsRequests) Update(ctx context.Context, proxySQLOpsRequest *v1alpha1.ProxySQLOpsRequest, opts v1.UpdateOptions) (result *v1alpha1.ProxySQLOpsRequest, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewUpdateAction(proxysqlopsrequestsResource, c.ns, proxySQLOpsRequest), &v1alpha1.ProxySQLOpsRequest{})
 
@@ -103,7 +105,7 @@ func (c *FakeProxySQLOpsRequests) Update(proxySQLOpsRequest *v1alpha1.ProxySQLOp
 
 // UpdateStatus was generated because the type contains a Status member.
 // Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-func (c *FakeProxySQLOpsRequests) UpdateStatus(proxySQLOpsRequest *v1alpha1.ProxySQLOpsRequest) (*v1alpha1.ProxySQLOpsRequest, error) {
+func (c *FakeProxySQLOpsRequests) UpdateStatus(ctx context.Context, proxySQLOpsRequest *v1alpha1.ProxySQLOpsRequest, opts v1.UpdateOptions) (*v1alpha1.ProxySQLOpsRequest, error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewUpdateSubresourceAction(proxysqlopsrequestsResource, "status", c.ns, proxySQLOpsRequest), &v1alpha1.ProxySQLOpsRequest{})
 
@@ -114,7 +116,7 @@ func (c *FakeProxySQLOpsRequests) UpdateStatus(proxySQLOpsRequest *v1alpha1.Prox
 }
 
 // Delete takes name of the proxySQLOpsRequest and deletes it. Returns an error if one occurs.
-func (c *FakeProxySQLOpsRequests) Delete(name string, options *v1.DeleteOptions) error {
+func (c *FakeProxySQLOpsRequests) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
 		Invokes(testing.NewDeleteAction(proxysqlopsrequestsResource, c.ns, name), &v1alpha1.ProxySQLOpsRequest{})
 
@@ -122,15 +124,15 @@ func (c *FakeProxySQLOpsRequests) Delete(name string, options *v1.DeleteOptions)
 }
 
 // DeleteCollection deletes a collection of objects.
-func (c *FakeProxySQLOpsRequests) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
-	action := testing.NewDeleteCollectionAction(proxysqlopsrequestsResource, c.ns, listOptions)
+func (c *FakeProxySQLOpsRequests) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
+	action := testing.NewDeleteCollectionAction(proxysqlopsrequestsResource, c.ns, listOpts)
 
 	_, err := c.Fake.Invokes(action, &v1alpha1.ProxySQLOpsRequestList{})
 	return err
 }
 
 // Patch applies the patch and returns the patched proxySQLOpsRequest.
-func (c *FakeProxySQLOpsRequests) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1alpha1.ProxySQLOpsRequest, err error) {
+func (c *FakeProxySQLOpsRequests) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1alpha1.ProxySQLOpsRequest, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewPatchSubresourceAction(proxysqlopsrequestsResource, c.ns, name, pt, data, subresources...), &v1alpha1.ProxySQLOpsRequest{})
 

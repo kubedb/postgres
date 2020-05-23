@@ -17,6 +17,7 @@ limitations under the License.
 package e2e_test
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strings"
@@ -34,6 +35,7 @@ import (
 	core "k8s.io/api/core/v1"
 	rbac "k8s.io/api/rbac/v1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	core_util "kmodules.xyz/client-go/core/v1"
 	store "kmodules.xyz/objectstore-api/api/v1"
 	stashV1alpha1 "stash.appscode.dev/apimachinery/apis/stash/v1alpha1"
@@ -1584,7 +1586,7 @@ var _ = Describe("Postgres", func() {
 					testGeneralBehaviour()
 
 					By("Patching EnvVar")
-					_, _, err = util.PatchPostgres(f.ExtClient().KubedbV1alpha1(), postgres, func(in *api.Postgres) *api.Postgres {
+					_, _, err = util.PatchPostgres(context.TODO(), f.ExtClient().KubedbV1alpha1(), postgres, func(in *api.Postgres) *api.Postgres {
 						in.Spec.PodTemplate.Spec.Env = []core.EnvVar{
 							{
 								Name:  POSTGRES_DB,
@@ -1592,7 +1594,7 @@ var _ = Describe("Postgres", func() {
 							},
 						}
 						return in
-					})
+					}, metav1.PatchOptions{})
 					Expect(err).NotTo(HaveOccurred())
 				})
 			})

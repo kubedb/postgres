@@ -19,6 +19,8 @@ limitations under the License.
 package fake
 
 import (
+	"context"
+
 	v1alpha1 "kubedb.dev/apimachinery/apis/ops/v1alpha1"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -40,7 +42,7 @@ var elasticsearchopsrequestsResource = schema.GroupVersionResource{Group: "ops.k
 var elasticsearchopsrequestsKind = schema.GroupVersionKind{Group: "ops.kubedb.com", Version: "v1alpha1", Kind: "ElasticsearchOpsRequest"}
 
 // Get takes name of the elasticsearchOpsRequest, and returns the corresponding elasticsearchOpsRequest object, and an error if there is any.
-func (c *FakeElasticsearchOpsRequests) Get(name string, options v1.GetOptions) (result *v1alpha1.ElasticsearchOpsRequest, err error) {
+func (c *FakeElasticsearchOpsRequests) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1alpha1.ElasticsearchOpsRequest, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewGetAction(elasticsearchopsrequestsResource, c.ns, name), &v1alpha1.ElasticsearchOpsRequest{})
 
@@ -51,7 +53,7 @@ func (c *FakeElasticsearchOpsRequests) Get(name string, options v1.GetOptions) (
 }
 
 // List takes label and field selectors, and returns the list of ElasticsearchOpsRequests that match those selectors.
-func (c *FakeElasticsearchOpsRequests) List(opts v1.ListOptions) (result *v1alpha1.ElasticsearchOpsRequestList, err error) {
+func (c *FakeElasticsearchOpsRequests) List(ctx context.Context, opts v1.ListOptions) (result *v1alpha1.ElasticsearchOpsRequestList, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewListAction(elasticsearchopsrequestsResource, elasticsearchopsrequestsKind, c.ns, opts), &v1alpha1.ElasticsearchOpsRequestList{})
 
@@ -73,14 +75,14 @@ func (c *FakeElasticsearchOpsRequests) List(opts v1.ListOptions) (result *v1alph
 }
 
 // Watch returns a watch.Interface that watches the requested elasticsearchOpsRequests.
-func (c *FakeElasticsearchOpsRequests) Watch(opts v1.ListOptions) (watch.Interface, error) {
+func (c *FakeElasticsearchOpsRequests) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
 		InvokesWatch(testing.NewWatchAction(elasticsearchopsrequestsResource, c.ns, opts))
 
 }
 
 // Create takes the representation of a elasticsearchOpsRequest and creates it.  Returns the server's representation of the elasticsearchOpsRequest, and an error, if there is any.
-func (c *FakeElasticsearchOpsRequests) Create(elasticsearchOpsRequest *v1alpha1.ElasticsearchOpsRequest) (result *v1alpha1.ElasticsearchOpsRequest, err error) {
+func (c *FakeElasticsearchOpsRequests) Create(ctx context.Context, elasticsearchOpsRequest *v1alpha1.ElasticsearchOpsRequest, opts v1.CreateOptions) (result *v1alpha1.ElasticsearchOpsRequest, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewCreateAction(elasticsearchopsrequestsResource, c.ns, elasticsearchOpsRequest), &v1alpha1.ElasticsearchOpsRequest{})
 
@@ -91,7 +93,7 @@ func (c *FakeElasticsearchOpsRequests) Create(elasticsearchOpsRequest *v1alpha1.
 }
 
 // Update takes the representation of a elasticsearchOpsRequest and updates it. Returns the server's representation of the elasticsearchOpsRequest, and an error, if there is any.
-func (c *FakeElasticsearchOpsRequests) Update(elasticsearchOpsRequest *v1alpha1.ElasticsearchOpsRequest) (result *v1alpha1.ElasticsearchOpsRequest, err error) {
+func (c *FakeElasticsearchOpsRequests) Update(ctx context.Context, elasticsearchOpsRequest *v1alpha1.ElasticsearchOpsRequest, opts v1.UpdateOptions) (result *v1alpha1.ElasticsearchOpsRequest, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewUpdateAction(elasticsearchopsrequestsResource, c.ns, elasticsearchOpsRequest), &v1alpha1.ElasticsearchOpsRequest{})
 
@@ -103,7 +105,7 @@ func (c *FakeElasticsearchOpsRequests) Update(elasticsearchOpsRequest *v1alpha1.
 
 // UpdateStatus was generated because the type contains a Status member.
 // Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-func (c *FakeElasticsearchOpsRequests) UpdateStatus(elasticsearchOpsRequest *v1alpha1.ElasticsearchOpsRequest) (*v1alpha1.ElasticsearchOpsRequest, error) {
+func (c *FakeElasticsearchOpsRequests) UpdateStatus(ctx context.Context, elasticsearchOpsRequest *v1alpha1.ElasticsearchOpsRequest, opts v1.UpdateOptions) (*v1alpha1.ElasticsearchOpsRequest, error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewUpdateSubresourceAction(elasticsearchopsrequestsResource, "status", c.ns, elasticsearchOpsRequest), &v1alpha1.ElasticsearchOpsRequest{})
 
@@ -114,7 +116,7 @@ func (c *FakeElasticsearchOpsRequests) UpdateStatus(elasticsearchOpsRequest *v1a
 }
 
 // Delete takes name of the elasticsearchOpsRequest and deletes it. Returns an error if one occurs.
-func (c *FakeElasticsearchOpsRequests) Delete(name string, options *v1.DeleteOptions) error {
+func (c *FakeElasticsearchOpsRequests) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
 		Invokes(testing.NewDeleteAction(elasticsearchopsrequestsResource, c.ns, name), &v1alpha1.ElasticsearchOpsRequest{})
 
@@ -122,15 +124,15 @@ func (c *FakeElasticsearchOpsRequests) Delete(name string, options *v1.DeleteOpt
 }
 
 // DeleteCollection deletes a collection of objects.
-func (c *FakeElasticsearchOpsRequests) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
-	action := testing.NewDeleteCollectionAction(elasticsearchopsrequestsResource, c.ns, listOptions)
+func (c *FakeElasticsearchOpsRequests) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
+	action := testing.NewDeleteCollectionAction(elasticsearchopsrequestsResource, c.ns, listOpts)
 
 	_, err := c.Fake.Invokes(action, &v1alpha1.ElasticsearchOpsRequestList{})
 	return err
 }
 
 // Patch applies the patch and returns the patched elasticsearchOpsRequest.
-func (c *FakeElasticsearchOpsRequests) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1alpha1.ElasticsearchOpsRequest, err error) {
+func (c *FakeElasticsearchOpsRequests) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1alpha1.ElasticsearchOpsRequest, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewPatchSubresourceAction(elasticsearchopsrequestsResource, c.ns, name, pt, data, subresources...), &v1alpha1.ElasticsearchOpsRequest{})
 
