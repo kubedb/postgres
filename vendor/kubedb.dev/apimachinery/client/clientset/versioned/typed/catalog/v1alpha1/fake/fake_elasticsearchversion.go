@@ -19,6 +19,8 @@ limitations under the License.
 package fake
 
 import (
+	"context"
+
 	v1alpha1 "kubedb.dev/apimachinery/apis/catalog/v1alpha1"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -39,7 +41,7 @@ var elasticsearchversionsResource = schema.GroupVersionResource{Group: "catalog.
 var elasticsearchversionsKind = schema.GroupVersionKind{Group: "catalog.kubedb.com", Version: "v1alpha1", Kind: "ElasticsearchVersion"}
 
 // Get takes name of the elasticsearchVersion, and returns the corresponding elasticsearchVersion object, and an error if there is any.
-func (c *FakeElasticsearchVersions) Get(name string, options v1.GetOptions) (result *v1alpha1.ElasticsearchVersion, err error) {
+func (c *FakeElasticsearchVersions) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1alpha1.ElasticsearchVersion, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewRootGetAction(elasticsearchversionsResource, name), &v1alpha1.ElasticsearchVersion{})
 	if obj == nil {
@@ -49,7 +51,7 @@ func (c *FakeElasticsearchVersions) Get(name string, options v1.GetOptions) (res
 }
 
 // List takes label and field selectors, and returns the list of ElasticsearchVersions that match those selectors.
-func (c *FakeElasticsearchVersions) List(opts v1.ListOptions) (result *v1alpha1.ElasticsearchVersionList, err error) {
+func (c *FakeElasticsearchVersions) List(ctx context.Context, opts v1.ListOptions) (result *v1alpha1.ElasticsearchVersionList, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewRootListAction(elasticsearchversionsResource, elasticsearchversionsKind, opts), &v1alpha1.ElasticsearchVersionList{})
 	if obj == nil {
@@ -70,13 +72,13 @@ func (c *FakeElasticsearchVersions) List(opts v1.ListOptions) (result *v1alpha1.
 }
 
 // Watch returns a watch.Interface that watches the requested elasticsearchVersions.
-func (c *FakeElasticsearchVersions) Watch(opts v1.ListOptions) (watch.Interface, error) {
+func (c *FakeElasticsearchVersions) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
 		InvokesWatch(testing.NewRootWatchAction(elasticsearchversionsResource, opts))
 }
 
 // Create takes the representation of a elasticsearchVersion and creates it.  Returns the server's representation of the elasticsearchVersion, and an error, if there is any.
-func (c *FakeElasticsearchVersions) Create(elasticsearchVersion *v1alpha1.ElasticsearchVersion) (result *v1alpha1.ElasticsearchVersion, err error) {
+func (c *FakeElasticsearchVersions) Create(ctx context.Context, elasticsearchVersion *v1alpha1.ElasticsearchVersion, opts v1.CreateOptions) (result *v1alpha1.ElasticsearchVersion, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewRootCreateAction(elasticsearchversionsResource, elasticsearchVersion), &v1alpha1.ElasticsearchVersion{})
 	if obj == nil {
@@ -86,7 +88,7 @@ func (c *FakeElasticsearchVersions) Create(elasticsearchVersion *v1alpha1.Elasti
 }
 
 // Update takes the representation of a elasticsearchVersion and updates it. Returns the server's representation of the elasticsearchVersion, and an error, if there is any.
-func (c *FakeElasticsearchVersions) Update(elasticsearchVersion *v1alpha1.ElasticsearchVersion) (result *v1alpha1.ElasticsearchVersion, err error) {
+func (c *FakeElasticsearchVersions) Update(ctx context.Context, elasticsearchVersion *v1alpha1.ElasticsearchVersion, opts v1.UpdateOptions) (result *v1alpha1.ElasticsearchVersion, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewRootUpdateAction(elasticsearchversionsResource, elasticsearchVersion), &v1alpha1.ElasticsearchVersion{})
 	if obj == nil {
@@ -96,22 +98,22 @@ func (c *FakeElasticsearchVersions) Update(elasticsearchVersion *v1alpha1.Elasti
 }
 
 // Delete takes name of the elasticsearchVersion and deletes it. Returns an error if one occurs.
-func (c *FakeElasticsearchVersions) Delete(name string, options *v1.DeleteOptions) error {
+func (c *FakeElasticsearchVersions) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
 		Invokes(testing.NewRootDeleteAction(elasticsearchversionsResource, name), &v1alpha1.ElasticsearchVersion{})
 	return err
 }
 
 // DeleteCollection deletes a collection of objects.
-func (c *FakeElasticsearchVersions) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
-	action := testing.NewRootDeleteCollectionAction(elasticsearchversionsResource, listOptions)
+func (c *FakeElasticsearchVersions) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
+	action := testing.NewRootDeleteCollectionAction(elasticsearchversionsResource, listOpts)
 
 	_, err := c.Fake.Invokes(action, &v1alpha1.ElasticsearchVersionList{})
 	return err
 }
 
 // Patch applies the patch and returns the patched elasticsearchVersion.
-func (c *FakeElasticsearchVersions) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1alpha1.ElasticsearchVersion, err error) {
+func (c *FakeElasticsearchVersions) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1alpha1.ElasticsearchVersion, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewRootPatchSubresourceAction(elasticsearchversionsResource, name, pt, data, subresources...), &v1alpha1.ElasticsearchVersion{})
 	if obj == nil {

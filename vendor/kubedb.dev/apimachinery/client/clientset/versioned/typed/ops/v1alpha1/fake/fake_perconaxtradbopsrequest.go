@@ -19,6 +19,8 @@ limitations under the License.
 package fake
 
 import (
+	"context"
+
 	v1alpha1 "kubedb.dev/apimachinery/apis/ops/v1alpha1"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -40,7 +42,7 @@ var perconaxtradbopsrequestsResource = schema.GroupVersionResource{Group: "ops.k
 var perconaxtradbopsrequestsKind = schema.GroupVersionKind{Group: "ops.kubedb.com", Version: "v1alpha1", Kind: "PerconaXtraDBOpsRequest"}
 
 // Get takes name of the perconaXtraDBOpsRequest, and returns the corresponding perconaXtraDBOpsRequest object, and an error if there is any.
-func (c *FakePerconaXtraDBOpsRequests) Get(name string, options v1.GetOptions) (result *v1alpha1.PerconaXtraDBOpsRequest, err error) {
+func (c *FakePerconaXtraDBOpsRequests) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1alpha1.PerconaXtraDBOpsRequest, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewGetAction(perconaxtradbopsrequestsResource, c.ns, name), &v1alpha1.PerconaXtraDBOpsRequest{})
 
@@ -51,7 +53,7 @@ func (c *FakePerconaXtraDBOpsRequests) Get(name string, options v1.GetOptions) (
 }
 
 // List takes label and field selectors, and returns the list of PerconaXtraDBOpsRequests that match those selectors.
-func (c *FakePerconaXtraDBOpsRequests) List(opts v1.ListOptions) (result *v1alpha1.PerconaXtraDBOpsRequestList, err error) {
+func (c *FakePerconaXtraDBOpsRequests) List(ctx context.Context, opts v1.ListOptions) (result *v1alpha1.PerconaXtraDBOpsRequestList, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewListAction(perconaxtradbopsrequestsResource, perconaxtradbopsrequestsKind, c.ns, opts), &v1alpha1.PerconaXtraDBOpsRequestList{})
 
@@ -73,14 +75,14 @@ func (c *FakePerconaXtraDBOpsRequests) List(opts v1.ListOptions) (result *v1alph
 }
 
 // Watch returns a watch.Interface that watches the requested perconaXtraDBOpsRequests.
-func (c *FakePerconaXtraDBOpsRequests) Watch(opts v1.ListOptions) (watch.Interface, error) {
+func (c *FakePerconaXtraDBOpsRequests) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
 		InvokesWatch(testing.NewWatchAction(perconaxtradbopsrequestsResource, c.ns, opts))
 
 }
 
 // Create takes the representation of a perconaXtraDBOpsRequest and creates it.  Returns the server's representation of the perconaXtraDBOpsRequest, and an error, if there is any.
-func (c *FakePerconaXtraDBOpsRequests) Create(perconaXtraDBOpsRequest *v1alpha1.PerconaXtraDBOpsRequest) (result *v1alpha1.PerconaXtraDBOpsRequest, err error) {
+func (c *FakePerconaXtraDBOpsRequests) Create(ctx context.Context, perconaXtraDBOpsRequest *v1alpha1.PerconaXtraDBOpsRequest, opts v1.CreateOptions) (result *v1alpha1.PerconaXtraDBOpsRequest, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewCreateAction(perconaxtradbopsrequestsResource, c.ns, perconaXtraDBOpsRequest), &v1alpha1.PerconaXtraDBOpsRequest{})
 
@@ -91,7 +93,7 @@ func (c *FakePerconaXtraDBOpsRequests) Create(perconaXtraDBOpsRequest *v1alpha1.
 }
 
 // Update takes the representation of a perconaXtraDBOpsRequest and updates it. Returns the server's representation of the perconaXtraDBOpsRequest, and an error, if there is any.
-func (c *FakePerconaXtraDBOpsRequests) Update(perconaXtraDBOpsRequest *v1alpha1.PerconaXtraDBOpsRequest) (result *v1alpha1.PerconaXtraDBOpsRequest, err error) {
+func (c *FakePerconaXtraDBOpsRequests) Update(ctx context.Context, perconaXtraDBOpsRequest *v1alpha1.PerconaXtraDBOpsRequest, opts v1.UpdateOptions) (result *v1alpha1.PerconaXtraDBOpsRequest, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewUpdateAction(perconaxtradbopsrequestsResource, c.ns, perconaXtraDBOpsRequest), &v1alpha1.PerconaXtraDBOpsRequest{})
 
@@ -103,7 +105,7 @@ func (c *FakePerconaXtraDBOpsRequests) Update(perconaXtraDBOpsRequest *v1alpha1.
 
 // UpdateStatus was generated because the type contains a Status member.
 // Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-func (c *FakePerconaXtraDBOpsRequests) UpdateStatus(perconaXtraDBOpsRequest *v1alpha1.PerconaXtraDBOpsRequest) (*v1alpha1.PerconaXtraDBOpsRequest, error) {
+func (c *FakePerconaXtraDBOpsRequests) UpdateStatus(ctx context.Context, perconaXtraDBOpsRequest *v1alpha1.PerconaXtraDBOpsRequest, opts v1.UpdateOptions) (*v1alpha1.PerconaXtraDBOpsRequest, error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewUpdateSubresourceAction(perconaxtradbopsrequestsResource, "status", c.ns, perconaXtraDBOpsRequest), &v1alpha1.PerconaXtraDBOpsRequest{})
 
@@ -114,7 +116,7 @@ func (c *FakePerconaXtraDBOpsRequests) UpdateStatus(perconaXtraDBOpsRequest *v1a
 }
 
 // Delete takes name of the perconaXtraDBOpsRequest and deletes it. Returns an error if one occurs.
-func (c *FakePerconaXtraDBOpsRequests) Delete(name string, options *v1.DeleteOptions) error {
+func (c *FakePerconaXtraDBOpsRequests) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
 		Invokes(testing.NewDeleteAction(perconaxtradbopsrequestsResource, c.ns, name), &v1alpha1.PerconaXtraDBOpsRequest{})
 
@@ -122,15 +124,15 @@ func (c *FakePerconaXtraDBOpsRequests) Delete(name string, options *v1.DeleteOpt
 }
 
 // DeleteCollection deletes a collection of objects.
-func (c *FakePerconaXtraDBOpsRequests) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
-	action := testing.NewDeleteCollectionAction(perconaxtradbopsrequestsResource, c.ns, listOptions)
+func (c *FakePerconaXtraDBOpsRequests) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
+	action := testing.NewDeleteCollectionAction(perconaxtradbopsrequestsResource, c.ns, listOpts)
 
 	_, err := c.Fake.Invokes(action, &v1alpha1.PerconaXtraDBOpsRequestList{})
 	return err
 }
 
 // Patch applies the patch and returns the patched perconaXtraDBOpsRequest.
-func (c *FakePerconaXtraDBOpsRequests) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1alpha1.PerconaXtraDBOpsRequest, err error) {
+func (c *FakePerconaXtraDBOpsRequests) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1alpha1.PerconaXtraDBOpsRequest, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewPatchSubresourceAction(perconaxtradbopsrequestsResource, c.ns, name, pt, data, subresources...), &v1alpha1.PerconaXtraDBOpsRequest{})
 

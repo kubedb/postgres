@@ -19,6 +19,8 @@ limitations under the License.
 package fake
 
 import (
+	"context"
+
 	v1alpha1 "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -40,7 +42,7 @@ var redisesResource = schema.GroupVersionResource{Group: "kubedb.com", Version: 
 var redisesKind = schema.GroupVersionKind{Group: "kubedb.com", Version: "v1alpha1", Kind: "Redis"}
 
 // Get takes name of the redis, and returns the corresponding redis object, and an error if there is any.
-func (c *FakeRedises) Get(name string, options v1.GetOptions) (result *v1alpha1.Redis, err error) {
+func (c *FakeRedises) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1alpha1.Redis, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewGetAction(redisesResource, c.ns, name), &v1alpha1.Redis{})
 
@@ -51,7 +53,7 @@ func (c *FakeRedises) Get(name string, options v1.GetOptions) (result *v1alpha1.
 }
 
 // List takes label and field selectors, and returns the list of Redises that match those selectors.
-func (c *FakeRedises) List(opts v1.ListOptions) (result *v1alpha1.RedisList, err error) {
+func (c *FakeRedises) List(ctx context.Context, opts v1.ListOptions) (result *v1alpha1.RedisList, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewListAction(redisesResource, redisesKind, c.ns, opts), &v1alpha1.RedisList{})
 
@@ -73,14 +75,14 @@ func (c *FakeRedises) List(opts v1.ListOptions) (result *v1alpha1.RedisList, err
 }
 
 // Watch returns a watch.Interface that watches the requested redises.
-func (c *FakeRedises) Watch(opts v1.ListOptions) (watch.Interface, error) {
+func (c *FakeRedises) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
 		InvokesWatch(testing.NewWatchAction(redisesResource, c.ns, opts))
 
 }
 
 // Create takes the representation of a redis and creates it.  Returns the server's representation of the redis, and an error, if there is any.
-func (c *FakeRedises) Create(redis *v1alpha1.Redis) (result *v1alpha1.Redis, err error) {
+func (c *FakeRedises) Create(ctx context.Context, redis *v1alpha1.Redis, opts v1.CreateOptions) (result *v1alpha1.Redis, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewCreateAction(redisesResource, c.ns, redis), &v1alpha1.Redis{})
 
@@ -91,7 +93,7 @@ func (c *FakeRedises) Create(redis *v1alpha1.Redis) (result *v1alpha1.Redis, err
 }
 
 // Update takes the representation of a redis and updates it. Returns the server's representation of the redis, and an error, if there is any.
-func (c *FakeRedises) Update(redis *v1alpha1.Redis) (result *v1alpha1.Redis, err error) {
+func (c *FakeRedises) Update(ctx context.Context, redis *v1alpha1.Redis, opts v1.UpdateOptions) (result *v1alpha1.Redis, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewUpdateAction(redisesResource, c.ns, redis), &v1alpha1.Redis{})
 
@@ -103,7 +105,7 @@ func (c *FakeRedises) Update(redis *v1alpha1.Redis) (result *v1alpha1.Redis, err
 
 // UpdateStatus was generated because the type contains a Status member.
 // Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-func (c *FakeRedises) UpdateStatus(redis *v1alpha1.Redis) (*v1alpha1.Redis, error) {
+func (c *FakeRedises) UpdateStatus(ctx context.Context, redis *v1alpha1.Redis, opts v1.UpdateOptions) (*v1alpha1.Redis, error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewUpdateSubresourceAction(redisesResource, "status", c.ns, redis), &v1alpha1.Redis{})
 
@@ -114,7 +116,7 @@ func (c *FakeRedises) UpdateStatus(redis *v1alpha1.Redis) (*v1alpha1.Redis, erro
 }
 
 // Delete takes name of the redis and deletes it. Returns an error if one occurs.
-func (c *FakeRedises) Delete(name string, options *v1.DeleteOptions) error {
+func (c *FakeRedises) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
 		Invokes(testing.NewDeleteAction(redisesResource, c.ns, name), &v1alpha1.Redis{})
 
@@ -122,15 +124,15 @@ func (c *FakeRedises) Delete(name string, options *v1.DeleteOptions) error {
 }
 
 // DeleteCollection deletes a collection of objects.
-func (c *FakeRedises) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
-	action := testing.NewDeleteCollectionAction(redisesResource, c.ns, listOptions)
+func (c *FakeRedises) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
+	action := testing.NewDeleteCollectionAction(redisesResource, c.ns, listOpts)
 
 	_, err := c.Fake.Invokes(action, &v1alpha1.RedisList{})
 	return err
 }
 
 // Patch applies the patch and returns the patched redis.
-func (c *FakeRedises) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1alpha1.Redis, err error) {
+func (c *FakeRedises) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1alpha1.Redis, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewPatchSubresourceAction(redisesResource, c.ns, name, pt, data, subresources...), &v1alpha1.Redis{})
 

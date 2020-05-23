@@ -19,6 +19,8 @@ limitations under the License.
 package fake
 
 import (
+	"context"
+
 	v1alpha1 "kubedb.dev/apimachinery/apis/catalog/v1alpha1"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -39,7 +41,7 @@ var pgbouncerversionsResource = schema.GroupVersionResource{Group: "catalog.kube
 var pgbouncerversionsKind = schema.GroupVersionKind{Group: "catalog.kubedb.com", Version: "v1alpha1", Kind: "PgBouncerVersion"}
 
 // Get takes name of the pgBouncerVersion, and returns the corresponding pgBouncerVersion object, and an error if there is any.
-func (c *FakePgBouncerVersions) Get(name string, options v1.GetOptions) (result *v1alpha1.PgBouncerVersion, err error) {
+func (c *FakePgBouncerVersions) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1alpha1.PgBouncerVersion, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewRootGetAction(pgbouncerversionsResource, name), &v1alpha1.PgBouncerVersion{})
 	if obj == nil {
@@ -49,7 +51,7 @@ func (c *FakePgBouncerVersions) Get(name string, options v1.GetOptions) (result 
 }
 
 // List takes label and field selectors, and returns the list of PgBouncerVersions that match those selectors.
-func (c *FakePgBouncerVersions) List(opts v1.ListOptions) (result *v1alpha1.PgBouncerVersionList, err error) {
+func (c *FakePgBouncerVersions) List(ctx context.Context, opts v1.ListOptions) (result *v1alpha1.PgBouncerVersionList, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewRootListAction(pgbouncerversionsResource, pgbouncerversionsKind, opts), &v1alpha1.PgBouncerVersionList{})
 	if obj == nil {
@@ -70,13 +72,13 @@ func (c *FakePgBouncerVersions) List(opts v1.ListOptions) (result *v1alpha1.PgBo
 }
 
 // Watch returns a watch.Interface that watches the requested pgBouncerVersions.
-func (c *FakePgBouncerVersions) Watch(opts v1.ListOptions) (watch.Interface, error) {
+func (c *FakePgBouncerVersions) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
 		InvokesWatch(testing.NewRootWatchAction(pgbouncerversionsResource, opts))
 }
 
 // Create takes the representation of a pgBouncerVersion and creates it.  Returns the server's representation of the pgBouncerVersion, and an error, if there is any.
-func (c *FakePgBouncerVersions) Create(pgBouncerVersion *v1alpha1.PgBouncerVersion) (result *v1alpha1.PgBouncerVersion, err error) {
+func (c *FakePgBouncerVersions) Create(ctx context.Context, pgBouncerVersion *v1alpha1.PgBouncerVersion, opts v1.CreateOptions) (result *v1alpha1.PgBouncerVersion, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewRootCreateAction(pgbouncerversionsResource, pgBouncerVersion), &v1alpha1.PgBouncerVersion{})
 	if obj == nil {
@@ -86,7 +88,7 @@ func (c *FakePgBouncerVersions) Create(pgBouncerVersion *v1alpha1.PgBouncerVersi
 }
 
 // Update takes the representation of a pgBouncerVersion and updates it. Returns the server's representation of the pgBouncerVersion, and an error, if there is any.
-func (c *FakePgBouncerVersions) Update(pgBouncerVersion *v1alpha1.PgBouncerVersion) (result *v1alpha1.PgBouncerVersion, err error) {
+func (c *FakePgBouncerVersions) Update(ctx context.Context, pgBouncerVersion *v1alpha1.PgBouncerVersion, opts v1.UpdateOptions) (result *v1alpha1.PgBouncerVersion, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewRootUpdateAction(pgbouncerversionsResource, pgBouncerVersion), &v1alpha1.PgBouncerVersion{})
 	if obj == nil {
@@ -96,22 +98,22 @@ func (c *FakePgBouncerVersions) Update(pgBouncerVersion *v1alpha1.PgBouncerVersi
 }
 
 // Delete takes name of the pgBouncerVersion and deletes it. Returns an error if one occurs.
-func (c *FakePgBouncerVersions) Delete(name string, options *v1.DeleteOptions) error {
+func (c *FakePgBouncerVersions) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
 		Invokes(testing.NewRootDeleteAction(pgbouncerversionsResource, name), &v1alpha1.PgBouncerVersion{})
 	return err
 }
 
 // DeleteCollection deletes a collection of objects.
-func (c *FakePgBouncerVersions) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
-	action := testing.NewRootDeleteCollectionAction(pgbouncerversionsResource, listOptions)
+func (c *FakePgBouncerVersions) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
+	action := testing.NewRootDeleteCollectionAction(pgbouncerversionsResource, listOpts)
 
 	_, err := c.Fake.Invokes(action, &v1alpha1.PgBouncerVersionList{})
 	return err
 }
 
 // Patch applies the patch and returns the patched pgBouncerVersion.
-func (c *FakePgBouncerVersions) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1alpha1.PgBouncerVersion, err error) {
+func (c *FakePgBouncerVersions) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1alpha1.PgBouncerVersion, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewRootPatchSubresourceAction(pgbouncerversionsResource, name, pt, data, subresources...), &v1alpha1.PgBouncerVersion{})
 	if obj == nil {

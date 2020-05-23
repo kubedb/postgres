@@ -19,6 +19,8 @@ limitations under the License.
 package fake
 
 import (
+	"context"
+
 	v1alpha1 "kubedb.dev/apimachinery/apis/catalog/v1alpha1"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -39,7 +41,7 @@ var mongodbversionsResource = schema.GroupVersionResource{Group: "catalog.kubedb
 var mongodbversionsKind = schema.GroupVersionKind{Group: "catalog.kubedb.com", Version: "v1alpha1", Kind: "MongoDBVersion"}
 
 // Get takes name of the mongoDBVersion, and returns the corresponding mongoDBVersion object, and an error if there is any.
-func (c *FakeMongoDBVersions) Get(name string, options v1.GetOptions) (result *v1alpha1.MongoDBVersion, err error) {
+func (c *FakeMongoDBVersions) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1alpha1.MongoDBVersion, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewRootGetAction(mongodbversionsResource, name), &v1alpha1.MongoDBVersion{})
 	if obj == nil {
@@ -49,7 +51,7 @@ func (c *FakeMongoDBVersions) Get(name string, options v1.GetOptions) (result *v
 }
 
 // List takes label and field selectors, and returns the list of MongoDBVersions that match those selectors.
-func (c *FakeMongoDBVersions) List(opts v1.ListOptions) (result *v1alpha1.MongoDBVersionList, err error) {
+func (c *FakeMongoDBVersions) List(ctx context.Context, opts v1.ListOptions) (result *v1alpha1.MongoDBVersionList, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewRootListAction(mongodbversionsResource, mongodbversionsKind, opts), &v1alpha1.MongoDBVersionList{})
 	if obj == nil {
@@ -70,13 +72,13 @@ func (c *FakeMongoDBVersions) List(opts v1.ListOptions) (result *v1alpha1.MongoD
 }
 
 // Watch returns a watch.Interface that watches the requested mongoDBVersions.
-func (c *FakeMongoDBVersions) Watch(opts v1.ListOptions) (watch.Interface, error) {
+func (c *FakeMongoDBVersions) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
 		InvokesWatch(testing.NewRootWatchAction(mongodbversionsResource, opts))
 }
 
 // Create takes the representation of a mongoDBVersion and creates it.  Returns the server's representation of the mongoDBVersion, and an error, if there is any.
-func (c *FakeMongoDBVersions) Create(mongoDBVersion *v1alpha1.MongoDBVersion) (result *v1alpha1.MongoDBVersion, err error) {
+func (c *FakeMongoDBVersions) Create(ctx context.Context, mongoDBVersion *v1alpha1.MongoDBVersion, opts v1.CreateOptions) (result *v1alpha1.MongoDBVersion, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewRootCreateAction(mongodbversionsResource, mongoDBVersion), &v1alpha1.MongoDBVersion{})
 	if obj == nil {
@@ -86,7 +88,7 @@ func (c *FakeMongoDBVersions) Create(mongoDBVersion *v1alpha1.MongoDBVersion) (r
 }
 
 // Update takes the representation of a mongoDBVersion and updates it. Returns the server's representation of the mongoDBVersion, and an error, if there is any.
-func (c *FakeMongoDBVersions) Update(mongoDBVersion *v1alpha1.MongoDBVersion) (result *v1alpha1.MongoDBVersion, err error) {
+func (c *FakeMongoDBVersions) Update(ctx context.Context, mongoDBVersion *v1alpha1.MongoDBVersion, opts v1.UpdateOptions) (result *v1alpha1.MongoDBVersion, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewRootUpdateAction(mongodbversionsResource, mongoDBVersion), &v1alpha1.MongoDBVersion{})
 	if obj == nil {
@@ -96,22 +98,22 @@ func (c *FakeMongoDBVersions) Update(mongoDBVersion *v1alpha1.MongoDBVersion) (r
 }
 
 // Delete takes name of the mongoDBVersion and deletes it. Returns an error if one occurs.
-func (c *FakeMongoDBVersions) Delete(name string, options *v1.DeleteOptions) error {
+func (c *FakeMongoDBVersions) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
 		Invokes(testing.NewRootDeleteAction(mongodbversionsResource, name), &v1alpha1.MongoDBVersion{})
 	return err
 }
 
 // DeleteCollection deletes a collection of objects.
-func (c *FakeMongoDBVersions) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
-	action := testing.NewRootDeleteCollectionAction(mongodbversionsResource, listOptions)
+func (c *FakeMongoDBVersions) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
+	action := testing.NewRootDeleteCollectionAction(mongodbversionsResource, listOpts)
 
 	_, err := c.Fake.Invokes(action, &v1alpha1.MongoDBVersionList{})
 	return err
 }
 
 // Patch applies the patch and returns the patched mongoDBVersion.
-func (c *FakeMongoDBVersions) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1alpha1.MongoDBVersion, err error) {
+func (c *FakeMongoDBVersions) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1alpha1.MongoDBVersion, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewRootPatchSubresourceAction(mongodbversionsResource, name, pt, data, subresources...), &v1alpha1.MongoDBVersion{})
 	if obj == nil {

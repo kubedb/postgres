@@ -19,6 +19,8 @@ limitations under the License.
 package fake
 
 import (
+	"context"
+
 	v1alpha1 "kubedb.dev/apimachinery/apis/catalog/v1alpha1"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -39,7 +41,7 @@ var perconaxtradbversionsResource = schema.GroupVersionResource{Group: "catalog.
 var perconaxtradbversionsKind = schema.GroupVersionKind{Group: "catalog.kubedb.com", Version: "v1alpha1", Kind: "PerconaXtraDBVersion"}
 
 // Get takes name of the perconaXtraDBVersion, and returns the corresponding perconaXtraDBVersion object, and an error if there is any.
-func (c *FakePerconaXtraDBVersions) Get(name string, options v1.GetOptions) (result *v1alpha1.PerconaXtraDBVersion, err error) {
+func (c *FakePerconaXtraDBVersions) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1alpha1.PerconaXtraDBVersion, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewRootGetAction(perconaxtradbversionsResource, name), &v1alpha1.PerconaXtraDBVersion{})
 	if obj == nil {
@@ -49,7 +51,7 @@ func (c *FakePerconaXtraDBVersions) Get(name string, options v1.GetOptions) (res
 }
 
 // List takes label and field selectors, and returns the list of PerconaXtraDBVersions that match those selectors.
-func (c *FakePerconaXtraDBVersions) List(opts v1.ListOptions) (result *v1alpha1.PerconaXtraDBVersionList, err error) {
+func (c *FakePerconaXtraDBVersions) List(ctx context.Context, opts v1.ListOptions) (result *v1alpha1.PerconaXtraDBVersionList, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewRootListAction(perconaxtradbversionsResource, perconaxtradbversionsKind, opts), &v1alpha1.PerconaXtraDBVersionList{})
 	if obj == nil {
@@ -70,13 +72,13 @@ func (c *FakePerconaXtraDBVersions) List(opts v1.ListOptions) (result *v1alpha1.
 }
 
 // Watch returns a watch.Interface that watches the requested perconaXtraDBVersions.
-func (c *FakePerconaXtraDBVersions) Watch(opts v1.ListOptions) (watch.Interface, error) {
+func (c *FakePerconaXtraDBVersions) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
 		InvokesWatch(testing.NewRootWatchAction(perconaxtradbversionsResource, opts))
 }
 
 // Create takes the representation of a perconaXtraDBVersion and creates it.  Returns the server's representation of the perconaXtraDBVersion, and an error, if there is any.
-func (c *FakePerconaXtraDBVersions) Create(perconaXtraDBVersion *v1alpha1.PerconaXtraDBVersion) (result *v1alpha1.PerconaXtraDBVersion, err error) {
+func (c *FakePerconaXtraDBVersions) Create(ctx context.Context, perconaXtraDBVersion *v1alpha1.PerconaXtraDBVersion, opts v1.CreateOptions) (result *v1alpha1.PerconaXtraDBVersion, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewRootCreateAction(perconaxtradbversionsResource, perconaXtraDBVersion), &v1alpha1.PerconaXtraDBVersion{})
 	if obj == nil {
@@ -86,7 +88,7 @@ func (c *FakePerconaXtraDBVersions) Create(perconaXtraDBVersion *v1alpha1.Percon
 }
 
 // Update takes the representation of a perconaXtraDBVersion and updates it. Returns the server's representation of the perconaXtraDBVersion, and an error, if there is any.
-func (c *FakePerconaXtraDBVersions) Update(perconaXtraDBVersion *v1alpha1.PerconaXtraDBVersion) (result *v1alpha1.PerconaXtraDBVersion, err error) {
+func (c *FakePerconaXtraDBVersions) Update(ctx context.Context, perconaXtraDBVersion *v1alpha1.PerconaXtraDBVersion, opts v1.UpdateOptions) (result *v1alpha1.PerconaXtraDBVersion, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewRootUpdateAction(perconaxtradbversionsResource, perconaXtraDBVersion), &v1alpha1.PerconaXtraDBVersion{})
 	if obj == nil {
@@ -96,22 +98,22 @@ func (c *FakePerconaXtraDBVersions) Update(perconaXtraDBVersion *v1alpha1.Percon
 }
 
 // Delete takes name of the perconaXtraDBVersion and deletes it. Returns an error if one occurs.
-func (c *FakePerconaXtraDBVersions) Delete(name string, options *v1.DeleteOptions) error {
+func (c *FakePerconaXtraDBVersions) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
 		Invokes(testing.NewRootDeleteAction(perconaxtradbversionsResource, name), &v1alpha1.PerconaXtraDBVersion{})
 	return err
 }
 
 // DeleteCollection deletes a collection of objects.
-func (c *FakePerconaXtraDBVersions) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
-	action := testing.NewRootDeleteCollectionAction(perconaxtradbversionsResource, listOptions)
+func (c *FakePerconaXtraDBVersions) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
+	action := testing.NewRootDeleteCollectionAction(perconaxtradbversionsResource, listOpts)
 
 	_, err := c.Fake.Invokes(action, &v1alpha1.PerconaXtraDBVersionList{})
 	return err
 }
 
 // Patch applies the patch and returns the patched perconaXtraDBVersion.
-func (c *FakePerconaXtraDBVersions) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1alpha1.PerconaXtraDBVersion, err error) {
+func (c *FakePerconaXtraDBVersions) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1alpha1.PerconaXtraDBVersion, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewRootPatchSubresourceAction(perconaxtradbversionsResource, name, pt, data, subresources...), &v1alpha1.PerconaXtraDBVersion{})
 	if obj == nil {

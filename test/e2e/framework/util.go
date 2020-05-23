@@ -16,6 +16,7 @@ limitations under the License.
 package framework
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -26,6 +27,7 @@ import (
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
+	meta_util "kmodules.xyz/client-go/meta"
 )
 
 const (
@@ -33,19 +35,9 @@ const (
 	maxAttempts         = 5
 )
 
-func deleteInBackground() *metav1.DeleteOptions {
-	policy := metav1.DeletePropagationBackground
-	return &metav1.DeleteOptions{PropagationPolicy: &policy}
-}
-
-func deleteInForeground() *metav1.DeleteOptions {
-	policy := metav1.DeletePropagationForeground
-	return &metav1.DeleteOptions{PropagationPolicy: &policy}
-}
-
 func (f *Framework) CleanWorkloadLeftOvers() {
 	// delete statefulset
-	if err := f.kubeClient.AppsV1().StatefulSets(f.namespace).DeleteCollection(deleteInForeground(), metav1.ListOptions{
+	if err := f.kubeClient.AppsV1().StatefulSets(f.namespace).DeleteCollection(context.TODO(), meta_util.DeleteInForeground(), metav1.ListOptions{
 		LabelSelector: labels.SelectorFromSet(map[string]string{
 			api.LabelDatabaseKind: api.ResourceKindPostgres,
 		}).String(),
@@ -54,7 +46,7 @@ func (f *Framework) CleanWorkloadLeftOvers() {
 	}
 
 	// delete pvc
-	if err := f.kubeClient.CoreV1().PersistentVolumeClaims(f.namespace).DeleteCollection(deleteInForeground(), metav1.ListOptions{
+	if err := f.kubeClient.CoreV1().PersistentVolumeClaims(f.namespace).DeleteCollection(context.TODO(), meta_util.DeleteInForeground(), metav1.ListOptions{
 		LabelSelector: labels.SelectorFromSet(map[string]string{
 			api.LabelDatabaseKind: api.ResourceKindPostgres,
 		}).String(),
@@ -107,6 +99,7 @@ func (f *Framework) EventuallyWipedOut(meta metav1.ObjectMeta) GomegaAsyncAssert
 
 			// check if pvcs is wiped out
 			pvcList, err := f.kubeClient.CoreV1().PersistentVolumeClaims(meta.Namespace).List(
+				context.TODO(),
 				metav1.ListOptions{
 					LabelSelector: labelSelector.String(),
 				},
@@ -121,6 +114,7 @@ func (f *Framework) EventuallyWipedOut(meta metav1.ObjectMeta) GomegaAsyncAssert
 
 			// check if secrets are wiped out
 			secretList, err := f.kubeClient.CoreV1().Secrets(meta.Namespace).List(
+				context.TODO(),
 				metav1.ListOptions{
 					LabelSelector: labelSelector.String(),
 				},
@@ -135,6 +129,7 @@ func (f *Framework) EventuallyWipedOut(meta metav1.ObjectMeta) GomegaAsyncAssert
 
 			// check if appbinds are wiped out
 			appBindingList, err := f.appCatalogClient.AppBindings(meta.Namespace).List(
+				context.TODO(),
 				metav1.ListOptions{
 					LabelSelector: labelSelector.String(),
 				},

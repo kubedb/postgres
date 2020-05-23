@@ -19,6 +19,8 @@ limitations under the License.
 package fake
 
 import (
+	"context"
+
 	v1alpha1 "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -40,7 +42,7 @@ var proxysqlsResource = schema.GroupVersionResource{Group: "kubedb.com", Version
 var proxysqlsKind = schema.GroupVersionKind{Group: "kubedb.com", Version: "v1alpha1", Kind: "ProxySQL"}
 
 // Get takes name of the proxySQL, and returns the corresponding proxySQL object, and an error if there is any.
-func (c *FakeProxySQLs) Get(name string, options v1.GetOptions) (result *v1alpha1.ProxySQL, err error) {
+func (c *FakeProxySQLs) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1alpha1.ProxySQL, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewGetAction(proxysqlsResource, c.ns, name), &v1alpha1.ProxySQL{})
 
@@ -51,7 +53,7 @@ func (c *FakeProxySQLs) Get(name string, options v1.GetOptions) (result *v1alpha
 }
 
 // List takes label and field selectors, and returns the list of ProxySQLs that match those selectors.
-func (c *FakeProxySQLs) List(opts v1.ListOptions) (result *v1alpha1.ProxySQLList, err error) {
+func (c *FakeProxySQLs) List(ctx context.Context, opts v1.ListOptions) (result *v1alpha1.ProxySQLList, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewListAction(proxysqlsResource, proxysqlsKind, c.ns, opts), &v1alpha1.ProxySQLList{})
 
@@ -73,14 +75,14 @@ func (c *FakeProxySQLs) List(opts v1.ListOptions) (result *v1alpha1.ProxySQLList
 }
 
 // Watch returns a watch.Interface that watches the requested proxySQLs.
-func (c *FakeProxySQLs) Watch(opts v1.ListOptions) (watch.Interface, error) {
+func (c *FakeProxySQLs) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
 		InvokesWatch(testing.NewWatchAction(proxysqlsResource, c.ns, opts))
 
 }
 
 // Create takes the representation of a proxySQL and creates it.  Returns the server's representation of the proxySQL, and an error, if there is any.
-func (c *FakeProxySQLs) Create(proxySQL *v1alpha1.ProxySQL) (result *v1alpha1.ProxySQL, err error) {
+func (c *FakeProxySQLs) Create(ctx context.Context, proxySQL *v1alpha1.ProxySQL, opts v1.CreateOptions) (result *v1alpha1.ProxySQL, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewCreateAction(proxysqlsResource, c.ns, proxySQL), &v1alpha1.ProxySQL{})
 
@@ -91,7 +93,7 @@ func (c *FakeProxySQLs) Create(proxySQL *v1alpha1.ProxySQL) (result *v1alpha1.Pr
 }
 
 // Update takes the representation of a proxySQL and updates it. Returns the server's representation of the proxySQL, and an error, if there is any.
-func (c *FakeProxySQLs) Update(proxySQL *v1alpha1.ProxySQL) (result *v1alpha1.ProxySQL, err error) {
+func (c *FakeProxySQLs) Update(ctx context.Context, proxySQL *v1alpha1.ProxySQL, opts v1.UpdateOptions) (result *v1alpha1.ProxySQL, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewUpdateAction(proxysqlsResource, c.ns, proxySQL), &v1alpha1.ProxySQL{})
 
@@ -103,7 +105,7 @@ func (c *FakeProxySQLs) Update(proxySQL *v1alpha1.ProxySQL) (result *v1alpha1.Pr
 
 // UpdateStatus was generated because the type contains a Status member.
 // Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-func (c *FakeProxySQLs) UpdateStatus(proxySQL *v1alpha1.ProxySQL) (*v1alpha1.ProxySQL, error) {
+func (c *FakeProxySQLs) UpdateStatus(ctx context.Context, proxySQL *v1alpha1.ProxySQL, opts v1.UpdateOptions) (*v1alpha1.ProxySQL, error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewUpdateSubresourceAction(proxysqlsResource, "status", c.ns, proxySQL), &v1alpha1.ProxySQL{})
 
@@ -114,7 +116,7 @@ func (c *FakeProxySQLs) UpdateStatus(proxySQL *v1alpha1.ProxySQL) (*v1alpha1.Pro
 }
 
 // Delete takes name of the proxySQL and deletes it. Returns an error if one occurs.
-func (c *FakeProxySQLs) Delete(name string, options *v1.DeleteOptions) error {
+func (c *FakeProxySQLs) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
 		Invokes(testing.NewDeleteAction(proxysqlsResource, c.ns, name), &v1alpha1.ProxySQL{})
 
@@ -122,15 +124,15 @@ func (c *FakeProxySQLs) Delete(name string, options *v1.DeleteOptions) error {
 }
 
 // DeleteCollection deletes a collection of objects.
-func (c *FakeProxySQLs) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
-	action := testing.NewDeleteCollectionAction(proxysqlsResource, c.ns, listOptions)
+func (c *FakeProxySQLs) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
+	action := testing.NewDeleteCollectionAction(proxysqlsResource, c.ns, listOpts)
 
 	_, err := c.Fake.Invokes(action, &v1alpha1.ProxySQLList{})
 	return err
 }
 
 // Patch applies the patch and returns the patched proxySQL.
-func (c *FakeProxySQLs) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1alpha1.ProxySQL, err error) {
+func (c *FakeProxySQLs) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1alpha1.ProxySQL, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewPatchSubresourceAction(proxysqlsResource, c.ns, name, pt, data, subresources...), &v1alpha1.ProxySQL{})
 

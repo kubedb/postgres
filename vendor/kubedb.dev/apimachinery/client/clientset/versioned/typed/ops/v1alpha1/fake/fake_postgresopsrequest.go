@@ -19,6 +19,8 @@ limitations under the License.
 package fake
 
 import (
+	"context"
+
 	v1alpha1 "kubedb.dev/apimachinery/apis/ops/v1alpha1"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -40,7 +42,7 @@ var postgresopsrequestsResource = schema.GroupVersionResource{Group: "ops.kubedb
 var postgresopsrequestsKind = schema.GroupVersionKind{Group: "ops.kubedb.com", Version: "v1alpha1", Kind: "PostgresOpsRequest"}
 
 // Get takes name of the postgresOpsRequest, and returns the corresponding postgresOpsRequest object, and an error if there is any.
-func (c *FakePostgresOpsRequests) Get(name string, options v1.GetOptions) (result *v1alpha1.PostgresOpsRequest, err error) {
+func (c *FakePostgresOpsRequests) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1alpha1.PostgresOpsRequest, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewGetAction(postgresopsrequestsResource, c.ns, name), &v1alpha1.PostgresOpsRequest{})
 
@@ -51,7 +53,7 @@ func (c *FakePostgresOpsRequests) Get(name string, options v1.GetOptions) (resul
 }
 
 // List takes label and field selectors, and returns the list of PostgresOpsRequests that match those selectors.
-func (c *FakePostgresOpsRequests) List(opts v1.ListOptions) (result *v1alpha1.PostgresOpsRequestList, err error) {
+func (c *FakePostgresOpsRequests) List(ctx context.Context, opts v1.ListOptions) (result *v1alpha1.PostgresOpsRequestList, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewListAction(postgresopsrequestsResource, postgresopsrequestsKind, c.ns, opts), &v1alpha1.PostgresOpsRequestList{})
 
@@ -73,14 +75,14 @@ func (c *FakePostgresOpsRequests) List(opts v1.ListOptions) (result *v1alpha1.Po
 }
 
 // Watch returns a watch.Interface that watches the requested postgresOpsRequests.
-func (c *FakePostgresOpsRequests) Watch(opts v1.ListOptions) (watch.Interface, error) {
+func (c *FakePostgresOpsRequests) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
 		InvokesWatch(testing.NewWatchAction(postgresopsrequestsResource, c.ns, opts))
 
 }
 
 // Create takes the representation of a postgresOpsRequest and creates it.  Returns the server's representation of the postgresOpsRequest, and an error, if there is any.
-func (c *FakePostgresOpsRequests) Create(postgresOpsRequest *v1alpha1.PostgresOpsRequest) (result *v1alpha1.PostgresOpsRequest, err error) {
+func (c *FakePostgresOpsRequests) Create(ctx context.Context, postgresOpsRequest *v1alpha1.PostgresOpsRequest, opts v1.CreateOptions) (result *v1alpha1.PostgresOpsRequest, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewCreateAction(postgresopsrequestsResource, c.ns, postgresOpsRequest), &v1alpha1.PostgresOpsRequest{})
 
@@ -91,7 +93,7 @@ func (c *FakePostgresOpsRequests) Create(postgresOpsRequest *v1alpha1.PostgresOp
 }
 
 // Update takes the representation of a postgresOpsRequest and updates it. Returns the server's representation of the postgresOpsRequest, and an error, if there is any.
-func (c *FakePostgresOpsRequests) Update(postgresOpsRequest *v1alpha1.PostgresOpsRequest) (result *v1alpha1.PostgresOpsRequest, err error) {
+func (c *FakePostgresOpsRequests) Update(ctx context.Context, postgresOpsRequest *v1alpha1.PostgresOpsRequest, opts v1.UpdateOptions) (result *v1alpha1.PostgresOpsRequest, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewUpdateAction(postgresopsrequestsResource, c.ns, postgresOpsRequest), &v1alpha1.PostgresOpsRequest{})
 
@@ -103,7 +105,7 @@ func (c *FakePostgresOpsRequests) Update(postgresOpsRequest *v1alpha1.PostgresOp
 
 // UpdateStatus was generated because the type contains a Status member.
 // Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-func (c *FakePostgresOpsRequests) UpdateStatus(postgresOpsRequest *v1alpha1.PostgresOpsRequest) (*v1alpha1.PostgresOpsRequest, error) {
+func (c *FakePostgresOpsRequests) UpdateStatus(ctx context.Context, postgresOpsRequest *v1alpha1.PostgresOpsRequest, opts v1.UpdateOptions) (*v1alpha1.PostgresOpsRequest, error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewUpdateSubresourceAction(postgresopsrequestsResource, "status", c.ns, postgresOpsRequest), &v1alpha1.PostgresOpsRequest{})
 
@@ -114,7 +116,7 @@ func (c *FakePostgresOpsRequests) UpdateStatus(postgresOpsRequest *v1alpha1.Post
 }
 
 // Delete takes name of the postgresOpsRequest and deletes it. Returns an error if one occurs.
-func (c *FakePostgresOpsRequests) Delete(name string, options *v1.DeleteOptions) error {
+func (c *FakePostgresOpsRequests) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
 		Invokes(testing.NewDeleteAction(postgresopsrequestsResource, c.ns, name), &v1alpha1.PostgresOpsRequest{})
 
@@ -122,15 +124,15 @@ func (c *FakePostgresOpsRequests) Delete(name string, options *v1.DeleteOptions)
 }
 
 // DeleteCollection deletes a collection of objects.
-func (c *FakePostgresOpsRequests) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
-	action := testing.NewDeleteCollectionAction(postgresopsrequestsResource, c.ns, listOptions)
+func (c *FakePostgresOpsRequests) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
+	action := testing.NewDeleteCollectionAction(postgresopsrequestsResource, c.ns, listOpts)
 
 	_, err := c.Fake.Invokes(action, &v1alpha1.PostgresOpsRequestList{})
 	return err
 }
 
 // Patch applies the patch and returns the patched postgresOpsRequest.
-func (c *FakePostgresOpsRequests) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1alpha1.PostgresOpsRequest, err error) {
+func (c *FakePostgresOpsRequests) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1alpha1.PostgresOpsRequest, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewPatchSubresourceAction(postgresopsrequestsResource, c.ns, name, pt, data, subresources...), &v1alpha1.PostgresOpsRequest{})
 
