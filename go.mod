@@ -23,21 +23,21 @@ require (
 	k8s.io/apiserver v0.18.3
 	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/kube-aggregator v0.18.3
-	kmodules.xyz/client-go v0.0.0-20200522120609-c6430d66212f
+	kmodules.xyz/client-go v0.0.0-20200525195850-2fd180961371
 	kmodules.xyz/constants v0.0.0-20200506032633-a21e58ceec72
-	kmodules.xyz/custom-resources v0.0.0-20200521070540-2221c4957ef6
-	kmodules.xyz/monitoring-agent-api v0.0.0-20200521105700-6eb8ff8e7be9
+	kmodules.xyz/custom-resources v0.0.0-20200525025248-c2afe49bbec6
+	kmodules.xyz/monitoring-agent-api v0.0.0-20200525002655-2aa50cb10ce9
 	kmodules.xyz/objectstore-api v0.0.0-20200521103120-92080446e04d
 	kmodules.xyz/offshoot-api v0.0.0-20200521035628-e135bf07b226
 	kmodules.xyz/webhook-runtime v0.0.0-20200522123600-ca70a7e28ed0
-	kubedb.dev/apimachinery v0.14.0-alpha.1
+	kubedb.dev/apimachinery v0.14.0-alpha.5
 	kubedb.dev/pg-leader-election v0.2.0-alpha.0
-	stash.appscode.dev/apimachinery v0.9.0-rc.6.0.20200522135619-e81205a3590e
+	stash.appscode.dev/apimachinery v0.10.0-alpha.0
 )
 
 replace (
 	bitbucket.org/ww/goautoneg => gomodules.xyz/goautoneg v0.0.0-20120707110453-a547fc61f48d
-	git.apache.org/thrift.git => github.com/apache/thrift v0.12.0
+	git.apache.org/thrift.git => github.com/apache/thrift v0.13.0
 	github.com/Azure/azure-sdk-for-go => github.com/Azure/azure-sdk-for-go v35.0.0+incompatible
 	github.com/Azure/go-ansiterm => github.com/Azure/go-ansiterm v0.0.0-20170929234023-d6e3b3328b78
 	github.com/Azure/go-autorest => github.com/Azure/go-autorest v13.0.0+incompatible
@@ -53,6 +53,7 @@ replace (
 	github.com/prometheus/client_golang => github.com/prometheus/client_golang v1.0.0
 	go.etcd.io/etcd => go.etcd.io/etcd v0.0.0-20191023171146-3cf2f69b5738
 	google.golang.org/grpc => google.golang.org/grpc v1.26.0
+	k8s.io/api => github.com/kmodules/api v0.18.4-0.20200524125823-c8bc107809b9
 	k8s.io/apimachinery => github.com/kmodules/apimachinery v0.19.0-alpha.0.0.20200520235721-10b58e57a423
 	k8s.io/apiserver => github.com/kmodules/apiserver v0.18.4-0.20200521000930-14c5f6df9625
 	k8s.io/client-go => k8s.io/client-go v0.18.3
