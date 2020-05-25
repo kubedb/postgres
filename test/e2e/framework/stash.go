@@ -21,31 +21,32 @@ import (
 	"time"
 
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
-	"kubedb.dev/apimachinery/pkg/controller"
 
 	. "github.com/onsi/gomega"
 	"gomodules.xyz/version"
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"kmodules.xyz/client-go/discovery"
 	meta_util "kmodules.xyz/client-go/meta"
-	v1alpha13 "kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1"
+	appcat "kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1"
+	"stash.appscode.dev/apimachinery/apis/stash"
 	"stash.appscode.dev/apimachinery/apis/stash/v1alpha1"
 	stashV1alpha1 "stash.appscode.dev/apimachinery/apis/stash/v1alpha1"
-	"stash.appscode.dev/apimachinery/apis/stash/v1beta1"
+	stashv1beta1 "stash.appscode.dev/apimachinery/apis/stash/v1beta1"
 	v1beta1_util "stash.appscode.dev/apimachinery/client/clientset/versioned/typed/stash/v1beta1/util"
 )
 
 func (f *Framework) FoundStashCRDs() bool {
-	return controller.FoundStashCRDs(f.apiExtKubeClient)
+	return discovery.ExistsGroupKind(f.kubeClient.Discovery(), stash.GroupName, stashv1beta1.ResourceKindRestoreSession)
 }
 
-func (i *Invocation) BackupConfiguration(dbMeta metav1.ObjectMeta, repo *stashV1alpha1.Repository) *v1beta1.BackupConfiguration {
-	return &v1beta1.BackupConfiguration{
+func (i *Invocation) BackupConfiguration(dbMeta metav1.ObjectMeta, repo *stashV1alpha1.Repository) *stashv1beta1.BackupConfiguration {
+	return &stashv1beta1.BackupConfiguration{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      dbMeta.Name + "-stash",
 			Namespace: i.namespace,
 		},
-		Spec: v1beta1.BackupConfigurationSpec{
+		Spec: stashv1beta1.BackupConfigurationSpec{
 			Repository: core.LocalObjectReference{
 				Name: repo.Name,
 			},
@@ -54,14 +55,14 @@ func (i *Invocation) BackupConfiguration(dbMeta metav1.ObjectMeta, repo *stashV1
 				Prune:    true,
 			},
 			Schedule: "*/1 * * * *",
-			BackupConfigurationTemplateSpec: v1beta1.BackupConfigurationTemplateSpec{
-				Task: v1beta1.TaskRef{
+			BackupConfigurationTemplateSpec: stashv1beta1.BackupConfigurationTemplateSpec{
+				Task: stashv1beta1.TaskRef{
 					Name: i.getStashPGBackupTaskName(),
 				},
-				Target: &v1beta1.BackupTarget{
-					Ref: v1beta1.TargetRef{
-						APIVersion: v1alpha13.SchemeGroupVersion.String(),
-						Kind:       v1alpha13.ResourceKindApp,
+				Target: &stashv1beta1.BackupTarget{
+					Ref: stashv1beta1.TargetRef{
+						APIVersion: appcat.SchemeGroupVersion.String(),
+						Kind:       appcat.ResourceKindApp,
 						Name:       dbMeta.Name,
 					},
 				},
@@ -70,7 +71,7 @@ func (i *Invocation) BackupConfiguration(dbMeta metav1.ObjectMeta, repo *stashV1
 	}
 }
 
-func (f *Framework) CreateBackupConfiguration(backupCfg *v1beta1.BackupConfiguration) error {
+func (f *Framework) CreateBackupConfiguration(backupCfg *stashv1beta1.BackupConfiguration) error {
 	_, err := f.stashClient.StashV1beta1().BackupConfigurations(backupCfg.Namespace).Create(context.TODO(), backupCfg, metav1.CreateOptions{})
 	return err
 }
@@ -80,7 +81,7 @@ func (f *Framework) DeleteBackupConfiguration(meta metav1.ObjectMeta) error {
 }
 
 func (f *Framework) PauseBackupConfiguration(meta metav1.ObjectMeta) error {
-	_, err := v1beta1_util.TryUpdateBackupConfiguration(context.TODO(), f.stashClient.StashV1beta1(), meta, func(in *v1beta1.BackupConfiguration) *v1beta1.BackupConfiguration {
+	_, err := v1beta1_util.TryUpdateBackupConfiguration(context.TODO(), f.stashClient.StashV1beta1(), meta, func(in *stashv1beta1.BackupConfiguration) *stashv1beta1.BackupConfiguration {
 		in.Spec.Paused = true
 		return in
 	}, metav1.UpdateOptions{})
@@ -123,8 +124,8 @@ func (f *Framework) EventuallySnapshotInRepository(meta metav1.ObjectMeta) Gomeg
 	)
 }
 
-func (i *Invocation) RestoreSession(dbMeta metav1.ObjectMeta, repo *stashV1alpha1.Repository) *v1beta1.RestoreSession {
-	return &v1beta1.RestoreSession{
+func (i *Invocation) RestoreSession(dbMeta metav1.ObjectMeta, repo *stashV1alpha1.Repository) *stashv1beta1.RestoreSession {
+	return &stashv1beta1.RestoreSession{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      dbMeta.Name + "-stash",
 			Namespace: i.namespace,
@@ -133,22 +134,22 @@ func (i *Invocation) RestoreSession(dbMeta metav1.ObjectMeta, repo *stashV1alpha
 				api.LabelDatabaseKind: api.ResourceKindPostgres,
 			},
 		},
-		Spec: v1beta1.RestoreSessionSpec{
-			Task: v1beta1.TaskRef{
+		Spec: stashv1beta1.RestoreSessionSpec{
+			Task: stashv1beta1.TaskRef{
 				Name: i.getStashPGRestoreTaskName(),
 			},
 			Repository: core.LocalObjectReference{
 				Name: repo.Name,
 			},
-			Rules: []v1beta1.Rule{
+			Rules: []stashv1beta1.Rule{
 				{
 					Snapshots: []string{"latest"},
 				},
 			},
-			Target: &v1beta1.RestoreTarget{
-				Ref: v1beta1.TargetRef{
-					APIVersion: v1alpha13.SchemeGroupVersion.String(),
-					Kind:       v1alpha13.ResourceKindApp,
+			Target: &stashv1beta1.RestoreTarget{
+				Ref: stashv1beta1.TargetRef{
+					APIVersion: appcat.SchemeGroupVersion.String(),
+					Kind:       appcat.ResourceKindApp,
 					Name:       dbMeta.Name,
 				},
 			},
@@ -156,7 +157,7 @@ func (i *Invocation) RestoreSession(dbMeta metav1.ObjectMeta, repo *stashV1alpha
 	}
 }
 
-func (f *Framework) CreateRestoreSession(restoreSession *v1beta1.RestoreSession) error {
+func (f *Framework) CreateRestoreSession(restoreSession *stashv1beta1.RestoreSession) error {
 	_, err := f.stashClient.StashV1beta1().RestoreSessions(restoreSession.Namespace).Create(context.TODO(), restoreSession, metav1.CreateOptions{})
 	return err
 }
@@ -167,10 +168,10 @@ func (f Framework) DeleteRestoreSession(meta metav1.ObjectMeta) error {
 }
 
 func (f *Framework) EventuallyRestoreSessionPhase(meta metav1.ObjectMeta) GomegaAsyncAssertion {
-	return Eventually(func() v1beta1.RestoreSessionPhase {
+	return Eventually(func() stashv1beta1.RestoreSessionPhase {
 		restoreSession, err := f.stashClient.StashV1beta1().RestoreSessions(meta.Namespace).Get(context.TODO(), meta.Name, metav1.GetOptions{})
 		Expect(err).NotTo(HaveOccurred())
-		if restoreSession.Status.Phase == v1beta1.RestoreSessionFailed {
+		if restoreSession.Status.Phase == stashv1beta1.RestoreSessionFailed {
 			fmt.Println("Restoresession failed. ", restoreSession.Status.Stats)
 		}
 		return restoreSession.Status.Phase
