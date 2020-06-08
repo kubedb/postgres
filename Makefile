@@ -333,7 +333,8 @@ $(BUILD_DIRS):
 	@mkdir -p $@
 
 REGISTRY_SECRET ?=
-ENTERPRISE_TAG  ?= v0.1.0-alpha.0
+ENTERPRISE_TAG  ?= v0.1.0-alpha.3
+KUBE_NAMESPACE  ?= kube-system
 
 ifeq ($(strip $(REGISTRY_SECRET)),)
 	IMAGE_PULL_SECRETS =
@@ -345,19 +346,17 @@ endif
 install:
 	@cd ../installer; \
 	helm install kubedb charts/kubedb --wait \
-		--namespace=kube-system \
+		--namespace=$(KUBE_NAMESPACE) \
 		--set operator.registry=$(REGISTRY) \
 		--set operator.repository=pg-operator \
 		--set operator.tag=$(TAG) \
-		--set enterprise.enabled=true \
-		--set enterprise.tag=$(ENTERPRISE_TAG) \
 		--set imagePullPolicy=Always \
 		$(IMAGE_PULL_SECRETS); \
 	kubectl wait --for=condition=Available apiservice -l 'app.kubernetes.io/name=kubedb,app.kubernetes.io/instance=kubedb' --timeout=5m; \
 	until kubectl get crds postgresversions.catalog.kubedb.com -o=jsonpath='{.items[0].metadata.name}' &> /dev/null; do sleep 1; done; \
 	kubectl wait --for=condition=Established crds -l app.kubernetes.io/name=kubedb --timeout=5m; \
 	helm install kubedb-catalog charts/kubedb-catalog \
-		--namespace=kube-system \
+		--namespace=$(KUBE_NAMESPACE) \
 		--set catalog.elasticsearch=false \
 		--set catalog.etcd=false \
 		--set catalog.memcached=false \
@@ -367,13 +366,18 @@ install:
 		--set catalog.pgbouncer=false \
 		--set catalog.postgres=true \
 		--set catalog.proxysql=false \
-		--set catalog.redis=false
+		--set catalog.redis=false; \
+	helm install kubedb-enterprise charts/kubedb-enterprise --wait \
+		--namespace=$(KUBE_NAMESPACE) \
+		--set operator.tag=$(ENTERPRISE_TAG) \
+		--set imagePullPolicy=Always \
+		$(IMAGE_PULL_SECRETS)
 
 .PHONY: uninstall
 uninstall:
 	@cd ../installer; \
-	helm uninstall kubedb-catalog --namespace=kube-system || true; \
-	helm uninstall kubedb --namespace=kube-system || true
+	helm uninstall kubedb-catalog --namespace=$(KUBE_NAMESPACE) || true; \
+	helm uninstall kubedb --namespace=$(KUBE_NAMESPACE) || true
 
 .PHONY: purge
 purge: uninstall
