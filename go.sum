@@ -1333,8 +1333,8 @@ kmodules.xyz/prober v0.0.0-20200521101241-adf06150535c h1:aV6O9NbDpnFVra/D8c7b7T
 kmodules.xyz/prober v0.0.0-20200521101241-adf06150535c/go.mod h1:XYWZkfQquD09Mn+O7piHS+SEPq9oFV1Wy2WZ9DA+oeA=
 kmodules.xyz/webhook-runtime v0.0.0-20200522123600-ca70a7e28ed0 h1:rEOWPdiRYShJdJxX0sf76JYWOMzPQH4v8ByT+DRCmVY=
 kmodules.xyz/webhook-runtime v0.0.0-20200522123600-ca70a7e28ed0/go.mod h1:9hUftUcjvzDSiO5LIbe2U8Naz4tyS9Ndf1LRzsytMzs=
-kubedb.dev/apimachinery v0.14.0-alpha.5 h1:SR9CekSXlgUneG6L5SlnANWsAXAQZwr+QrxguD3ZHA8=
-kubedb.dev/apimachinery v0.14.0-alpha.5/go.mod h1:tF4Wxo0rkg3cE92siFG9Y1C1/6bDTnY4nmn7kphBNcg=
+kubedb.dev/apimachinery v0.14.0-alpha.7 h1:IY4G/Ob+xinwfEEmXa9iX0Kf6o7pjSN+tTI59oQbAqo=
+kubedb.dev/apimachinery v0.14.0-alpha.7/go.mod h1:b7T4nvZnCgfc7MwiUgXH9/h5LV6XF0/lEmMdlhryJAg=
 kubedb.dev/pg-leader-election v0.2.0-alpha.0 h1:tLeJkF+Sll3+br6enwXoh/zmvltkFPKghbdhmqsBvmw=
 kubedb.dev/pg-leader-election v0.2.0-alpha.0/go.mod h1:sSw5fnh1ExjVUdEvhh2fRFRQ1Z0AtV6/x4L6kKK+CFQ=
 modernc.org/cc v1.0.0/go.mod h1:1Sk4//wdnYJiUIxnW8ddKpaOJCF37yAdqYnkxUpaYxw=
@@ -1369,6 +1369,8 @@ software.sslmate.com/src/go-pkcs12 v0.0.0-20180114231543-2291e8f0f237/go.mod h1:
 sourcegraph.com/sqs/pbtypes v0.0.0-20180604144634-d3ebe8f20ae4/go.mod h1:ketZ/q3QxT9HOBeFhu6RdvsftgpsbFHBF5Cas6cDKZ0=
 stash.appscode.dev/apimachinery v0.10.0-alpha.0 h1:/CBUctjDJyjo9a9lANjAPRq3Fj1KygXddgoJKdGQ0Q8=
 stash.appscode.dev/apimachinery v0.10.0-alpha.0/go.mod h1:su9Q+3/B6+5PdGvVZBIkXoAik6iKKFUcdPNThpZPVV4=
+stash.appscode.dev/apimachinery v0.10.0-alpha.1 h1:NzT8tRWNhSnvwBMihVhTfHMG06Aw93SMkv8z9AvXUB0=
+stash.appscode.dev/apimachinery v0.10.0-alpha.1/go.mod h1:IzulL8Pi1zByc2Nlg+R6w2yPE15zc3Elksn8a/l8meg=
 vbom.ml/util v0.0.0-20160121211510-db5cfe13f5cc/go.mod h1:so/NYdZXCz+E3ZpW0uAoCj6uzU2+8OWDFv/HxUSs7kI=
 xorm.io/builder v0.3.6 h1:ha28mQ2M+TFx96Hxo+iq6tQgnkC9IZkM6D8w9sKHHF8=
 xorm.io/builder v0.3.6/go.mod h1:LEFAPISnRzG+zxaxj2vPicRwz67BdhFreKg8yv8/TgU=
