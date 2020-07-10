@@ -190,37 +190,29 @@ github.com/hpcloud/tail/ratelimiter
 github.com/hpcloud/tail/util
 github.com/hpcloud/tail/watch
 github.com/hpcloud/tail/winfile
-# github.com/imdario/mergo v0.3.6 => github.com/imdario/mergo v0.3.5
+# github.com/imdario/mergo v0.3.7 => github.com/imdario/mergo v0.3.5
 github.com/imdario/mergo
 # github.com/inconshreveable/mousetrap v1.0.0
 github.com/inconshreveable/mousetrap
-# github.com/jetstack/cert-manager v0.15.0
+# github.com/jetstack/cert-manager v0.12.0
 github.com/jetstack/cert-manager/pkg/apis/acme
 github.com/jetstack/cert-manager/pkg/apis/acme/v1alpha2
-github.com/jetstack/cert-manager/pkg/apis/acme/v1alpha3
 github.com/jetstack/cert-manager/pkg/apis/certmanager
 github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha2
-github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha3
 github.com/jetstack/cert-manager/pkg/apis/meta
 github.com/jetstack/cert-manager/pkg/apis/meta/v1
 github.com/jetstack/cert-manager/pkg/client/clientset/versioned
 github.com/jetstack/cert-manager/pkg/client/clientset/versioned/scheme
 github.com/jetstack/cert-manager/pkg/client/clientset/versioned/typed/acme/v1alpha2
-github.com/jetstack/cert-manager/pkg/client/clientset/versioned/typed/acme/v1alpha3
 github.com/jetstack/cert-manager/pkg/client/clientset/versioned/typed/certmanager/v1alpha2
-github.com/jetstack/cert-manager/pkg/client/clientset/versioned/typed/certmanager/v1alpha3
 github.com/jetstack/cert-manager/pkg/client/informers/externalversions
 github.com/jetstack/cert-manager/pkg/client/informers/externalversions/acme
 github.com/jetstack/cert-manager/pkg/client/informers/externalversions/acme/v1alpha2
-github.com/jetstack/cert-manager/pkg/client/informers/externalversions/acme/v1alpha3
 github.com/jetstack/cert-manager/pkg/client/informers/externalversions/certmanager
 github.com/jetstack/cert-manager/pkg/client/informers/externalversions/certmanager/v1alpha2
-github.com/jetstack/cert-manager/pkg/client/informers/externalversions/certmanager/v1alpha3
 github.com/jetstack/cert-manager/pkg/client/informers/externalversions/internalinterfaces
 github.com/jetstack/cert-manager/pkg/client/listers/acme/v1alpha2
-github.com/jetstack/cert-manager/pkg/client/listers/acme/v1alpha3
 github.com/jetstack/cert-manager/pkg/client/listers/certmanager/v1alpha2
-github.com/jetstack/cert-manager/pkg/client/listers/certmanager/v1alpha3
 # github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af
 github.com/jmespath/go-jmespath
 # github.com/jpillora/go-ogle-analytics v0.0.0-20161213085824-14b04e0594ef
@@ -444,7 +436,7 @@ gomodules.xyz/cert
 gomodules.xyz/cert/certstore
 # gomodules.xyz/jsonpatch/v2 v2.1.0
 gomodules.xyz/jsonpatch/v2
-# gomodules.xyz/stow v0.2.3
+# gomodules.xyz/stow v0.2.4
 gomodules.xyz/stow
 gomodules.xyz/stow/azure
 gomodules.xyz/stow/google
@@ -1084,7 +1076,8 @@ kmodules.xyz/prober/api/v1
 # kmodules.xyz/webhook-runtime v0.0.0-20200522123600-ca70a7e28ed0
 kmodules.xyz/webhook-runtime/admission/v1beta1
 kmodules.xyz/webhook-runtime/registry/admissionreview/v1beta1
-# kubedb.dev/apimachinery v0.14.0-alpha.7
+# kubedb.dev/apimachinery v0.14.0-beta.0
+kubedb.dev/apimachinery/api/crds
 kubedb.dev/apimachinery/apis
 kubedb.dev/apimachinery/apis/catalog
 kubedb.dev/apimachinery/apis/catalog/v1alpha1
@@ -1117,7 +1110,6 @@ kubedb.dev/apimachinery/client/informers/externalversions/ops/v1alpha1
 kubedb.dev/apimachinery/client/listers/catalog/v1alpha1
 kubedb.dev/apimachinery/client/listers/kubedb/v1alpha1
 kubedb.dev/apimachinery/client/listers/ops/v1alpha1
-kubedb.dev/apimachinery/crds
 kubedb.dev/apimachinery/pkg/admission/namespace
 kubedb.dev/apimachinery/pkg/controller
 kubedb.dev/apimachinery/pkg/controller/restoresession

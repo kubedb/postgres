@@ -19,7 +19,6 @@ limitations under the License.
 package v1alpha1
 
 import (
-	"context"
 	time "time"
 
 	opsv1alpha1 "kubedb.dev/apimachinery/apis/ops/v1alpha1"
@@ -63,13 +62,13 @@ func NewFilteredPostgresOpsRequestInformer(client versioned.Interface, namespace
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.OpsV1alpha1().PostgresOpsRequests(namespace).List(context.TODO(), options)
+				return client.OpsV1alpha1().PostgresOpsRequests(namespace).List(options)
 			},
 			WatchFunc: func(options v1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.OpsV1alpha1().PostgresOpsRequests(namespace).Watch(context.TODO(), options)
+				return client.OpsV1alpha1().PostgresOpsRequests(namespace).Watch(options)
 			},
 		},
 		&opsv1alpha1.PostgresOpsRequest{},

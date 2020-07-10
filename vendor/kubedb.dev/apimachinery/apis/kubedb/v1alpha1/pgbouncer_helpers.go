@@ -19,11 +19,11 @@ package v1alpha1
 import (
 	"fmt"
 
+	"kubedb.dev/apimachinery/api/crds"
 	"kubedb.dev/apimachinery/apis"
 	"kubedb.dev/apimachinery/apis/kubedb"
-	"kubedb.dev/apimachinery/crds"
 
-	"kmodules.xyz/client-go/apiextensions"
+	apiextensions "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	meta_util "kmodules.xyz/client-go/meta"
 	appcat "kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1"
 	mona "kmodules.xyz/monitoring-agent-api/api/v1"

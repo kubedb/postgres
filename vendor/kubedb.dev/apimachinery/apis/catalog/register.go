@@ -16,11 +16,5 @@ limitations under the License.
 
 package catalog
 
-const (
-	// GroupName is the group name use in this package
-	GroupName = "catalog.kubedb.com"
-	// MutatorGroupName is the group name used to implement mutating webhooks for types in this package
-	MutatorGroupName = "mutators." + GroupName
-	// ValidatorGroupName is the group name used to implement validating webhooks for types in this package
-	ValidatorGroupName = "validators." + GroupName
-)
+// GroupName is the group name use in this package
+const GroupName = "catalog.kubedb.com"

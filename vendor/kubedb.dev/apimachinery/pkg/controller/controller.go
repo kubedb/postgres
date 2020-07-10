@@ -26,7 +26,8 @@ import (
 	"github.com/appscode/go/log/golog"
 	cm "github.com/jetstack/cert-manager/pkg/client/clientset/versioned"
 	cmInformers "github.com/jetstack/cert-manager/pkg/client/informers/externalversions"
-	crd_cs "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
+	ext_cs "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
+	crd_cs "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
 	externalInformers "k8s.io/apiextensions-apiserver/pkg/client/informers/externalversions"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -48,8 +49,8 @@ type Controller struct {
 	ClientConfig *rest.Config
 	// Kubernetes client
 	Client kubernetes.Interface
-	// CRD Client
-	CRDClient crd_cs.Interface
+	// Api Extension Client
+	ApiExtKubeClient crd_cs.ApiextensionsV1beta1Interface
 	// ThirdPartyExtension client
 	ExtClient cs.Interface //#TODO: rename to DBClient
 	// Dynamic client
@@ -60,6 +61,8 @@ type Controller struct {
 	StashClient scs.Interface
 	//CertManagerClient for cert-manger
 	CertManagerClient cm.Interface
+	// externalClient for crd
+	ExternalClient ext_cs.Interface
 	// Cluster topology when the operator started
 	ClusterTopology *core_util.Topology
 }

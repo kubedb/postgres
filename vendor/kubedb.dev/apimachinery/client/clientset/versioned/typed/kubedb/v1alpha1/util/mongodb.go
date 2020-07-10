@@ -17,7 +17,6 @@ limitations under the License.
 package util
 
 import (
-	"context"
 	"fmt"
 
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
@@ -32,32 +31,29 @@ import (
 	kutil "kmodules.xyz/client-go"
 )
 
-func CreateOrPatchMongoDB(ctx context.Context, c cs.KubedbV1alpha1Interface, meta metav1.ObjectMeta, transform func(*api.MongoDB) *api.MongoDB, opts metav1.PatchOptions) (*api.MongoDB, kutil.VerbType, error) {
-	cur, err := c.MongoDBs(meta.Namespace).Get(ctx, meta.Name, metav1.GetOptions{})
+func CreateOrPatchMongoDB(c cs.KubedbV1alpha1Interface, meta metav1.ObjectMeta, transform func(*api.MongoDB) *api.MongoDB) (*api.MongoDB, kutil.VerbType, error) {
+	cur, err := c.MongoDBs(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
 	if kerr.IsNotFound(err) {
 		glog.V(3).Infof("Creating MongoDB %s/%s.", meta.Namespace, meta.Name)
-		out, err := c.MongoDBs(meta.Namespace).Create(ctx, transform(&api.MongoDB{
+		out, err := c.MongoDBs(meta.Namespace).Create(transform(&api.MongoDB{
 			TypeMeta: metav1.TypeMeta{
 				Kind:       "MongoDB",
 				APIVersion: api.SchemeGroupVersion.String(),
 			},
 			ObjectMeta: meta,
-		}), metav1.CreateOptions{
-			DryRun:       opts.DryRun,
-			FieldManager: opts.FieldManager,
-		})
+		}))
 		return out, kutil.VerbCreated, err
 	} else if err != nil {
 		return nil, kutil.VerbUnchanged, err
 	}
-	return PatchMongoDB(ctx, c, cur, transform, opts)
+	return PatchMongoDB(c, cur, transform)
 }
 
-func PatchMongoDB(ctx context.Context, c cs.KubedbV1alpha1Interface, cur *api.MongoDB, transform func(*api.MongoDB) *api.MongoDB, opts metav1.PatchOptions) (*api.MongoDB, kutil.VerbType, error) {
-	return PatchMongoDBObject(ctx, c, cur, transform(cur.DeepCopy()), opts)
+func PatchMongoDB(c cs.KubedbV1alpha1Interface, cur *api.MongoDB, transform func(*api.MongoDB) *api.MongoDB) (*api.MongoDB, kutil.VerbType, error) {
+	return PatchMongoDBObject(c, cur, transform(cur.DeepCopy()))
 }
 
-func PatchMongoDBObject(ctx context.Context, c cs.KubedbV1alpha1Interface, cur, mod *api.MongoDB, opts metav1.PatchOptions) (*api.MongoDB, kutil.VerbType, error) {
+func PatchMongoDBObject(c cs.KubedbV1alpha1Interface, cur, mod *api.MongoDB) (*api.MongoDB, kutil.VerbType, error) {
 	curJson, err := json.Marshal(cur)
 	if err != nil {
 		return nil, kutil.VerbUnchanged, err
@@ -76,20 +72,20 @@ func PatchMongoDBObject(ctx context.Context, c cs.KubedbV1alpha1Interface, cur, 
 		return cur, kutil.VerbUnchanged, nil
 	}
 	glog.V(3).Infof("Patching MongoDB %s/%s with %s.", cur.Namespace, cur.Name, string(patch))
-	out, err := c.MongoDBs(cur.Namespace).Patch(ctx, cur.Name, types.MergePatchType, patch, opts)
+	out, err := c.MongoDBs(cur.Namespace).Patch(cur.Name, types.MergePatchType, patch)
 	return out, kutil.VerbPatched, err
 }
 
-func TryUpdateMongoDB(ctx context.Context, c cs.KubedbV1alpha1Interface, meta metav1.ObjectMeta, transform func(*api.MongoDB) *api.MongoDB, opts metav1.UpdateOptions) (result *api.MongoDB, err error) {
+func TryUpdateMongoDB(c cs.KubedbV1alpha1Interface, meta metav1.ObjectMeta, transform func(*api.MongoDB) *api.MongoDB) (result *api.MongoDB, err error) {
 	attempt := 0
 	err = wait.PollImmediate(kutil.RetryInterval, kutil.RetryTimeout, func() (bool, error) {
 		attempt++
-		cur, e2 := c.MongoDBs(meta.Namespace).Get(ctx, meta.Name, metav1.GetOptions{})
+		cur, e2 := c.MongoDBs(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
 		if kerr.IsNotFound(e2) {
 			return false, e2
 		} else if e2 == nil {
 
-			result, e2 = c.MongoDBs(cur.Namespace).Update(ctx, transform(cur.DeepCopy()), opts)
+			result, e2 = c.MongoDBs(cur.Namespace).Update(transform(cur.DeepCopy()))
 			return e2 == nil, nil
 		}
 		glog.Errorf("Attempt %d failed to update MongoDB %s/%s due to %v.", attempt, cur.Namespace, cur.Name, e2)
@@ -103,11 +99,9 @@ func TryUpdateMongoDB(ctx context.Context, c cs.KubedbV1alpha1Interface, meta me
 }
 
 func UpdateMongoDBStatus(
-	ctx context.Context,
 	c cs.KubedbV1alpha1Interface,
 	meta metav1.ObjectMeta,
 	transform func(*api.MongoDBStatus) *api.MongoDBStatus,
-	opts metav1.UpdateOptions,
 ) (result *api.MongoDB, err error) {
 	apply := func(x *api.MongoDB) *api.MongoDB {
 		return &api.MongoDB{
@@ -119,16 +113,16 @@ func UpdateMongoDBStatus(
 	}
 
 	attempt := 0
-	cur, err := c.MongoDBs(meta.Namespace).Get(ctx, meta.Name, metav1.GetOptions{})
+	cur, err := c.MongoDBs(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
 	err = wait.PollImmediate(kutil.RetryInterval, kutil.RetryTimeout, func() (bool, error) {
 		attempt++
 		var e2 error
-		result, e2 = c.MongoDBs(meta.Namespace).UpdateStatus(ctx, apply(cur), opts)
+		result, e2 = c.MongoDBs(meta.Namespace).UpdateStatus(apply(cur))
 		if kerr.IsConflict(e2) {
-			latest, e3 := c.MongoDBs(meta.Namespace).Get(ctx, meta.Name, metav1.GetOptions{})
+			latest, e3 := c.MongoDBs(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
 			switch {
 			case e3 == nil:
 				cur = latest

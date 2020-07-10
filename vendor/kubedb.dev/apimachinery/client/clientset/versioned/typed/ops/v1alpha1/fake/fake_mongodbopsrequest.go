@@ -19,8 +19,6 @@ limitations under the License.
 package fake
 
 import (
-	"context"
-
 	v1alpha1 "kubedb.dev/apimachinery/apis/ops/v1alpha1"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -42,7 +40,7 @@ var mongodbopsrequestsResource = schema.GroupVersionResource{Group: "ops.kubedb.
 var mongodbopsrequestsKind = schema.GroupVersionKind{Group: "ops.kubedb.com", Version: "v1alpha1", Kind: "MongoDBOpsRequest"}
 
 // Get takes name of the mongoDBOpsRequest, and returns the corresponding mongoDBOpsRequest object, and an error if there is any.
-func (c *FakeMongoDBOpsRequests) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1alpha1.MongoDBOpsRequest, err error) {
+func (c *FakeMongoDBOpsRequests) Get(name string, options v1.GetOptions) (result *v1alpha1.MongoDBOpsRequest, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewGetAction(mongodbopsrequestsResource, c.ns, name), &v1alpha1.MongoDBOpsRequest{})
 
@@ -53,7 +51,7 @@ func (c *FakeMongoDBOpsRequests) Get(ctx context.Context, name string, options v
 }
 
 // List takes label and field selectors, and returns the list of MongoDBOpsRequests that match those selectors.
-func (c *FakeMongoDBOpsRequests) List(ctx context.Context, opts v1.ListOptions) (result *v1alpha1.MongoDBOpsRequestList, err error) {
+func (c *FakeMongoDBOpsRequests) List(opts v1.ListOptions) (result *v1alpha1.MongoDBOpsRequestList, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewListAction(mongodbopsrequestsResource, mongodbopsrequestsKind, c.ns, opts), &v1alpha1.MongoDBOpsRequestList{})
 
@@ -75,14 +73,14 @@ func (c *FakeMongoDBOpsRequests) List(ctx context.Context, opts v1.ListOptions) 
 }
 
 // Watch returns a watch.Interface that watches the requested mongoDBOpsRequests.
-func (c *FakeMongoDBOpsRequests) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
+func (c *FakeMongoDBOpsRequests) Watch(opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
 		InvokesWatch(testing.NewWatchAction(mongodbopsrequestsResource, c.ns, opts))
 
 }
 
 // Create takes the representation of a mongoDBOpsRequest and creates it.  Returns the server's representation of the mongoDBOpsRequest, and an error, if there is any.
-func (c *FakeMongoDBOpsRequests) Create(ctx context.Context, mongoDBOpsRequest *v1alpha1.MongoDBOpsRequest, opts v1.CreateOptions) (result *v1alpha1.MongoDBOpsRequest, err error) {
+func (c *FakeMongoDBOpsRequests) Create(mongoDBOpsRequest *v1alpha1.MongoDBOpsRequest) (result *v1alpha1.MongoDBOpsRequest, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewCreateAction(mongodbopsrequestsResource, c.ns, mongoDBOpsRequest), &v1alpha1.MongoDBOpsRequest{})
 
@@ -93,7 +91,7 @@ func (c *FakeMongoDBOpsRequests) Create(ctx context.Context, mongoDBOpsRequest *
 }
 
 // Update takes the representation of a mongoDBOpsRequest and updates it. Returns the server's representation of the mongoDBOpsRequest, and an error, if there is any.
-func (c *FakeMongoDBOpsRequests) Update(ctx context.Context, mongoDBOpsRequest *v1alpha1.MongoDBOpsRequest, opts v1.UpdateOptions) (result *v1alpha1.MongoDBOpsRequest, err error) {
+func (c *FakeMongoDBOpsRequests) Update(mongoDBOpsRequest *v1alpha1.MongoDBOpsRequest) (result *v1alpha1.MongoDBOpsRequest, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewUpdateAction(mongodbopsrequestsResource, c.ns, mongoDBOpsRequest), &v1alpha1.MongoDBOpsRequest{})
 
@@ -105,7 +103,7 @@ func (c *FakeMongoDBOpsRequests) Update(ctx context.Context, mongoDBOpsRequest *
 
 // UpdateStatus was generated because the type contains a Status member.
 // Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-func (c *FakeMongoDBOpsRequests) UpdateStatus(ctx context.Context, mongoDBOpsRequest *v1alpha1.MongoDBOpsRequest, opts v1.UpdateOptions) (*v1alpha1.MongoDBOpsRequest, error) {
+func (c *FakeMongoDBOpsRequests) UpdateStatus(mongoDBOpsRequest *v1alpha1.MongoDBOpsRequest) (*v1alpha1.MongoDBOpsRequest, error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewUpdateSubresourceAction(mongodbopsrequestsResource, "status", c.ns, mongoDBOpsRequest), &v1alpha1.MongoDBOpsRequest{})
 
@@ -116,7 +114,7 @@ func (c *FakeMongoDBOpsRequests) UpdateStatus(ctx context.Context, mongoDBOpsReq
 }
 
 // Delete takes name of the mongoDBOpsRequest and deletes it. Returns an error if one occurs.
-func (c *FakeMongoDBOpsRequests) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
+func (c *FakeMongoDBOpsRequests) Delete(name string, options *v1.DeleteOptions) error {
 	_, err := c.Fake.
 		Invokes(testing.NewDeleteAction(mongodbopsrequestsResource, c.ns, name), &v1alpha1.MongoDBOpsRequest{})
 
@@ -124,15 +122,15 @@ func (c *FakeMongoDBOpsRequests) Delete(ctx context.Context, name string, opts v
 }
 
 // DeleteCollection deletes a collection of objects.
-func (c *FakeMongoDBOpsRequests) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
-	action := testing.NewDeleteCollectionAction(mongodbopsrequestsResource, c.ns, listOpts)
+func (c *FakeMongoDBOpsRequests) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
+	action := testing.NewDeleteCollectionAction(mongodbopsrequestsResource, c.ns, listOptions)
 
 	_, err := c.Fake.Invokes(action, &v1alpha1.MongoDBOpsRequestList{})
 	return err
 }
 
 // Patch applies the patch and returns the patched mongoDBOpsRequest.
-func (c *FakeMongoDBOpsRequests) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1alpha1.MongoDBOpsRequest, err error) {
+func (c *FakeMongoDBOpsRequests) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1alpha1.MongoDBOpsRequest, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewPatchSubresourceAction(mongodbopsrequestsResource, c.ns, name, pt, data, subresources...), &v1alpha1.MongoDBOpsRequest{})
 

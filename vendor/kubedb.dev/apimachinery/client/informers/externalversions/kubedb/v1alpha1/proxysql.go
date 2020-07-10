@@ -19,7 +19,6 @@ limitations under the License.
 package v1alpha1
 
 import (
-	"context"
 	time "time"
 
 	kubedbv1alpha1 "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
@@ -63,13 +62,13 @@ func NewFilteredProxySQLInformer(client versioned.Interface, namespace string, r
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.KubedbV1alpha1().ProxySQLs(namespace).List(context.TODO(), options)
+				return client.KubedbV1alpha1().ProxySQLs(namespace).List(options)
 			},
 			WatchFunc: func(options v1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.KubedbV1alpha1().ProxySQLs(namespace).Watch(context.TODO(), options)
+				return client.KubedbV1alpha1().ProxySQLs(namespace).Watch(options)
 			},
 		},
 		&kubedbv1alpha1.ProxySQL{},

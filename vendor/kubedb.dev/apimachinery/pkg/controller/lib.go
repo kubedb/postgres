@@ -17,7 +17,6 @@ limitations under the License.
 package controller
 
 import (
-	"context"
 	"math"
 	"time"
 
@@ -30,21 +29,20 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"
 	policyv1beta1 "k8s.io/api/policy/v1beta1"
+	crd_cs "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/wait"
 	core_util "kmodules.xyz/client-go/core/v1"
-	"kmodules.xyz/client-go/discovery"
 	policy_util "kmodules.xyz/client-go/policy/v1beta1"
-	"stash.appscode.dev/apimachinery/apis/stash"
 	"stash.appscode.dev/apimachinery/apis/stash/v1beta1"
 )
 
 const UtilVolumeName = "util-volume"
 
 func (c *Controller) checkGoverningService(name, namespace string) (bool, error) {
-	_, err := c.Client.CoreV1().Services(namespace).Get(context.TODO(), name, metav1.GetOptions{})
+	_, err := c.Client.CoreV1().Services(namespace).Get(name, metav1.GetOptions{})
 	if err != nil {
 		if kerr.IsNotFound(err) {
 			return false, nil
@@ -75,7 +73,7 @@ func (c *Controller) CreateGoverningService(name, namespace string) error {
 			ClusterIP: core.ClusterIPNone,
 		},
 	}
-	_, err = c.Client.CoreV1().Services(namespace).Create(context.TODO(), service, metav1.CreateOptions{})
+	_, err = c.Client.CoreV1().Services(namespace).Create(service)
 	return err
 }
 
@@ -120,7 +118,7 @@ func (c *Controller) GetVolumeForSnapshot(st api.StorageType, pvcSpec *core.Pers
 		}
 	}
 
-	if _, err := c.Client.CoreV1().PersistentVolumeClaims(claim.Namespace).Create(context.TODO(), claim, metav1.CreateOptions{}); err != nil {
+	if _, err := c.Client.CoreV1().PersistentVolumeClaims(claim.Namespace).Create(claim); err != nil {
 		return nil, err
 	}
 
@@ -138,7 +136,7 @@ func (c *Controller) CreateStatefulSetPodDisruptionBudget(sts *appsv1.StatefulSe
 		Name:      sts.Name,
 		Namespace: sts.Namespace,
 	}
-	_, _, err := policy_util.CreateOrPatchPodDisruptionBudget(context.TODO(), c.Client, m,
+	_, _, err := policy_util.CreateOrPatchPodDisruptionBudget(c.Client, m,
 		func(in *policyv1beta1.PodDisruptionBudget) *policyv1beta1.PodDisruptionBudget {
 			in.Labels = sts.Labels
 			core_util.EnsureOwnerReference(&in.ObjectMeta, owner)
@@ -152,7 +150,7 @@ func (c *Controller) CreateStatefulSetPodDisruptionBudget(sts *appsv1.StatefulSe
 
 			in.Spec.MinAvailable = nil
 			return in
-		}, metav1.PatchOptions{})
+		})
 	return err
 }
 
@@ -164,7 +162,7 @@ func (c *Controller) CreateDeploymentPodDisruptionBudget(deployment *appsv1.Depl
 		Namespace: deployment.Namespace,
 	}
 
-	_, _, err := policy_util.CreateOrPatchPodDisruptionBudget(context.TODO(), c.Client, m,
+	_, _, err := policy_util.CreateOrPatchPodDisruptionBudget(c.Client, m,
 		func(in *policyv1beta1.PodDisruptionBudget) *policyv1beta1.PodDisruptionBudget {
 			in.Labels = deployment.Labels
 			core_util.EnsureOwnerReference(&in.ObjectMeta, owner)
@@ -177,14 +175,19 @@ func (c *Controller) CreateDeploymentPodDisruptionBudget(deployment *appsv1.Depl
 
 			in.Spec.MinAvailable = &intstr.IntOrString{IntVal: 1}
 			return in
-		}, metav1.PatchOptions{})
+		})
 	return err
+}
+
+func FoundStashCRDs(apiExtClient crd_cs.ApiextensionsV1beta1Interface) bool {
+	_, err := apiExtClient.CustomResourceDefinitions().Get(v1beta1.ResourcePluralRestoreSession+"."+v1beta1.SchemeGroupVersion.Group, metav1.GetOptions{})
+	return err == nil
 }
 
 // BlockOnStashOperator waits for restoresession crd to come up.
 // It either waits until restoresession crd exists or throws error otherwise
 func (c *Controller) BlockOnStashOperator(stopCh <-chan struct{}) error {
 	return wait.PollImmediateUntil(time.Second*10, func() (bool, error) {
-		return discovery.ExistsGroupKind(c.Client.Discovery(), stash.GroupName, v1beta1.ResourceKindRestoreSession), nil
+		return FoundStashCRDs(c.ApiExtKubeClient), nil
 	}, stopCh)
 }

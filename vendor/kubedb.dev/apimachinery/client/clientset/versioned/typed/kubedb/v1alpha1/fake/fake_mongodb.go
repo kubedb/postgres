@@ -19,8 +19,6 @@ limitations under the License.
 package fake
 
 import (
-	"context"
-
 	v1alpha1 "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -42,7 +40,7 @@ var mongodbsResource = schema.GroupVersionResource{Group: "kubedb.com", Version:
 var mongodbsKind = schema.GroupVersionKind{Group: "kubedb.com", Version: "v1alpha1", Kind: "MongoDB"}
 
 // Get takes name of the mongoDB, and returns the corresponding mongoDB object, and an error if there is any.
-func (c *FakeMongoDBs) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1alpha1.MongoDB, err error) {
+func (c *FakeMongoDBs) Get(name string, options v1.GetOptions) (result *v1alpha1.MongoDB, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewGetAction(mongodbsResource, c.ns, name), &v1alpha1.MongoDB{})
 
@@ -53,7 +51,7 @@ func (c *FakeMongoDBs) Get(ctx context.Context, name string, options v1.GetOptio
 }
 
 // List takes label and field selectors, and returns the list of MongoDBs that match those selectors.
-func (c *FakeMongoDBs) List(ctx context.Context, opts v1.ListOptions) (result *v1alpha1.MongoDBList, err error) {
+func (c *FakeMongoDBs) List(opts v1.ListOptions) (result *v1alpha1.MongoDBList, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewListAction(mongodbsResource, mongodbsKind, c.ns, opts), &v1alpha1.MongoDBList{})
 
@@ -75,14 +73,14 @@ func (c *FakeMongoDBs) List(ctx context.Context, opts v1.ListOptions) (result *v
 }
 
 // Watch returns a watch.Interface that watches the requested mongoDBs.
-func (c *FakeMongoDBs) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
+func (c *FakeMongoDBs) Watch(opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
 		InvokesWatch(testing.NewWatchAction(mongodbsResource, c.ns, opts))
 
 }
 
 // Create takes the representation of a mongoDB and creates it.  Returns the server's representation of the mongoDB, and an error, if there is any.
-func (c *FakeMongoDBs) Create(ctx context.Context, mongoDB *v1alpha1.MongoDB, opts v1.CreateOptions) (result *v1alpha1.MongoDB, err error) {
+func (c *FakeMongoDBs) Create(mongoDB *v1alpha1.MongoDB) (result *v1alpha1.MongoDB, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewCreateAction(mongodbsResource, c.ns, mongoDB), &v1alpha1.MongoDB{})
 
@@ -93,7 +91,7 @@ func (c *FakeMongoDBs) Create(ctx context.Context, mongoDB *v1alpha1.MongoDB, op
 }
 
 // Update takes the representation of a mongoDB and updates it. Returns the server's representation of the mongoDB, and an error, if there is any.
-func (c *FakeMongoDBs) Update(ctx context.Context, mongoDB *v1alpha1.MongoDB, opts v1.UpdateOptions) (result *v1alpha1.MongoDB, err error) {
+func (c *FakeMongoDBs) Update(mongoDB *v1alpha1.MongoDB) (result *v1alpha1.MongoDB, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewUpdateAction(mongodbsResource, c.ns, mongoDB), &v1alpha1.MongoDB{})
 
@@ -105,7 +103,7 @@ func (c *FakeMongoDBs) Update(ctx context.Context, mongoDB *v1alpha1.MongoDB, op
 
 // UpdateStatus was generated because the type contains a Status member.
 // Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-func (c *FakeMongoDBs) UpdateStatus(ctx context.Context, mongoDB *v1alpha1.MongoDB, opts v1.UpdateOptions) (*v1alpha1.MongoDB, error) {
+func (c *FakeMongoDBs) UpdateStatus(mongoDB *v1alpha1.MongoDB) (*v1alpha1.MongoDB, error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewUpdateSubresourceAction(mongodbsResource, "status", c.ns, mongoDB), &v1alpha1.MongoDB{})
 
@@ -116,7 +114,7 @@ func (c *FakeMongoDBs) UpdateStatus(ctx context.Context, mongoDB *v1alpha1.Mongo
 }
 
 // Delete takes name of the mongoDB and deletes it. Returns an error if one occurs.
-func (c *FakeMongoDBs) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
+func (c *FakeMongoDBs) Delete(name string, options *v1.DeleteOptions) error {
 	_, err := c.Fake.
 		Invokes(testing.NewDeleteAction(mongodbsResource, c.ns, name), &v1alpha1.MongoDB{})
 
@@ -124,15 +122,15 @@ func (c *FakeMongoDBs) Delete(ctx context.Context, name string, opts v1.DeleteOp
 }
 
 // DeleteCollection deletes a collection of objects.
-func (c *FakeMongoDBs) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
-	action := testing.NewDeleteCollectionAction(mongodbsResource, c.ns, listOpts)
+func (c *FakeMongoDBs) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
+	action := testing.NewDeleteCollectionAction(mongodbsResource, c.ns, listOptions)
 
 	_, err := c.Fake.Invokes(action, &v1alpha1.MongoDBList{})
 	return err
 }
 
 // Patch applies the patch and returns the patched mongoDB.
-func (c *FakeMongoDBs) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1alpha1.MongoDB, err error) {
+func (c *FakeMongoDBs) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1alpha1.MongoDB, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewPatchSubresourceAction(mongodbsResource, c.ns, name, pt, data, subresources...), &v1alpha1.MongoDB{})
 

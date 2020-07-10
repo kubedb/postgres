@@ -19,8 +19,6 @@ limitations under the License.
 package fake
 
 import (
-	"context"
-
 	v1alpha1 "kubedb.dev/apimachinery/apis/ops/v1alpha1"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -42,7 +40,7 @@ var pgbounceropsrequestsResource = schema.GroupVersionResource{Group: "ops.kubed
 var pgbounceropsrequestsKind = schema.GroupVersionKind{Group: "ops.kubedb.com", Version: "v1alpha1", Kind: "PgBouncerOpsRequest"}
 
 // Get takes name of the pgBouncerOpsRequest, and returns the corresponding pgBouncerOpsRequest object, and an error if there is any.
-func (c *FakePgBouncerOpsRequests) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1alpha1.PgBouncerOpsRequest, err error) {
+func (c *FakePgBouncerOpsRequests) Get(name string, options v1.GetOptions) (result *v1alpha1.PgBouncerOpsRequest, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewGetAction(pgbounceropsrequestsResource, c.ns, name), &v1alpha1.PgBouncerOpsRequest{})
 
@@ -53,7 +51,7 @@ func (c *FakePgBouncerOpsRequests) Get(ctx context.Context, name string, options
 }
 
 // List takes label and field selectors, and returns the list of PgBouncerOpsRequests that match those selectors.
-func (c *FakePgBouncerOpsRequests) List(ctx context.Context, opts v1.ListOptions) (result *v1alpha1.PgBouncerOpsRequestList, err error) {
+func (c *FakePgBouncerOpsRequests) List(opts v1.ListOptions) (result *v1alpha1.PgBouncerOpsRequestList, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewListAction(pgbounceropsrequestsResource, pgbounceropsrequestsKind, c.ns, opts), &v1alpha1.PgBouncerOpsRequestList{})
 
@@ -75,14 +73,14 @@ func (c *FakePgBouncerOpsRequests) List(ctx context.Context, opts v1.ListOptions
 }
 
 // Watch returns a watch.Interface that watches the requested pgBouncerOpsRequests.
-func (c *FakePgBouncerOpsRequests) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
+func (c *FakePgBouncerOpsRequests) Watch(opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
 		InvokesWatch(testing.NewWatchAction(pgbounceropsrequestsResource, c.ns, opts))
 
 }
 
 // Create takes the representation of a pgBouncerOpsRequest and creates it.  Returns the server's representation of the pgBouncerOpsRequest, and an error, if there is any.
-func (c *FakePgBouncerOpsRequests) Create(ctx context.Context, pgBouncerOpsRequest *v1alpha1.PgBouncerOpsRequest, opts v1.CreateOptions) (result *v1alpha1.PgBouncerOpsRequest, err error) {
+func (c *FakePgBouncerOpsRequests) Create(pgBouncerOpsRequest *v1alpha1.PgBouncerOpsRequest) (result *v1alpha1.PgBouncerOpsRequest, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewCreateAction(pgbounceropsrequestsResource, c.ns, pgBouncerOpsRequest), &v1alpha1.PgBouncerOpsRequest{})
 
@@ -93,7 +91,7 @@ func (c *FakePgBouncerOpsRequests) Create(ctx context.Context, pgBouncerOpsReque
 }
 
 // Update takes the representation of a pgBouncerOpsRequest and updates it. Returns the server's representation of the pgBouncerOpsRequest, and an error, if there is any.
-func (c *FakePgBouncerOpsRequests) Update(ctx context.Context, pgBouncerOpsRequest *v1alpha1.PgBouncerOpsRequest, opts v1.UpdateOptions) (result *v1alpha1.PgBouncerOpsRequest, err error) {
+func (c *FakePgBouncerOpsRequests) Update(pgBouncerOpsRequest *v1alpha1.PgBouncerOpsRequest) (result *v1alpha1.PgBouncerOpsRequest, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewUpdateAction(pgbounceropsrequestsResource, c.ns, pgBouncerOpsRequest), &v1alpha1.PgBouncerOpsRequest{})
 
@@ -105,7 +103,7 @@ func (c *FakePgBouncerOpsRequests) Update(ctx context.Context, pgBouncerOpsReque
 
 // UpdateStatus was generated because the type contains a Status member.
 // Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-func (c *FakePgBouncerOpsRequests) UpdateStatus(ctx context.Context, pgBouncerOpsRequest *v1alpha1.PgBouncerOpsRequest, opts v1.UpdateOptions) (*v1alpha1.PgBouncerOpsRequest, error) {
+func (c *FakePgBouncerOpsRequests) UpdateStatus(pgBouncerOpsRequest *v1alpha1.PgBouncerOpsRequest) (*v1alpha1.PgBouncerOpsRequest, error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewUpdateSubresourceAction(pgbounceropsrequestsResource, "status", c.ns, pgBouncerOpsRequest), &v1alpha1.PgBouncerOpsRequest{})
 
@@ -116,7 +114,7 @@ func (c *FakePgBouncerOpsRequests) UpdateStatus(ctx context.Context, pgBouncerOp
 }
 
 // Delete takes name of the pgBouncerOpsRequest and deletes it. Returns an error if one occurs.
-func (c *FakePgBouncerOpsRequests) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
+func (c *FakePgBouncerOpsRequests) Delete(name string, options *v1.DeleteOptions) error {
 	_, err := c.Fake.
 		Invokes(testing.NewDeleteAction(pgbounceropsrequestsResource, c.ns, name), &v1alpha1.PgBouncerOpsRequest{})
 
@@ -124,15 +122,15 @@ func (c *FakePgBouncerOpsRequests) Delete(ctx context.Context, name string, opts
 }
 
 // DeleteCollection deletes a collection of objects.
-func (c *FakePgBouncerOpsRequests) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
-	action := testing.NewDeleteCollectionAction(pgbounceropsrequestsResource, c.ns, listOpts)
+func (c *FakePgBouncerOpsRequests) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
+	action := testing.NewDeleteCollectionAction(pgbounceropsrequestsResource, c.ns, listOptions)
 
 	_, err := c.Fake.Invokes(action, &v1alpha1.PgBouncerOpsRequestList{})
 	return err
 }
 
 // Patch applies the patch and returns the patched pgBouncerOpsRequest.
-func (c *FakePgBouncerOpsRequests) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1alpha1.PgBouncerOpsRequest, err error) {
+func (c *FakePgBouncerOpsRequests) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1alpha1.PgBouncerOpsRequest, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewPatchSubresourceAction(pgbounceropsrequestsResource, c.ns, name, pt, data, subresources...), &v1alpha1.PgBouncerOpsRequest{})
 

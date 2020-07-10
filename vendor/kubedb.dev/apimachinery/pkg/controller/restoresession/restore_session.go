@@ -17,8 +17,6 @@ limitations under the License.
 package restoresession
 
 import (
-	"context"
-
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
 	"kubedb.dev/apimachinery/pkg/eventer"
 
@@ -57,7 +55,7 @@ func (c *Controller) handleRestoreSession(rs *v1beta1.RestoreSession) error {
 
 			break
 		}
-		pxList, err := c.ExtClient.KubedbV1alpha1().PerconaXtraDBs(rs.Namespace).List(context.TODO(), metav1.ListOptions{})
+		pxList, err := c.ExtClient.KubedbV1alpha1().PerconaXtraDBs(rs.Namespace).List(metav1.ListOptions{})
 		if err != nil {
 			return err
 		}

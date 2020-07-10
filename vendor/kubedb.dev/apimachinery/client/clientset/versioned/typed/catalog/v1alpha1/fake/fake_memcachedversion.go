@@ -19,8 +19,6 @@ limitations under the License.
 package fake
 
 import (
-	"context"
-
 	v1alpha1 "kubedb.dev/apimachinery/apis/catalog/v1alpha1"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -41,7 +39,7 @@ var memcachedversionsResource = schema.GroupVersionResource{Group: "catalog.kube
 var memcachedversionsKind = schema.GroupVersionKind{Group: "catalog.kubedb.com", Version: "v1alpha1", Kind: "MemcachedVersion"}
 
 // Get takes name of the memcachedVersion, and returns the corresponding memcachedVersion object, and an error if there is any.
-func (c *FakeMemcachedVersions) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1alpha1.MemcachedVersion, err error) {
+func (c *FakeMemcachedVersions) Get(name string, options v1.GetOptions) (result *v1alpha1.MemcachedVersion, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewRootGetAction(memcachedversionsResource, name), &v1alpha1.MemcachedVersion{})
 	if obj == nil {
@@ -51,7 +49,7 @@ func (c *FakeMemcachedVersions) Get(ctx context.Context, name string, options v1
 }
 
 // List takes label and field selectors, and returns the list of MemcachedVersions that match those selectors.
-func (c *FakeMemcachedVersions) List(ctx context.Context, opts v1.ListOptions) (result *v1alpha1.MemcachedVersionList, err error) {
+func (c *FakeMemcachedVersions) List(opts v1.ListOptions) (result *v1alpha1.MemcachedVersionList, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewRootListAction(memcachedversionsResource, memcachedversionsKind, opts), &v1alpha1.MemcachedVersionList{})
 	if obj == nil {
@@ -72,13 +70,13 @@ func (c *FakeMemcachedVersions) List(ctx context.Context, opts v1.ListOptions) (
 }
 
 // Watch returns a watch.Interface that watches the requested memcachedVersions.
-func (c *FakeMemcachedVersions) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
+func (c *FakeMemcachedVersions) Watch(opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
 		InvokesWatch(testing.NewRootWatchAction(memcachedversionsResource, opts))
 }
 
 // Create takes the representation of a memcachedVersion and creates it.  Returns the server's representation of the memcachedVersion, and an error, if there is any.
-func (c *FakeMemcachedVersions) Create(ctx context.Context, memcachedVersion *v1alpha1.MemcachedVersion, opts v1.CreateOptions) (result *v1alpha1.MemcachedVersion, err error) {
+func (c *FakeMemcachedVersions) Create(memcachedVersion *v1alpha1.MemcachedVersion) (result *v1alpha1.MemcachedVersion, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewRootCreateAction(memcachedversionsResource, memcachedVersion), &v1alpha1.MemcachedVersion{})
 	if obj == nil {
@@ -88,7 +86,7 @@ func (c *FakeMemcachedVersions) Create(ctx context.Context, memcachedVersion *v1
 }
 
 // Update takes the representation of a memcachedVersion and updates it. Returns the server's representation of the memcachedVersion, and an error, if there is any.
-func (c *FakeMemcachedVersions) Update(ctx context.Context, memcachedVersion *v1alpha1.MemcachedVersion, opts v1.UpdateOptions) (result *v1alpha1.MemcachedVersion, err error) {
+func (c *FakeMemcachedVersions) Update(memcachedVersion *v1alpha1.MemcachedVersion) (result *v1alpha1.MemcachedVersion, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewRootUpdateAction(memcachedversionsResource, memcachedVersion), &v1alpha1.MemcachedVersion{})
 	if obj == nil {
@@ -98,22 +96,22 @@ func (c *FakeMemcachedVersions) Update(ctx context.Context, memcachedVersion *v1
 }
 
 // Delete takes name of the memcachedVersion and deletes it. Returns an error if one occurs.
-func (c *FakeMemcachedVersions) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
+func (c *FakeMemcachedVersions) Delete(name string, options *v1.DeleteOptions) error {
 	_, err := c.Fake.
 		Invokes(testing.NewRootDeleteAction(memcachedversionsResource, name), &v1alpha1.MemcachedVersion{})
 	return err
 }
 
 // DeleteCollection deletes a collection of objects.
-func (c *FakeMemcachedVersions) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
-	action := testing.NewRootDeleteCollectionAction(memcachedversionsResource, listOpts)
+func (c *FakeMemcachedVersions) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
+	action := testing.NewRootDeleteCollectionAction(memcachedversionsResource, listOptions)
 
 	_, err := c.Fake.Invokes(action, &v1alpha1.MemcachedVersionList{})
 	return err
 }
 
 // Patch applies the patch and returns the patched memcachedVersion.
-func (c *FakeMemcachedVersions) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1alpha1.MemcachedVersion, err error) {
+func (c *FakeMemcachedVersions) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1alpha1.MemcachedVersion, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewRootPatchSubresourceAction(memcachedversionsResource, name, pt, data, subresources...), &v1alpha1.MemcachedVersion{})
 	if obj == nil {

@@ -1,5 +1,5 @@
 /*
-Copyright 2020 The Jetstack cert-manager contributors.
+Copyright 2019 The Jetstack cert-manager contributors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ limitations under the License.
 package v1alpha2
 
 import (
-	"context"
 	time "time"
 
 	certmanagerv1alpha2 "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha2"
@@ -62,13 +61,13 @@ func NewFilteredCertificateInformer(client versioned.Interface, namespace string
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.CertmanagerV1alpha2().Certificates(namespace).List(context.TODO(), options)
+				return client.CertmanagerV1alpha2().Certificates(namespace).List(options)
 			},
 			WatchFunc: func(options v1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.CertmanagerV1alpha2().Certificates(namespace).Watch(context.TODO(), options)
+				return client.CertmanagerV1alpha2().Certificates(namespace).Watch(options)
 			},
 		},
 		&certmanagerv1alpha2.Certificate{},

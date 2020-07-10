@@ -19,7 +19,6 @@ limitations under the License.
 package v1alpha1
 
 import (
-	"context"
 	"time"
 
 	v1alpha1 "kubedb.dev/apimachinery/apis/ops/v1alpha1"
@@ -39,15 +38,15 @@ type PerconaXtraDBOpsRequestsGetter interface {
 
 // PerconaXtraDBOpsRequestInterface has methods to work with PerconaXtraDBOpsRequest resources.
 type PerconaXtraDBOpsRequestInterface interface {
-	Create(ctx context.Context, perconaXtraDBOpsRequest *v1alpha1.PerconaXtraDBOpsRequest, opts v1.CreateOptions) (*v1alpha1.PerconaXtraDBOpsRequest, error)
-	Update(ctx context.Context, perconaXtraDBOpsRequest *v1alpha1.PerconaXtraDBOpsRequest, opts v1.UpdateOptions) (*v1alpha1.PerconaXtraDBOpsRequest, error)
-	UpdateStatus(ctx context.Context, perconaXtraDBOpsRequest *v1alpha1.PerconaXtraDBOpsRequest, opts v1.UpdateOptions) (*v1alpha1.PerconaXtraDBOpsRequest, error)
-	Delete(ctx context.Context, name string, opts v1.DeleteOptions) error
-	DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error
-	Get(ctx context.Context, name string, opts v1.GetOptions) (*v1alpha1.PerconaXtraDBOpsRequest, error)
-	List(ctx context.Context, opts v1.ListOptions) (*v1alpha1.PerconaXtraDBOpsRequestList, error)
-	Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error)
-	Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1alpha1.PerconaXtraDBOpsRequest, err error)
+	Create(*v1alpha1.PerconaXtraDBOpsRequest) (*v1alpha1.PerconaXtraDBOpsRequest, error)
+	Update(*v1alpha1.PerconaXtraDBOpsRequest) (*v1alpha1.PerconaXtraDBOpsRequest, error)
+	UpdateStatus(*v1alpha1.PerconaXtraDBOpsRequest) (*v1alpha1.PerconaXtraDBOpsRequest, error)
+	Delete(name string, options *v1.DeleteOptions) error
+	DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error
+	Get(name string, options v1.GetOptions) (*v1alpha1.PerconaXtraDBOpsRequest, error)
+	List(opts v1.ListOptions) (*v1alpha1.PerconaXtraDBOpsRequestList, error)
+	Watch(opts v1.ListOptions) (watch.Interface, error)
+	Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1alpha1.PerconaXtraDBOpsRequest, err error)
 	PerconaXtraDBOpsRequestExpansion
 }
 
@@ -66,20 +65,20 @@ func newPerconaXtraDBOpsRequests(c *OpsV1alpha1Client, namespace string) *percon
 }
 
 // Get takes name of the perconaXtraDBOpsRequest, and returns the corresponding perconaXtraDBOpsRequest object, and an error if there is any.
-func (c *perconaXtraDBOpsRequests) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1alpha1.PerconaXtraDBOpsRequest, err error) {
+func (c *perconaXtraDBOpsRequests) Get(name string, options v1.GetOptions) (result *v1alpha1.PerconaXtraDBOpsRequest, err error) {
 	result = &v1alpha1.PerconaXtraDBOpsRequest{}
 	err = c.client.Get().
 		Namespace(c.ns).
 		Resource("perconaxtradbopsrequests").
 		Name(name).
 		VersionedParams(&options, scheme.ParameterCodec).
-		Do(ctx).
+		Do().
 		Into(result)
 	return
 }
 
 // List takes label and field selectors, and returns the list of PerconaXtraDBOpsRequests that match those selectors.
-func (c *perconaXtraDBOpsRequests) List(ctx context.Context, opts v1.ListOptions) (result *v1alpha1.PerconaXtraDBOpsRequestList, err error) {
+func (c *perconaXtraDBOpsRequests) List(opts v1.ListOptions) (result *v1alpha1.PerconaXtraDBOpsRequestList, err error) {
 	var timeout time.Duration
 	if opts.TimeoutSeconds != nil {
 		timeout = time.Duration(*opts.TimeoutSeconds) * time.Second
@@ -90,13 +89,13 @@ func (c *perconaXtraDBOpsRequests) List(ctx context.Context, opts v1.ListOptions
 		Resource("perconaxtradbopsrequests").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Timeout(timeout).
-		Do(ctx).
+		Do().
 		Into(result)
 	return
 }
 
 // Watch returns a watch.Interface that watches the requested perconaXtraDBOpsRequests.
-func (c *perconaXtraDBOpsRequests) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
+func (c *perconaXtraDBOpsRequests) Watch(opts v1.ListOptions) (watch.Interface, error) {
 	var timeout time.Duration
 	if opts.TimeoutSeconds != nil {
 		timeout = time.Duration(*opts.TimeoutSeconds) * time.Second
@@ -107,90 +106,87 @@ func (c *perconaXtraDBOpsRequests) Watch(ctx context.Context, opts v1.ListOption
 		Resource("perconaxtradbopsrequests").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Timeout(timeout).
-		Watch(ctx)
+		Watch()
 }
 
 // Create takes the representation of a perconaXtraDBOpsRequest and creates it.  Returns the server's representation of the perconaXtraDBOpsRequest, and an error, if there is any.
-func (c *perconaXtraDBOpsRequests) Create(ctx context.Context, perconaXtraDBOpsRequest *v1alpha1.PerconaXtraDBOpsRequest, opts v1.CreateOptions) (result *v1alpha1.PerconaXtraDBOpsRequest, err error) {
+func (c *perconaXtraDBOpsRequests) Create(perconaXtraDBOpsRequest *v1alpha1.PerconaXtraDBOpsRequest) (result *v1alpha1.PerconaXtraDBOpsRequest, err error) {
 	result = &v1alpha1.PerconaXtraDBOpsRequest{}
 	err = c.client.Post().
 		Namespace(c.ns).
 		Resource("perconaxtradbopsrequests").
-		VersionedParams(&opts, scheme.ParameterCodec).
 		Body(perconaXtraDBOpsRequest).
-		Do(ctx).
+		Do().
 		Into(result)
 	return
 }
 
 // Update takes the representation of a perconaXtraDBOpsRequest and updates it. Returns the server's representation of the perconaXtraDBOpsRequest, and an error, if there is any.
-func (c *perconaXtraDBOpsRequests) Update(ctx context.Context, perconaXtraDBOpsRequest *v1alpha1.PerconaXtraDBOpsRequest, opts v1.UpdateOptions) (result *v1alpha1.PerconaXtraDBOpsRequest, err error) {
+func (c *perconaXtraDBOpsRequests) Update(perconaXtraDBOpsRequest *v1alpha1.PerconaXtraDBOpsRequest) (result *v1alpha1.PerconaXtraDBOpsRequest, err error) {
 	result = &v1alpha1.PerconaXtraDBOpsRequest{}
 	err = c.client.Put().
 		Namespace(c.ns).
 		Resource("perconaxtradbopsrequests").
 		Name(perconaXtraDBOpsRequest.Name).
-		VersionedParams(&opts, scheme.ParameterCodec).
 		Body(perconaXtraDBOpsRequest).
-		Do(ctx).
+		Do().
 		Into(result)
 	return
 }
 
 // UpdateStatus was generated because the type contains a Status member.
 // Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-func (c *perconaXtraDBOpsRequests) UpdateStatus(ctx context.Context, perconaXtraDBOpsRequest *v1alpha1.PerconaXtraDBOpsRequest, opts v1.UpdateOptions) (result *v1alpha1.PerconaXtraDBOpsRequest, err error) {
+
+func (c *perconaXtraDBOpsRequests) UpdateStatus(perconaXtraDBOpsRequest *v1alpha1.PerconaXtraDBOpsRequest) (result *v1alpha1.PerconaXtraDBOpsRequest, err error) {
 	result = &v1alpha1.PerconaXtraDBOpsRequest{}
 	err = c.client.Put().
 		Namespace(c.ns).
 		Resource("perconaxtradbopsrequests").
 		Name(perconaXtraDBOpsRequest.Name).
 		SubResource("status").
-		VersionedParams(&opts, scheme.ParameterCodec).
 		Body(perconaXtraDBOpsRequest).
-		Do(ctx).
+		Do().
 		Into(result)
 	return
 }
 
 // Delete takes name of the perconaXtraDBOpsRequest and deletes it. Returns an error if one occurs.
-func (c *perconaXtraDBOpsRequests) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
+func (c *perconaXtraDBOpsRequests) Delete(name string, options *v1.DeleteOptions) error {
 	return c.client.Delete().
 		Namespace(c.ns).
 		Resource("perconaxtradbopsrequests").
 		Name(name).
-		Body(&opts).
-		Do(ctx).
+		Body(options).
+		Do().
 		Error()
 }
 
 // DeleteCollection deletes a collection of objects.
-func (c *perconaXtraDBOpsRequests) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
+func (c *perconaXtraDBOpsRequests) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
 	var timeout time.Duration
-	if listOpts.TimeoutSeconds != nil {
-		timeout = time.Duration(*listOpts.TimeoutSeconds) * time.Second
+	if listOptions.TimeoutSeconds != nil {
+		timeout = time.Duration(*listOptions.TimeoutSeconds) * time.Second
 	}
 	return c.client.Delete().
 		Namespace(c.ns).
 		Resource("perconaxtradbopsrequests").
-		VersionedParams(&listOpts, scheme.ParameterCodec).
+		VersionedParams(&listOptions, scheme.ParameterCodec).
 		Timeout(timeout).
-		Body(&opts).
-		Do(ctx).
+		Body(options).
+		Do().
 		Error()
 }
 
 // Patch applies the patch and returns the patched perconaXtraDBOpsRequest.
-func (c *perconaXtraDBOpsRequests) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1alpha1.PerconaXtraDBOpsRequest, err error) {
+func (c *perconaXtraDBOpsRequests) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1alpha1.PerconaXtraDBOpsRequest, err error) {
 	result = &v1alpha1.PerconaXtraDBOpsRequest{}
 	err = c.client.Patch(pt).
 		Namespace(c.ns).
 		Resource("perconaxtradbopsrequests").
-		Name(name).
 		SubResource(subresources...).
-		VersionedParams(&opts, scheme.ParameterCodec).
+		Name(name).
 		Body(data).
-		Do(ctx).
+		Do().
 		Into(result)
 	return
 }

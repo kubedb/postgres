@@ -19,8 +19,6 @@ limitations under the License.
 package fake
 
 import (
-	"context"
-
 	v1alpha1 "kubedb.dev/apimachinery/apis/ops/v1alpha1"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -42,7 +40,7 @@ var etcdopsrequestsResource = schema.GroupVersionResource{Group: "ops.kubedb.com
 var etcdopsrequestsKind = schema.GroupVersionKind{Group: "ops.kubedb.com", Version: "v1alpha1", Kind: "EtcdOpsRequest"}
 
 // Get takes name of the etcdOpsRequest, and returns the corresponding etcdOpsRequest object, and an error if there is any.
-func (c *FakeEtcdOpsRequests) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1alpha1.EtcdOpsRequest, err error) {
+func (c *FakeEtcdOpsRequests) Get(name string, options v1.GetOptions) (result *v1alpha1.EtcdOpsRequest, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewGetAction(etcdopsrequestsResource, c.ns, name), &v1alpha1.EtcdOpsRequest{})
 
@@ -53,7 +51,7 @@ func (c *FakeEtcdOpsRequests) Get(ctx context.Context, name string, options v1.G
 }
 
 // List takes label and field selectors, and returns the list of EtcdOpsRequests that match those selectors.
-func (c *FakeEtcdOpsRequests) List(ctx context.Context, opts v1.ListOptions) (result *v1alpha1.EtcdOpsRequestList, err error) {
+func (c *FakeEtcdOpsRequests) List(opts v1.ListOptions) (result *v1alpha1.EtcdOpsRequestList, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewListAction(etcdopsrequestsResource, etcdopsrequestsKind, c.ns, opts), &v1alpha1.EtcdOpsRequestList{})
 
@@ -75,14 +73,14 @@ func (c *FakeEtcdOpsRequests) List(ctx context.Context, opts v1.ListOptions) (re
 }
 
 // Watch returns a watch.Interface that watches the requested etcdOpsRequests.
-func (c *FakeEtcdOpsRequests) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
+func (c *FakeEtcdOpsRequests) Watch(opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
 		InvokesWatch(testing.NewWatchAction(etcdopsrequestsResource, c.ns, opts))
 
 }
 
 // Create takes the representation of a etcdOpsRequest and creates it.  Returns the server's representation of the etcdOpsRequest, and an error, if there is any.
-func (c *FakeEtcdOpsRequests) Create(ctx context.Context, etcdOpsRequest *v1alpha1.EtcdOpsRequest, opts v1.CreateOptions) (result *v1alpha1.EtcdOpsRequest, err error) {
+func (c *FakeEtcdOpsRequests) Create(etcdOpsRequest *v1alpha1.EtcdOpsRequest) (result *v1alpha1.EtcdOpsRequest, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewCreateAction(etcdopsrequestsResource, c.ns, etcdOpsRequest), &v1alpha1.EtcdOpsRequest{})
 
@@ -93,7 +91,7 @@ func (c *FakeEtcdOpsRequests) Create(ctx context.Context, etcdOpsRequest *v1alph
 }
 
 // Update takes the representation of a etcdOpsRequest and updates it. Returns the server's representation of the etcdOpsRequest, and an error, if there is any.
-func (c *FakeEtcdOpsRequests) Update(ctx context.Context, etcdOpsRequest *v1alpha1.EtcdOpsRequest, opts v1.UpdateOptions) (result *v1alpha1.EtcdOpsRequest, err error) {
+func (c *FakeEtcdOpsRequests) Update(etcdOpsRequest *v1alpha1.EtcdOpsRequest) (result *v1alpha1.EtcdOpsRequest, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewUpdateAction(etcdopsrequestsResource, c.ns, etcdOpsRequest), &v1alpha1.EtcdOpsRequest{})
 
@@ -105,7 +103,7 @@ func (c *FakeEtcdOpsRequests) Update(ctx context.Context, etcdOpsRequest *v1alph
 
 // UpdateStatus was generated because the type contains a Status member.
 // Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-func (c *FakeEtcdOpsRequests) UpdateStatus(ctx context.Context, etcdOpsRequest *v1alpha1.EtcdOpsRequest, opts v1.UpdateOptions) (*v1alpha1.EtcdOpsRequest, error) {
+func (c *FakeEtcdOpsRequests) UpdateStatus(etcdOpsRequest *v1alpha1.EtcdOpsRequest) (*v1alpha1.EtcdOpsRequest, error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewUpdateSubresourceAction(etcdopsrequestsResource, "status", c.ns, etcdOpsRequest), &v1alpha1.EtcdOpsRequest{})
 
@@ -116,7 +114,7 @@ func (c *FakeEtcdOpsRequests) UpdateStatus(ctx context.Context, etcdOpsRequest *
 }
 
 // Delete takes name of the etcdOpsRequest and deletes it. Returns an error if one occurs.
-func (c *FakeEtcdOpsRequests) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
+func (c *FakeEtcdOpsRequests) Delete(name string, options *v1.DeleteOptions) error {
 	_, err := c.Fake.
 		Invokes(testing.NewDeleteAction(etcdopsrequestsResource, c.ns, name), &v1alpha1.EtcdOpsRequest{})
 
@@ -124,15 +122,15 @@ func (c *FakeEtcdOpsRequests) Delete(ctx context.Context, name string, opts v1.D
 }
 
 // DeleteCollection deletes a collection of objects.
-func (c *FakeEtcdOpsRequests) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
-	action := testing.NewDeleteCollectionAction(etcdopsrequestsResource, c.ns, listOpts)
+func (c *FakeEtcdOpsRequests) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
+	action := testing.NewDeleteCollectionAction(etcdopsrequestsResource, c.ns, listOptions)
 
 	_, err := c.Fake.Invokes(action, &v1alpha1.EtcdOpsRequestList{})
 	return err
 }
 
 // Patch applies the patch and returns the patched etcdOpsRequest.
-func (c *FakeEtcdOpsRequests) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1alpha1.EtcdOpsRequest, err error) {
+func (c *FakeEtcdOpsRequests) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1alpha1.EtcdOpsRequest, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewPatchSubresourceAction(etcdopsrequestsResource, c.ns, name, pt, data, subresources...), &v1alpha1.EtcdOpsRequest{})
 

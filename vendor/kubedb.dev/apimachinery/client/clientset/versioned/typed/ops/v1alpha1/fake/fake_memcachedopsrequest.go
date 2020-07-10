@@ -19,8 +19,6 @@ limitations under the License.
 package fake
 
 import (
-	"context"
-
 	v1alpha1 "kubedb.dev/apimachinery/apis/ops/v1alpha1"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -42,7 +40,7 @@ var memcachedopsrequestsResource = schema.GroupVersionResource{Group: "ops.kubed
 var memcachedopsrequestsKind = schema.GroupVersionKind{Group: "ops.kubedb.com", Version: "v1alpha1", Kind: "MemcachedOpsRequest"}
 
 // Get takes name of the memcachedOpsRequest, and returns the corresponding memcachedOpsRequest object, and an error if there is any.
-func (c *FakeMemcachedOpsRequests) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1alpha1.MemcachedOpsRequest, err error) {
+func (c *FakeMemcachedOpsRequests) Get(name string, options v1.GetOptions) (result *v1alpha1.MemcachedOpsRequest, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewGetAction(memcachedopsrequestsResource, c.ns, name), &v1alpha1.MemcachedOpsRequest{})
 
@@ -53,7 +51,7 @@ func (c *FakeMemcachedOpsRequests) Get(ctx context.Context, name string, options
 }
 
 // List takes label and field selectors, and returns the list of MemcachedOpsRequests that match those selectors.
-func (c *FakeMemcachedOpsRequests) List(ctx context.Context, opts v1.ListOptions) (result *v1alpha1.MemcachedOpsRequestList, err error) {
+func (c *FakeMemcachedOpsRequests) List(opts v1.ListOptions) (result *v1alpha1.MemcachedOpsRequestList, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewListAction(memcachedopsrequestsResource, memcachedopsrequestsKind, c.ns, opts), &v1alpha1.MemcachedOpsRequestList{})
 
@@ -75,14 +73,14 @@ func (c *FakeMemcachedOpsRequests) List(ctx context.Context, opts v1.ListOptions
 }
 
 // Watch returns a watch.Interface that watches the requested memcachedOpsRequests.
-func (c *FakeMemcachedOpsRequests) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
+func (c *FakeMemcachedOpsRequests) Watch(opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
 		InvokesWatch(testing.NewWatchAction(memcachedopsrequestsResource, c.ns, opts))
 
 }
 
 // Create takes the representation of a memcachedOpsRequest and creates it.  Returns the server's representation of the memcachedOpsRequest, and an error, if there is any.
-func (c *FakeMemcachedOpsRequests) Create(ctx context.Context, memcachedOpsRequest *v1alpha1.MemcachedOpsRequest, opts v1.CreateOptions) (result *v1alpha1.MemcachedOpsRequest, err error) {
+func (c *FakeMemcachedOpsRequests) Create(memcachedOpsRequest *v1alpha1.MemcachedOpsRequest) (result *v1alpha1.MemcachedOpsRequest, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewCreateAction(memcachedopsrequestsResource, c.ns, memcachedOpsRequest), &v1alpha1.MemcachedOpsRequest{})
 
@@ -93,7 +91,7 @@ func (c *FakeMemcachedOpsRequests) Create(ctx context.Context, memcachedOpsReque
 }
 
 // Update takes the representation of a memcachedOpsRequest and updates it. Returns the server's representation of the memcachedOpsRequest, and an error, if there is any.
-func (c *FakeMemcachedOpsRequests) Update(ctx context.Context, memcachedOpsRequest *v1alpha1.MemcachedOpsRequest, opts v1.UpdateOptions) (result *v1alpha1.MemcachedOpsRequest, err error) {
+func (c *FakeMemcachedOpsRequests) Update(memcachedOpsRequest *v1alpha1.MemcachedOpsRequest) (result *v1alpha1.MemcachedOpsRequest, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewUpdateAction(memcachedopsrequestsResource, c.ns, memcachedOpsRequest), &v1alpha1.MemcachedOpsRequest{})
 
@@ -105,7 +103,7 @@ func (c *FakeMemcachedOpsRequests) Update(ctx context.Context, memcachedOpsReque
 
 // UpdateStatus was generated because the type contains a Status member.
 // Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-func (c *FakeMemcachedOpsRequests) UpdateStatus(ctx context.Context, memcachedOpsRequest *v1alpha1.MemcachedOpsRequest, opts v1.UpdateOptions) (*v1alpha1.MemcachedOpsRequest, error) {
+func (c *FakeMemcachedOpsRequests) UpdateStatus(memcachedOpsRequest *v1alpha1.MemcachedOpsRequest) (*v1alpha1.MemcachedOpsRequest, error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewUpdateSubresourceAction(memcachedopsrequestsResource, "status", c.ns, memcachedOpsRequest), &v1alpha1.MemcachedOpsRequest{})
 
@@ -116,7 +114,7 @@ func (c *FakeMemcachedOpsRequests) UpdateStatus(ctx context.Context, memcachedOp
 }
 
 // Delete takes name of the memcachedOpsRequest and deletes it. Returns an error if one occurs.
-func (c *FakeMemcachedOpsRequests) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
+func (c *FakeMemcachedOpsRequests) Delete(name string, options *v1.DeleteOptions) error {
 	_, err := c.Fake.
 		Invokes(testing.NewDeleteAction(memcachedopsrequestsResource, c.ns, name), &v1alpha1.MemcachedOpsRequest{})
 
@@ -124,15 +122,15 @@ func (c *FakeMemcachedOpsRequests) Delete(ctx context.Context, name string, opts
 }
 
 // DeleteCollection deletes a collection of objects.
-func (c *FakeMemcachedOpsRequests) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
-	action := testing.NewDeleteCollectionAction(memcachedopsrequestsResource, c.ns, listOpts)
+func (c *FakeMemcachedOpsRequests) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
+	action := testing.NewDeleteCollectionAction(memcachedopsrequestsResource, c.ns, listOptions)
 
 	_, err := c.Fake.Invokes(action, &v1alpha1.MemcachedOpsRequestList{})
 	return err
 }
 
 // Patch applies the patch and returns the patched memcachedOpsRequest.
-func (c *FakeMemcachedOpsRequests) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1alpha1.MemcachedOpsRequest, err error) {
+func (c *FakeMemcachedOpsRequests) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1alpha1.MemcachedOpsRequest, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewPatchSubresourceAction(memcachedopsrequestsResource, c.ns, name, pt, data, subresources...), &v1alpha1.MemcachedOpsRequest{})
 
