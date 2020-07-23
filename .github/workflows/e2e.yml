@@ -1,3 +1,10 @@
+# Usage: /ok-to-test [k8s-version] [db-version]
+# Examples:
+# /ok-to-test
+# /ok-to-test v1.18.4 7.3.2
+# /ok-to-test v1.18.4
+# /ok-to-test * 7.3.2 # * means all default k8s versions
+
 name: e2e
 
 on:
@@ -5,17 +12,48 @@ on:
     types: [created]
 
 jobs:
+  config:
+    if: contains(github.event.issue.html_url, '/pull/') && startsWith(github.event.comment.body, '/ok-to-test')
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - id: set-matrix
+        name: Generate test matrix
+        run: |
+          k8s=(v1.12.10 v1.14.10 v1.16.9 v1.18.4)
+          db=(11.2-v1 11.1-v3 10.6-v3 10.2-v5 9.6-v5 9.6.7-v5)
+
+          IFS=' '
+          read -ra COMMENT <<< "${{ github.event.comment.body }}"
+          if [ ! -z ${COMMENT[1]} ] && [ ${COMMENT[1]} != "*" ]; then
+            k8s=(${COMMENT[1]})
+          fi
+          if [ ! -z ${COMMENT[2]} ]; then
+            db=(${COMMENT[2]})
+          fi
+
+          matrix=()
+          for x in ${k8s[@]}; do
+              for y in ${db[@]}; do
+                  matrix+=( $( jq -n -c --arg x "$x" --arg y "$y" '{"k8s":$x,"db":$y}' ) )
+              done
+          done
+
+          # https://stackoverflow.com/a/63046305/244009
+          function join { local IFS="$1"; shift; echo "$*"; }
+          matrix=$(echo "{"include":[$(join , ${matrix[@]})]}")
+          echo $matrix
+          echo "::set-output name=matrix::$matrix"
+
   kubernetes:
     name: Kubernetes
+    needs: config
     runs-on: ubuntu-latest
-    if: contains(github.event.issue.html_url, '/pull/') && github.event.comment.body == '/ok-to-test'
     strategy:
-      matrix:
-        k8s: [v1.12.10, v1.14.10, v1.16.9, v1.18.4]
-        db: [11.2-v1, 11.1-v3, 10.6-v3, 10.2-v5, 9.6-v5, 9.6.7-v5]
+      matrix: ${{ fromJson(needs.config.outputs.matrix) }}
     steps:
-      - name: Check out code into the Go module directory
-        uses: actions/checkout@v1
+      - uses: actions/checkout@v1
 
       - name: Create Kubernetes ${{ matrix.k8s }} cluster
         id: kind
