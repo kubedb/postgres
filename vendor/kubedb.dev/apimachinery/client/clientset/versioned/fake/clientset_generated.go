@@ -20,6 +20,8 @@ package fake
 
 import (
 	clientset "kubedb.dev/apimachinery/client/clientset/versioned"
+	autoscalingv1alpha1 "kubedb.dev/apimachinery/client/clientset/versioned/typed/autoscaling/v1alpha1"
+	fakeautoscalingv1alpha1 "kubedb.dev/apimachinery/client/clientset/versioned/typed/autoscaling/v1alpha1/fake"
 	catalogv1alpha1 "kubedb.dev/apimachinery/client/clientset/versioned/typed/catalog/v1alpha1"
 	fakecatalogv1alpha1 "kubedb.dev/apimachinery/client/clientset/versioned/typed/catalog/v1alpha1/fake"
 	configv1alpha1 "kubedb.dev/apimachinery/client/clientset/versioned/typed/config/v1alpha1"
@@ -82,6 +84,11 @@ func (c *Clientset) Tracker() testing.ObjectTracker {
 }
 
 var _ clientset.Interface = &Clientset{}
+
+// AutoscalingV1alpha1 retrieves the AutoscalingV1alpha1Client
+func (c *Clientset) AutoscalingV1alpha1() autoscalingv1alpha1.AutoscalingV1alpha1Interface {
+	return &fakeautoscalingv1alpha1.FakeAutoscalingV1alpha1{Fake: &c.Fake}
+}
 
 // CatalogV1alpha1 retrieves the CatalogV1alpha1Client
 func (c *Clientset) CatalogV1alpha1() catalogv1alpha1.CatalogV1alpha1Interface {
