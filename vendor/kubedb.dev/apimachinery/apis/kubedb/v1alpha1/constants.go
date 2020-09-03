@@ -100,10 +100,9 @@ const (
 	RedisNodePort   = 6379
 	RedisGossipPort = 16379
 
-	RedisKeyFileSecretSuffix    = "key"
-	RedisPEMSecretSuffix        = "pem"
-	RedisClientCertOrganization = DatabaseNamePrefix + ":client"
-	RedisCertificateCN          = "root"
+	RedisKeyFileSecretSuffix = "key"
+	RedisPEMSecretSuffix     = "pem"
+	RedisRootUsername        = "root"
 
 	PgBouncerUpstreamServerCA = "upstream-server-ca.crt"
 
