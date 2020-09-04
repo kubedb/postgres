@@ -36,3 +36,9 @@ jobs:
         run: |
           docker login --username ${USERNAME} --password ${DOCKER_TOKEN}
           make release
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.event.ref, 'refs/tags/') && (contains(github.ref, '-alpha.') || contains(github.ref, '-beta.')) == false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
