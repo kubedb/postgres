@@ -88,11 +88,9 @@ const (
 	LabelProxySQLName        = ProxySQLKey + "/name"
 	LabelProxySQLLoadBalance = ProxySQLKey + "/load-balance"
 
-	ProxySQLUserKey               = "proxysqluser"
-	ProxySQLPasswordKey           = "proxysqlpass"
 	ProxySQLMySQLNodePort         = 6033
 	ProxySQLAdminPort             = 6032
-	ProxySQLAdminPortName         = "proxyadm"
+	ProxySQLAdminPortName         = "admin"
 	ProxySQLDataMountPath         = "/var/lib/proxysql"
 	ProxySQLCustomConfigMountPath = "/etc/custom-config"
 
