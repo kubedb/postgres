@@ -1,9 +1,9 @@
 # Usage: /ok-to-test [k8s-version] [db-version]
 # Examples:
-# /ok-to-test
-# /ok-to-test v1.18.4 7.3.2
-# /ok-to-test v1.18.4
-# /ok-to-test * 7.3.2 # * means all default k8s versions
+# /ok-to-test [refs/master]
+# /ok-to-test [refs/master] v1.18.4 7.3.2
+# /ok-to-test [refs/master] v1.18.4
+# /ok-to-test [refs/master] * 7.3.2 # * means all default k8s versions
 
 name: e2e
 
@@ -17,6 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
+      e2e_ref: ${{ steps.set-matrix.outputs.e2e_ref }}
     steps:
       - uses: actions/checkout@v1
 
@@ -30,16 +31,24 @@ jobs:
       - id: set-matrix
         name: Generate test matrix
         run: |
-          k8s=(v1.12.10 v1.14.10 v1.16.9 v1.18.4)
+          k8s=(v1.12.10 v1.14.10 v1.16.9 v1.18.4 v1.19.0)
           db=(11.2-v1 11.1-v3 10.6-v3 10.2-v5 9.6-v5 9.6.7-v5)
 
           IFS=' '
           read -ra COMMENT <<< "${{ github.event.comment.body }}"
-          if [ ! -z ${COMMENT[1]} ] && [ ${COMMENT[1]} != "*" ]; then
-            k8s=(${COMMENT[1]})
+
+          prefix=refs/
+          start=0
+          e2e_ref=master
+          if [[ ${COMMENT[1]} == ${prefix}* ]]; then
+            start=1
+            e2e_ref=${COMMENT[1]#$prefix}
           fi
-          if [ ! -z ${COMMENT[2]} ]; then
-            db=(${COMMENT[2]})
+          if [ ! -z ${COMMENT[$((start+1))]} ] && [ ${COMMENT[$((start+1))]} != "*" ]; then
+            k8s=(${COMMENT[$((start+1))]})
+          fi
+          if [ ! -z ${COMMENT[$((start+2))]} ]; then
+            db=(${COMMENT[$((start+2))]})
           fi
 
           matrix=()
@@ -54,6 +63,7 @@ jobs:
           matrix=$(echo "{"include":[$(join , ${matrix[@]})]}")
           echo $matrix
           echo "::set-output name=matrix::$matrix"
+          echo "::set-output name=e2e_ref::$e2e_ref"
 
       - name: Checkout pr
         env:
@@ -129,9 +139,9 @@ jobs:
           eval MAJOR=`echo ${{ matrix.k8s }} | sed -e "s#$RE#\1#"`
           eval MINOR=`echo ${{ matrix.k8s }} | sed -e "s#$RE#\2#"`
           if [ $MAJOR -eq 1 ] && [ $MINOR -lt 15 ]; then
-            kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v0.15.1/cert-manager-legacy.yaml
+            kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v1.0.1/cert-manager-legacy.yaml
           else
-            kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v0.15.1/cert-manager.yaml
+            kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v1.0.1/cert-manager.yaml
           fi
 
       - name: Check out installer
@@ -143,7 +153,6 @@ jobs:
 
       - name: Install stash and addons
         run: |
-          export KUBECONFIG="$(kind get kubeconfig-path)"
           make stash-install
 
       - name: Run e2e tests
@@ -153,6 +162,10 @@ jobs:
           TEST_CREDENTIALS: ${{ secrets.TEST_CREDENTIALS }}
           GOOGLE_SERVICE_ACCOUNT_JSON_KEY: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON_KEY }}
         run: |
+          cd ..
+          git clone https://github.com/kubedb/tests.git
+          cd tests
+          git checkout ${{ needs.config.outputs.e2e_ref }}
           echo "preparing test credentials"
           mkdir -p hack/config
           echo -n "$TEST_CREDENTIALS" > hack/config/.env
