@@ -449,7 +449,7 @@ DEP_LIST = [
       "version": "1.1.5"
     },
     {
-      "package": "github.com/coreos/prometheus-operator",
+      "package": "github.com/prometheus-operator/prometheus-operator",
       "repo": "https://github.com/kmodules/prometheus-operator.git",
       "vcs": "git",
       "version": "k-1.12"

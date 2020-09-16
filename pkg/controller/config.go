@@ -24,7 +24,7 @@ import (
 	"kubedb.dev/apimachinery/pkg/controller/restoresession"
 	"kubedb.dev/apimachinery/pkg/eventer"
 
-	pcm "github.com/coreos/prometheus-operator/pkg/client/versioned/typed/monitoring/v1"
+	pcm "github.com/prometheus-operator/prometheus-operator/pkg/client/versioned/typed/monitoring/v1"
 	crd_cs "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/dynamic"
