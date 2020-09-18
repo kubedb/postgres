@@ -25,7 +25,6 @@
 
 ### SEE ALSO
 
-* [pg-operator leader_election](pg-operator_leader_election.md)	 - Run leader election for postgres
 * [pg-operator run](pg-operator_run.md)	 - Launch Postgres server
 * [pg-operator version](pg-operator_version.md)	 - Prints binary version number.
 
