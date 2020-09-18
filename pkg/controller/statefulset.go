@@ -140,8 +140,8 @@ func (c *Controller) ensureStatefulSet(
 					//Getting secret for cloud providers
 					in = upsertInitWalSecret(in, postgres.Spec.Init.PostgresWAL.StorageSecretName)
 				}
-				if initSource != nil && initSource.ScriptSource != nil {
-					in = upsertInitScript(in, postgres.Spec.Init.ScriptSource.VolumeSource)
+				if initSource != nil && initSource.Script != nil {
+					in = upsertInitScript(in, postgres.Spec.Init.Script.VolumeSource)
 				}
 			}
 

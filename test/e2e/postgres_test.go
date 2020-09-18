@@ -389,7 +389,7 @@ var _ = Describe("Postgres", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					postgres.Spec.Init = &api.InitSpec{
-						ScriptSource: &api.ScriptSourceSpec{
+						Script: &api.ScriptSourceSpec{
 							VolumeSource: core.VolumeSource{
 								ConfigMap: &core.ConfigMapVolumeSource{
 									LocalObjectReference: core.LocalObjectReference{
@@ -502,8 +502,10 @@ var _ = Describe("Postgres", func() {
 					rs = f.RestoreSession(postgres.ObjectMeta, repo)
 					postgres.Spec.DatabaseSecret = oldPostgres.Spec.DatabaseSecret
 					postgres.Spec.Init = &api.InitSpec{
-						StashRestoreSession: &core.LocalObjectReference{
-							Name: rs.Name,
+						Initializer: &core.TypedLocalObjectReference{
+							APIGroup: types.StringP(stashV1beta1.SchemeGroupVersion.Group),
+							Kind:     rs.Kind,
+							Name:     rs.Name,
 						},
 					}
 
@@ -604,7 +606,7 @@ var _ = Describe("Postgres", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					postgres.Spec.Init = &api.InitSpec{
-						ScriptSource: &api.ScriptSourceSpec{
+						Script: &api.ScriptSourceSpec{
 							VolumeSource: core.VolumeSource{
 								ConfigMap: &core.ConfigMapVolumeSource{
 									LocalObjectReference: core.LocalObjectReference{
@@ -634,7 +636,7 @@ var _ = Describe("Postgres", func() {
 
 					usedInitialized = true
 					postgres.Spec.Init = &api.InitSpec{
-						ScriptSource: &api.ScriptSourceSpec{
+						Script: &api.ScriptSourceSpec{
 							ScriptPath: "postgres-init-scripts/run.sh",
 							VolumeSource: core.VolumeSource{
 								ConfigMap: &core.ConfigMapVolumeSource{
