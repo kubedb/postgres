@@ -28,6 +28,7 @@ import (
 	mgAdmsn "kubedb.dev/postgres/pkg/admission"
 	"kubedb.dev/postgres/pkg/controller"
 
+	license "go.bytebuilders.dev/license-verifier/kubernetes"
 	admission "k8s.io/api/admission/v1beta1"
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -139,6 +140,8 @@ func (c completedConfig) New() (*PostgresServer, error) {
 				Resources: []string{api.ResourcePluralPostgres},
 			})
 	}
+
+	license.NewLicenseEnforcer(c.OperatorConfig.ClientConfig, c.OperatorConfig.LicenseFile).Install(genericServer.Handler.NonGoRestfulMux)
 
 	ctrl, err := c.OperatorConfig.New()
 	if err != nil {

@@ -14,6 +14,10 @@
 
 SHELL=/bin/bash -o pipefail
 
+PRODUCT_OWNER_NAME := appscode
+PRODUCT_NAME       := kubedb-community
+ENFORCE_LICENSE    ?=
+
 GO_PKG   := kubedb.dev
 REPO     := $(notdir $(shell pwd))
 BIN      := pg-operator
@@ -178,6 +182,9 @@ $(OUTBIN): .go/$(OUTBIN).stamp
 	    --env HTTPS_PROXY=$(HTTPS_PROXY)                        \
 	    $(BUILD_IMAGE)                                          \
 	    /bin/bash -c "                                          \
+	        PRODUCT_OWNER_NAME=$(PRODUCT_OWNER_NAME)            \
+	        PRODUCT_NAME=$(PRODUCT_NAME)                        \
+	        ENFORCE_LICENSE=$(ENFORCE_LICENSE)                  \
 	        ARCH=$(ARCH)                                        \
 	        OS=$(OS)                                            \
 	        VERSION=$(VERSION)                                  \
@@ -334,6 +341,7 @@ $(BUILD_DIRS):
 
 REGISTRY_SECRET ?=
 KUBE_NAMESPACE  ?=
+LICENSE_FILE    ?=
 
 ifeq ($(strip $(REGISTRY_SECRET)),)
 	IMAGE_PULL_SECRETS =
@@ -343,28 +351,29 @@ endif
 
 .PHONY: install
 install:
-	@cd ../installer; \
-	helm install kubedb charts/kubedb --wait \
-		--namespace=$(KUBE_NAMESPACE) \
-		--set operator.registry=$(REGISTRY) \
+	@cd ../installer;                         \
+	helm install kubedb charts/kubedb --wait  \
+		--namespace=$(KUBE_NAMESPACE)         \
+		--set-file license=$(LICENSE_FILE)    \
+		--set operator.registry=$(REGISTRY)   \
 		--set operator.repository=pg-operator \
-		--set operator.tag=$(TAG) \
-		--set imagePullPolicy=Always \
-		$(IMAGE_PULL_SECRETS); \
+		--set operator.tag=$(TAG)             \
+		--set imagePullPolicy=Always          \
+		$(IMAGE_PULL_SECRETS);                \
 	kubectl wait --for=condition=Available apiservice -l 'app.kubernetes.io/name=kubedb,app.kubernetes.io/instance=kubedb' --timeout=5m; \
 	until kubectl get crds postgresversions.catalog.kubedb.com -o=jsonpath='{.items[0].metadata.name}' &> /dev/null; do sleep 1; done; \
 	kubectl wait --for=condition=Established crds -l app.kubernetes.io/name=kubedb --timeout=5m; \
 	helm install kubedb-catalog charts/kubedb-catalog \
-		--namespace=$(KUBE_NAMESPACE) \
-		--set catalog.elasticsearch=false \
-		--set catalog.etcd=false \
-		--set catalog.memcached=false \
-		--set catalog.mongo=false \
-		--set catalog.mysql=false \
-		--set catalog.perconaxtradb=false \
-		--set catalog.pgbouncer=false \
-		--set catalog.postgres=true \
-		--set catalog.proxysql=false \
+		--namespace=$(KUBE_NAMESPACE)         \
+		--set catalog.elasticsearch=false     \
+		--set catalog.etcd=false              \
+		--set catalog.memcached=false         \
+		--set catalog.mongo=false             \
+		--set catalog.mysql=false             \
+		--set catalog.perconaxtradb=false     \
+		--set catalog.pgbouncer=false         \
+		--set catalog.postgres=true           \
+		--set catalog.proxysql=false          \
 		--set catalog.redis=false
 
 .PHONY: uninstall

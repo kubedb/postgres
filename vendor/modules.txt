@@ -345,6 +345,13 @@ github.com/yudai/gojsondiff
 github.com/yudai/gojsondiff/formatter
 # github.com/yudai/golcs v0.0.0-20170316035057-ecda9a501e82
 github.com/yudai/golcs
+# go.bytebuilders.dev/license-verifier v0.3.0
+go.bytebuilders.dev/license-verifier
+go.bytebuilders.dev/license-verifier/info
+# go.bytebuilders.dev/license-verifier/kubernetes v0.3.0
+go.bytebuilders.dev/license-verifier/kubernetes
+go.bytebuilders.dev/license-verifier/kubernetes/apis/licenses
+go.bytebuilders.dev/license-verifier/kubernetes/apis/licenses/v1alpha1
 # go.etcd.io/etcd v0.0.0-20191023171146-3cf2f69b5738 => go.etcd.io/etcd v0.0.0-20191023171146-3cf2f69b5738
 go.etcd.io/etcd/auth/authpb
 go.etcd.io/etcd/clientv3
@@ -396,7 +403,7 @@ go.uber.org/zap/internal/bufferpool
 go.uber.org/zap/internal/color
 go.uber.org/zap/internal/exit
 go.uber.org/zap/zapcore
-# golang.org/x/crypto v0.0.0-20200429183012-4b2356b1ed79
+# golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
 golang.org/x/crypto/cryptobyte
 golang.org/x/crypto/cryptobyte/asn1
 golang.org/x/crypto/internal/subtle
@@ -407,7 +414,7 @@ golang.org/x/crypto/ssh/terminal
 # golang.org/x/lint v0.0.0-20200302205851-738671d3881b
 golang.org/x/lint
 golang.org/x/lint/golint
-# golang.org/x/net v0.0.0-20200602114024-627f9648deb9
+# golang.org/x/net v0.0.0-20200625001655-4c5254603344
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
 golang.org/x/net/html
@@ -484,6 +491,8 @@ gomodules.xyz/cert
 gomodules.xyz/cert/certstore
 # gomodules.xyz/jsonpatch/v2 v2.1.0
 gomodules.xyz/jsonpatch/v2
+# gomodules.xyz/sets v0.0.0-20200817084356-ae6e5e14ce3d
+gomodules.xyz/sets
 # gomodules.xyz/stow v0.2.3
 gomodules.xyz/stow
 gomodules.xyz/stow/azure
