@@ -1552,8 +1552,6 @@ kmodules.xyz/client-go v0.0.0-20200524205059-e986bc44c91b/go.mod h1:sY/eoe4ktxZE
 kmodules.xyz/client-go v0.0.0-20200525195850-2fd180961371 h1:PPawDOMyDHGeDPN8j1epNozaIB/Z7MlJsXpwm/r4jgk=
 kmodules.xyz/client-go v0.0.0-20200525195850-2fd180961371/go.mod h1:sY/eoe4ktxZEoHpr5NpAQ5s22VSwTE8psJtKVeVgLRY=
 kmodules.xyz/client-go v0.0.0-20200818143024-600fef263e03/go.mod h1:sY/eoe4ktxZEoHpr5NpAQ5s22VSwTE8psJtKVeVgLRY=
-kmodules.xyz/client-go v0.0.0-20200903033732-dab39b86c81b h1:Erhqi9TZEqKmiIO2Lc7gX18JMH474wIJsoZ6xf//Lf0=
-kmodules.xyz/client-go v0.0.0-20200903033732-dab39b86c81b/go.mod h1:sY/eoe4ktxZEoHpr5NpAQ5s22VSwTE8psJtKVeVgLRY=
 kmodules.xyz/client-go v0.0.0-20200915091229-7df16c29f4e8 h1:C6+M9aTLhPCmsJ8dmhPvkr7Qe2MN+iiY3kZvbonhS9E=
 kmodules.xyz/client-go v0.0.0-20200915091229-7df16c29f4e8/go.mod h1:sY/eoe4ktxZEoHpr5NpAQ5s22VSwTE8psJtKVeVgLRY=
 kmodules.xyz/client-go v0.0.0-20200917200341-3f5fe7b6c182 h1:G/R4rl6XIgKMbiId5F6unK43nj2wlbYeWReVNWVgegk=
@@ -1574,10 +1572,10 @@ kmodules.xyz/prober v0.0.0-20200521101241-adf06150535c h1:aV6O9NbDpnFVra/D8c7b7T
 kmodules.xyz/prober v0.0.0-20200521101241-adf06150535c/go.mod h1:XYWZkfQquD09Mn+O7piHS+SEPq9oFV1Wy2WZ9DA+oeA=
 kmodules.xyz/webhook-runtime v0.0.0-20200522123600-ca70a7e28ed0 h1:rEOWPdiRYShJdJxX0sf76JYWOMzPQH4v8ByT+DRCmVY=
 kmodules.xyz/webhook-runtime v0.0.0-20200522123600-ca70a7e28ed0/go.mod h1:9hUftUcjvzDSiO5LIbe2U8Naz4tyS9Ndf1LRzsytMzs=
-kubedb.dev/apimachinery v0.14.0-beta.2.0.20200918070437-ec58309af775 h1:81t7rXE4YNvBwvtNnklXy+otyw8t/oNFjkLSU3/32y8=
-kubedb.dev/apimachinery v0.14.0-beta.2.0.20200918070437-ec58309af775/go.mod h1:EyPX0GZpOXJKUbhRxyW+HP2ydUPut86RmwPExJdhzr0=
-kubedb.dev/pg-leader-election v0.2.0-beta.2 h1:hPGjU/iN34+1F37tC0k5ecaMuNtN/SBiq6YzABqYReg=
-kubedb.dev/pg-leader-election v0.2.0-beta.2/go.mod h1:xkbBIZWLccxcTJf4n0twKsac72HHkuBR3Cx5ZJhXF74=
+kubedb.dev/apimachinery v0.14.0-beta.3 h1:ju+Ljf5DC3Bojg3zv2NeFtwIKEvIBCJkkbGIJ4khoDU=
+kubedb.dev/apimachinery v0.14.0-beta.3/go.mod h1:EyPX0GZpOXJKUbhRxyW+HP2ydUPut86RmwPExJdhzr0=
+kubedb.dev/pg-leader-election v0.2.0-beta.3 h1:b5xNL1BF2Ri6hM5gu/NlP+HMTfAGsXU4feRX6ticCTY=
+kubedb.dev/pg-leader-election v0.2.0-beta.3/go.mod h1:q8xR7ah+NAu78UwPycAwOP2+i9Gz0nseint1WDOZNdU=
 modernc.org/cc v1.0.0/go.mod h1:1Sk4//wdnYJiUIxnW8ddKpaOJCF37yAdqYnkxUpaYxw=
 modernc.org/golex v1.0.0/go.mod h1:b/QX9oBD/LhixY6NDh+IdGv17hgB+51fET1i2kPSmvk=
 modernc.org/mathutil v1.0.0/go.mod h1:wU0vUrJsVWBZ4P6e7xtFJEhFSNsfRLJ8H458uRjg03k=
