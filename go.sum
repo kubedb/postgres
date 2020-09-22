@@ -1574,8 +1574,8 @@ kmodules.xyz/prober v0.0.0-20200521101241-adf06150535c h1:aV6O9NbDpnFVra/D8c7b7T
 kmodules.xyz/prober v0.0.0-20200521101241-adf06150535c/go.mod h1:XYWZkfQquD09Mn+O7piHS+SEPq9oFV1Wy2WZ9DA+oeA=
 kmodules.xyz/webhook-runtime v0.0.0-20200522123600-ca70a7e28ed0 h1:rEOWPdiRYShJdJxX0sf76JYWOMzPQH4v8ByT+DRCmVY=
 kmodules.xyz/webhook-runtime v0.0.0-20200522123600-ca70a7e28ed0/go.mod h1:9hUftUcjvzDSiO5LIbe2U8Naz4tyS9Ndf1LRzsytMzs=
-kubedb.dev/apimachinery v0.14.0-beta.3 h1:ju+Ljf5DC3Bojg3zv2NeFtwIKEvIBCJkkbGIJ4khoDU=
-kubedb.dev/apimachinery v0.14.0-beta.3/go.mod h1:EyPX0GZpOXJKUbhRxyW+HP2ydUPut86RmwPExJdhzr0=
+kubedb.dev/apimachinery v0.14.0-beta.3.0.20200922060223-53b422770a18 h1:ao46hk2mbaq6C196F4zZquwXYGmkF1zmliUUhX52KTM=
+kubedb.dev/apimachinery v0.14.0-beta.3.0.20200922060223-53b422770a18/go.mod h1:EyPX0GZpOXJKUbhRxyW+HP2ydUPut86RmwPExJdhzr0=
 kubedb.dev/pg-leader-election v0.2.0-beta.3 h1:b5xNL1BF2Ri6hM5gu/NlP+HMTfAGsXU4feRX6ticCTY=
 kubedb.dev/pg-leader-election v0.2.0-beta.3/go.mod h1:q8xR7ah+NAu78UwPycAwOP2+i9Gz0nseint1WDOZNdU=
 modernc.org/cc v1.0.0/go.mod h1:1Sk4//wdnYJiUIxnW8ddKpaOJCF37yAdqYnkxUpaYxw=
