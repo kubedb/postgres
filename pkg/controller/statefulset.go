@@ -169,7 +169,7 @@ func (c *Controller) ensureStatefulSet(
 			return kutil.VerbUnchanged, err
 		}
 
-		c.recorder.Eventf(
+		c.Recorder.Eventf(
 			postgres,
 			core.EventTypeNormal,
 			eventer.EventReasonSuccessful,

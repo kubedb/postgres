@@ -35,6 +35,7 @@ import (
 	corelisters "k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/cache"
+	"k8s.io/client-go/tools/record"
 	core_util "kmodules.xyz/client-go/core/v1"
 	"kmodules.xyz/client-go/tools/queue"
 	appcat_cs "kmodules.xyz/custom-resources/client/clientset/versioned"
@@ -58,6 +59,8 @@ type Controller struct {
 	AppCatalogClient appcat_cs.Interface
 	// Cluster topology when the operator started
 	ClusterTopology *core_util.Topology
+	// Event Recorder
+	Recorder record.EventRecorder
 }
 
 type Config struct {

@@ -21,7 +21,6 @@ import (
 
 	cs "kubedb.dev/apimachinery/client/clientset/versioned"
 	amc "kubedb.dev/apimachinery/pkg/controller"
-	"kubedb.dev/apimachinery/pkg/eventer"
 
 	pcm "github.com/prometheus-operator/prometheus-operator/pkg/client/versioned/typed/monitoring/v1"
 	crd_cs "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
@@ -29,6 +28,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/metadata"
 	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/record"
 	reg_util "kmodules.xyz/client-go/admissionregistration/v1beta1"
 	core_util "kmodules.xyz/client-go/core/v1"
 	"kmodules.xyz/client-go/discovery"
@@ -51,6 +51,7 @@ type OperatorConfig struct {
 	AppCatalogClient appcat_cs.Interface
 	DynamicClient    dynamic.Interface
 	PromClient       pcm.MonitoringV1Interface
+	Recorder         record.EventRecorder
 }
 
 func NewOperatorConfig(clientConfig *rest.Config) *OperatorConfig {
@@ -63,7 +64,6 @@ func (c *OperatorConfig) New() (*Controller, error) {
 	if err := discovery.IsDefaultSupportedVersion(c.KubeClient); err != nil {
 		return nil, err
 	}
-	recorder := eventer.NewEventRecorder(c.KubeClient, "Postgres operator")
 
 	topology, err := core_util.DetectTopology(context.TODO(), metadata.NewForConfigOrDie(c.ClientConfig))
 	if err != nil {
@@ -80,7 +80,7 @@ func (c *OperatorConfig) New() (*Controller, error) {
 		c.PromClient,
 		c.Config,
 		topology,
-		recorder,
+		c.Recorder,
 	)
 
 	if err := ctrl.EnsureCustomResourceDefinitions(); err != nil {
