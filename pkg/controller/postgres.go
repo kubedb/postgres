@@ -21,6 +21,7 @@ import (
 	"fmt"
 
 	catalog "kubedb.dev/apimachinery/apis/catalog/v1alpha1"
+	"kubedb.dev/apimachinery/apis/kubedb"
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
 	"kubedb.dev/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1/util"
 	"kubedb.dev/apimachinery/pkg/eventer"
@@ -32,12 +33,11 @@ import (
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/wait"
 	kutil "kmodules.xyz/client-go"
-	core_util "kmodules.xyz/client-go/core/v1"
 	dynamic_util "kmodules.xyz/client-go/dynamic"
-	meta_util "kmodules.xyz/client-go/meta"
+	dmcond "kmodules.xyz/client-go/dynamic/conditions"
 )
 
 func (c *Controller) create(postgres *api.Postgres) error {
@@ -107,27 +107,46 @@ func (c *Controller) create(postgres *api.Postgres) error {
 		log.Errorln(err)
 		return err
 	}
-
-	if _, err := meta_util.GetString(postgres.Annotations, api.AnnotationInitialized); err == kutil.ErrNotFound &&
-		postgres.Spec.Init != nil && postgres.Spec.Init.Initializer != nil {
-
-		if postgres.Status.Phase == api.DatabasePhaseInitializing {
-			return nil
+	if postgres.Spec.Init != nil && postgres.Spec.Init.Initializer != nil && postgres.Status.Phase != api.DatabasePhaseRunning {
+		do := dmcond.DynamicOptions{
+			Client: c.DynamicClient,
+			GVR: schema.GroupVersionResource{
+				Group:    kubedb.GroupName,
+				Version:  api.SchemeGroupVersion.Version,
+				Resource: api.ResourcePluralPostgres,
+			},
+			Name:      postgres.Name,
+			Namespace: postgres.Namespace,
 		}
+		dbPhase := api.DatabasePhaseInitializing
 
-		// add phase that database is being initialized
-		pg, err := util.UpdatePostgresStatus(context.TODO(), c.ExtClient.KubedbV1alpha1(), postgres.ObjectMeta, func(in *api.PostgresStatus) *api.PostgresStatus {
-			in.Phase = api.DatabasePhaseInitializing
+		initCompleted, err := do.HasCondition(api.DatabaseInitialized)
+		if err != nil {
+			return err
+		}
+		if initCompleted {
+			initSucceeded, err := do.IsConditionTrue(api.DatabaseInitialized)
+			if err != nil {
+				return err
+			}
+			if initSucceeded {
+				dbPhase = api.DatabasePhaseRunning
+			} else {
+				dbPhase = api.DatabasePhaseFailed
+			}
+			// Write event
+			c.pushInitCompletionEvent(postgres, initSucceeded)
+		}
+		postgres, err := util.UpdatePostgresStatus(context.TODO(), c.ExtClient.KubedbV1alpha1(), postgres.ObjectMeta, func(in *api.PostgresStatus) *api.PostgresStatus {
+			in.Phase = dbPhase
+			in.ObservedGeneration = postgres.Generation
 			return in
 		}, metav1.UpdateOptions{})
 		if err != nil {
 			return err
 		}
-		postgres.Status = pg.Status
-
-		init := postgres.Spec.Init
-		if init.Initializer != nil {
-			log.Debugf("Postgres %v/%v is waiting for restoreSession to be succeeded", postgres.Namespace, postgres.Name)
+		if postgres.Status.Phase == api.DatabasePhaseInitializing {
+			log.Infof("Waiting for Postgres %s/%s to be initialized by initializer", postgres.Namespace, postgres.Name)
 			return nil
 		}
 	}
@@ -217,7 +236,7 @@ func (c *Controller) terminate(postgres *api.Postgres) error {
 
 	// If TerminationPolicy is "halt", keep PVCs and Secrets intact.
 	// TerminationPolicyPause is deprecated and will be removed in future.
-	if postgres.Spec.TerminationPolicy == api.TerminationPolicyHalt || postgres.Spec.TerminationPolicy == api.TerminationPolicyPause {
+	if postgres.Spec.TerminationPolicy == api.TerminationPolicyHalt {
 		if err := c.removeOwnerReferenceFromOffshoots(postgres); err != nil {
 			return err
 		}
@@ -323,37 +342,20 @@ func (c *Controller) removeOwnerReferenceFromOffshoots(postgres *api.Postgres) e
 	return nil
 }
 
-func (c *Controller) GetDatabase(meta metav1.ObjectMeta) (runtime.Object, error) {
-	postgres, err := c.ExtClient.KubedbV1alpha1().Postgreses(meta.Namespace).Get(context.TODO(), meta.Name, metav1.GetOptions{})
-	if err != nil {
-		return nil, err
+func (c *Controller) pushInitCompletionEvent(postgres *api.Postgres, initSucceeded bool) {
+	eventType := core.EventTypeNormal
+	eventReason := eventer.EventReasonSuccessfulDatabaseInitialization
+	message := fmt.Sprintf("Successfully initialized Postgres %s/%s", postgres.Namespace, postgres.Name)
+
+	if !initSucceeded {
+		eventType = core.EventTypeWarning
+		eventReason = eventer.EventReasonFailureInDatabaseInitialization
+		message = fmt.Sprintf("Failed to initialize Postgres %s/%s", postgres.Namespace, postgres.Name)
 	}
-
-	return postgres, nil
-}
-
-func (c *Controller) SetDatabaseStatus(meta metav1.ObjectMeta, phase api.DatabasePhase, reason string) error {
-	postgres, err := c.ExtClient.KubedbV1alpha1().Postgreses(meta.Namespace).Get(context.TODO(), meta.Name, metav1.GetOptions{})
-	if err != nil {
-		return err
-	}
-	_, err = util.UpdatePostgresStatus(context.TODO(), c.ExtClient.KubedbV1alpha1(), postgres.ObjectMeta, func(in *api.PostgresStatus) *api.PostgresStatus {
-		in.Phase = phase
-		in.Reason = reason
-		return in
-	}, metav1.UpdateOptions{})
-	return err
-}
-
-func (c *Controller) UpsertDatabaseAnnotation(meta metav1.ObjectMeta, annotation map[string]string) error {
-	postgres, err := c.ExtClient.KubedbV1alpha1().Postgreses(meta.Namespace).Get(context.TODO(), meta.Name, metav1.GetOptions{})
-	if err != nil {
-		return err
-	}
-
-	_, _, err = util.PatchPostgres(context.TODO(), c.ExtClient.KubedbV1alpha1(), postgres, func(in *api.Postgres) *api.Postgres {
-		in.Annotations = core_util.UpsertMap(in.Annotations, annotation)
-		return in
-	}, metav1.PatchOptions{})
-	return err
+	c.Recorder.Eventf(
+		postgres,
+		eventType,
+		eventReason,
+		message,
+	)
 }

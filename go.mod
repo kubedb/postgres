@@ -17,6 +17,7 @@ require (
 	go.bytebuilders.dev/license-verifier v0.3.0
 	go.bytebuilders.dev/license-verifier/kubernetes v0.3.0
 	gomodules.xyz/cert v1.0.3
+	gomodules.xyz/password-generator v0.2.3
 	gomodules.xyz/stow v0.2.4
 	gomodules.xyz/version v0.1.0
 	k8s.io/api v0.18.9
@@ -32,7 +33,7 @@ require (
 	kmodules.xyz/objectstore-api v0.0.0-20200922210707-59bab27e5d41
 	kmodules.xyz/offshoot-api v0.0.0-20200922211229-36acc531abab
 	kmodules.xyz/webhook-runtime v0.0.0-20200922211931-8337935590de
-	kubedb.dev/apimachinery v0.14.0-beta.3.0.20200929115449-5779a5d7c3ff
+	kubedb.dev/apimachinery v0.14.0-beta.3.0.20200929172147-60ada14c6d75
 	kubedb.dev/pg-leader-election v0.2.0-beta.3
 	stash.appscode.dev/apimachinery v0.11.2
 )

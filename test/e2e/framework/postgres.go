@@ -22,6 +22,7 @@ import (
 	"strconv"
 	"time"
 
+	"kubedb.dev/apimachinery/apis/kubedb"
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
 	"kubedb.dev/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1/util"
 
@@ -174,7 +175,7 @@ func (f *Framework) CleanPostgres() {
 func (f *Framework) EvictPodsFromStatefulSet(meta metav1.ObjectMeta) error {
 	var err error
 	labelSelector := labels.Set{
-		meta_util.ManagedByLabelKey: api.GenericKey,
+		meta_util.ManagedByLabelKey: kubedb.GroupName,
 		api.LabelDatabaseKind:       api.ResourceKindPostgres,
 		api.LabelDatabaseName:       meta.GetName(),
 	}
