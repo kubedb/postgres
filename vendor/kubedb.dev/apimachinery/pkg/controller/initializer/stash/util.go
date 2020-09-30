@@ -24,6 +24,7 @@ import (
 
 	"kubedb.dev/apimachinery/apis/kubedb"
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
+	"kubedb.dev/apimachinery/client/clientset/versioned/scheme"
 
 	"github.com/appscode/go/log"
 	"github.com/appscode/go/types"
@@ -32,6 +33,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/wait"
+	"k8s.io/client-go/tools/reference"
 	kmapi "kmodules.xyz/client-go/api/v1"
 	core_util "kmodules.xyz/client-go/core/v1"
 	"kmodules.xyz/client-go/discovery"
@@ -112,7 +114,7 @@ func (c *Controller) setInitializationCondition(ri *restoreInfo) error {
 	if ri.phase == v1beta1.RestoreSucceeded {
 		dbCond.Status = kmapi.ConditionTrue
 		dbCond.Reason = api.DatabaseSuccessfullyInitialized
-		dbCond.Message = fmt.Sprintf("Database has been initialized successfully by %s %s/%s",
+		dbCond.Message = fmt.Sprintf("Successfully restored data by %s %s/%s",
 			ri.invoker.Kind,
 			ri.do.Namespace,
 			ri.invoker.Name,
@@ -120,7 +122,7 @@ func (c *Controller) setInitializationCondition(ri *restoreInfo) error {
 	} else {
 		dbCond.Status = kmapi.ConditionFalse
 		dbCond.Reason = api.FailedToInitializeDatabase
-		dbCond.Message = fmt.Sprintf("Database failed to be initialized successfully by %s %s/%s."+
+		dbCond.Message = fmt.Sprintf("Failed to restore data by initializer %s %s/%s."+
 			"\nRun 'kubectl describe %s %s -n %s' for more details.",
 			ri.invoker.Kind,
 			ri.do.Namespace,
@@ -132,7 +134,12 @@ func (c *Controller) setInitializationCondition(ri *restoreInfo) error {
 	}
 
 	// Add "DatabaseInitialized" dmcond to the respective database CR
-	return ri.do.SetCondition(dbCond)
+	err := ri.do.SetCondition(dbCond)
+	if err != nil {
+		return err
+	}
+	// Write data restore completion event to the respective database CR
+	return c.writeRestoreCompletionEvent(ri.do, dbCond)
 }
 
 func (c *Controller) identifyTarget(members []v1beta1.RestoreTargetSpec, namespace string) (*v1beta1.RestoreTarget, error) {
@@ -252,4 +259,25 @@ func targetOfGroupKind(target v1beta1.TargetRef, group, kind string) (bool, erro
 		return false, err
 	}
 	return gv.Group == group && target.Kind == kind, nil
+}
+
+func (c *Controller) writeRestoreCompletionEvent(do dmcond.DynamicOptions, cond kmapi.Condition) error {
+	// Get the database CR
+	resp, err := do.Client.Resource(do.GVR).Namespace(do.Namespace).Get(context.TODO(), do.Name, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+	// Create database CR's reference
+	ref, err := reference.GetReference(scheme.Scheme, resp)
+	if err != nil {
+		return err
+	}
+
+	eventType := core.EventTypeNormal
+	if cond.Status != kmapi.ConditionTrue {
+		eventType = core.EventTypeWarning
+	}
+	// create event
+	c.Recorder.Eventf(ref, eventType, cond.Reason, cond.Message)
+	return nil
 }

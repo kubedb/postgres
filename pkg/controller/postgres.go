@@ -21,7 +21,6 @@ import (
 	"fmt"
 
 	catalog "kubedb.dev/apimachinery/apis/catalog/v1alpha1"
-	"kubedb.dev/apimachinery/apis/kubedb"
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
 	"kubedb.dev/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1/util"
 	"kubedb.dev/apimachinery/pkg/eventer"
@@ -33,11 +32,10 @@ import (
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/wait"
 	kutil "kmodules.xyz/client-go"
+	kmapi "kmodules.xyz/client-go/api/v1"
 	dynamic_util "kmodules.xyz/client-go/dynamic"
-	dmcond "kmodules.xyz/client-go/dynamic/conditions"
 )
 
 func (c *Controller) create(postgres *api.Postgres) error {
@@ -107,47 +105,44 @@ func (c *Controller) create(postgres *api.Postgres) error {
 		log.Errorln(err)
 		return err
 	}
-	if postgres.Spec.Init != nil && postgres.Spec.Init.Initializer != nil && postgres.Status.Phase != api.DatabasePhaseRunning {
-		do := dmcond.DynamicOptions{
-			Client: c.DynamicClient,
-			GVR: schema.GroupVersionResource{
-				Group:    kubedb.GroupName,
-				Version:  api.SchemeGroupVersion.Version,
-				Resource: api.ResourcePluralPostgres,
-			},
-			Name:      postgres.Name,
-			Namespace: postgres.Namespace,
-		}
-		dbPhase := api.DatabasePhaseInitializing
 
-		initCompleted, err := do.HasCondition(api.DatabaseInitialized)
-		if err != nil {
-			return err
-		}
-		if initCompleted {
-			initSucceeded, err := do.IsConditionTrue(api.DatabaseInitialized)
+	if postgres.Spec.Init != nil && postgres.Spec.Init.Initializer != nil {
+		// If "Initialized" condition is not present, it means restore process hasn't completed yet.
+		// In this case, make database phase "Initializing".
+		if !kmapi.HasCondition(postgres.Status.Conditions, api.DatabaseInitialized) {
+			postgres, err := util.UpdatePostgresStatus(context.TODO(), c.ExtClient.KubedbV1alpha1(), postgres.ObjectMeta, func(in *api.PostgresStatus) *api.PostgresStatus {
+				in.Phase = api.DatabasePhaseInitializing
+				in.ObservedGeneration = postgres.Generation
+				return in
+			}, metav1.UpdateOptions{})
 			if err != nil {
 				return err
 			}
-			if initSucceeded {
-				dbPhase = api.DatabasePhaseRunning
-			} else {
+			// write log indicating that the database is waiting for the data to be restored by external initializer
+			log.Infof("Database %s %s/%s is waiting for data to be restored by initializer %s/%s/%s",
+				postgres.Kind,
+				postgres.Namespace,
+				postgres.Name,
+				*postgres.Spec.Init.Initializer.APIGroup,
+				postgres.Spec.Init.Initializer.Kind,
+				postgres.Spec.Init.Initializer.Name,
+			)
+			// Rest of the processing will execute after the the restore process completed. So, just return for now.
+			return nil
+		} else {
+			// Restore process has completed. It has either succeeded or failed. Update database phase accordingly.
+			dbPhase := api.DatabasePhaseRunning
+			if !kmapi.IsConditionTrue(postgres.Status.Conditions, api.DatabaseInitialized) {
 				dbPhase = api.DatabasePhaseFailed
 			}
-			// Write event
-			c.pushInitCompletionEvent(postgres, initSucceeded)
-		}
-		postgres, err := util.UpdatePostgresStatus(context.TODO(), c.ExtClient.KubedbV1alpha1(), postgres.ObjectMeta, func(in *api.PostgresStatus) *api.PostgresStatus {
-			in.Phase = dbPhase
-			in.ObservedGeneration = postgres.Generation
-			return in
-		}, metav1.UpdateOptions{})
-		if err != nil {
-			return err
-		}
-		if postgres.Status.Phase == api.DatabasePhaseInitializing {
-			log.Infof("Waiting for Postgres %s/%s to be initialized by initializer", postgres.Namespace, postgres.Name)
-			return nil
+			postgres, err = util.UpdatePostgresStatus(context.TODO(), c.ExtClient.KubedbV1alpha1(), postgres.ObjectMeta, func(in *api.PostgresStatus) *api.PostgresStatus {
+				in.Phase = dbPhase
+				in.ObservedGeneration = postgres.Generation
+				return in
+			}, metav1.UpdateOptions{})
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -340,22 +335,4 @@ func (c *Controller) removeOwnerReferenceFromOffshoots(postgres *api.Postgres) e
 		return err
 	}
 	return nil
-}
-
-func (c *Controller) pushInitCompletionEvent(postgres *api.Postgres, initSucceeded bool) {
-	eventType := core.EventTypeNormal
-	eventReason := eventer.EventReasonSuccessfulDatabaseInitialization
-	message := fmt.Sprintf("Successfully initialized Postgres %s/%s", postgres.Namespace, postgres.Name)
-
-	if !initSucceeded {
-		eventType = core.EventTypeWarning
-		eventReason = eventer.EventReasonFailureInDatabaseInitialization
-		message = fmt.Sprintf("Failed to initialize Postgres %s/%s", postgres.Namespace, postgres.Name)
-	}
-	c.Recorder.Eventf(
-		postgres,
-		eventType,
-		eventReason,
-		message,
-	)
 }
