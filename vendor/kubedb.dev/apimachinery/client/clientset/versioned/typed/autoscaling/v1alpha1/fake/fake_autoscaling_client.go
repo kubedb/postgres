@@ -37,6 +37,10 @@ func (c *FakeAutoscalingV1alpha1) EtcdAutoscalers(namespace string) v1alpha1.Etc
 	return &FakeEtcdAutoscalers{c, namespace}
 }
 
+func (c *FakeAutoscalingV1alpha1) MariaDBAutoscalers(namespace string) v1alpha1.MariaDBAutoscalerInterface {
+	return &FakeMariaDBAutoscalers{c, namespace}
+}
+
 func (c *FakeAutoscalingV1alpha1) MemcachedAutoscalers(namespace string) v1alpha1.MemcachedAutoscalerInterface {
 	return &FakeMemcachedAutoscalers{c, namespace}
 }
@@ -67,6 +71,14 @@ func (c *FakeAutoscalingV1alpha1) ProxySQLAutoscalers(namespace string) v1alpha1
 
 func (c *FakeAutoscalingV1alpha1) RedisAutoscalers(namespace string) v1alpha1.RedisAutoscalerInterface {
 	return &FakeRedisAutoscalers{c, namespace}
+}
+
+func (c *FakeAutoscalingV1alpha1) VerticalAutoscalers(namespace string) v1alpha1.VerticalAutoscalerInterface {
+	return &FakeVerticalAutoscalers{c, namespace}
+}
+
+func (c *FakeAutoscalingV1alpha1) VerticalAutoscalerCheckpoints(namespace string) v1alpha1.VerticalAutoscalerCheckpointInterface {
+	return &FakeVerticalAutoscalerCheckpoints{c, namespace}
 }
 
 // RESTClient returns a RESTClient that is used to communicate

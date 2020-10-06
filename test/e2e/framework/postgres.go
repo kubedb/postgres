@@ -141,12 +141,12 @@ func (f *Framework) EventuallyPostgresPodCount(meta metav1.ObjectMeta) GomegaAsy
 	)
 }
 
-func (f *Framework) EventuallyPostgresRunning(meta metav1.ObjectMeta) GomegaAsyncAssertion {
+func (f *Framework) EventuallyPostgresReady(meta metav1.ObjectMeta) GomegaAsyncAssertion {
 	return Eventually(
 		func() bool {
 			postgres, err := f.dbClient.KubedbV1alpha1().Postgreses(meta.Namespace).Get(context.TODO(), meta.Name, metav1.GetOptions{})
 			Expect(err).NotTo(HaveOccurred())
-			return postgres.Status.Phase == api.DatabasePhaseRunning
+			return postgres.Status.Phase == api.DatabasePhaseReady
 		},
 		time.Minute*15,
 		time.Second*5,

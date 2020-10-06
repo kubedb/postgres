@@ -38,6 +38,7 @@ import (
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/kubernetes/fake"
 	clientSetScheme "k8s.io/client-go/kubernetes/scheme"
+	kmapi "kmodules.xyz/client-go/api/v1"
 	"kmodules.xyz/client-go/meta"
 	mona "kmodules.xyz/monitoring-agent-api/api/v1"
 )
@@ -246,6 +247,26 @@ var cases = []struct {
 		false,
 		true,
 	},
+	{"Edit spec.Init before provisioning complete",
+		requestKind,
+		"foo",
+		"default",
+		admission.Update,
+		updateInit(samplePostgres()),
+		samplePostgres(),
+		true,
+		true,
+	},
+	{"Edit spec.Init after provisioning complete",
+		requestKind,
+		"foo",
+		"default",
+		admission.Update,
+		updateInit(completeProvisioning(samplePostgres())),
+		samplePostgres(),
+		true,
+		false,
+	},
 }
 
 func samplePostgres() api.Postgres {
@@ -274,14 +295,7 @@ func samplePostgres() api.Postgres {
 				},
 			},
 			Init: &api.InitSpec{
-				Script: &api.ScriptSourceSpec{
-					VolumeSource: core.VolumeSource{
-						GitRepo: &core.GitRepoVolumeSource{
-							Repository: "https://github.com/kubedb/postgres-init-scripts.git",
-							Directory:  ".",
-						},
-					},
-				},
+				WaitForInitialRestore: true,
 			},
 			TerminationPolicy: api.TerminationPolicyDoNotTerminate,
 		},
@@ -310,7 +324,7 @@ func editNonExistingSecret(old api.Postgres) api.Postgres {
 
 func editStatus(old api.Postgres) api.Postgres {
 	old.Status = api.PostgresStatus{
-		Phase: api.DatabasePhaseCreating,
+		Phase: api.DatabasePhaseReady,
 	}
 	return old
 }
@@ -337,5 +351,20 @@ func editSpecInvalidMonitor(old api.Postgres) api.Postgres {
 
 func haltDatabase(old api.Postgres) api.Postgres {
 	old.Spec.TerminationPolicy = api.TerminationPolicyHalt
+	return old
+}
+
+func completeProvisioning(old api.Postgres) api.Postgres {
+	old.Status.Conditions = []kmapi.Condition{
+		{
+			Type:   api.DatabaseProvisioned,
+			Status: kmapi.ConditionTrue,
+		},
+	}
+	return old
+}
+
+func updateInit(old api.Postgres) api.Postgres {
+	old.Spec.Init.WaitForInitialRestore = false
 	return old
 }

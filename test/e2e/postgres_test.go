@@ -95,7 +95,7 @@ var _ = Describe("Postgres", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		By("Wait for Running postgres")
-		f.EventuallyPostgresRunning(postgres.ObjectMeta).Should(BeTrue())
+		f.EventuallyPostgresReady(postgres.ObjectMeta).Should(BeTrue())
 
 		By("Wait for AppBinding to create")
 		f.EventuallyAppBinding(postgres.ObjectMeta).Should(BeTrue())
@@ -142,7 +142,7 @@ var _ = Describe("Postgres", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		By("Wait for Running postgres")
-		f.EventuallyPostgresRunning(postgres.ObjectMeta).Should(BeTrue())
+		f.EventuallyPostgresReady(postgres.ObjectMeta).Should(BeTrue())
 
 		By("Checking Table")
 		f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
@@ -447,8 +447,8 @@ var _ = Describe("Postgres", func() {
 					err = f.CreatePostgres(postgres)
 					Expect(err).NotTo(HaveOccurred())
 
-					By("Wait for Initializing postgres")
-					f.EventuallyPostgresPhase(postgres.ObjectMeta).Should(Equal(api.DatabasePhaseInitializing))
+					By("Wait for restoring postgres")
+					f.EventuallyPostgresPhase(postgres.ObjectMeta).Should(Equal(api.DatabasePhaseDataRestoring))
 
 					By("Wait for AppBinding to create")
 					f.EventuallyAppBinding(postgres.ObjectMeta).Should(BeTrue())
@@ -503,11 +503,7 @@ var _ = Describe("Postgres", func() {
 					rs = f.RestoreSession(postgres.ObjectMeta, repo)
 					postgres.Spec.DatabaseSecret = oldPostgres.Spec.DatabaseSecret
 					postgres.Spec.Init = &api.InitSpec{
-						Initializer: &core.TypedLocalObjectReference{
-							APIGroup: types.StringP(stashV1beta1.SchemeGroupVersion.Group),
-							Kind:     rs.Kind,
-							Name:     rs.Name,
-						},
+						WaitForInitialRestore: true,
 					}
 
 					// Create and wait for running Postgres
@@ -528,7 +524,7 @@ var _ = Describe("Postgres", func() {
 					f.EventuallyRestoreSessionPhase(rs.ObjectMeta).Should(Equal(stashV1beta1.RestoreSucceeded))
 
 					By("Wait for Running postgres")
-					f.EventuallyPostgresRunning(postgres.ObjectMeta).Should(BeTrue())
+					f.EventuallyPostgresReady(postgres.ObjectMeta).Should(BeTrue())
 
 					By("Waiting for database to be ready")
 					f.EventuallyPingDatabase(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
@@ -582,15 +578,15 @@ var _ = Describe("Postgres", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				By("Wait for Running postgres")
-				f.EventuallyPostgresRunning(postgres.ObjectMeta).Should(BeTrue())
+				f.EventuallyPostgresReady(postgres.ObjectMeta).Should(BeTrue())
 
 				pg, err := f.GetPostgres(postgres.ObjectMeta)
 				Expect(err).NotTo(HaveOccurred())
 
 				*postgres = *pg
 				if usedInitialized {
-					By("Checking Postgres crd have Initialized condition")
-					Expect(kmapi.HasCondition(postgres.Status.Conditions, api.DatabaseInitialized)).To(BeTrue())
+					By("Checking Postgres crd have DataRestored condition")
+					Expect(kmapi.HasCondition(postgres.Status.Conditions, api.DatabaseDataRestored)).To(BeTrue())
 				}
 			}
 
@@ -674,7 +670,7 @@ var _ = Describe("Postgres", func() {
 						Expect(err).NotTo(HaveOccurred())
 
 						By("Wait for Running postgres")
-						f.EventuallyPostgresRunning(postgres.ObjectMeta).Should(BeTrue())
+						f.EventuallyPostgresReady(postgres.ObjectMeta).Should(BeTrue())
 
 						_, err = f.GetPostgres(postgres.ObjectMeta)
 						Expect(err).NotTo(HaveOccurred())
@@ -1408,7 +1404,7 @@ var _ = Describe("Postgres", func() {
 					f.EventuallyPostgres(postgres.ObjectMeta).Should(BeTrue())
 
 					By("Check for Running postgres")
-					f.EventuallyPostgresRunning(postgres.ObjectMeta).Should(BeTrue())
+					f.EventuallyPostgresReady(postgres.ObjectMeta).Should(BeTrue())
 
 					By("Update postgres to set spec.terminationPolicy = Halt")
 					_, err := f.PatchPostgres(postgres.ObjectMeta, func(in *api.Postgres) *api.Postgres {
@@ -1441,7 +1437,7 @@ var _ = Describe("Postgres", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					By("Wait for Running postgres")
-					f.EventuallyPostgresRunning(postgres.ObjectMeta).Should(BeTrue())
+					f.EventuallyPostgresReady(postgres.ObjectMeta).Should(BeTrue())
 
 					By("Checking Table")
 					f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))

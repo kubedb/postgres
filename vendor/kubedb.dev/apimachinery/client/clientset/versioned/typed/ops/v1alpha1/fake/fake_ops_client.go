@@ -37,6 +37,10 @@ func (c *FakeOpsV1alpha1) EtcdOpsRequests(namespace string) v1alpha1.EtcdOpsRequ
 	return &FakeEtcdOpsRequests{c, namespace}
 }
 
+func (c *FakeOpsV1alpha1) MariaDBOpsRequests(namespace string) v1alpha1.MariaDBOpsRequestInterface {
+	return &FakeMariaDBOpsRequests{c, namespace}
+}
+
 func (c *FakeOpsV1alpha1) MemcachedOpsRequests(namespace string) v1alpha1.MemcachedOpsRequestInterface {
 	return &FakeMemcachedOpsRequests{c, namespace}
 }
