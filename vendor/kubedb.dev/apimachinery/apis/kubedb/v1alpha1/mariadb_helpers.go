@@ -136,13 +136,6 @@ func (m MariaDB) StatsServiceLabels() map[string]string {
 	return lbl
 }
 
-func (m *MariaDB) GetMonitoringVendor() string {
-	if m.Spec.Monitor != nil {
-		return m.Spec.Monitor.Agent.Vendor()
-	}
-	return ""
-}
-
 func (m *MariaDB) SetDefaults() {
 	if m == nil {
 		return

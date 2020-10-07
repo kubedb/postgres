@@ -35,9 +35,15 @@ const (
 	AgentPrometheus         AgentType = VendorPrometheus
 	AgentPrometheusBuiltin  AgentType = VendorPrometheus + "/builtin"
 	AgentPrometheusOperator AgentType = VendorPrometheus + "/operator"
+
+	PrometheusExporterPortNumber = 56790
+	PrometheusExporterPortName   = "metrics"
 )
 
 func (at AgentType) Vendor() string {
+	if !strings.ContainsRune(string(at), '/') {
+		return ""
+	}
 	return strings.SplitN(string(at), "/", 2)[0]
 }
 
@@ -47,8 +53,8 @@ type AgentSpec struct {
 }
 
 type PrometheusSpec struct {
-	Exporter       *PrometheusExporterSpec `json:"exporter,omitempty" protobuf:"bytes,1,opt,name=exporter"`
-	ServiceMonitor *ServiceMonitorSpec     `json:"serviceMonitor,omitempty" protobuf:"bytes,2,opt,name=serviceMonitor"`
+	Exporter       PrometheusExporterSpec `json:"exporter,omitempty" protobuf:"bytes,1,opt,name=exporter"`
+	ServiceMonitor *ServiceMonitorSpec    `json:"serviceMonitor,omitempty" protobuf:"bytes,2,opt,name=serviceMonitor"`
 }
 
 type ServiceMonitorSpec struct {
@@ -63,6 +69,8 @@ type ServiceMonitorSpec struct {
 
 type PrometheusExporterSpec struct {
 	// Port number for the exporter side car.
+	// +optional
+	// +kubebuilder:default=56790
 	Port int32 `json:"port,omitempty" protobuf:"varint,1,opt,name=port"`
 
 	// Arguments to the entrypoint.

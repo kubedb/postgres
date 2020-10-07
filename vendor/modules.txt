@@ -1129,7 +1129,7 @@ kmodules.xyz/client-go/tools/clientcmd
 kmodules.xyz/client-go/tools/clusterid
 kmodules.xyz/client-go/tools/portforward
 kmodules.xyz/client-go/tools/queue
-# kmodules.xyz/constants v0.0.0-20200506032633-a21e58ceec72
+# kmodules.xyz/constants v0.0.0-20200923054614-6b87dbbae4d6
 kmodules.xyz/constants/aws
 kmodules.xyz/constants/azure
 kmodules.xyz/constants/google
@@ -1147,7 +1147,7 @@ kmodules.xyz/custom-resources/client/informers/externalversions/appcatalog/v1alp
 kmodules.xyz/custom-resources/client/informers/externalversions/internalinterfaces
 kmodules.xyz/custom-resources/client/listers/appcatalog/v1alpha1
 kmodules.xyz/custom-resources/crds
-# kmodules.xyz/monitoring-agent-api v0.0.0-20201007064223-c0fbcdb742f1
+# kmodules.xyz/monitoring-agent-api v0.0.0-20201007104803-408a1ff2de8d
 kmodules.xyz/monitoring-agent-api/agents
 kmodules.xyz/monitoring-agent-api/agents/prometheus
 kmodules.xyz/monitoring-agent-api/agents/prometheusbuiltin
@@ -1164,7 +1164,7 @@ kmodules.xyz/prober/api/v1
 # kmodules.xyz/webhook-runtime v0.0.0-20200922211931-8337935590de
 kmodules.xyz/webhook-runtime/admission/v1beta1
 kmodules.xyz/webhook-runtime/registry/admissionreview/v1beta1
-# kubedb.dev/apimachinery v0.14.0-beta.3.0.20201007080943-d6070fc72037
+# kubedb.dev/apimachinery v0.14.0-beta.3.0.20201007105016-e562def953d6
 kubedb.dev/apimachinery/apis
 kubedb.dev/apimachinery/apis/autoscaling
 kubedb.dev/apimachinery/apis/autoscaling/v1alpha1

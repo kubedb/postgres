@@ -133,13 +133,6 @@ func (p ProxySQL) StatsServiceLabels() map[string]string {
 	return lbl
 }
 
-func (p *ProxySQL) GetMonitoringVendor() string {
-	if p.Spec.Monitor != nil {
-		return p.Spec.Monitor.Agent.Vendor()
-	}
-	return ""
-}
-
 func (p *ProxySQL) SetDefaults() {
 	if p == nil {
 		return

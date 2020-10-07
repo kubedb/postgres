@@ -43,9 +43,6 @@ const (
 	EtcdKey          = ResourceSingularEtcd + "." + kubedb.GroupName
 	ProxySQLKey      = ResourceSingularProxySQL + "." + kubedb.GroupName
 
-	PrometheusExporterPortNumber = 56790
-	PrometheusExporterPortName   = "prom-http"
-
 	ElasticsearchRestPort                        = 9200
 	ElasticsearchRestPortName                    = "http"
 	ElasticsearchTransportPort                   = 9300

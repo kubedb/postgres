@@ -153,13 +153,6 @@ func (p PerconaXtraDB) StatsServiceLabels() map[string]string {
 	return lbl
 }
 
-func (p *PerconaXtraDB) GetMonitoringVendor() string {
-	if p.Spec.Monitor != nil {
-		return p.Spec.Monitor.Agent.Vendor()
-	}
-	return ""
-}
-
 func (p *PerconaXtraDB) SetDefaults() {
 	if p == nil {
 		return

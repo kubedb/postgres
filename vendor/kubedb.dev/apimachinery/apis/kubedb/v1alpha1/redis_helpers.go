@@ -153,13 +153,6 @@ func (r Redis) StatsServiceLabels() map[string]string {
 	return lbl
 }
 
-func (r *Redis) GetMonitoringVendor() string {
-	if r.Spec.Monitor != nil {
-		return r.Spec.Monitor.Agent.Vendor()
-	}
-	return ""
-}
-
 func (r *Redis) SetDefaults(topology *core_util.Topology) {
 	if r == nil {
 		return
@@ -198,10 +191,10 @@ func (r *Redis) SetDefaults(topology *core_util.Topology) {
 
 	r.Spec.Monitor.SetDefaults()
 
-	r.setDefaultTLSConfig()
+	r.SetTLSDefaults()
 }
 
-func (r *Redis) setDefaultTLSConfig() {
+func (r *Redis) SetTLSDefaults() {
 	if r.Spec.TLS == nil || r.Spec.TLS.IssuerRef == nil {
 		return
 	}

@@ -136,13 +136,6 @@ func (e Etcd) StatsServiceLabels() map[string]string {
 	return lbl
 }
 
-func (e *Etcd) GetMonitoringVendor() string {
-	if e.Spec.Monitor != nil {
-		return e.Spec.Monitor.Agent.Vendor()
-	}
-	return ""
-}
-
 func (e *Etcd) SetDefaults() {
 	if e == nil {
 		return

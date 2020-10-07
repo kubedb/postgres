@@ -2018,6 +2018,7 @@ spec:
                               type: object
                             type: array
                           port:
+                            default: 56790
                             format: int32
                             type: integer
                           resources:

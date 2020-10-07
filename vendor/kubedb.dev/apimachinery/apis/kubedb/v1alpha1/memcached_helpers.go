@@ -131,13 +131,6 @@ func (m Memcached) StatsServiceLabels() map[string]string {
 	return lbl
 }
 
-func (m *Memcached) GetMonitoringVendor() string {
-	if m.Spec.Monitor != nil {
-		return m.Spec.Monitor.Agent.Vendor()
-	}
-	return ""
-}
-
 func (m *Memcached) SetDefaults() {
 	if m == nil {
 		return

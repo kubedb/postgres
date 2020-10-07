@@ -34,6 +34,8 @@ message AgentSpec {
 
 message PrometheusExporterSpec {
   // Port number for the exporter side car.
+  // +optional
+  // +kubebuilder:default=56790
   optional int32 port = 1;
 
   // Arguments to the entrypoint.

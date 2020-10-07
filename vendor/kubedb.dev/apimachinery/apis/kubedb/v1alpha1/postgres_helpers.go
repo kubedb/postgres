@@ -132,13 +132,6 @@ func (p Postgres) StatsServiceLabels() map[string]string {
 	return lbl
 }
 
-func (p *Postgres) GetMonitoringVendor() string {
-	if p.Spec.Monitor != nil {
-		return p.Spec.Monitor.Agent.Vendor()
-	}
-	return ""
-}
-
 func (p Postgres) ReplicasServiceName() string {
 	return fmt.Sprintf("%v-replicas", p.Name)
 }

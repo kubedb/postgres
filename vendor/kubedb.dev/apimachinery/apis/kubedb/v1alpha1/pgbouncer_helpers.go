@@ -132,13 +132,6 @@ func (p PgBouncer) StatsServiceLabels() map[string]string {
 	return lbl
 }
 
-func (p *PgBouncer) GetMonitoringVendor() string {
-	if p.Spec.Monitor != nil {
-		return p.Spec.Monitor.Agent.Vendor()
-	}
-	return ""
-}
-
 func (p PgBouncer) ReplicasServiceName() string {
 	return fmt.Sprintf("%v-replicas", p.Name)
 }
@@ -149,10 +142,10 @@ func (p *PgBouncer) SetDefaults() {
 	}
 	p.Spec.Monitor.SetDefaults()
 
-	p.setDefaultTLSConfig()
+	p.SetTLSDefaults()
 }
 
-func (p *PgBouncer) setDefaultTLSConfig() {
+func (p *PgBouncer) SetTLSDefaults() {
 	if p.Spec.TLS == nil || p.Spec.TLS.IssuerRef == nil {
 		return
 	}

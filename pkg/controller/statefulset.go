@@ -418,7 +418,7 @@ func upsertPort(statefulSet *apps.StatefulSet) *apps.StatefulSet {
 }
 
 func (c *Controller) upsertMonitoringContainer(statefulSet *apps.StatefulSet, postgres *api.Postgres, postgresVersion *catalog.PostgresVersion) *apps.StatefulSet {
-	if postgres.GetMonitoringVendor() == mona.VendorPrometheus {
+	if postgres.Spec.Monitor != nil && postgres.Spec.Monitor.Agent.Vendor() == mona.VendorPrometheus {
 		container := core.Container{
 			Name: "exporter",
 			Args: append([]string{
@@ -428,9 +428,9 @@ func (c *Controller) upsertMonitoringContainer(statefulSet *apps.StatefulSet, po
 			ImagePullPolicy: core.PullIfNotPresent,
 			Ports: []core.ContainerPort{
 				{
-					Name:          api.PrometheusExporterPortName,
+					Name:          mona.PrometheusExporterPortName,
 					Protocol:      core.ProtocolTCP,
-					ContainerPort: int32(api.PrometheusExporterPortNumber),
+					ContainerPort: int32(postgres.Spec.Monitor.Prometheus.Exporter.Port),
 				},
 			},
 			Env:             postgres.Spec.Monitor.Prometheus.Exporter.Env,
@@ -467,7 +467,7 @@ func (c *Controller) upsertMonitoringContainer(statefulSet *apps.StatefulSet, po
 			},
 			{
 				Name:  "PG_EXPORTER_WEB_LISTEN_ADDRESS",
-				Value: fmt.Sprintf(":%d", api.PrometheusExporterPortNumber),
+				Value: fmt.Sprintf(":%d", postgres.Spec.Monitor.Prometheus.Exporter.Port),
 			},
 			{
 				Name:  "PG_EXPORTER_WEB_TELEMETRY_PATH",

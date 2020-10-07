@@ -215,13 +215,6 @@ func (e Elasticsearch) StatsServiceLabels() map[string]string {
 	return lbl
 }
 
-func (e *Elasticsearch) GetMonitoringVendor() string {
-	if e.Spec.Monitor != nil {
-		return e.Spec.Monitor.Agent.Vendor()
-	}
-	return ""
-}
-
 func (e *Elasticsearch) SetDefaults(esVersion *v1alpha1.ElasticsearchVersion, topology *core_util.Topology) {
 	if e == nil {
 		return
@@ -277,7 +270,7 @@ func (e *Elasticsearch) SetDefaults(esVersion *v1alpha1.ElasticsearchVersion, to
 	}
 
 	e.setDefaultAffinity(&e.Spec.PodTemplate, e.OffshootSelectors(), topology)
-	e.setDefaultTLSConfig(esVersion)
+	e.SetTLSDefaults(esVersion)
 	e.Spec.Monitor.SetDefaults()
 }
 
@@ -325,7 +318,7 @@ func (e *Elasticsearch) setDefaultAffinity(podTemplate *ofst.PodTemplateSpec, la
 }
 
 // set default tls configuration (ie. alias, secretName)
-func (e *Elasticsearch) setDefaultTLSConfig(esVersion *v1alpha1.ElasticsearchVersion) {
+func (e *Elasticsearch) SetTLSDefaults(esVersion *v1alpha1.ElasticsearchVersion) {
 	// If security is disabled (ie. DisableSecurity: true), ignore.
 	if e.Spec.DisableSecurity {
 		return
