@@ -643,7 +643,7 @@ func (m *MongoDB) MustCertSecretName(alias MongoDBCertificateAlias, stsName stri
 	return name
 }
 
-func (m *MongoDB) IsReplicasReady(stsLister appslister.StatefulSetLister) (bool, string, error) {
+func (m *MongoDB) ReplicasAreReady(stsLister appslister.StatefulSetLister) (bool, string, error) {
 	// TODO: Implement database specific logic here
 	// return isReplicasReady, message, error
 	return false, "", nil

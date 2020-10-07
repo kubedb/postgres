@@ -168,7 +168,7 @@ func (p *ProxySQLSpec) GetSecrets() []string {
 	return secrets
 }
 
-func (p *ProxySQL) IsReplicasReady(stsLister appslister.StatefulSetLister) (bool, string, error) {
+func (p *ProxySQL) ReplicasAreReady(stsLister appslister.StatefulSetLister) (bool, string, error) {
 	// TODO: Implement database specific logic here
 	// return isReplicasReady, message, error
 	return false, "", nil

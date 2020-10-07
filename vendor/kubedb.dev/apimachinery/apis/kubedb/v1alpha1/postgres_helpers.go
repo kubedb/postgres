@@ -193,7 +193,7 @@ func (e *PostgresSpec) GetSecrets() []string {
 	return secrets
 }
 
-func (p *Postgres) IsReplicasReady(stsLister appslister.StatefulSetLister) (bool, string, error) {
+func (p *Postgres) ReplicasAreReady(stsLister appslister.StatefulSetLister) (bool, string, error) {
 	// TODO: Implement database specific logic here
 	// return isReplicasReady, message, error
 	return false, "", nil

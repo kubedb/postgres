@@ -116,9 +116,9 @@ func (c *Controller) handleRestoreInvokerEvent(ri *restoreInfo) error {
 		return nil
 	}
 
-	// If the target was not identified properly, we can't process further.
+	// If the target could not be identified properly, we can't process further.
 	if ri.target == nil {
-		return fmt.Errorf("couldn't identified the restore target from invoker: %s/%s/%s", *ri.invoker.APIGroup, ri.invoker.Kind, ri.invoker.Name)
+		return fmt.Errorf("couldn't identify the restore target from invoker: %s/%s/%s", *ri.invoker.APIGroup, ri.invoker.Kind, ri.invoker.Name)
 	}
 
 	dbCond := kmapi.Condition{

@@ -181,7 +181,7 @@ func (p *PgBouncer) MustCertSecretName(alias PgBouncerCertificateAlias) string {
 	return name
 }
 
-func (p *PgBouncer) IsReplicasReady(stsLister appslister.StatefulSetLister) (bool, string, error) {
+func (p *PgBouncer) ReplicasAreReady(stsLister appslister.StatefulSetLister) (bool, string, error) {
 	// TODO: Implement database specific logic here
 	// return isReplicasReady, message, error
 	return false, "", nil

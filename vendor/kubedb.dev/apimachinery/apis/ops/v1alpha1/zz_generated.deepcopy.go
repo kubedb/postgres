@@ -1709,6 +1709,11 @@ func (in *MySQLOpsRequestSpec) DeepCopyInto(out *MySQLOpsRequestSpec) {
 		*out = new(RestartSpec)
 		**out = **in
 	}
+	if in.StatefulSetOrdinal != nil {
+		in, out := &in.StatefulSetOrdinal, &out.StatefulSetOrdinal
+		*out = new(int32)
+		**out = **in
+	}
 	return
 }
 

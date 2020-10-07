@@ -262,7 +262,7 @@ func (m *MySQL) MustCertSecretName(alias MySQLCertificateAlias) string {
 	return name
 }
 
-func (m *MySQL) IsReplicasReady(stsLister appslister.StatefulSetLister) (bool, string, error) {
+func (m *MySQL) ReplicasAreReady(stsLister appslister.StatefulSetLister) (bool, string, error) {
 	// TODO: Implement database specific logic here
 	// return isReplicasReady, message, error
 	return false, "", nil

@@ -61,6 +61,9 @@ spec:
               type: object
             restart:
               type: object
+            statefulSetOrdinal:
+              format: int32
+              type: integer
             tls:
               properties:
                 certificates:

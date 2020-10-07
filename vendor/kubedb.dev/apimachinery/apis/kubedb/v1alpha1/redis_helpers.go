@@ -279,7 +279,7 @@ func (r *Redis) MustCertSecretName(alias RedisCertificateAlias) string {
 	return name
 }
 
-func (r *Redis) IsReplicasReady(stsLister appslister.StatefulSetLister) (bool, string, error) {
+func (r *Redis) ReplicasAreReady(stsLister appslister.StatefulSetLister) (bool, string, error) {
 	// TODO: Implement database specific logic here
 	// return isReplicasReady, message, error
 	return false, "", nil

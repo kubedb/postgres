@@ -175,7 +175,7 @@ func (m *MariaDBSpec) GetSecrets() []string {
 	return secrets
 }
 
-func (m *MariaDB) IsReplicasReady(stsLister appslister.StatefulSetLister) (bool, string, error) {
+func (m *MariaDB) ReplicasAreReady(stsLister appslister.StatefulSetLister) (bool, string, error) {
 	// TODO: Implement database specific logic here
 	// return isReplicasReady, message, error
 	return false, "", nil

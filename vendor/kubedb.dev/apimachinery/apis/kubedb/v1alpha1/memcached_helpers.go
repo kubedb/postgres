@@ -159,7 +159,7 @@ func (m *MemcachedSpec) GetSecrets() []string {
 	return nil
 }
 
-func (m *Memcached) IsReplicasReady(stsLister appslister.StatefulSetLister) (bool, string, error) {
+func (m *Memcached) ReplicasAreReady(stsLister appslister.StatefulSetLister) (bool, string, error) {
 	// TODO: Implement database specific logic here
 	// return isReplicasReady, message, error
 	return false, "", nil
