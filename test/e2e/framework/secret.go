@@ -22,6 +22,7 @@ import (
 	"os"
 	"time"
 
+	"kubedb.dev/apimachinery/apis/kubedb"
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
 	"kubedb.dev/postgres/pkg/controller"
 
@@ -202,7 +203,7 @@ func (i *Invocation) SecretForDatabaseAuthenticationWithLabel(meta metav1.Object
 			Name:      fmt.Sprintf("kubedb-%v-%v", meta.Name, CustomSecretSuffix),
 			Namespace: meta.Namespace,
 			Labels: map[string]string{
-				meta_util.ManagedByLabelKey: api.GenericKey,
+				meta_util.ManagedByLabelKey: kubedb.GroupName,
 			},
 		},
 		StringData: map[string]string{

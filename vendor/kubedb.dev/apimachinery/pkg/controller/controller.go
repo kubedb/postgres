@@ -19,7 +19,6 @@ package controller
 import (
 	"time"
 
-	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
 	cs "kubedb.dev/apimachinery/client/clientset/versioned"
 	kubedbinformers "kubedb.dev/apimachinery/client/informers/externalversions"
 
@@ -27,11 +26,10 @@ import (
 	cmInformers "github.com/jetstack/cert-manager/pkg/client/informers/externalversions"
 	crd_cs "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	externalInformers "k8s.io/apiextensions-apiserver/pkg/client/informers/externalversions"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
+	appslister "k8s.io/client-go/listers/apps/v1"
 	corelisters "k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/cache"
@@ -51,8 +49,8 @@ type Controller struct {
 	Client kubernetes.Interface
 	// CRD Client
 	CRDClient crd_cs.Interface
-	// ThirdPartyExtension client
-	ExtClient cs.Interface //#TODO: rename to DBClient
+	// KubeDB client
+	DBClient cs.Interface
 	// Dynamic client
 	DynamicClient dynamic.Interface
 	// AppCatalog client
@@ -77,6 +75,11 @@ type Config struct {
 	// Secret
 	SecretInformer cache.SharedIndexInformer
 	SecretLister   corelisters.SecretLister
+
+	// StatefulSet Watcher
+	StsQueue    *queue.Worker
+	StsInformer cache.SharedIndexInformer
+	StsLister   appslister.StatefulSetLister
 
 	OperatorNamespace       string
 	GoverningService        string
@@ -107,10 +110,4 @@ type StashInitializer struct {
 	RBQueue    *queue.Worker
 	RBInformer cache.SharedIndexInformer
 	RBLister   lister.RestoreBatchLister
-}
-
-type DBHelper interface {
-	GetDatabase(metav1.ObjectMeta) (runtime.Object, error)
-	SetDatabaseStatus(metav1.ObjectMeta, api.DatabasePhase, string) error
-	UpsertDatabaseAnnotation(metav1.ObjectMeta, map[string]string) error
 }

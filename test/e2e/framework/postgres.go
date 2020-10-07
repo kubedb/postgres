@@ -22,6 +22,7 @@ import (
 	"strconv"
 	"time"
 
+	"kubedb.dev/apimachinery/apis/kubedb"
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
 	"kubedb.dev/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1/util"
 
@@ -140,12 +141,12 @@ func (f *Framework) EventuallyPostgresPodCount(meta metav1.ObjectMeta) GomegaAsy
 	)
 }
 
-func (f *Framework) EventuallyPostgresRunning(meta metav1.ObjectMeta) GomegaAsyncAssertion {
+func (f *Framework) EventuallyPostgresReady(meta metav1.ObjectMeta) GomegaAsyncAssertion {
 	return Eventually(
 		func() bool {
 			postgres, err := f.dbClient.KubedbV1alpha1().Postgreses(meta.Namespace).Get(context.TODO(), meta.Name, metav1.GetOptions{})
 			Expect(err).NotTo(HaveOccurred())
-			return postgres.Status.Phase == api.DatabasePhaseRunning
+			return postgres.Status.Phase == api.DatabasePhaseReady
 		},
 		time.Minute*15,
 		time.Second*5,
@@ -174,7 +175,7 @@ func (f *Framework) CleanPostgres() {
 func (f *Framework) EvictPodsFromStatefulSet(meta metav1.ObjectMeta) error {
 	var err error
 	labelSelector := labels.Set{
-		meta_util.ManagedByLabelKey: api.GenericKey,
+		meta_util.ManagedByLabelKey: kubedb.GroupName,
 		api.LabelDatabaseKind:       api.ResourceKindPostgres,
 		api.LabelDatabaseName:       meta.GetName(),
 	}

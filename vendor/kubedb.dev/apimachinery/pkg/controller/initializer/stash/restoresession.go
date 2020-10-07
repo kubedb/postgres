@@ -21,9 +21,7 @@ import (
 
 	"github.com/appscode/go/log"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/tools/cache"
-	"kmodules.xyz/client-go/tools/queue"
 	"stash.appscode.dev/apimachinery/apis/stash/v1beta1"
 	scs "stash.appscode.dev/apimachinery/client/clientset/versioned"
 	stashinformers "stash.appscode.dev/apimachinery/client/informers/externalversions/stash/v1beta1"
@@ -41,31 +39,6 @@ func (c *Controller) restoreSessionInformer(tweakListOptions func(options *metav
 	})
 }
 
-func (c *Controller) restoreSessionEventHandler(selector labels.Selector) cache.ResourceEventHandler {
-	return queue.NewFilteredHandler(cache.ResourceEventHandlerFuncs{
-		AddFunc: func(obj interface{}) {
-			rs := obj.(*v1beta1.RestoreSession)
-			if rs.Status.Phase == v1beta1.RestoreSucceeded ||
-				rs.Status.Phase == v1beta1.RestoreFailed ||
-				rs.Status.Phase == v1beta1.RestorePhaseUnknown {
-				queue.Enqueue(c.RSQueue.GetQueue(), obj)
-			}
-		},
-		UpdateFunc: func(old interface{}, new interface{}) {
-			oldObj := old.(*v1beta1.RestoreSession)
-			newObj := new.(*v1beta1.RestoreSession)
-			if newObj.Status.Phase != oldObj.Status.Phase &&
-				(newObj.Status.Phase == v1beta1.RestoreSucceeded ||
-					newObj.Status.Phase == v1beta1.RestoreFailed ||
-					newObj.Status.Phase == v1beta1.RestorePhaseUnknown) {
-				queue.Enqueue(c.RSQueue.GetQueue(), newObj)
-			}
-		},
-		DeleteFunc: func(obj interface{}) {
-		},
-	}, selector)
-}
-
 func (c *Controller) processRestoreSession(key string) error {
 	log.Infof("started processing, key: %v", key)
 	obj, exists, err := c.RSInformer.GetIndexer().GetByKey(key)
@@ -80,12 +53,13 @@ func (c *Controller) processRestoreSession(key string) error {
 		// Note that you also have to check the uid if you have a local controlled resource, which
 		// is dependent on the actual instance, to detect that a Job was recreated with the same name
 		rs := obj.(*v1beta1.RestoreSession).DeepCopy()
+		rs.GetObjectKind().SetGroupVersionKind(v1beta1.SchemeGroupVersion.WithKind(v1beta1.ResourceKindRestoreSession))
 		ri, err := c.extractRestoreInfo(rs)
 		if err != nil {
 			log.Errorln("failed to extract restore invoker info. Reason: ", err)
 			return err
 		}
-		return c.syncDatabasePhase(ri)
+		return c.handleRestoreInvokerEvent(ri)
 	}
 	return nil
 }

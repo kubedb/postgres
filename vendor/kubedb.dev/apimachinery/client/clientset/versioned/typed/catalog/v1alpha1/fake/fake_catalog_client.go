@@ -37,6 +37,10 @@ func (c *FakeCatalogV1alpha1) EtcdVersions() v1alpha1.EtcdVersionInterface {
 	return &FakeEtcdVersions{c}
 }
 
+func (c *FakeCatalogV1alpha1) MariaDBVersions() v1alpha1.MariaDBVersionInterface {
+	return &FakeMariaDBVersions{c}
+}
+
 func (c *FakeCatalogV1alpha1) MemcachedVersions() v1alpha1.MemcachedVersionInterface {
 	return &FakeMemcachedVersions{c}
 }
