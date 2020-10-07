@@ -20,7 +20,7 @@ import (
 	"context"
 	"fmt"
 
-	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
+	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha2"
 	"kubedb.dev/apimachinery/pkg/eventer"
 
 	"github.com/appscode/go/log"

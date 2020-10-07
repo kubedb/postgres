@@ -22,7 +22,7 @@ import (
 	"os"
 	"strings"
 
-	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
+	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha2"
 	"kubedb.dev/apimachinery/pkg/admission/namespace"
 	"kubedb.dev/apimachinery/pkg/eventer"
 	mgAdmsn "kubedb.dev/postgres/pkg/admission"

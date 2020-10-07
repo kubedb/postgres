@@ -623,6 +623,7 @@ message MySQLCustomConfiguration {
 }
 
 message MySQLCustomConfigurationSpec {
+  optional MySQLCustomConfiguration mysql = 1;
 }
 
 message MySQLHorizontalScalingSpec {
@@ -722,6 +723,7 @@ message MySQLVerticalScalingSpec {
 
 // MySQLVolumeExpansionSpec is the spec for MySQL volume expansion
 message MySQLVolumeExpansionSpec {
+  optional k8s.io.apimachinery.pkg.api.resource.Quantity mysql = 1;
 }
 
 message PerconaXtraDBCustomConfiguration {

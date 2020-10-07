@@ -23,8 +23,8 @@ import (
 	"strings"
 	"time"
 
-	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
-	"kubedb.dev/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1/util"
+	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha2"
+	"kubedb.dev/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha2/util"
 	"kubedb.dev/postgres/test/e2e/framework"
 	"kubedb.dev/postgres/test/e2e/matcher"
 
@@ -1585,7 +1585,7 @@ var _ = Describe("Postgres", func() {
 					testGeneralBehaviour()
 
 					By("Patching EnvVar")
-					_, _, err = util.PatchPostgres(context.TODO(), f.ExtClient().KubedbV1alpha1(), postgres, func(in *api.Postgres) *api.Postgres {
+					_, _, err = util.PatchPostgres(context.TODO(), f.ExtClient().KubedbV1alpha2(), postgres, func(in *api.Postgres) *api.Postgres {
 						in.Spec.PodTemplate.Spec.Env = []core.EnvVar{
 							{
 								Name:  POSTGRES_DB,
