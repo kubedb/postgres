@@ -26,8 +26,8 @@ import (
 	fakecatalogv1alpha1 "kubedb.dev/apimachinery/client/clientset/versioned/typed/catalog/v1alpha1/fake"
 	configv1alpha1 "kubedb.dev/apimachinery/client/clientset/versioned/typed/config/v1alpha1"
 	fakeconfigv1alpha1 "kubedb.dev/apimachinery/client/clientset/versioned/typed/config/v1alpha1/fake"
-	kubedbv1alpha1 "kubedb.dev/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1"
-	fakekubedbv1alpha1 "kubedb.dev/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1/fake"
+	kubedbv1alpha2 "kubedb.dev/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha2"
+	fakekubedbv1alpha2 "kubedb.dev/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha2/fake"
 	opsv1alpha1 "kubedb.dev/apimachinery/client/clientset/versioned/typed/ops/v1alpha1"
 	fakeopsv1alpha1 "kubedb.dev/apimachinery/client/clientset/versioned/typed/ops/v1alpha1/fake"
 
@@ -100,9 +100,9 @@ func (c *Clientset) ConfigV1alpha1() configv1alpha1.ConfigV1alpha1Interface {
 	return &fakeconfigv1alpha1.FakeConfigV1alpha1{Fake: &c.Fake}
 }
 
-// KubedbV1alpha1 retrieves the KubedbV1alpha1Client
-func (c *Clientset) KubedbV1alpha1() kubedbv1alpha1.KubedbV1alpha1Interface {
-	return &fakekubedbv1alpha1.FakeKubedbV1alpha1{Fake: &c.Fake}
+// KubedbV1alpha2 retrieves the KubedbV1alpha2Client
+func (c *Clientset) KubedbV1alpha2() kubedbv1alpha2.KubedbV1alpha2Interface {
+	return &fakekubedbv1alpha2.FakeKubedbV1alpha2{Fake: &c.Fake}
 }
 
 // OpsV1alpha1 retrieves the OpsV1alpha1Client

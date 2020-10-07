@@ -20,7 +20,7 @@ import (
 	"context"
 	"fmt"
 
-	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
+	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha2"
 
 	apps "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -60,7 +60,7 @@ func (c *Controller) extractDatabaseInfo(sts *apps.StatefulSet) (*databaseInfo, 
 	switch owner.Kind {
 	case api.ResourceKindElasticsearch:
 		dbInfo.opts.GVR.Resource = api.ResourcePluralElasticsearch
-		es, err := c.DBClient.KubedbV1alpha1().Elasticsearches(dbInfo.opts.Namespace).Get(context.TODO(), dbInfo.opts.Name, metav1.GetOptions{})
+		es, err := c.DBClient.KubedbV1alpha2().Elasticsearches(dbInfo.opts.Namespace).Get(context.TODO(), dbInfo.opts.Name, metav1.GetOptions{})
 		if err != nil {
 			return nil, err
 		}
@@ -71,7 +71,7 @@ func (c *Controller) extractDatabaseInfo(sts *apps.StatefulSet) (*databaseInfo, 
 
 	case api.ResourceKindMongoDB:
 		dbInfo.opts.GVR.Resource = api.ResourcePluralMongoDB
-		mg, err := c.DBClient.KubedbV1alpha1().MongoDBs(dbInfo.opts.Namespace).Get(context.TODO(), dbInfo.opts.Name, metav1.GetOptions{})
+		mg, err := c.DBClient.KubedbV1alpha2().MongoDBs(dbInfo.opts.Namespace).Get(context.TODO(), dbInfo.opts.Name, metav1.GetOptions{})
 		if err != nil {
 			return nil, err
 		}
@@ -82,7 +82,7 @@ func (c *Controller) extractDatabaseInfo(sts *apps.StatefulSet) (*databaseInfo, 
 
 	case api.ResourceKindMySQL:
 		dbInfo.opts.GVR.Resource = api.ResourcePluralMySQL
-		my, err := c.DBClient.KubedbV1alpha1().MySQLs(dbInfo.opts.Namespace).Get(context.TODO(), dbInfo.opts.Name, metav1.GetOptions{})
+		my, err := c.DBClient.KubedbV1alpha2().MySQLs(dbInfo.opts.Namespace).Get(context.TODO(), dbInfo.opts.Name, metav1.GetOptions{})
 		if err != nil {
 			return nil, err
 		}
@@ -93,7 +93,7 @@ func (c *Controller) extractDatabaseInfo(sts *apps.StatefulSet) (*databaseInfo, 
 
 	case api.ResourceKindPerconaXtraDB:
 		dbInfo.opts.GVR.Resource = api.ResourcePluralPerconaXtraDB
-		px, err := c.DBClient.KubedbV1alpha1().PerconaXtraDBs(dbInfo.opts.Namespace).Get(context.TODO(), dbInfo.opts.Name, metav1.GetOptions{})
+		px, err := c.DBClient.KubedbV1alpha2().PerconaXtraDBs(dbInfo.opts.Namespace).Get(context.TODO(), dbInfo.opts.Name, metav1.GetOptions{})
 		if err != nil {
 			return nil, err
 		}
@@ -104,7 +104,7 @@ func (c *Controller) extractDatabaseInfo(sts *apps.StatefulSet) (*databaseInfo, 
 
 	case api.ResourceKindMariaDB:
 		dbInfo.opts.GVR.Resource = api.ResourcePluralMariaDB
-		mr, err := c.DBClient.KubedbV1alpha1().MariaDBs(dbInfo.opts.Namespace).Get(context.TODO(), dbInfo.opts.Name, metav1.GetOptions{})
+		mr, err := c.DBClient.KubedbV1alpha2().MariaDBs(dbInfo.opts.Namespace).Get(context.TODO(), dbInfo.opts.Name, metav1.GetOptions{})
 		if err != nil {
 			return nil, err
 		}
@@ -115,7 +115,7 @@ func (c *Controller) extractDatabaseInfo(sts *apps.StatefulSet) (*databaseInfo, 
 
 	case api.ResourceKindPostgres:
 		dbInfo.opts.GVR.Resource = api.ResourcePluralPostgres
-		pg, err := c.DBClient.KubedbV1alpha1().Postgreses(dbInfo.opts.Namespace).Get(context.TODO(), dbInfo.opts.Name, metav1.GetOptions{})
+		pg, err := c.DBClient.KubedbV1alpha2().Postgreses(dbInfo.opts.Namespace).Get(context.TODO(), dbInfo.opts.Name, metav1.GetOptions{})
 		if err != nil {
 			return nil, err
 		}
@@ -126,7 +126,7 @@ func (c *Controller) extractDatabaseInfo(sts *apps.StatefulSet) (*databaseInfo, 
 
 	case api.ResourceKindRedis:
 		dbInfo.opts.GVR.Resource = api.ResourcePluralRedis
-		rd, err := c.DBClient.KubedbV1alpha1().Redises(dbInfo.opts.Namespace).Get(context.TODO(), dbInfo.opts.Name, metav1.GetOptions{})
+		rd, err := c.DBClient.KubedbV1alpha2().Redises(dbInfo.opts.Namespace).Get(context.TODO(), dbInfo.opts.Name, metav1.GetOptions{})
 		if err != nil {
 			return nil, err
 		}
@@ -137,7 +137,7 @@ func (c *Controller) extractDatabaseInfo(sts *apps.StatefulSet) (*databaseInfo, 
 
 	case api.ResourceKindMemcached:
 		dbInfo.opts.GVR.Resource = api.ResourcePluralMemcached
-		mc, err := c.DBClient.KubedbV1alpha1().Memcacheds(dbInfo.opts.Namespace).Get(context.TODO(), dbInfo.opts.Name, metav1.GetOptions{})
+		mc, err := c.DBClient.KubedbV1alpha2().Memcacheds(dbInfo.opts.Namespace).Get(context.TODO(), dbInfo.opts.Name, metav1.GetOptions{})
 		if err != nil {
 			return nil, err
 		}
@@ -148,7 +148,7 @@ func (c *Controller) extractDatabaseInfo(sts *apps.StatefulSet) (*databaseInfo, 
 
 	case api.ResourceKindProxySQL:
 		dbInfo.opts.GVR.Resource = api.ResourcePluralProxySQL
-		pxql, err := c.DBClient.KubedbV1alpha1().ProxySQLs(dbInfo.opts.Namespace).Get(context.TODO(), dbInfo.opts.Name, metav1.GetOptions{})
+		pxql, err := c.DBClient.KubedbV1alpha2().ProxySQLs(dbInfo.opts.Namespace).Get(context.TODO(), dbInfo.opts.Name, metav1.GetOptions{})
 		if err != nil {
 			return nil, err
 		}
@@ -159,7 +159,7 @@ func (c *Controller) extractDatabaseInfo(sts *apps.StatefulSet) (*databaseInfo, 
 
 	case api.ResourceKindPgBouncer:
 		dbInfo.opts.GVR.Resource = api.ResourcePluralPgBouncer
-		pgb, err := c.DBClient.KubedbV1alpha1().PgBouncers(dbInfo.opts.Namespace).Get(context.TODO(), dbInfo.opts.Name, metav1.GetOptions{})
+		pgb, err := c.DBClient.KubedbV1alpha2().PgBouncers(dbInfo.opts.Namespace).Get(context.TODO(), dbInfo.opts.Name, metav1.GetOptions{})
 		if err != nil {
 			return nil, err
 		}
@@ -170,7 +170,7 @@ func (c *Controller) extractDatabaseInfo(sts *apps.StatefulSet) (*databaseInfo, 
 
 	case api.ResourceKindEtcd:
 		dbInfo.opts.GVR.Resource = api.ResourcePluralEtcd
-		etcd, err := c.DBClient.KubedbV1alpha1().Etcds(dbInfo.opts.Namespace).Get(context.TODO(), dbInfo.opts.Name, metav1.GetOptions{})
+		etcd, err := c.DBClient.KubedbV1alpha2().Etcds(dbInfo.opts.Namespace).Get(context.TODO(), dbInfo.opts.Name, metav1.GetOptions{})
 		if err != nil {
 			return nil, err
 		}

@@ -20644,8 +20644,17 @@ func schema_apimachinery_apis_ops_v1alpha1_MySQLCustomConfigurationSpec(ref comm
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"mysql": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("kubedb.dev/apimachinery/apis/ops/v1alpha1.MySQLCustomConfiguration"),
+						},
+					},
+				},
 			},
 		},
+		Dependencies: []string{
+			"kubedb.dev/apimachinery/apis/ops/v1alpha1.MySQLCustomConfiguration"},
 	}
 }
 
@@ -20951,8 +20960,17 @@ func schema_apimachinery_apis_ops_v1alpha1_MySQLVolumeExpansionSpec(ref common.R
 			SchemaProps: spec.SchemaProps{
 				Description: "MySQLVolumeExpansionSpec is the spec for MySQL volume expansion",
 				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"mysql": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/apimachinery/pkg/api/resource.Quantity"),
+						},
+					},
+				},
 			},
 		},
+		Dependencies: []string{
+			"k8s.io/apimachinery/pkg/api/resource.Quantity"},
 	}
 }
 

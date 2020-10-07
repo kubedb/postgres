@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"time"
 
-	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
+	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha2"
 
 	shell "github.com/codeskyblue/go-sh"
 	. "github.com/onsi/gomega"
