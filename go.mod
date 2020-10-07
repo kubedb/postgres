@@ -25,14 +25,14 @@ require (
 	k8s.io/apiserver v0.18.9
 	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/kube-aggregator v0.18.9
-	kmodules.xyz/client-go v0.0.0-20200929030759-cce6a3c623c1
+	kmodules.xyz/client-go v0.0.0-20201007024140-3223988adf40
 	kmodules.xyz/constants v0.0.0-20200506032633-a21e58ceec72
 	kmodules.xyz/custom-resources v0.0.0-20200922210108-70f2815a43bb
 	kmodules.xyz/monitoring-agent-api v0.0.0-20200922204510-b8b5610e5385
 	kmodules.xyz/objectstore-api v0.0.0-20200922210707-59bab27e5d41
 	kmodules.xyz/offshoot-api v0.0.0-20200922211229-36acc531abab
 	kmodules.xyz/webhook-runtime v0.0.0-20200922211931-8337935590de
-	kubedb.dev/apimachinery v0.14.0-beta.3.0.20200922060223-53b422770a18
+	kubedb.dev/apimachinery v0.14.0-beta.3.0.20201007034409-8d2f606a6f64
 	kubedb.dev/pg-leader-election v0.2.0-beta.3
 	stash.appscode.dev/apimachinery v0.11.2
 )

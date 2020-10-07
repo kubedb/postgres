@@ -26,6 +26,7 @@ import (
 	"github.com/appscode/go/types"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	appslister "k8s.io/client-go/listers/apps/v1"
 	kmapi "kmodules.xyz/client-go/api/v1"
 	"kmodules.xyz/client-go/apiextensions"
 	core_util "kmodules.xyz/client-go/core/v1"
@@ -62,8 +63,8 @@ func (r Redis) OffshootLabels() map[string]string {
 	out[meta_util.VersionLabelKey] = string(r.Spec.Version)
 	out[meta_util.InstanceLabelKey] = r.Name
 	out[meta_util.ComponentLabelKey] = ComponentDatabase
-	out[meta_util.ManagedByLabelKey] = GenericKey
-	return meta_util.FilterKeys(GenericKey, out, r.Labels)
+	out[meta_util.ManagedByLabelKey] = kubedb.GroupName
+	return meta_util.FilterKeys(kubedb.GroupName, out, r.Labels)
 }
 
 func (r Redis) ResourceShortCode() string {
@@ -147,7 +148,7 @@ func (r Redis) StatsService() mona.StatsAccessor {
 }
 
 func (r Redis) StatsServiceLabels() map[string]string {
-	lbl := meta_util.FilterKeys(GenericKey, r.OffshootSelectors(), r.Labels)
+	lbl := meta_util.FilterKeys(kubedb.GroupName, r.OffshootSelectors(), r.Labels)
 	lbl[LabelRole] = RoleStats
 	return lbl
 }
@@ -183,8 +184,6 @@ func (r *Redis) SetDefaults(topology *core_util.Topology) {
 	}
 	if r.Spec.TerminationPolicy == "" {
 		r.Spec.TerminationPolicy = TerminationPolicyDelete
-	} else if r.Spec.TerminationPolicy == TerminationPolicyPause {
-		r.Spec.TerminationPolicy = TerminationPolicyHalt
 	}
 
 	if r.Spec.PodTemplate.Spec.ServiceAccountName == "" {
@@ -278,4 +277,10 @@ func (r *Redis) MustCertSecretName(alias RedisCertificateAlias) string {
 		panic(fmt.Errorf("Redis %s/%s is missing secret name for %s certificate", r.Namespace, r.Name, alias))
 	}
 	return name
+}
+
+func (r *Redis) ReplicasAreReady(stsLister appslister.StatefulSetLister) (bool, string, error) {
+	// TODO: Implement database specific logic here
+	// return isReplicasReady, message, error
+	return false, "", nil
 }

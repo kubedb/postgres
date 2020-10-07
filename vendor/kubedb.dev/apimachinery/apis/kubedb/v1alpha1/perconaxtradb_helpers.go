@@ -25,6 +25,7 @@ import (
 
 	"github.com/appscode/go/types"
 	core "k8s.io/api/core/v1"
+	appslister "k8s.io/client-go/listers/apps/v1"
 	"kmodules.xyz/client-go/apiextensions"
 	meta_util "kmodules.xyz/client-go/meta"
 	appcat "kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1"
@@ -54,8 +55,8 @@ func (p PerconaXtraDB) OffshootLabels() map[string]string {
 	out[meta_util.VersionLabelKey] = string(p.Spec.Version)
 	out[meta_util.InstanceLabelKey] = p.Name
 	out[meta_util.ComponentLabelKey] = ComponentDatabase
-	out[meta_util.ManagedByLabelKey] = GenericKey
-	return meta_util.FilterKeys(GenericKey, out, p.Labels)
+	out[meta_util.ManagedByLabelKey] = kubedb.GroupName
+	return meta_util.FilterKeys(kubedb.GroupName, out, p.Labels)
 }
 
 func (p PerconaXtraDB) ResourceShortCode() string {
@@ -147,7 +148,7 @@ func (p PerconaXtraDB) StatsService() mona.StatsAccessor {
 }
 
 func (p PerconaXtraDB) StatsServiceLabels() map[string]string {
-	lbl := meta_util.FilterKeys(GenericKey, p.OffshootSelectors(), p.Labels)
+	lbl := meta_util.FilterKeys(kubedb.GroupName, p.OffshootSelectors(), p.Labels)
 	lbl[LabelRole] = RoleStats
 	return lbl
 }
@@ -173,8 +174,6 @@ func (p *PerconaXtraDB) SetDefaults() {
 	}
 	if p.Spec.TerminationPolicy == "" {
 		p.Spec.TerminationPolicy = TerminationPolicyDelete
-	} else if p.Spec.TerminationPolicy == TerminationPolicyPause {
-		p.Spec.TerminationPolicy = TerminationPolicyHalt
 	}
 
 	p.Spec.setDefaultProbes()
@@ -233,4 +232,10 @@ func (p *PerconaXtraDBSpec) GetSecrets() []string {
 		secrets = append(secrets, p.DatabaseSecret.SecretName)
 	}
 	return secrets
+}
+
+func (p *PerconaXtraDB) ReplicasAreReady(stsLister appslister.StatefulSetLister) (bool, string, error) {
+	// TODO: Implement database specific logic here
+	// return isReplicasReady, message, error
+	return false, "", nil
 }

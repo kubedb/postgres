@@ -23,6 +23,7 @@ import (
 	"kubedb.dev/apimachinery/apis/kubedb"
 	"kubedb.dev/apimachinery/crds"
 
+	appslister "k8s.io/client-go/listers/apps/v1"
 	kmapi "kmodules.xyz/client-go/api/v1"
 	"kmodules.xyz/client-go/apiextensions"
 	meta_util "kmodules.xyz/client-go/meta"
@@ -53,8 +54,8 @@ func (p PgBouncer) OffshootLabels() map[string]string {
 	out[meta_util.InstanceLabelKey] = p.Name
 	out[meta_util.ComponentLabelKey] = "connection-pooler"
 	out[meta_util.VersionLabelKey] = string(p.Spec.Version)
-	out[meta_util.ManagedByLabelKey] = GenericKey
-	return meta_util.FilterKeys(GenericKey, out, p.Labels)
+	out[meta_util.ManagedByLabelKey] = kubedb.GroupName
+	return meta_util.FilterKeys(kubedb.GroupName, out, p.Labels)
 }
 
 func (p PgBouncer) ResourceShortCode() string {
@@ -126,7 +127,7 @@ func (p PgBouncer) StatsService() mona.StatsAccessor {
 }
 
 func (p PgBouncer) StatsServiceLabels() map[string]string {
-	lbl := meta_util.FilterKeys(GenericKey, p.OffshootSelectors(), p.Labels)
+	lbl := meta_util.FilterKeys(kubedb.GroupName, p.OffshootSelectors(), p.Labels)
 	lbl[LabelRole] = RoleStats
 	return lbl
 }
@@ -178,4 +179,10 @@ func (p *PgBouncer) MustCertSecretName(alias PgBouncerCertificateAlias) string {
 		panic(fmt.Errorf("PgBouncer %s/%s is missing secret name for %s certificate", p.Namespace, p.Name, alias))
 	}
 	return name
+}
+
+func (p *PgBouncer) ReplicasAreReady(stsLister appslister.StatefulSetLister) (bool, string, error) {
+	// TODO: Implement database specific logic here
+	// return isReplicasReady, message, error
+	return false, "", nil
 }
