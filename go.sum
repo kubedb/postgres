@@ -1585,6 +1585,8 @@ kmodules.xyz/custom-resources v0.0.0-20200604135349-9e9f5c4fdba9 h1:W+k1qhU0W1rp
 kmodules.xyz/custom-resources v0.0.0-20200604135349-9e9f5c4fdba9/go.mod h1:bu1V7HdnuHc1hgvbqAdcwTViQ0TfZwF3Nu/SjB4vai4=
 kmodules.xyz/custom-resources v0.0.0-20200922210108-70f2815a43bb h1:SwMPMh6A196yoe8kAH+guTNS8rsTfB2dRbFNh6g0Znk=
 kmodules.xyz/custom-resources v0.0.0-20200922210108-70f2815a43bb/go.mod h1:+YU32jSWaGGE4etTr/iCF88tLAeDNq1lhptVymjUbjg=
+kmodules.xyz/custom-resources v0.0.0-20201008012351-6d8090f759d4 h1:eftT0CrrAYK1uniwsVhheYao4mwGk+eFT9eftRX9BMo=
+kmodules.xyz/custom-resources v0.0.0-20201008012351-6d8090f759d4/go.mod h1:+YU32jSWaGGE4etTr/iCF88tLAeDNq1lhptVymjUbjg=
 kmodules.xyz/monitoring-agent-api v0.0.0-20201007104803-408a1ff2de8d h1:HFdWHhAkJZpoyMkp0kayKPf896IEkI7fWIpeJK4sY1o=
 kmodules.xyz/monitoring-agent-api v0.0.0-20201007104803-408a1ff2de8d/go.mod h1:ySvogFmyMVUNEFdUYnHp9T4njsB7o661ClfwNLcBWVo=
 kmodules.xyz/objectstore-api v0.0.0-20200922210707-59bab27e5d41 h1:BsCSSPoY0uRGylfPTUzzQ28h2axuXremPGPzwpmxvYI=
@@ -1596,8 +1598,8 @@ kmodules.xyz/prober v0.0.0-20200922212142-743a6514664e h1:NASVP0dOE5Zdlq+3Op7Fh2
 kmodules.xyz/prober v0.0.0-20200922212142-743a6514664e/go.mod h1:AZ58K5hrxkkNPf8tM+UWeZjtNG3/mn192nKcUyC93F8=
 kmodules.xyz/webhook-runtime v0.0.0-20200922211931-8337935590de h1:uWgv78OoOWx9eQdu6SEkPopvbpnL8WxZEMNd3/Oye2w=
 kmodules.xyz/webhook-runtime v0.0.0-20200922211931-8337935590de/go.mod h1:5A8s2nvrNAZGrt0OlsiiuZIik3xWyKW6+ZSwgljIm78=
-kubedb.dev/apimachinery v0.14.0-beta.3.0.20201007213724-ad7988a872e4 h1:UP7LiIRuHqdz+JrACW5acNJuwCjRLvykX0Mkf86C2EI=
-kubedb.dev/apimachinery v0.14.0-beta.3.0.20201007213724-ad7988a872e4/go.mod h1:kMOJ79iYJdu9mW61F2SR9PDCgdutAe2y3XViLMQ9viE=
+kubedb.dev/apimachinery v0.14.0-beta.3.0.20201007234719-34bf142ede67 h1:4wLUC/dF8bC3I+lfkl90sfueY4/cigHa30dY2GOW8oc=
+kubedb.dev/apimachinery v0.14.0-beta.3.0.20201007234719-34bf142ede67/go.mod h1:kMOJ79iYJdu9mW61F2SR9PDCgdutAe2y3XViLMQ9viE=
 kubedb.dev/pg-leader-election v0.2.0-beta.3 h1:b5xNL1BF2Ri6hM5gu/NlP+HMTfAGsXU4feRX6ticCTY=
 kubedb.dev/pg-leader-election v0.2.0-beta.3/go.mod h1:q8xR7ah+NAu78UwPycAwOP2+i9Gz0nseint1WDOZNdU=
 modernc.org/cc v1.0.0/go.mod h1:1Sk4//wdnYJiUIxnW8ddKpaOJCF37yAdqYnkxUpaYxw=
