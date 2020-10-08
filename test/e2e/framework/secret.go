@@ -24,7 +24,6 @@ import (
 
 	"kubedb.dev/apimachinery/apis/kubedb"
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha2"
-	"kubedb.dev/postgres/pkg/controller"
 
 	"github.com/appscode/go/crypto/rand"
 	"github.com/appscode/go/log"
@@ -189,8 +188,8 @@ func (i *Invocation) SecretForDatabaseAuthentication(meta metav1.ObjectMeta) *co
 			Namespace: meta.Namespace,
 		},
 		StringData: map[string]string{
-			controller.PostgresUser:     CustomUsername,
-			controller.PostgresPassword: CustomPassword,
+			core.BasicAuthUsernameKey: CustomUsername,
+			core.BasicAuthPasswordKey: CustomPassword,
 		},
 	}
 }
@@ -207,8 +206,8 @@ func (i *Invocation) SecretForDatabaseAuthenticationWithLabel(meta metav1.Object
 			},
 		},
 		StringData: map[string]string{
-			controller.PostgresUser:     CustomUsername,
-			controller.PostgresPassword: CustomPassword,
+			core.BasicAuthUsernameKey: CustomUsername,
+			core.BasicAuthPasswordKey: CustomPassword,
 		},
 	}
 }
