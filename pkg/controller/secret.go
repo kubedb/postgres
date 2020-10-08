@@ -31,8 +31,8 @@ import (
 )
 
 const (
-	PostgresUser     = "POSTGRES_USER"
-	PostgresPassword = "POSTGRES_PASSWORD"
+	EnvPostgresUser     = "POSTGRES_USER"
+	EnvPostgresPassword = "POSTGRES_PASSWORD"
 )
 
 func (c *Controller) ensureDatabaseSecret(postgres *api.Postgres) error {
@@ -95,10 +95,6 @@ func (c *Controller) createDatabaseSecret(postgres *api.Postgres) (*core.SecretV
 		Data: map[string][]byte{
 			core.BasicAuthUsernameKey: []byte("postgres"),
 			core.BasicAuthPasswordKey: []byte(passgen.Generate(api.DefaultPasswordLength)),
-			// Deprecated, will be removed soon
-			PostgresUser: []byte("postgres"),
-			// Deprecated, will be removed soon
-			PostgresPassword: []byte(passgen.Generate(api.DefaultPasswordLength)),
 		},
 	}
 	if _, err := c.Client.CoreV1().Secrets(postgres.Namespace).Create(context.TODO(), secret, metav1.CreateOptions{}); err != nil {
@@ -120,10 +116,21 @@ func (c *Controller) upgradeDatabaseSecret(postgres *api.Postgres) error {
 
 	_, _, err := core_util.CreateOrPatchSecret(context.TODO(), c.Client, meta, func(in *core.Secret) *core.Secret {
 		if _, ok := in.Data[core.BasicAuthUsernameKey]; !ok {
-			in.StringData = map[string]string{
-				core.BasicAuthUsernameKey: "postgres",
-				// Deprecated
-				PostgresUser: "postgres",
+			if in.Data == nil {
+				in.Data = map[string][]byte{}
+			}
+			if _, ok := in.Data[EnvPostgresUser]; ok {
+				in.Data[core.BasicAuthUsernameKey] = in.Data[EnvPostgresUser]
+			} else {
+				in.Data[core.BasicAuthUsernameKey] = []byte("postgres")
+			}
+		}
+		if _, ok := in.Data[core.BasicAuthPasswordKey]; !ok {
+			if _, ok := in.Data[EnvPostgresPassword]; ok {
+				if in.Data == nil {
+					in.Data = map[string][]byte{}
+				}
+				in.Data[core.BasicAuthPasswordKey] = in.Data[EnvPostgresPassword]
 			}
 		}
 		return in

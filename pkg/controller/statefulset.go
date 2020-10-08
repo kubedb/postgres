@@ -348,7 +348,7 @@ func upsertEnv(statefulSet *apps.StatefulSet, postgres *api.Postgres, envs []cor
 			Value: postgres.ServiceName(),
 		},
 		{
-			Name: PostgresUser,
+			Name: EnvPostgresUser,
 			ValueFrom: &core.EnvVarSource{
 				SecretKeyRef: &core.SecretKeySelector{
 					LocalObjectReference: core.LocalObjectReference{
@@ -359,7 +359,7 @@ func upsertEnv(statefulSet *apps.StatefulSet, postgres *api.Postgres, envs []cor
 			},
 		},
 		{
-			Name: PostgresPassword,
+			Name: EnvPostgresPassword,
 			ValueFrom: &core.EnvVarSource{
 				SecretKeyRef: &core.SecretKeySelector{
 					LocalObjectReference: core.LocalObjectReference{
