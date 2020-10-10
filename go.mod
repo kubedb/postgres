@@ -17,7 +17,7 @@ require (
 	go.bytebuilders.dev/license-verifier v0.3.0
 	go.bytebuilders.dev/license-verifier/kubernetes v0.3.0
 	gomodules.xyz/cert v1.0.3
-	gomodules.xyz/password-generator v0.2.4
+	gomodules.xyz/password-generator v0.2.5
 	gomodules.xyz/sets v0.0.0-20200817084356-ae6e5e14ce3d
 	gomodules.xyz/stow v0.2.4
 	gomodules.xyz/version v0.1.0

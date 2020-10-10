@@ -489,7 +489,7 @@ gomodules.xyz/cert
 gomodules.xyz/cert/certstore
 # gomodules.xyz/jsonpatch/v2 v2.1.0
 gomodules.xyz/jsonpatch/v2
-# gomodules.xyz/password-generator v0.2.4
+# gomodules.xyz/password-generator v0.2.5
 gomodules.xyz/password-generator
 # gomodules.xyz/sets v0.0.0-20200817084356-ae6e5e14ce3d
 gomodules.xyz/sets
