@@ -1417,6 +1417,8 @@ gomodules.xyz/password-generator v0.2.3 h1:ZU751qRdzvvKziAYyCLY6j0TIn7xJP/fjaacf
 gomodules.xyz/password-generator v0.2.3/go.mod h1:TvwYYTx9+P1pPwKQKfZgB/wr2Id9MqAQ3B5auY7reNg=
 gomodules.xyz/password-generator v0.2.4 h1:wtCrCgF3ovoXyzcaRDVhx2D2We+6yfaRf/IQsSBsOSY=
 gomodules.xyz/password-generator v0.2.4/go.mod h1:TvwYYTx9+P1pPwKQKfZgB/wr2Id9MqAQ3B5auY7reNg=
+gomodules.xyz/password-generator v0.2.5 h1:TgVcwdikf3OEpnZcgxODxo2Q2+9x3e9E7Qp6Ku1Nus0=
+gomodules.xyz/password-generator v0.2.5/go.mod h1:TvwYYTx9+P1pPwKQKfZgB/wr2Id9MqAQ3B5auY7reNg=
 gomodules.xyz/sets v0.0.0-20200817084356-ae6e5e14ce3d h1:iikjtYw6tLPrD2dXkzDVMygYLaqzGRxQTDFZI23MXes=
 gomodules.xyz/sets v0.0.0-20200817084356-ae6e5e14ce3d/go.mod h1:jKgNp01/iDs+svOWXaPk5cKP3VXy0mWUoTF/ore+aMc=
 gomodules.xyz/stow v0.2.3 h1:019jXAX2+QsY5qCytwqpRRG+wZ7HaESZzsQ1vuhTV00=

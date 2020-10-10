@@ -23,6 +23,7 @@ import (
 	cs "kubedb.dev/apimachinery/client/clientset/versioned"
 	kubedbinformers "kubedb.dev/apimachinery/client/informers/externalversions"
 	"kubedb.dev/apimachinery/pkg/controller/initializer/stash"
+	sts "kubedb.dev/apimachinery/pkg/controller/statefulset"
 	"kubedb.dev/apimachinery/pkg/eventer"
 	"kubedb.dev/postgres/pkg/controller"
 
@@ -135,9 +136,10 @@ func (s *ExtraOptions) ApplyTo(cfg *controller.OperatorConfig) error {
 	}
 	cfg.KubeInformerFactory = informers.NewSharedInformerFactory(cfg.KubeClient, cfg.ResyncPeriod)
 	cfg.KubedbInformerFactory = kubedbinformers.NewSharedInformerFactory(cfg.DBClient, cfg.ResyncPeriod)
-
 	// Create event recorder
 	cfg.Recorder = eventer.NewEventRecorder(cfg.KubeClient, "Postgres operator")
+	// Initialize StatefulSet watcher
+	sts.NewController(&cfg.Config, cfg.KubeClient, cfg.DBClient, cfg.DynamicClient).InitStsWatcher()
 	// Configure Stash initializer
 	return stash.Configure(cfg.ClientConfig, &cfg.Initializers.Stash, cfg.ResyncPeriod)
 }
