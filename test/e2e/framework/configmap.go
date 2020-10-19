@@ -67,13 +67,13 @@ COMMIT;`,
 	}
 }
 
-func (i *Invocation) GetCustomConfig(configs []string) *core.ConfigMap {
-	return &core.ConfigMap{
+func (i *Invocation) GetCustomConfig(configs []string) *core.Secret {
+	return &core.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      rand.WithUniqSuffix(i.app + "pgconfig"),
 			Namespace: i.namespace,
 		},
-		Data: map[string]string{
+		StringData: map[string]string{
 			"user.conf": strings.Join(configs, "\n"),
 		},
 	}

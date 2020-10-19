@@ -60,7 +60,7 @@ func (f *Framework) CheckAppBindingSpec(meta metav1.ObjectMeta) error {
 		return fmt.Errorf("appbinding %v/%v contains invalid data", appBinding.Namespace, appBinding.Name)
 	}
 	if appBinding.Spec.Secret == nil ||
-		appBinding.Spec.Secret.Name != postgres.Spec.DatabaseSecret.SecretName {
+		appBinding.Spec.Secret.Name != postgres.Spec.AuthSecret.Name {
 		return fmt.Errorf("appbinding %v/%v contains invalid data", appBinding.Namespace, appBinding.Name)
 	}
 	return nil

@@ -244,11 +244,11 @@ var _ = Describe("Postgres", func() {
 
 			Context("with custom SA Name", func() {
 				BeforeEach(func() {
-					customSecret := f.SecretForDatabaseAuthentication(postgres.ObjectMeta)
-					postgres.Spec.DatabaseSecret = &core.SecretVolumeSource{
-						SecretName: customSecret.Name,
+					authSecret := f.SecretForDatabaseAuthentication(postgres.ObjectMeta)
+					postgres.Spec.AuthSecret = &core.LocalObjectReference{
+						Name: authSecret.Name,
 					}
-					err := f.CreateSecret(customSecret)
+					err := f.CreateSecret(authSecret)
 					Expect(err).NotTo(HaveOccurred())
 					postgres.Spec.PodTemplate.Spec.ServiceAccountName = "my-custom-sa"
 					postgres.Spec.TerminationPolicy = api.TerminationPolicyHalt
@@ -344,8 +344,8 @@ var _ = Describe("Postgres", func() {
 					BeforeEach(func() {
 
 						customSecret = f.SecretForDatabaseAuthentication(postgres.ObjectMeta)
-						postgres.Spec.DatabaseSecret = &core.SecretVolumeSource{
-							SecretName: customSecret.Name,
+						postgres.Spec.AuthSecret = &core.LocalObjectReference{
+							Name: customSecret.Name,
 						}
 
 					})
@@ -501,7 +501,7 @@ var _ = Describe("Postgres", func() {
 					By("Create postgres from stash")
 					*postgres = *f.Postgres()
 					rs = f.RestoreSession(postgres.ObjectMeta, repo)
-					postgres.Spec.DatabaseSecret = oldPostgres.Spec.DatabaseSecret
+					postgres.Spec.AuthSecret = oldPostgres.Spec.AuthSecret
 					postgres.Spec.Init = &api.InitSpec{
 						WaitForInitialRestore: true,
 					}
@@ -730,7 +730,7 @@ var _ = Describe("Postgres", func() {
 				// -- > 1st Postgres end < --
 
 				// -- > 2nd Postgres < --
-				postgres2nd.Spec.DatabaseSecret = oldPostgres.Spec.DatabaseSecret
+				postgres2nd.Spec.AuthSecret = oldPostgres.Spec.AuthSecret
 				*postgres = *postgres2nd
 
 				// Create Postgres
@@ -762,7 +762,7 @@ var _ = Describe("Postgres", func() {
 				// -- > 2nd Postgres end < --
 
 				// -- > 3rd Postgres < --
-				postgres3rd.Spec.DatabaseSecret = oldPostgres.Spec.DatabaseSecret
+				postgres3rd.Spec.AuthSecret = oldPostgres.Spec.AuthSecret
 				*postgres = *postgres3rd
 
 				// Create Postgres
@@ -800,7 +800,7 @@ var _ = Describe("Postgres", func() {
 				// -- > 1st Postgres end < --
 
 				// -- > 2nd Postgres < --
-				postgres2nd.Spec.DatabaseSecret = oldPostgres.Spec.DatabaseSecret
+				postgres2nd.Spec.AuthSecret = oldPostgres.Spec.AuthSecret
 				*postgres = *postgres2nd
 
 				// Create Postgres
@@ -826,7 +826,7 @@ var _ = Describe("Postgres", func() {
 				// -- > 2nd Postgres end < --
 
 				// -- > 3rd Postgres < --
-				postgres3rd.Spec.DatabaseSecret = oldPostgres.Spec.DatabaseSecret
+				postgres3rd.Spec.AuthSecret = oldPostgres.Spec.AuthSecret
 				*postgres = *postgres3rd
 
 				// Create Postgres
@@ -1607,15 +1607,15 @@ var _ = Describe("Postgres", func() {
 			}
 
 			Context("from configMap", func() {
-				var userConfig *core.ConfigMap
+				var userConfig *core.Secret
 
 				BeforeEach(func() {
 					userConfig = f.GetCustomConfig(customConfigs)
 				})
 
 				AfterEach(func() {
-					By("Deleting configMap: " + userConfig.Name)
-					err := f.DeleteConfigMap(userConfig.ObjectMeta)
+					By("Deleting secret: " + userConfig.Name)
+					err := f.DeleteSecret(userConfig.ObjectMeta)
 					Expect(err).NotTo(HaveOccurred())
 				})
 
@@ -1624,16 +1624,12 @@ var _ = Describe("Postgres", func() {
 						Skip(skipMessage)
 					}
 
-					By("Creating configMap: " + userConfig.Name)
-					err := f.CreateConfigMap(userConfig)
+					By("Creating secret: " + userConfig.Name)
+					err := f.CreateSecret(userConfig)
 					Expect(err).NotTo(HaveOccurred())
 
-					postgres.Spec.ConfigSource = &core.VolumeSource{
-						ConfigMap: &core.ConfigMapVolumeSource{
-							LocalObjectReference: core.LocalObjectReference{
-								Name: userConfig.Name,
-							},
-						},
+					postgres.Spec.ConfigSecret = &core.LocalObjectReference{
+						Name: userConfig.Name,
 					}
 
 					// Create Postgres
