@@ -35,27 +35,27 @@ const (
 	EnvPostgresPassword = "POSTGRES_PASSWORD"
 )
 
-func (c *Controller) ensureDatabaseSecret(postgres *api.Postgres) error {
-	databaseSecretVolume := postgres.Spec.DatabaseSecret
-	if databaseSecretVolume == nil {
+func (c *Controller) ensureAuthSecret(postgres *api.Postgres) error {
+	authSecret := postgres.Spec.AuthSecret
+	if authSecret == nil {
 		var err error
-		if databaseSecretVolume, err = c.createDatabaseSecret(postgres); err != nil {
+		if authSecret, err = c.createAuthSecret(postgres); err != nil {
 			return err
 		}
 		pg, _, err := util.PatchPostgres(context.TODO(), c.DBClient.KubedbV1alpha2(), postgres, func(in *api.Postgres) *api.Postgres {
-			in.Spec.DatabaseSecret = databaseSecretVolume
+			in.Spec.AuthSecret = authSecret
 			return in
 		}, metav1.PatchOptions{})
 		if err != nil {
 			return err
 		}
-		postgres.Spec.DatabaseSecret = pg.Spec.DatabaseSecret
+		postgres.Spec.AuthSecret = pg.Spec.AuthSecret
 		return nil
 	}
-	return c.upgradeDatabaseSecret(postgres)
+	return c.upgradeAuthSecret(postgres)
 }
 
-func (c *Controller) findDatabaseSecret(postgres *api.Postgres) (*core.Secret, error) {
+func (c *Controller) findAuthSecret(postgres *api.Postgres) (*core.Secret, error) {
 	name := postgres.OffshootName() + "-auth"
 
 	secret, err := c.Client.CoreV1().Secrets(postgres.Namespace).Get(context.TODO(), name, metav1.GetOptions{})
@@ -74,14 +74,14 @@ func (c *Controller) findDatabaseSecret(postgres *api.Postgres) (*core.Secret, e
 	return secret, nil
 }
 
-func (c *Controller) createDatabaseSecret(postgres *api.Postgres) (*core.SecretVolumeSource, error) {
-	databaseSecret, err := c.findDatabaseSecret(postgres)
+func (c *Controller) createAuthSecret(postgres *api.Postgres) (*core.LocalObjectReference, error) {
+	databaseSecret, err := c.findAuthSecret(postgres)
 	if err != nil {
 		return nil, err
 	}
 	if databaseSecret != nil {
-		return &core.SecretVolumeSource{
-			SecretName: databaseSecret.Name,
+		return &core.LocalObjectReference{
+			Name: databaseSecret.Name,
 		}, nil
 	}
 
@@ -101,16 +101,16 @@ func (c *Controller) createDatabaseSecret(postgres *api.Postgres) (*core.SecretV
 		return nil, err
 	}
 
-	return &core.SecretVolumeSource{
-		SecretName: secret.Name,
+	return &core.LocalObjectReference{
+		Name: secret.Name,
 	}, nil
 }
 
 // This is done to fix 0.8.0 -> 0.9.0 upgrade due to
 // https://github.com/kubedb/postgres/pull/179/files#diff-10ddaf307bbebafda149db10a28b9c24R20 commit
-func (c *Controller) upgradeDatabaseSecret(postgres *api.Postgres) error {
+func (c *Controller) upgradeAuthSecret(postgres *api.Postgres) error {
 	meta := metav1.ObjectMeta{
-		Name:      postgres.Spec.DatabaseSecret.SecretName,
+		Name:      postgres.Spec.AuthSecret.Name,
 		Namespace: postgres.Namespace,
 	}
 
