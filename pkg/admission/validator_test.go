@@ -262,7 +262,7 @@ var cases = []struct {
 		"default",
 		admission.Update,
 		updateInit(completeInitialization(samplePostgres())),
-		samplePostgres(),
+		completeInitialization(samplePostgres()),
 		true,
 		false,
 	},

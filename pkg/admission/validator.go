@@ -269,7 +269,7 @@ func ValidatePostgres(client kubernetes.Interface, extClient cs.Interface, postg
 }
 
 func validateUpdate(obj, oldObj *api.Postgres) error {
-	preconditions := getPreconditionFunc(obj)
+	preconditions := getPreconditionFunc(oldObj)
 	_, err := meta_util.CreateStrategicPatch(oldObj, obj, preconditions...)
 	if err != nil {
 		if mergepatch.IsPreconditionFailed(err) {
