@@ -38,7 +38,6 @@ import (
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/kubernetes/fake"
 	clientSetScheme "k8s.io/client-go/kubernetes/scheme"
-	kmapi "kmodules.xyz/client-go/api/v1"
 	"kmodules.xyz/client-go/meta"
 	mona "kmodules.xyz/monitoring-agent-api/api/v1"
 )
@@ -262,8 +261,8 @@ var cases = []struct {
 		"foo",
 		"default",
 		admission.Update,
-		updateInit(completeProvisioning(samplePostgres())),
-		samplePostgres(),
+		updateInit(completeInitialization(samplePostgres())),
+		completeInitialization(samplePostgres()),
 		true,
 		false,
 	},
@@ -354,13 +353,8 @@ func haltDatabase(old api.Postgres) api.Postgres {
 	return old
 }
 
-func completeProvisioning(old api.Postgres) api.Postgres {
-	old.Status.Conditions = []kmapi.Condition{
-		{
-			Type:   api.DatabaseProvisioned,
-			Status: core.ConditionTrue,
-		},
-	}
+func completeInitialization(old api.Postgres) api.Postgres {
+	old.Spec.Init.Initialized = true
 	return old
 }
 
