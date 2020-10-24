@@ -1573,8 +1573,6 @@ kmodules.xyz/client-go v0.0.0-20200917200341-3f5fe7b6c182 h1:G/R4rl6XIgKMbiId5F6
 kmodules.xyz/client-go v0.0.0-20200917200341-3f5fe7b6c182/go.mod h1:sY/eoe4ktxZEoHpr5NpAQ5s22VSwTE8psJtKVeVgLRY=
 kmodules.xyz/client-go v0.0.0-20200922200830-63d86b6e5b63 h1:luKlEul8LMhyyftoZN34+vboL9MWAeQpSAUZxaLZBGg=
 kmodules.xyz/client-go v0.0.0-20200922200830-63d86b6e5b63/go.mod h1:JZN34jqk6ZlR+QOnBPpnUVBab4rmfamqxfSvLaulBMY=
-kmodules.xyz/client-go v0.0.0-20201007024140-3223988adf40 h1:XQLn2whq+TYbGxVloiyopxSM9jsqjqvWQjltXFKd+aA=
-kmodules.xyz/client-go v0.0.0-20201007024140-3223988adf40/go.mod h1:pnRh7gtJ6ErPJQBkQeRlpD95KRtxhD4eGrYagZEU8RM=
 kmodules.xyz/client-go v0.0.0-20201021051118-03dac1aea508 h1:LjidyEzvw1rSlwRQLWNfElleLJ6vr9Uu5tn5H6JO+QA=
 kmodules.xyz/client-go v0.0.0-20201021051118-03dac1aea508/go.mod h1:pnRh7gtJ6ErPJQBkQeRlpD95KRtxhD4eGrYagZEU8RM=
 kmodules.xyz/constants v0.0.0-20200506032633-a21e58ceec72 h1:0sM6nE7aJon/PSdqZTj0bKJlPyzobXkG0wVYKpjcJJE=
@@ -1587,8 +1585,6 @@ kmodules.xyz/custom-resources v0.0.0-20200604135349-9e9f5c4fdba9 h1:W+k1qhU0W1rp
 kmodules.xyz/custom-resources v0.0.0-20200604135349-9e9f5c4fdba9/go.mod h1:bu1V7HdnuHc1hgvbqAdcwTViQ0TfZwF3Nu/SjB4vai4=
 kmodules.xyz/custom-resources v0.0.0-20201008012351-6d8090f759d4 h1:eftT0CrrAYK1uniwsVhheYao4mwGk+eFT9eftRX9BMo=
 kmodules.xyz/custom-resources v0.0.0-20201008012351-6d8090f759d4/go.mod h1:+YU32jSWaGGE4etTr/iCF88tLAeDNq1lhptVymjUbjg=
-kmodules.xyz/monitoring-agent-api v0.0.0-20201007104803-408a1ff2de8d h1:HFdWHhAkJZpoyMkp0kayKPf896IEkI7fWIpeJK4sY1o=
-kmodules.xyz/monitoring-agent-api v0.0.0-20201007104803-408a1ff2de8d/go.mod h1:ySvogFmyMVUNEFdUYnHp9T4njsB7o661ClfwNLcBWVo=
 kmodules.xyz/monitoring-agent-api v0.0.0-20201022103441-f51a42fb9ac8 h1:4WDb9Dt6/mLqLunbd+MseB7FtI8sO8334T8u1kCxZkI=
 kmodules.xyz/monitoring-agent-api v0.0.0-20201022103441-f51a42fb9ac8/go.mod h1:cfJEY2nsOqFF1tLzVqPj6n4KHWfbpRNf/WinOOD/bT4=
 kmodules.xyz/objectstore-api v0.0.0-20200922210707-59bab27e5d41 h1:BsCSSPoY0uRGylfPTUzzQ28h2axuXremPGPzwpmxvYI=
@@ -1600,8 +1596,8 @@ kmodules.xyz/prober v0.0.0-20200922212142-743a6514664e h1:NASVP0dOE5Zdlq+3Op7Fh2
 kmodules.xyz/prober v0.0.0-20200922212142-743a6514664e/go.mod h1:AZ58K5hrxkkNPf8tM+UWeZjtNG3/mn192nKcUyC93F8=
 kmodules.xyz/webhook-runtime v0.0.0-20200922211931-8337935590de h1:uWgv78OoOWx9eQdu6SEkPopvbpnL8WxZEMNd3/Oye2w=
 kmodules.xyz/webhook-runtime v0.0.0-20200922211931-8337935590de/go.mod h1:5A8s2nvrNAZGrt0OlsiiuZIik3xWyKW6+ZSwgljIm78=
-kubedb.dev/apimachinery v0.14.0-beta.3.0.20201023043049-a57a7df5b78a h1:K7Suo/UPe3m3D47RATE30rLYy5QU+l0UoKHpC0xfo7I=
-kubedb.dev/apimachinery v0.14.0-beta.3.0.20201023043049-a57a7df5b78a/go.mod h1:wPUMW/CrQYgXNyROi5DHNsrabifdAApXdTjoupWF0/M=
+kubedb.dev/apimachinery v0.14.0-beta.3.0.20201024022825-61b265325dc8 h1:j1O9I4/af0Hu5Yc4GfGPG8SXicZt05rMhceOfpC10No=
+kubedb.dev/apimachinery v0.14.0-beta.3.0.20201024022825-61b265325dc8/go.mod h1:3/Dy8tn3ScoG3MnPKa8Ac0CDBqOuLo2r01BI3GVHgjM=
 kubedb.dev/pg-leader-election v0.2.0-beta.3 h1:b5xNL1BF2Ri6hM5gu/NlP+HMTfAGsXU4feRX6ticCTY=
 kubedb.dev/pg-leader-election v0.2.0-beta.3/go.mod h1:q8xR7ah+NAu78UwPycAwOP2+i9Gz0nseint1WDOZNdU=
 modernc.org/cc v1.0.0/go.mod h1:1Sk4//wdnYJiUIxnW8ddKpaOJCF37yAdqYnkxUpaYxw=
