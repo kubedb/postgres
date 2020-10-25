@@ -25,7 +25,7 @@ require (
 	k8s.io/apiextensions-apiserver v0.18.9
 	k8s.io/apimachinery v0.18.9
 	k8s.io/apiserver v0.18.9
-	k8s.io/client-go v12.0.0+incompatible
+	k8s.io/client-go v0.18.9
 	k8s.io/kube-aggregator v0.18.9
 	kmodules.xyz/client-go v0.0.0-20201021051118-03dac1aea508
 	kmodules.xyz/constants v0.0.0-20200923054614-6b87dbbae4d6
