@@ -34,40 +34,27 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
-	"kmodules.xyz/client-go/meta"
 	"kmodules.xyz/client-go/tools/cli"
 	appcat_cs "kmodules.xyz/custom-resources/client/clientset/versioned"
 )
 
 type ExtraOptions struct {
-	LicenseFile                 string
-	OperatorNamespace           string
-	RestrictToOperatorNamespace bool
-	GoverningService            string
-	QPS                         float64
-	Burst                       int
-	ResyncPeriod                time.Duration
-	MaxNumRequeues              int
-	NumThreads                  int
+	LicenseFile    string
+	QPS            float64
+	Burst          int
+	ResyncPeriod   time.Duration
+	MaxNumRequeues int
+	NumThreads     int
 
 	EnableMutatingWebhook   bool
 	EnableValidatingWebhook bool
 }
 
-func (s ExtraOptions) WatchNamespace() string {
-	if s.RestrictToOperatorNamespace {
-		return s.OperatorNamespace
-	}
-	return core.NamespaceAll
-}
-
 func NewExtraOptions() *ExtraOptions {
 	return &ExtraOptions{
-		OperatorNamespace: meta.Namespace(),
-		GoverningService:  "kubedb",
-		ResyncPeriod:      10 * time.Minute,
-		MaxNumRequeues:    5,
-		NumThreads:        2,
+		ResyncPeriod:   10 * time.Minute,
+		MaxNumRequeues: 5,
+		NumThreads:     2,
 		// ref: https://github.com/kubernetes/ingress-nginx/blob/e4d53786e771cc6bdd55f180674b79f5b692e552/pkg/ingress/controller/launch.go#L252-L259
 		// High enough QPS to fit all expected use cases. QPS=0 is not set here, because client code is overriding it.
 		QPS: 1e6,
@@ -78,13 +65,10 @@ func NewExtraOptions() *ExtraOptions {
 
 func (s *ExtraOptions) AddGoFlags(fs *flag.FlagSet) {
 	fs.StringVar(&s.LicenseFile, "license-file", s.LicenseFile, "Path to license file")
-	fs.StringVar(&s.GoverningService, "governing-service", s.GoverningService, "Governing service for database statefulset")
 
 	fs.Float64Var(&s.QPS, "qps", s.QPS, "The maximum QPS to the master from this client")
 	fs.IntVar(&s.Burst, "burst", s.Burst, "The maximum burst for throttle")
 	fs.DurationVar(&s.ResyncPeriod, "resync-period", s.ResyncPeriod, "If non-zero, will re-list this often. Otherwise, re-list will be delayed aslong as possible (until the upstream source closes the watch or times out.")
-
-	fs.BoolVar(&s.RestrictToOperatorNamespace, "restrict-to-operator-namespace", s.RestrictToOperatorNamespace, "If true, KubeDB operator will only handle Kubernetes objects in its own namespace.")
 
 	fs.BoolVar(&s.EnableMutatingWebhook, "enable-mutating-webhook", s.EnableMutatingWebhook, "If true, enables mutating webhooks for KubeDB CRDs.")
 	fs.BoolVar(&s.EnableValidatingWebhook, "enable-validating-webhook", s.EnableValidatingWebhook, "If true, enables validating webhooks for KubeDB CRDs.")
@@ -100,8 +84,6 @@ func (s *ExtraOptions) ApplyTo(cfg *controller.OperatorConfig) error {
 	var err error
 
 	cfg.LicenseFile = s.LicenseFile
-	cfg.OperatorNamespace = s.OperatorNamespace
-	cfg.GoverningService = s.GoverningService
 
 	cfg.EnableAnalytics = cli.EnableAnalytics
 	cfg.AnalyticsClientID = cli.AnalyticsClientID
@@ -112,7 +94,7 @@ func (s *ExtraOptions) ApplyTo(cfg *controller.OperatorConfig) error {
 	cfg.ResyncPeriod = s.ResyncPeriod
 	cfg.MaxNumRequeues = s.MaxNumRequeues
 	cfg.NumThreads = s.NumThreads
-	cfg.WatchNamespace = s.WatchNamespace()
+	cfg.WatchNamespace = core.NamespaceAll
 	cfg.EnableMutatingWebhook = s.EnableMutatingWebhook
 	cfg.EnableValidatingWebhook = s.EnableValidatingWebhook
 

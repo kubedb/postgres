@@ -22,7 +22,7 @@ import (
 	"strings"
 	"time"
 
-	"kubedb.dev/postgres/pkg/controller"
+	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha2"
 
 	"github.com/go-xorm/xorm"
 	_ "github.com/lib/pq"
@@ -43,7 +43,7 @@ func (f *Framework) ForwardPort(meta metav1.ObjectMeta) (*portforward.Tunnel, er
 		f.restConfig,
 		postgres.Namespace,
 		clientPodName,
-		controller.PostgresPort,
+		api.PostgresDatabasePort,
 	)
 	if err := tunnel.ForwardPort(); err != nil {
 		return nil, err

@@ -79,6 +79,10 @@ func (p PgBouncer) ServiceName() string {
 	return p.OffshootName()
 }
 
+func (p PgBouncer) GoverningServiceName() string {
+	return meta_util.NameWithSuffix(p.ServiceName(), "pods")
+}
+
 type pgbouncerApp struct {
 	*PgBouncer
 }

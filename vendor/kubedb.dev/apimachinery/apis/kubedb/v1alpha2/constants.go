@@ -97,7 +97,10 @@ const (
 
 	// =========================== MySQL Constants ============================
 	MySQLMetricsExporterConfigSecretSuffix = "metrics-exporter-config"
-	MySQLNodePort                          = 3306
+	MySQLDatabasePortName                  = "db"
+	MySQLPrimaryServicePortName            = "primary"
+	MySQLStandbyServicePortName            = "standby"
+	MySQLDatabasePort                      = 3306
 	MySQLGroupComPort                      = 33060
 	MySQLMaxGroupMembers                   = 9
 	// The recommended MySQL server version for group replication (GR)
@@ -115,8 +118,8 @@ const (
 
 	MySQLContainerReplicationModeDetectorName = "replication-mode-detector"
 	MySQLPodPrimary                           = "primary"
-	MySQLPodSecondary                         = "secondary"
-	MySQLLabelRole                            = MySQLKey + "/role"
+	MySQLPodStandby                           = "standby"
+	MySQLLabelRole                            = kubedb.GroupName + "/role"
 
 	MySQLTLSConfigCustom     = "custom"
 	MySQLTLSConfigSkipVerify = "skip-verify"
@@ -135,7 +138,16 @@ const (
 	PerconaXtraDBCustomConfigMountPath        = "/etc/percona-server.conf.d/"
 	PerconaXtraDBClusterCustomConfigMountPath = "/etc/percona-xtradb-cluster.conf.d/"
 
-	// =========================== LabelProxySQL Constants ============================
+	// =========================== PostgreSQL Constants ============================
+	PostgresDatabasePortName       = "db"
+	PostgresPrimaryServicePortName = "primary"
+	PostgresStandbyServicePortName = "standby"
+	PostgresDatabasePort           = 5432
+	PostgresPodPrimary             = "primary"
+	PostgresPodStandby             = "standby"
+	PostgresLabelRole              = kubedb.GroupName + "/role"
+
+	// =========================== ProxySQL Constants ============================
 	LabelProxySQLName        = ProxySQLKey + "/name"
 	LabelProxySQLLoadBalance = ProxySQLKey + "/load-balance"
 
