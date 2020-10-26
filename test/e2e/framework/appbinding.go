@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"time"
 
-	controller "kubedb.dev/postgres/pkg/controller"
+	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha2"
 
 	. "github.com/onsi/gomega"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
@@ -56,7 +56,7 @@ func (f *Framework) CheckAppBindingSpec(meta metav1.ObjectMeta) error {
 
 	if appBinding.Spec.ClientConfig.Service == nil ||
 		appBinding.Spec.ClientConfig.Service.Name != postgres.ServiceName() ||
-		appBinding.Spec.ClientConfig.Service.Port != controller.PostgresPort {
+		appBinding.Spec.ClientConfig.Service.Port != api.PostgresDatabasePort {
 		return fmt.Errorf("appbinding %v/%v contains invalid data", appBinding.Namespace, appBinding.Name)
 	}
 	if appBinding.Spec.Secret == nil ||
