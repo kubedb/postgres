@@ -77,7 +77,6 @@ const (
 	ElasticsearchStatusYellow                    = "yellow"
 	ElasticsearchStatusRed                       = "red"
 
-	// =========================== MongoDB Constants ============================
 	// Ref:
 	//	- https://www.elastic.co/guide/en/elasticsearch/reference/7.6/heap-size.html#heap-size
 	//	- no more than 50% of your physical RAM
@@ -88,12 +87,19 @@ const (
 	// 128MB
 	ElasticsearchMinHeapSize = 128 * 1024 * 1024
 
-	MongoDBShardPort           = 27017
-	MongoDBConfigdbPort        = 27017
-	MongoDBMongosPort          = 27017
-	MongoDBKeyFileSecretSuffix = "key"
-	MongoDBRootUsername        = "root"
-	MongoDBCustomConfigFile    = "mongod.conf"
+	// =========================== Memcached Constants ============================
+	MemcachedDatabasePortName       = "db"
+	MemcachedPrimaryServicePortName = "primary"
+	MemcachedDatabasePort           = 11211
+
+	// =========================== MongoDB Constants ============================
+
+	MongoDBDatabasePortName       = "db"
+	MongoDBPrimaryServicePortName = "primary"
+	MongoDBDatabasePort           = 27017
+	MongoDBKeyFileSecretSuffix    = "key"
+	MongoDBRootUsername           = "root"
+	MongoDBCustomConfigFile       = "mongod.conf"
 
 	// =========================== MySQL Constants ============================
 	MySQLMetricsExporterConfigSecretSuffix = "metrics-exporter-config"
@@ -151,23 +157,33 @@ const (
 	LabelProxySQLName        = ProxySQLKey + "/name"
 	LabelProxySQLLoadBalance = ProxySQLKey + "/load-balance"
 
-	ProxySQLMySQLNodePort         = 6033
-	ProxySQLAdminPort             = 6032
-	ProxySQLAdminPortName         = "admin"
-	ProxySQLDataMountPath         = "/var/lib/proxysql"
-	ProxySQLCustomConfigMountPath = "/etc/custom-config"
+	ProxySQLDatabasePort           = 6033
+	ProxySQLDatabasePortName       = "db"
+	ProxySQLPrimaryServicePortName = "db"
+	ProxySQLAdminPort              = 6032
+	ProxySQLAdminPortName          = "admin"
+	ProxySQLDataMountPath          = "/var/lib/proxysql"
+	ProxySQLCustomConfigMountPath  = "/etc/custom-config"
 
 	// =========================== Redis Constants ============================
-	RedisShardKey   = RedisKey + "/shard"
-	RedisNodePort   = 6379
-	RedisGossipPort = 16379
+	RedisShardKey               = RedisKey + "/shard"
+	RedisDatabasePortName       = "db"
+	RedisPrimaryServicePortName = "primary"
+	RedisDatabasePort           = 6379
+	RedisGossipPortName         = "gossip"
+	RedisGossipPort             = 16379
 
 	RedisKeyFileSecretSuffix = "key"
 	RedisPEMSecretSuffix     = "pem"
 	RedisRootUsername        = "root"
 
 	// =========================== PgBouncer Constants ============================
-	PgBouncerUpstreamServerCA = "upstream-server-ca.crt"
+	PgBouncerUpstreamServerCA       = "upstream-server-ca.crt"
+	PgBouncerDatabasePortName       = "db"
+	PgBouncerPrimaryServicePortName = "primary"
+	PgBouncerDatabasePort           = 5432
+	PgBouncerConfigFile             = "pgbouncer.ini"
+	PgBouncerAdminUsername          = "kubedb"
 )
 
 // List of possible condition types for a KubeDB object
