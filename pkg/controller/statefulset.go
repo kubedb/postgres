@@ -96,7 +96,14 @@ func (c *Controller) ensureStatefulSet(
 							Value: c.AnalyticsClientID,
 						},
 					},
-					Image:          postgresVersion.Spec.DB.Image,
+					Image: postgresVersion.Spec.DB.Image,
+					Ports: []core.ContainerPort{
+						{
+							Name:          api.PostgresDatabasePortName,
+							ContainerPort: api.PostgresDatabasePort,
+							Protocol:      core.ProtocolTCP,
+						},
+					},
 					Resources:      db.Spec.PodTemplate.Spec.Resources,
 					LivenessProbe:  db.Spec.PodTemplate.Spec.LivenessProbe,
 					ReadinessProbe: db.Spec.PodTemplate.Spec.ReadinessProbe,
@@ -110,7 +117,6 @@ func (c *Controller) ensureStatefulSet(
 				})
 			in = upsertEnv(in, db, envList)
 			in = upsertUserEnv(in, db)
-			in = upsertPort(in)
 
 			in.Spec.Template.Spec.NodeSelector = db.Spec.PodTemplate.Spec.NodeSelector
 			in.Spec.Template.Spec.Affinity = db.Spec.PodTemplate.Spec.Affinity
@@ -392,28 +398,6 @@ func upsertUserEnv(statefulSet *apps.StatefulSet, postgress *api.Postgres) *apps
 			return statefulSet
 		}
 	}
-	return statefulSet
-}
-
-func upsertPort(statefulSet *apps.StatefulSet) *apps.StatefulSet {
-	getPorts := func() []core.ContainerPort {
-		portList := []core.ContainerPort{
-			{
-				Name:          api.PostgresDatabasePortName,
-				ContainerPort: api.PostgresDatabasePort,
-				Protocol:      core.ProtocolTCP,
-			},
-		}
-		return portList
-	}
-
-	for i, container := range statefulSet.Spec.Template.Spec.Containers {
-		if container.Name == api.ResourceSingularPostgres {
-			statefulSet.Spec.Template.Spec.Containers[i].Ports = getPorts()
-			return statefulSet
-		}
-	}
-
 	return statefulSet
 }
 
