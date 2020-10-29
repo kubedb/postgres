@@ -36,7 +36,7 @@ require (
 	kmodules.xyz/webhook-runtime v0.0.0-20200922211931-8337935590de
 	kubedb.dev/apimachinery v0.14.0
 	kubedb.dev/pg-leader-election v0.2.0
-	stash.appscode.dev/apimachinery v0.11.3
+	stash.appscode.dev/apimachinery v0.11.4
 )
 
 replace bitbucket.org/ww/goautoneg => gomodules.xyz/goautoneg v0.0.0-20120707110453-a547fc61f48d
