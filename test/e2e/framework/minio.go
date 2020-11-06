@@ -26,10 +26,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/appscode/go/crypto/rand"
 	. "github.com/onsi/gomega"
 	"gomodules.xyz/cert"
 	"gomodules.xyz/stow"
+	"gomodules.xyz/x/crypto/rand"
 	apps "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
