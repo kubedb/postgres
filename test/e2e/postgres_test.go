@@ -28,10 +28,10 @@ import (
 	"kubedb.dev/postgres/test/e2e/framework"
 	"kubedb.dev/postgres/test/e2e/matcher"
 
-	"github.com/appscode/go/log"
-	"github.com/appscode/go/types"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"gomodules.xyz/pointer"
+	"gomodules.xyz/x/log"
 	core "k8s.io/api/core/v1"
 	rbac "k8s.io/api/rbac/v1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
@@ -368,7 +368,7 @@ var _ = Describe("Postgres", func() {
 
 				It("should run evictions successfully", func() {
 					// Create Postgres
-					postgres.Spec.Replicas = types.Int32P(3)
+					postgres.Spec.Replicas = pointer.Int32P(3)
 					createAndWaitForRunning()
 					//Evict a Postgres pod
 					By("Try to evict Pods")
@@ -1163,9 +1163,9 @@ var _ = Describe("Postgres", func() {
 				Context("With dedicated Elasticsearch", func() {
 
 					BeforeEach(func() {
-						postgres.Spec.Replicas = types.Int32P(3)
-						postgres2nd.Spec.Replicas = types.Int32P(3)
-						postgres3rd.Spec.Replicas = types.Int32P(3)
+						postgres.Spec.Replicas = pointer.Int32P(3)
+						postgres2nd.Spec.Replicas = pointer.Int32P(3)
+						postgres3rd.Spec.Replicas = pointer.Int32P(3)
 					})
 
 					It("should archive and should resume from archive successfully", archiveAndInitializeFromArchive)

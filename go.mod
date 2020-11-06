@@ -3,7 +3,6 @@ module kubedb.dev/postgres
 go 1.12
 
 require (
-	github.com/appscode/go v0.0.0-20201006035845-a0302ac8e3d3
 	github.com/codeskyblue/go-sh v0.0.0-20200712050446-30169cf553fe
 	github.com/go-xorm/xorm v0.7.9
 	github.com/lib/pq v1.5.2
@@ -11,16 +10,19 @@ require (
 	github.com/onsi/gomega v1.8.1
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus-operator/prometheus-operator v0.42.0
-	github.com/spf13/afero v1.2.2
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5
-	go.bytebuilders.dev/license-verifier v0.3.0
-	go.bytebuilders.dev/license-verifier/kubernetes v0.3.0
-	gomodules.xyz/cert v1.0.3
+	go.bytebuilders.dev/license-verifier v0.4.1
+	go.bytebuilders.dev/license-verifier/kubernetes v0.4.1
+	gomodules.xyz/blobfs v0.1.5
+	gomodules.xyz/cert v1.2.0
 	gomodules.xyz/password-generator v0.2.6
+	gomodules.xyz/pointer v0.0.0-20201105071923-daf60fa55209
+	gomodules.xyz/runtime v0.0.0-20201104200926-d838b09dda8b
 	gomodules.xyz/sets v0.0.0-20200930152147-4f4543544799
 	gomodules.xyz/stow v0.2.4
 	gomodules.xyz/version v0.1.0
+	gomodules.xyz/x v0.0.0-20201105065653-91c568df6331
 	k8s.io/api v0.18.9
 	k8s.io/apiextensions-apiserver v0.18.9
 	k8s.io/apimachinery v0.18.9
@@ -35,8 +37,9 @@ require (
 	kmodules.xyz/offshoot-api v0.0.0-20201105074700-8675f5f686f2
 	kmodules.xyz/webhook-runtime v0.0.0-20201105073856-2dc7382b88c6
 	kubedb.dev/apimachinery v0.14.1-0.20201105213239-f74effb9db37
-	kubedb.dev/pg-leader-election v0.2.0
+	kubedb.dev/pg-leader-election v0.2.1-0.20201106053454-41dc2c9f3c56
 	stash.appscode.dev/apimachinery v0.11.6-0.20201105125158-b51d7c6a387c
+
 )
 
 replace bitbucket.org/ww/goautoneg => gomodules.xyz/goautoneg v0.0.0-20120707110453-a547fc61f48d
