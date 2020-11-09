@@ -712,8 +712,6 @@ github.com/mailru/easyjson v0.0.0-20190614124828-94de47d64c63/go.mod h1:C1wdFJiN
 github.com/mailru/easyjson v0.0.0-20190626092158-b2ccc519800e/go.mod h1:C1wdFJiN94OJF2b5HbByQZoLdCWB1Yqtg26g4irojpc=
 github.com/mailru/easyjson v0.7.0 h1:aizVhC/NAAcKWb+5QsU1iNOZb4Yws5UO2I+aIprQITM=
 github.com/mailru/easyjson v0.7.0/go.mod h1:KAzv3t3aY1NaHWoQz1+4F1ccyAH66Jk7yos7ldAVICs=
-github.com/mailru/easyjson v0.7.1 h1:mdxE1MF9o53iCb2Ghj1VfWvh7ZOwHpnVG/xwXrV90U8=
-github.com/mailru/easyjson v0.7.1/go.mod h1:KAzv3t3aY1NaHWoQz1+4F1ccyAH66Jk7yos7ldAVICs=
 github.com/markbates/oncer v0.0.0-20181203154359-bf2de49a0be2/go.mod h1:Ld9puTsIW75CHf65OeIOkyKbteujpZVXDpWK6YGZbxE=
 github.com/markbates/safe v1.0.1/go.mod h1:nAqgmRi7cY2nqMc92/bSEeQA+R4OheNU2T1kNSCBdG0=
 github.com/marten-seemann/qtls v0.2.3/go.mod h1:xzjG7avBwGGbdZ8dTGxlBnLArsVKLvwmjgmPuiQEcYk=
@@ -1624,10 +1622,10 @@ kmodules.xyz/prober v0.0.0-20201105074402-a243b3a27fd8 h1:UJb5lHQVFKbmlgmRLq5IWJ
 kmodules.xyz/prober v0.0.0-20201105074402-a243b3a27fd8/go.mod h1:2eN8X5Wq7/AAgE5AWMAX8T0lE51HZiYEldG2RQuouX4=
 kmodules.xyz/webhook-runtime v0.0.0-20201105073856-2dc7382b88c6 h1:9+EIwxUrXrM8QD9rC1Fg+6CQK0vPniFO3ClaKih010M=
 kmodules.xyz/webhook-runtime v0.0.0-20201105073856-2dc7382b88c6/go.mod h1:xLgewoOzwR5ZrVOHQ2SR0P4E7tgCyBWbYlUawEXgeF4=
-kubedb.dev/apimachinery v0.14.1-0.20201107121642-52b04a206325 h1:IZ+uVvtcpbOA/cK4X7nXfPbbHk+u0ma1/dP22nj8hfE=
-kubedb.dev/apimachinery v0.14.1-0.20201107121642-52b04a206325/go.mod h1:4H3J+V7lZy8dLgz0+z/Nzd13cEgZHnwbMaH729rxl/M=
-kubedb.dev/pg-leader-election v0.2.1-0.20201106053454-41dc2c9f3c56 h1:uOH3L8v05Axl39YIelnNa3fxQCCt3FeUCjzneXE0vaI=
-kubedb.dev/pg-leader-election v0.2.1-0.20201106053454-41dc2c9f3c56/go.mod h1:646BsTiR3Vc40peWStcLCauQtp2BdbGaQlBdFXt+qfM=
+kubedb.dev/apimachinery v0.14.1 h1:fbWD8ecrjvRtjfX43LfZ8+nVaTp+yuxMcVO5MPqPYkI=
+kubedb.dev/apimachinery v0.14.1/go.mod h1:4H3J+V7lZy8dLgz0+z/Nzd13cEgZHnwbMaH729rxl/M=
+kubedb.dev/pg-leader-election v0.2.1 h1:rGnaqosfHSLiVpCsqvdpHi2f3v47jxeAMY1D4n+8EJc=
+kubedb.dev/pg-leader-election v0.2.1/go.mod h1:fD4oRH/bzXt1PXBKFwYW5Ogi/qDrg4qn3MA9kYUYvFY=
 modernc.org/cc v1.0.0/go.mod h1:1Sk4//wdnYJiUIxnW8ddKpaOJCF37yAdqYnkxUpaYxw=
 modernc.org/golex v1.0.0/go.mod h1:b/QX9oBD/LhixY6NDh+IdGv17hgB+51fET1i2kPSmvk=
 modernc.org/mathutil v1.0.0/go.mod h1:wU0vUrJsVWBZ4P6e7xtFJEhFSNsfRLJ8H458uRjg03k=
