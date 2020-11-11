@@ -36,7 +36,7 @@ require (
 	kmodules.xyz/objectstore-api v0.0.0-20201105133858-cbb2af88d50a
 	kmodules.xyz/offshoot-api v0.0.0-20201105074700-8675f5f686f2
 	kmodules.xyz/webhook-runtime v0.0.0-20201105073856-2dc7382b88c6
-	kubedb.dev/apimachinery v0.14.2-0.20201111092334-849e6c06f276
+	kubedb.dev/apimachinery v0.14.2-0.20201111182733-592d5b4729bb
 	kubedb.dev/pg-leader-election v0.2.1
 	stash.appscode.dev/apimachinery v0.11.6
 

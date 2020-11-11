@@ -19,6 +19,8 @@ package v1alpha2
 import (
 	"fmt"
 
+	core "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/labels"
 	appslister "k8s.io/client-go/listers/apps/v1"
 	apps_util "kmodules.xyz/client-go/apps/v1"
@@ -59,4 +61,26 @@ func GetServiceTemplate(templates []NamedServiceTemplateSpec, alias ServiceAlias
 		}
 	}
 	return ofst.ServiceTemplateSpec{}
+}
+
+func setDefaultResourceLimits(req *core.ResourceRequirements) {
+	fn := func(name core.ResourceName, defaultValue resource.Quantity) resource.Quantity {
+		if req.Limits != nil {
+			if v, ok := req.Limits[name]; ok {
+				return v
+			}
+		}
+		if req.Requests != nil {
+			if v, ok := req.Requests[name]; ok {
+				return v
+			}
+		}
+		return defaultValue
+	}
+
+	if req.Limits == nil {
+		req.Limits = core.ResourceList{}
+	}
+	req.Limits[core.ResourceCPU] = fn(core.ResourceCPU, resource.MustParse(DefaultCPULimit))
+	req.Limits[core.ResourceMemory] = fn(core.ResourceMemory, resource.MustParse(DefaultMemoryLimit))
 }
