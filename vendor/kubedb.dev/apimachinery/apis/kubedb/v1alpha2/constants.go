@@ -60,7 +60,6 @@ const (
 	ElasticsearchTransportPort                   = 9300
 	ElasticsearchTransportPortName               = "transport"
 	ElasticsearchMetricsPort                     = 9600
-	ElasticsearchMetricsPortName                 = "metrics"
 	ElasticsearchIngestNodePrefix                = "ingest"
 	ElasticsearchDataNodePrefix                  = "data"
 	ElasticsearchMasterNodePrefix                = "master"
