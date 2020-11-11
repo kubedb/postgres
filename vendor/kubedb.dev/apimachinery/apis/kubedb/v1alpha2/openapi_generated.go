@@ -21589,12 +21589,6 @@ func schema_apimachinery_apis_kubedb_v1alpha2_PostgresSpec(ref common.ReferenceC
 							Ref:         ref("kmodules.xyz/offshoot-api/api/v1.ServiceTemplateSpec"),
 						},
 					},
-					"replicaServiceTemplate": {
-						SchemaProps: spec.SchemaProps{
-							Description: "ReplicaServiceTemplate is an optional configuration for service used to expose postgres replicas",
-							Ref:         ref("kmodules.xyz/offshoot-api/api/v1.ServiceTemplateSpec"),
-						},
-					},
 					"tls": {
 						SchemaProps: spec.SchemaProps{
 							Description: "TLS contains tls configurations for client and server.",

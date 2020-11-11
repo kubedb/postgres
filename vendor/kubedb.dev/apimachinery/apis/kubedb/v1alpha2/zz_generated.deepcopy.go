@@ -1734,7 +1734,6 @@ func (in *PostgresSpec) DeepCopyInto(out *PostgresSpec) {
 	}
 	in.PodTemplate.DeepCopyInto(&out.PodTemplate)
 	in.ServiceTemplate.DeepCopyInto(&out.ServiceTemplate)
-	in.ReplicaServiceTemplate.DeepCopyInto(&out.ReplicaServiceTemplate)
 	if in.TLS != nil {
 		in, out := &in.TLS, &out.TLS
 		*out = new(clientgoapiv1.TLSConfig)

@@ -175,7 +175,7 @@ func (c *Controller) ensureStandbyService(db *api.Postgres) (kutil.VerbType, err
 	_, ok, err := core_util.CreateOrPatchService(context.TODO(), c.Client, meta, func(in *core.Service) *core.Service {
 		core_util.EnsureOwnerReference(&in.ObjectMeta, owner)
 		in.Labels = db.OffshootLabels()
-		in.Annotations = db.Spec.ReplicaServiceTemplate.Annotations
+		in.Annotations = db.Spec.ServiceTemplate.Annotations
 
 		in.Spec.Selector = db.OffshootSelectors()
 		in.Spec.Selector[api.PostgresLabelRole] = api.PostgresPodStandby
@@ -187,21 +187,21 @@ func (c *Controller) ensureStandbyService(db *api.Postgres) (kutil.VerbType, err
 					TargetPort: intstr.FromString(api.PostgresDatabasePortName),
 				},
 			}),
-			db.Spec.ReplicaServiceTemplate.Spec.Ports,
+			db.Spec.ServiceTemplate.Spec.Ports,
 		)
 
-		if db.Spec.ReplicaServiceTemplate.Spec.ClusterIP != "" {
-			in.Spec.ClusterIP = db.Spec.ReplicaServiceTemplate.Spec.ClusterIP
+		if db.Spec.ServiceTemplate.Spec.ClusterIP != "" {
+			in.Spec.ClusterIP = db.Spec.ServiceTemplate.Spec.ClusterIP
 		}
-		if db.Spec.ReplicaServiceTemplate.Spec.Type != "" {
-			in.Spec.Type = db.Spec.ReplicaServiceTemplate.Spec.Type
+		if db.Spec.ServiceTemplate.Spec.Type != "" {
+			in.Spec.Type = db.Spec.ServiceTemplate.Spec.Type
 		}
-		in.Spec.ExternalIPs = db.Spec.ReplicaServiceTemplate.Spec.ExternalIPs
-		in.Spec.LoadBalancerIP = db.Spec.ReplicaServiceTemplate.Spec.LoadBalancerIP
-		in.Spec.LoadBalancerSourceRanges = db.Spec.ReplicaServiceTemplate.Spec.LoadBalancerSourceRanges
-		in.Spec.ExternalTrafficPolicy = db.Spec.ReplicaServiceTemplate.Spec.ExternalTrafficPolicy
-		if db.Spec.ReplicaServiceTemplate.Spec.HealthCheckNodePort > 0 {
-			in.Spec.HealthCheckNodePort = db.Spec.ReplicaServiceTemplate.Spec.HealthCheckNodePort
+		in.Spec.ExternalIPs = db.Spec.ServiceTemplate.Spec.ExternalIPs
+		in.Spec.LoadBalancerIP = db.Spec.ServiceTemplate.Spec.LoadBalancerIP
+		in.Spec.LoadBalancerSourceRanges = db.Spec.ServiceTemplate.Spec.LoadBalancerSourceRanges
+		in.Spec.ExternalTrafficPolicy = db.Spec.ServiceTemplate.Spec.ExternalTrafficPolicy
+		if db.Spec.ServiceTemplate.Spec.HealthCheckNodePort > 0 {
+			in.Spec.HealthCheckNodePort = db.Spec.ServiceTemplate.Spec.HealthCheckNodePort
 		}
 		return in
 	}, metav1.PatchOptions{})
