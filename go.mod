@@ -38,7 +38,7 @@ require (
 	kmodules.xyz/webhook-runtime v0.0.0-20201105073856-2dc7382b88c6
 	kubedb.dev/apimachinery v0.15.2-0.20201116115516-b2fb44c80e18
 	kubedb.dev/pg-leader-election v0.3.1
-	stash.appscode.dev/apimachinery v0.11.6
+	stash.appscode.dev/apimachinery v0.11.7
 
 )
 
