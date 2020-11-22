@@ -14,10 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-
-
-
 set -xeou pipefail
 
 GOPATH=$(go env GOPATH)
@@ -39,18 +35,19 @@ DIST="$REPO_ROOT/dist"
 mkdir -p "$DIST"
 
 build() {
-  pushd "$REPO_ROOT/hack/docker/postgres-tools/$DB_VERSION"
+    pushd "$REPO_ROOT/hack/docker/postgres-tools/$DB_VERSION"
 
-  # Download osm
-  wget https://cdn.appscode.com/binaries/osm/${OSM_VER}/osm-alpine-amd64
-  chmod +x osm-alpine-amd64
-  mv osm-alpine-amd64 osm
+    # Download osm
+    wget https://cdn.appscode.com/binaries/osm/${OSM_VER}/osm-alpine-amd64
+    chmod +x osm-alpine-amd64
+    mv osm-alpine-amd64 osm
 
-  local cmd="docker build --pull -t $DOCKER_REGISTRY/$IMG:$TAG ."
-  echo $cmd; $cmd
+    local cmd="docker build --pull -t $DOCKER_REGISTRY/$IMG:$TAG ."
+    echo $cmd
+    $cmd
 
-  rm osm
-  popd
+    rm osm
+    popd
 }
 
 binary_repo $@
