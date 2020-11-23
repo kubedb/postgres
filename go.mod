@@ -3,6 +3,7 @@ module kubedb.dev/postgres
 go 1.12
 
 require (
+	github.com/appscode/go v0.0.0-20201105063637-5613f3b8169f
 	github.com/codeskyblue/go-sh v0.0.0-20200712050446-30169cf553fe
 	github.com/go-xorm/xorm v0.7.9
 	github.com/lib/pq v1.5.2
@@ -29,14 +30,14 @@ require (
 	k8s.io/apiserver v0.18.9
 	k8s.io/client-go v0.18.9
 	k8s.io/kube-aggregator v0.18.9
-	kmodules.xyz/client-go v0.0.0-20210213000708-f480974ce46d
+	kmodules.xyz/client-go v0.0.0-20210218100652-8f345ddfe801
 	kmodules.xyz/constants v0.0.0-20200923054614-6b87dbbae4d6
-	kmodules.xyz/custom-resources v0.0.0-20210216191337-d890c51255a5
+	kmodules.xyz/custom-resources v0.0.0-20210222235834-b3f8dc56b6a3
 	kmodules.xyz/monitoring-agent-api v0.0.0-20201105074044-be7a1044891a
-	kmodules.xyz/objectstore-api v0.0.0-20201105133858-cbb2af88d50a
-	kmodules.xyz/offshoot-api v0.0.0-20201105074700-8675f5f686f2
+	kmodules.xyz/objectstore-api v0.0.0-20210218144135-bfabb80e0362
+	kmodules.xyz/offshoot-api v0.0.0-20210306122148-567d434b4630
 	kmodules.xyz/webhook-runtime v0.0.0-20201105073856-2dc7382b88c6
-	kubedb.dev/apimachinery v0.16.2
+	kubedb.dev/apimachinery v0.16.3-0.20210306164706-25fd34250e13
 	kubedb.dev/pg-leader-election v0.4.2
 	stash.appscode.dev/apimachinery v0.11.9
 

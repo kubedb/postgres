@@ -23,6 +23,9 @@ import (
 	"strconv"
 	"strings"
 
+	"gomodules.xyz/version"
+
+	"github.com/appscode/go/types"
 	catalog "kubedb.dev/apimachinery/apis/catalog/v1alpha1"
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha2"
 	"kubedb.dev/apimachinery/pkg/eventer"
@@ -38,10 +41,29 @@ import (
 	kmapi "kmodules.xyz/client-go/api/v1"
 	app_util "kmodules.xyz/client-go/apps/v1"
 	core_util "kmodules.xyz/client-go/core/v1"
+<<<<<<< HEAD
 	meta_util "kmodules.xyz/client-go/meta"
 	"kmodules.xyz/client-go/tools/analytics"
+=======
+>>>>>>> fix: vendoring apimechinary
 	mona "kmodules.xyz/monitoring-agent-api/api/v1"
 )
+
+const (
+	LeaderElectionImage        = "hremon331046/leadertest:11"
+	ScriptHandlerContainerName = "script-handeler"
+	ScriptHandlerImage         = "busybox"
+)
+
+func getMajorPgVersion(postgres *api.Postgres) (int64, error) {
+	ver, err := version.NewVersion(postgres.Spec.Version)
+	if err != nil {
+		//TODO
+		log.Error(err)
+		return 0, err
+	}
+	return ver.Major(), nil
+}
 
 func (c *Controller) ensureStatefulSet(
 	db *api.Postgres,
@@ -83,41 +105,13 @@ func (c *Controller) ensureStatefulSet(
 			in.Spec.Template.Labels = db.OffshootSelectors()
 			in.Spec.Template.Annotations = db.Spec.PodTemplate.Annotations
 			in.Spec.Template.Spec.InitContainers = core_util.UpsertContainers(in.Spec.Template.Spec.InitContainers, db.Spec.PodTemplate.Spec.InitContainers)
-			in.Spec.Template.Spec.Containers = core_util.UpsertContainer(
-				in.Spec.Template.Spec.Containers,
-				core.Container{
-					Name: api.ResourceSingularPostgres,
-					Args: append([]string{
-						"leader_election",
-						fmt.Sprintf(`--enable-analytics=%v`, c.EnableAnalytics),
-					}, c.LoggerOptions.ToFlags()...),
-					Env: []core.EnvVar{
-						{
-							Name:  analytics.Key,
-							Value: c.AnalyticsClientID,
-						},
-					},
-					Image: postgresVersion.Spec.DB.Image,
-					Ports: []core.ContainerPort{
-						{
-							Name:          api.PostgresDatabasePortName,
-							ContainerPort: api.PostgresDatabasePort,
-							Protocol:      core.ProtocolTCP,
-						},
-					},
-					Resources:      db.Spec.PodTemplate.Spec.Resources,
-					LivenessProbe:  db.Spec.PodTemplate.Spec.LivenessProbe,
-					ReadinessProbe: db.Spec.PodTemplate.Spec.ReadinessProbe,
-					Lifecycle:      db.Spec.PodTemplate.Spec.Lifecycle,
-					SecurityContext: &core.SecurityContext{
-						Privileged: pointer.BoolP(false),
-						Capabilities: &core.Capabilities{
-							Add: []core.Capability{"IPC_LOCK", "SYS_RESOURCE"},
-						},
-					},
-				})
+			in.Spec.Template.Spec.InitContainers = getInitContainers(in, db)
+
+			in.Spec.Template.Spec.Containers = getContainers(in, db, postgresVersion)
+
 			in = upsertEnv(in, db, envList)
 			in = upsertUserEnv(in, db)
+			in = upsertPort(in)
 
 			in.Spec.Template.Spec.NodeSelector = db.Spec.PodTemplate.Spec.NodeSelector
 			in.Spec.Template.Spec.Affinity = db.Spec.PodTemplate.Spec.Affinity
@@ -155,6 +149,7 @@ func (c *Controller) ensureStatefulSet(
 			in = upsertShm(in)
 			in = upsertDataVolume(in, db)
 			in = upsertCustomConfig(in, db)
+			in = upsertSharedScriptsVolume(in, db)
 
 			in.Spec.Template.Spec.ServiceAccountName = db.Spec.PodTemplate.Spec.ServiceAccountName
 			in.Spec.UpdateStrategy = apps.StatefulSetUpdateStrategy{
@@ -341,6 +336,11 @@ func (c *Controller) checkStatefulSet(db *api.Postgres) error {
 }
 
 func upsertEnv(statefulSet *apps.StatefulSet, db *api.Postgres, envs []core.EnvVar) *apps.StatefulSet {
+	majorPGVersion, err := getMajorPgVersion(db)
+	if err != nil {
+		log.Error("couldn't get version's major part")
+	}
+
 	envList := []core.EnvVar{
 		{
 			Name: "NAMESPACE",
@@ -376,15 +376,23 @@ func upsertEnv(statefulSet *apps.StatefulSet, db *api.Postgres, envs []core.EnvV
 				},
 			},
 		},
+		{
+			Name:  "PG_VERSION",
+			Value: db.Spec.Version,
+		},
+		{
+			Name:  "MAJOR_PG_VERSION",
+			Value: strconv.Itoa(int(majorPGVersion)),
+		},
 	}
 
 	envList = append(envList, envs...)
 
 	// To do this, Upsert Container first
 	for i, container := range statefulSet.Spec.Template.Spec.Containers {
-		if container.Name == api.ResourceSingularPostgres {
+		if container.Name == api.ResourceSingularPostgres || container.Name == api.PostgresLeaderElectionContainerName {
 			statefulSet.Spec.Template.Spec.Containers[i].Env = core_util.UpsertEnvVars(container.Env, envList...)
-			return statefulSet
+			//return statefulSet
 		}
 	}
 
@@ -399,6 +407,43 @@ func upsertUserEnv(statefulSet *apps.StatefulSet, postgress *api.Postgres) *apps
 			return statefulSet
 		}
 	}
+	return statefulSet
+}
+func upsertPort(statefulSet *apps.StatefulSet) *apps.StatefulSet {
+	getPostgresPorts := func() []core.ContainerPort {
+		portList := []core.ContainerPort{
+			{
+				Name:          api.PostgresDatabasePortName,
+				ContainerPort: api.PostgresDatabasePort,
+				Protocol:      core.ProtocolTCP,
+			},
+		}
+		return portList
+	}
+	getLeaderPorts := func() []core.ContainerPort {
+		portList := []core.ContainerPort{
+			{
+				Name:          api.PostgresLeaderElectionPortName,
+				ContainerPort: api.PostgresLeaderElectionPort,
+				Protocol:      core.ProtocolTCP,
+			},
+			{
+				Name:          api.PostgresLeaderElectionClientPortName,
+				ContainerPort: api.PostgresLeaderElectionClientPort,
+				Protocol:      core.ProtocolTCP,
+			},
+		}
+		return portList
+	}
+
+	for i, container := range statefulSet.Spec.Template.Spec.Containers {
+		if container.Name == api.ResourceSingularPostgres {
+			statefulSet.Spec.Template.Spec.Containers[i].Ports = getPostgresPorts()
+		} else if container.Name == api.PostgresLeaderElectionContainerName {
+			statefulSet.Spec.Template.Spec.Containers[i].Ports = getLeaderPorts()
+		}
+	}
+
 	return statefulSet
 }
 
@@ -622,10 +667,18 @@ func upsertDataVolume(statefulSet *apps.StatefulSet, db *api.Postgres) *apps.Sta
 	}
 
 	for i, container := range statefulSet.Spec.Template.Spec.Containers {
-		if container.Name == api.ResourceSingularPostgres {
-			volumeMount := core.VolumeMount{
-				Name:      "data",
-				MountPath: "/var/pv",
+		if container.Name == api.ResourceSingularPostgres || container.Name == api.PostgresLeaderElectionContainerName {
+			var volumeMount core.VolumeMount
+			if container.Name == api.ResourceSingularPostgres {
+				volumeMount = core.VolumeMount{
+					Name:      "data",
+					MountPath: "/var/pv",
+				}
+			} else if container.Name == api.PostgresLeaderElectionContainerName {
+				volumeMount = core.VolumeMount{
+					Name:      "data",
+					MountPath: "/var/leaderelection",
+				}
 			}
 			volumeMounts := container.VolumeMounts
 			volumeMounts = core_util.UpsertVolumeMount(volumeMounts, volumeMount)
@@ -668,7 +721,7 @@ func upsertDataVolume(statefulSet *apps.StatefulSet, db *api.Postgres) *apps.Sta
 				}
 				statefulSet.Spec.VolumeClaimTemplates = core_util.UpsertVolumeClaim(statefulSet.Spec.VolumeClaimTemplates, claim)
 			}
-			break
+			//	break
 		}
 	}
 	return statefulSet
@@ -702,6 +755,47 @@ func upsertCustomConfig(statefulSet *apps.StatefulSet, db *api.Postgres) *apps.S
 			}
 		}
 	}
+	return statefulSet
+}
+
+func upsertSharedScriptsVolume(statefulSet *apps.StatefulSet, postgres *api.Postgres) *apps.StatefulSet {
+
+	for i, container := range statefulSet.Spec.Template.Spec.Containers {
+		if container.Name == api.ResourceSingularPostgres || container.Name == api.PostgresLeaderElectionContainerName {
+			configVolumeMount := core.VolumeMount{
+				Name:      "scripts",
+				MountPath: "/run_scripts",
+			}
+			volumeMounts := container.VolumeMounts
+			volumeMounts = core_util.UpsertVolumeMount(volumeMounts, configVolumeMount)
+			statefulSet.Spec.Template.Spec.Containers[i].VolumeMounts = volumeMounts
+
+		}
+	}
+	for i, initContainer := range statefulSet.Spec.Template.Spec.InitContainers {
+		if initContainer.Name == ScriptHandlerContainerName {
+			configVolumeMount := core.VolumeMount{
+				Name:      "scripts",
+				MountPath: "/run_scripts",
+			}
+			volumeMounts := initContainer.VolumeMounts
+			volumeMounts = core_util.UpsertVolumeMount(volumeMounts, configVolumeMount)
+			statefulSet.Spec.Template.Spec.InitContainers[i].VolumeMounts = volumeMounts
+
+		}
+	}
+
+	configVolume := core.Volume{
+		Name: "scripts",
+		VolumeSource: core.VolumeSource{
+			EmptyDir: &core.EmptyDirVolumeSource{},
+		},
+	}
+
+	volumes := statefulSet.Spec.Template.Spec.Volumes
+	volumes = core_util.UpsertVolume(volumes, configVolume)
+	statefulSet.Spec.Template.Spec.Volumes = volumes
+
 	return statefulSet
 }
 
@@ -808,4 +902,58 @@ func walRecoveryConfig(wal *api.PostgresWALSourceSpec) []core.EnvVar {
 		}
 	}
 	return envList
+}
+
+func getInitContainers(statefulSet *apps.StatefulSet, postgres *api.Postgres) []core.Container {
+	statefulSet.Spec.Template.Spec.InitContainers = core_util.UpsertContainer(
+		statefulSet.Spec.Template.Spec.InitContainers,
+		core.Container{
+			Name:           ScriptHandlerContainerName,
+			Image:          ScriptHandlerImage,
+			Resources:      postgres.Spec.PodTemplate.Spec.Resources,
+			LivenessProbe:  postgres.Spec.PodTemplate.Spec.LivenessProbe,
+			ReadinessProbe: postgres.Spec.PodTemplate.Spec.ReadinessProbe,
+			Lifecycle:      postgres.Spec.PodTemplate.Spec.Lifecycle,
+			Command: []string{
+				"rm",
+				"-rf",
+				"/run_scripts/*",
+			},
+		})
+	return statefulSet.Spec.Template.Spec.InitContainers
+}
+func getContainers(statefulSet *apps.StatefulSet, postgres *api.Postgres, postgresVersion *catalog.PostgresVersion) []core.Container {
+	statefulSet.Spec.Template.Spec.Containers = core_util.UpsertContainer(
+		statefulSet.Spec.Template.Spec.Containers,
+		core.Container{
+			Name:           api.ResourceSingularPostgres,
+			Image:          postgresVersion.Spec.DB.Image,
+			Resources:      postgres.Spec.PodTemplate.Spec.Resources,
+			LivenessProbe:  postgres.Spec.PodTemplate.Spec.LivenessProbe,
+			ReadinessProbe: postgres.Spec.PodTemplate.Spec.ReadinessProbe,
+			Lifecycle:      postgres.Spec.PodTemplate.Spec.Lifecycle,
+			SecurityContext: &core.SecurityContext{
+				Privileged: types.BoolP(false),
+				Capabilities: &core.Capabilities{
+					Add: []core.Capability{"IPC_LOCK", "SYS_RESOURCE"},
+				},
+			},
+		})
+	statefulSet.Spec.Template.Spec.Containers = core_util.UpsertContainer(
+		statefulSet.Spec.Template.Spec.Containers,
+		core.Container{
+			Name:           api.PostgresLeaderElectionContainerName,
+			Image:          LeaderElectionImage,
+			Resources:      postgres.Spec.PodTemplate.Spec.Resources,
+			LivenessProbe:  postgres.Spec.PodTemplate.Spec.LivenessProbe,
+			ReadinessProbe: postgres.Spec.PodTemplate.Spec.ReadinessProbe,
+			Lifecycle:      postgres.Spec.PodTemplate.Spec.Lifecycle,
+			SecurityContext: &core.SecurityContext{
+				Privileged: types.BoolP(false),
+				Capabilities: &core.Capabilities{
+					Add: []core.Capability{"IPC_LOCK", "SYS_RESOURCE"},
+				},
+			},
+		})
+	return statefulSet.Spec.Template.Spec.Containers
 }

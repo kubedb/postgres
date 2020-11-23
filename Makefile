@@ -24,7 +24,7 @@ BIN      := pg-operator
 COMPRESS ?= no
 
 # Where to push the docker image.
-REGISTRY ?= kubedb
+REGISTRY ?= hremon331046
 
 # This version-strategy uses git tags to set the version string
 git_branch       := $(shell git rev-parse --abbrev-ref HEAD)

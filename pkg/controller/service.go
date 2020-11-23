@@ -58,6 +58,16 @@ func (c *Controller) ensureGoverningService(db *api.Postgres) error {
 				Port:       api.PostgresDatabasePort,
 				TargetPort: intstr.FromString(api.PostgresDatabasePortName),
 			},
+			{
+				Name:       api.PostgresLeaderElectionPortName,
+				Port:       api.PostgresLeaderElectionPort,
+				TargetPort: intstr.FromString(api.PostgresLeaderElectionPortName),
+			},
+			{
+				Name:       api.PostgresLeaderElectionClientPortName,
+				Port:       api.PostgresLeaderElectionClientPort,
+				TargetPort: intstr.FromString(api.PostgresLeaderElectionClientPortName),
+			},
 		})
 
 		return in
