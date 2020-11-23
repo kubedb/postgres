@@ -118,6 +118,7 @@ type PostgresCertificateAlias string
 
 const (
 	PostgresServerCert          PostgresCertificateAlias = "server"
+	PostgresClientCert          PostgresCertificateAlias = "client"
 	PostgresArchiverCert        PostgresCertificateAlias = "archiver"
 	PostgresMetricsExporterCert PostgresCertificateAlias = "metrics-exporter"
 )

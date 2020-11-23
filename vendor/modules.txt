@@ -22,6 +22,8 @@ github.com/NYTimes/gziphandler
 github.com/PuerkitoBio/purell
 # github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578
 github.com/PuerkitoBio/urlesc
+# github.com/appscode/go v0.0.0-20201105063637-5613f3b8169f
+github.com/appscode/go/types
 # github.com/appscode/osm v0.15.1
 github.com/appscode/osm/context
 # github.com/armon/circbuf v0.0.0-20150827004946-bbbad097214e
@@ -1182,7 +1184,11 @@ kmodules.xyz/prober/api/v1
 # kmodules.xyz/webhook-runtime v0.0.0-20201105073856-2dc7382b88c6
 kmodules.xyz/webhook-runtime/admission/v1beta1
 kmodules.xyz/webhook-runtime/registry/admissionreview/v1beta1
+<<<<<<< HEAD
 # kubedb.dev/apimachinery v0.16.0-rc.0.0.20210106185329-7a3dd5ee0094
+=======
+# kubedb.dev/apimachinery v0.15.2-0.20201120115954-1ede9261f12e
+>>>>>>> fix: vendoring apimechinary
 kubedb.dev/apimachinery/apis
 kubedb.dev/apimachinery/apis/autoscaling
 kubedb.dev/apimachinery/apis/autoscaling/v1alpha1

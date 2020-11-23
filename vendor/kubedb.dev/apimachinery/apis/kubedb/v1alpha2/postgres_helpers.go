@@ -18,6 +18,7 @@ package v1alpha2
 
 import (
 	"fmt"
+	kmapi "kmodules.xyz/client-go/api/v1"
 
 	"kubedb.dev/apimachinery/apis"
 	"kubedb.dev/apimachinery/apis/kubedb"
@@ -242,4 +243,24 @@ func (p *Postgres) ReplicasAreReady(lister appslister.StatefulSetLister) (bool, 
 	// Desire number of statefulSets
 	expectedItems := 1
 	return checkReplicas(lister.StatefulSets(p.Namespace), labels.SelectorFromSet(p.OffshootLabels()), expectedItems)
+}
+
+
+// CertificateName returns the default certificate name and/or certificate secret name for a certificate alias
+func (p *Postgres) CertificateName(alias PostgresCertificateAlias) string {
+	return meta_util.NameWithSuffix(p.Name, fmt.Sprintf("%s-cert", string(alias)))
+}
+
+// MustCertSecretName returns the secret name for a certificate alias
+func (p *Postgres) MustCertSecretName(alias PostgresCertificateAlias) string {
+	if p == nil {
+		panic("missing Postgres database")
+	} else if p.Spec.TLS == nil {
+		panic(fmt.Errorf("Postgres %s/%s is missing tls spec", p.Namespace, p.Name))
+	}
+	name, ok := kmapi.GetCertificateSecretName(p.Spec.TLS.Certificates, string(alias))
+	if !ok {
+		panic(fmt.Errorf("Postgres %s/%s is missing secret name for %s certificate", p.Namespace, p.Name, alias))
+	}
+	return name
 }

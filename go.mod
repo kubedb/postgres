@@ -3,6 +3,7 @@ module kubedb.dev/postgres
 go 1.12
 
 require (
+	github.com/appscode/go v0.0.0-20201105063637-5613f3b8169f
 	github.com/codeskyblue/go-sh v0.0.0-20200712050446-30169cf553fe
 	github.com/go-xorm/xorm v0.7.9
 	github.com/lib/pq v1.5.2
@@ -36,9 +37,15 @@ require (
 	kmodules.xyz/objectstore-api v0.0.0-20201105133858-cbb2af88d50a
 	kmodules.xyz/offshoot-api v0.0.0-20201105074700-8675f5f686f2
 	kmodules.xyz/webhook-runtime v0.0.0-20201105073856-2dc7382b88c6
+<<<<<<< HEAD
 	kubedb.dev/apimachinery v0.16.0-rc.0.0.20210106185329-7a3dd5ee0094
 	kubedb.dev/pg-leader-election v0.4.0-rc.0
 	stash.appscode.dev/apimachinery v0.11.8
+=======
+	kubedb.dev/apimachinery v0.15.2-0.20201120115954-1ede9261f12e
+	kubedb.dev/pg-leader-election v0.3.1
+	stash.appscode.dev/apimachinery v0.11.7
+>>>>>>> fix: vendoring apimechinary
 
 )
 
