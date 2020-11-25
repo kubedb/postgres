@@ -1185,10 +1185,14 @@ kmodules.xyz/prober/api/v1
 kmodules.xyz/webhook-runtime/admission/v1beta1
 kmodules.xyz/webhook-runtime/registry/admissionreview/v1beta1
 <<<<<<< HEAD
+<<<<<<< HEAD
 # kubedb.dev/apimachinery v0.16.0-rc.0.0.20210106185329-7a3dd5ee0094
 =======
 # kubedb.dev/apimachinery v0.15.2-0.20201120115954-1ede9261f12e
 >>>>>>> fix: vendoring apimechinary
+=======
+# kubedb.dev/apimachinery v0.15.2-0.20201124102936-6a3b3b55a7fb
+>>>>>>> added tls files in volume
 kubedb.dev/apimachinery/apis
 kubedb.dev/apimachinery/apis/autoscaling
 kubedb.dev/apimachinery/apis/autoscaling/v1alpha1

@@ -184,6 +184,7 @@ func (p *Postgres) SetDefaults(topology *core_util.Topology) {
 
 	p.setDefaultAffinity(&p.Spec.PodTemplate, p.OffshootSelectors(), topology)
 	p.Spec.Monitor.SetDefaults()
+<<<<<<< HEAD
 	setDefaultResourceLimits(&p.Spec.PodTemplate.Spec.Resources, defaultResourceLimits, defaultResourceLimits)
 }
 
@@ -225,16 +226,28 @@ func (p *Postgres) setDefaultAffinity(podTemplate *ofst.PodTemplateSpec, labels 
 			},
 		},
 	}
+=======
+	p.SetTLSDefaults()
+	setDefaultResourceLimits(&p.Spec.PodTemplate.Spec.Resources, defaultResourceLimits, defaultResourceRequests)
+>>>>>>> added tls files in volume
 }
 
-func (e *PostgresSpec) GetPersistentSecrets() []string {
-	if e == nil {
+func (p *Postgres) SetTLSDefaults() {
+	if p.Spec.TLS == nil || p.Spec.TLS.IssuerRef == nil {
+		return
+	}
+	p.Spec.TLS.Certificates = kmapi.SetMissingSecretNameForCertificate(p.Spec.TLS.Certificates, string(PostgresServerCert), p.CertificateName(PostgresServerCert))
+	p.Spec.TLS.Certificates = kmapi.SetMissingSecretNameForCertificate(p.Spec.TLS.Certificates, string(PostgresClientCert), p.CertificateName(PostgresClientCert))
+	p.Spec.TLS.Certificates = kmapi.SetMissingSecretNameForCertificate(p.Spec.TLS.Certificates, string(PostgresMetricsExporterCert), p.CertificateName(PostgresMetricsExporterCert))
+}
+func (p *PostgresSpec) GetPersistentSecrets() []string {
+	if p == nil {
 		return nil
 	}
 
 	var secrets []string
-	if e.AuthSecret != nil {
-		secrets = append(secrets, e.AuthSecret.Name)
+	if p.AuthSecret != nil {
+		secrets = append(secrets, p.AuthSecret.Name)
 	}
 	return secrets
 }

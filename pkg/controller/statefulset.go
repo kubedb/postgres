@@ -150,6 +150,10 @@ func (c *Controller) ensureStatefulSet(
 			in = upsertDataVolume(in, db)
 			in = upsertCustomConfig(in, db)
 			in = upsertSharedScriptsVolume(in, db)
+			if db.Spec.TLS != nil {
+				in = upsertTLSVolume(in, db)
+
+			}
 
 			in.Spec.Template.Spec.ServiceAccountName = db.Spec.PodTemplate.Spec.ServiceAccountName
 			in.Spec.UpdateStrategy = apps.StatefulSetUpdateStrategy{
@@ -956,4 +960,155 @@ func getContainers(statefulSet *apps.StatefulSet, postgres *api.Postgres, postgr
 			},
 		})
 	return statefulSet.Spec.Template.Spec.Containers
+}
+
+// adding tls key , cert and ca-cert
+func upsertTLSVolume(sts *apps.StatefulSet, db *api.Postgres) *apps.StatefulSet {
+	for i, container := range sts.Spec.Template.Spec.Containers {
+		if container.Name == api.ResourceSingularPostgres {
+			volumeMount := core.VolumeMount{
+				Name:      "tls-volume",
+				MountPath: "/certs",
+			}
+			volumeMounts := container.VolumeMounts
+			volumeMounts = core_util.UpsertVolumeMount(volumeMounts, volumeMount)
+			sts.Spec.Template.Spec.Containers[i].VolumeMounts = volumeMounts
+
+		} else if container.Name == "exporter" {
+			volumeMount := core.VolumeMount{
+				Name:      "exporter-tls-volume",
+				MountPath: "/certs",
+			}
+			volumeMounts := container.VolumeMounts
+			volumeMounts = core_util.UpsertVolumeMount(volumeMounts, volumeMount)
+			sts.Spec.Template.Spec.Containers[i].VolumeMounts = volumeMounts
+
+		} else if container.Name == api.PostgresLeaderElectionContainerName {
+			volumeMount := core.VolumeMount{
+				Name:      "leader-election-tls-volume",
+				MountPath: "/certs",
+			}
+			volumeMounts := container.VolumeMounts
+			volumeMounts = core_util.UpsertVolumeMount(volumeMounts, volumeMount)
+			sts.Spec.Template.Spec.Containers[i].VolumeMounts = volumeMounts
+		}
+	}
+
+	volume := core.Volume{
+		Name: "tls-volume",
+		VolumeSource: core.VolumeSource{
+			Projected: &core.ProjectedVolumeSource{
+				Sources: []core.VolumeProjection{
+					{
+						Secret: &core.SecretProjection{
+							LocalObjectReference: core.LocalObjectReference{
+								Name: db.MustCertSecretName(api.PostgresServerCert),
+							},
+							Items: []core.KeyToPath{
+								{
+									Key:  "ca.crt",
+									Path: "ca.crt",
+								},
+								{
+									Key:  "tls.crt",
+									Path: "server.crt",
+								},
+								{
+									Key:  "tls.key",
+									Path: "server.key",
+								},
+							},
+						},
+					},
+					{
+						Secret: &core.SecretProjection{
+							LocalObjectReference: core.LocalObjectReference{
+								Name: db.MustCertSecretName(api.PostgresClientCert),
+							},
+							Items: []core.KeyToPath{
+								{
+									Key:  "tls.crt",
+									Path: "client.crt",
+								},
+								{
+									Key:  "tls.key",
+									Path: "client.key",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	exporterTLSVolume := core.Volume{
+		Name: "exporter-tls-volume",
+		VolumeSource: core.VolumeSource{
+			Projected: &core.ProjectedVolumeSource{
+				Sources: []core.VolumeProjection{
+					{
+						Secret: &core.SecretProjection{
+							LocalObjectReference: core.LocalObjectReference{
+								Name: db.MustCertSecretName(api.PostgresMetricsExporterCert),
+							},
+							Items: []core.KeyToPath{
+								{
+									Key:  "ca.crt",
+									Path: "ca.crt",
+								},
+								{
+									Key:  "tls.crt",
+									Path: "exporter.crt",
+								},
+								{
+									Key:  "tls.key",
+									Path: "exporter.key",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	leaderElectionTLSVolume := core.Volume{
+		Name: "leader-election-tls-volume",
+		VolumeSource: core.VolumeSource{
+			Projected: &core.ProjectedVolumeSource{
+				Sources: []core.VolumeProjection{
+					{
+						Secret: &core.SecretProjection{
+							LocalObjectReference: core.LocalObjectReference{
+								Name: db.MustCertSecretName(api.PostgresClientCert),
+							},
+							Items: []core.KeyToPath{
+								{
+									Key:  "ca.crt",
+									Path: "ca.crt",
+								},
+								{
+									Key:  "tls.crt",
+									Path: "client.crt",
+								},
+								{
+									Key:  "tls.key",
+									Path: "client.key",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	sts.Spec.Template.Spec.Volumes = core_util.UpsertVolume(
+		sts.Spec.Template.Spec.Volumes,
+		volume,
+		exporterTLSVolume,
+		leaderElectionTLSVolume,
+	)
+
+	return sts
 }

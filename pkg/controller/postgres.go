@@ -72,7 +72,24 @@ func (c *Controller) create(db *api.Postgres) error {
 	if err != nil {
 		return err
 	}
-
+	// wait for  Certificates secrets
+	if db.Spec.TLS != nil {
+		ok, err := dynamic_util.ResourcesExists(
+			c.DynamicClient,
+			core.SchemeGroupVersion.WithResource("secrets"),
+			db.Namespace,
+			db.MustCertSecretName(api.PostgresServerCert),
+			db.MustCertSecretName(api.PostgresClientCert),
+			db.MustCertSecretName(api.PostgresMetricsExporterCert),
+		)
+		if err != nil {
+			return err
+		}
+		if !ok {
+			log.Infof("wait for all certificate secrets for Postgres %s/%s", db.Namespace, db.Name)
+			return nil
+		}
+	}
 	// ensure database StatefulSet
 	postgresVersion, err := c.DBClient.CatalogV1alpha1().PostgresVersions().Get(context.TODO(), string(db.Spec.Version), metav1.GetOptions{})
 	if err != nil {
@@ -268,13 +285,15 @@ func (c *Controller) setOwnerReferenceToOffshoots(db *api.Postgres, owner *metav
 			}
 		}
 	} else {
+		secrets := db.Spec.GetPersistentSecrets()
+		secrets = append(secrets, c.GetPostgresSecrets(db)...)
 		// Make sure secret's ownerreference is removed.
 		if err := dynamic_util.RemoveOwnerReferenceForItems(
 			context.TODO(),
 			c.DynamicClient,
 			core.SchemeGroupVersion.WithResource("secrets"),
 			db.Namespace,
-			db.Spec.GetPersistentSecrets(),
+			secrets,
 			db); err != nil {
 			return err
 		}
@@ -290,6 +309,10 @@ func (c *Controller) setOwnerReferenceToOffshoots(db *api.Postgres, owner *metav
 }
 
 func (c *Controller) removeOwnerReferenceFromOffshoots(db *api.Postgres) error {
+
+	secrets := db.Spec.GetPersistentSecrets()
+	secrets = append(secrets, c.GetPostgresSecrets(db)...)
+
 	// First, Get LabelSelector for Other Components
 	labelSelector := labels.SelectorFromSet(db.OffshootSelectors())
 
@@ -307,7 +330,7 @@ func (c *Controller) removeOwnerReferenceFromOffshoots(db *api.Postgres) error {
 		c.DynamicClient,
 		core.SchemeGroupVersion.WithResource("secrets"),
 		db.Namespace,
-		db.Spec.GetPersistentSecrets(),
+		secrets,
 		db); err != nil {
 		return err
 	}

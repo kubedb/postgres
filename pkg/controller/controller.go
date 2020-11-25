@@ -116,6 +116,7 @@ func (c *Controller) EnsureCustomResourceDefinitions() error {
 // InitInformer initializes Postgres, DormantDB amd Snapshot watcher
 func (c *Controller) Init() error {
 	c.initWatcher()
+	c.initSecretWatcher()
 	return nil
 }
 
