@@ -24,7 +24,9 @@ import (
 	"kubedb.dev/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha2/util"
 
 	"gomodules.xyz/x/log"
+	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/tools/cache"
 	kmapi "kmodules.xyz/client-go/api/v1"
 	core_util "kmodules.xyz/client-go/core/v1"
 	"kmodules.xyz/client-go/tools/queue"
@@ -93,4 +95,25 @@ func (c *Controller) runPostgres(key string) error {
 		}
 	}
 	return nil
+}
+
+func (c *Controller) initSecretWatcher() {
+	c.SecretInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc: func(obj interface{}) {
+			if secret, ok := obj.(*core.Secret); ok {
+				if key := c.PostgresForSecret(secret); key != "" {
+					queue.Enqueue(c.pgQueue.GetQueue(), key)
+				}
+			}
+		},
+		UpdateFunc: func(oldObj interface{}, newObj interface{}) {
+			if secret, ok := newObj.(*core.Secret); ok {
+				if key := c.PostgresForSecret(secret); key != "" {
+					queue.Enqueue(c.pgQueue.GetQueue(), key)
+				}
+			}
+		},
+		DeleteFunc: func(obj interface{}) {
+		},
+	})
 }

@@ -20,6 +20,8 @@ import (
 	"flag"
 	"time"
 
+	"k8s.io/client-go/tools/cache"
+
 	cs "kubedb.dev/apimachinery/client/clientset/versioned"
 	kubedbinformers "kubedb.dev/apimachinery/client/informers/externalversions"
 	"kubedb.dev/apimachinery/pkg/controller/initializer/stash"
@@ -27,10 +29,14 @@ import (
 	"kubedb.dev/apimachinery/pkg/eventer"
 	"kubedb.dev/postgres/pkg/controller"
 
+	coreinformers "k8s.io/client-go/informers/core/v1"
+
 	prom "github.com/prometheus-operator/prometheus-operator/pkg/client/versioned/typed/monitoring/v1"
 	"github.com/spf13/pflag"
 	core "k8s.io/api/core/v1"
 	crd_cs "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
+	corelisters "k8s.io/client-go/listers/core/v1"
+
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
@@ -118,6 +124,15 @@ func (s *ExtraOptions) ApplyTo(cfg *controller.OperatorConfig) error {
 	}
 	cfg.KubeInformerFactory = informers.NewSharedInformerFactory(cfg.KubeClient, cfg.ResyncPeriod)
 	cfg.KubedbInformerFactory = kubedbinformers.NewSharedInformerFactory(cfg.DBClient, cfg.ResyncPeriod)
+	cfg.SecretInformer = cfg.KubeInformerFactory.InformerFor(&core.Secret{}, func(client kubernetes.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
+		return coreinformers.NewSecretInformer(
+			client,
+			cfg.WatchNamespace,
+			resyncPeriod,
+			cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc},
+		)
+	})
+	cfg.SecretLister = corelisters.NewSecretLister(cfg.SecretInformer.GetIndexer())
 	// Create event recorder
 	cfg.Recorder = eventer.NewEventRecorder(cfg.KubeClient, "Postgres operator")
 	// Initialize StatefulSet watcher

@@ -20,6 +20,9 @@ import (
 	"context"
 	"fmt"
 
+	"k8s.io/client-go/tools/cache"
+	"kubedb.dev/apimachinery/apis/kubedb"
+
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha2"
 	"kubedb.dev/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha2/util"
 
@@ -137,4 +140,25 @@ func (c *Controller) upgradeAuthSecret(db *api.Postgres) error {
 		return in
 	}, metav1.PatchOptions{})
 	return err
+}
+
+func (c *Controller) PostgresForSecret(s *core.Secret) cache.ExplicitKey {
+	ctrl := metav1.GetControllerOf(s)
+	ok, err := core_util.IsOwnerOfGroupKind(ctrl, kubedb.GroupName, api.ResourceKindPostgres)
+	if err != nil || !ok {
+		return ""
+	}
+	// Owner ref is set by the enterprise operator
+	return cache.ExplicitKey(s.Namespace + "/" + ctrl.Name)
+}
+
+func (c *Controller) GetPostgresSecrets(db *api.Postgres) []string {
+	if db.Spec.TLS != nil {
+		return []string{
+			db.MustCertSecretName(api.PostgresServerCert),
+			db.MustCertSecretName(api.PostgresClientCert),
+			db.MustCertSecretName(api.PostgresMetricsExporterCert),
+		}
+	}
+	return nil
 }
