@@ -392,6 +392,16 @@ func upsertEnv(statefulSet *apps.StatefulSet, db *api.Postgres, envs []core.EnvV
 
 	envList = append(envList, envs...)
 
+	if db.Spec.TLS != nil {
+		tlEnv := []core.EnvVar{
+			{
+				Name:  "SSL_MODE",
+				Value: "ON",
+			},
+		}
+		envList = append(envList, tlEnv...)
+	}
+
 	// To do this, Upsert Container first
 	for i, container := range statefulSet.Spec.Template.Spec.Containers {
 		if container.Name == api.ResourceSingularPostgres || container.Name == api.PostgresLeaderElectionContainerName {
@@ -1008,14 +1018,17 @@ func upsertTLSVolume(sts *apps.StatefulSet, db *api.Postgres) *apps.StatefulSet 
 								{
 									Key:  "ca.crt",
 									Path: "ca.crt",
+									Mode: pointer.Int32P(444),
 								},
 								{
 									Key:  "tls.crt",
 									Path: "server.crt",
+									Mode: pointer.Int32P(444),
 								},
 								{
 									Key:  "tls.key",
 									Path: "server.key",
+									Mode: pointer.Int32P(444),
 								},
 							},
 						},
