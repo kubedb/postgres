@@ -26,11 +26,6 @@ import (
 	"gomodules.xyz/version"
 
 	"github.com/appscode/go/types"
-	catalog "kubedb.dev/apimachinery/apis/catalog/v1alpha1"
-	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha2"
-	"kubedb.dev/apimachinery/pkg/eventer"
-	"kubedb.dev/pg-leader-election/pkg/leader_election"
-
 	"gomodules.xyz/pointer"
 	"gomodules.xyz/x/log"
 	apps "k8s.io/api/apps/v1"
@@ -47,12 +42,18 @@ import (
 =======
 >>>>>>> fix: vendoring apimechinary
 	mona "kmodules.xyz/monitoring-agent-api/api/v1"
+	catalog "kubedb.dev/apimachinery/apis/catalog/v1alpha1"
+	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha2"
+	"kubedb.dev/apimachinery/pkg/eventer"
 )
 
 const (
 	LeaderElectionImage        = "hremon331046/leadertest:11"
-	ScriptHandlerContainerName = "script-handeler"
-	ScriptHandlerImage         = "busybox"
+	PostgresInitContainerName  = "postgres-init-container"
+	PostgresInitContainerImage = "hremon331046/postgres-init-container:latest"
+
+	sharedTlsVolumeMountPath = "/tls/certs"
+	sharedTlsVolumeName      = "certs"
 )
 
 func getMajorPgVersion(postgres *api.Postgres) (int64, error) {
@@ -152,6 +153,7 @@ func (c *Controller) ensureStatefulSet(
 			in = upsertSharedScriptsVolume(in, db)
 			if db.Spec.TLS != nil {
 				in = upsertTLSVolume(in, db)
+				in = upsertCertficatesVolume(in, db)
 
 			}
 
@@ -225,23 +227,6 @@ func (c *Controller) ensureCombinedNode(db *api.Postgres, postgresVersion *catal
 			Name:  "STREAMING",
 			Value: strings.ToLower(string(streamingMode)),
 		},
-	}
-
-	if db.Spec.LeaderElection != nil {
-		envList = append(envList, []core.EnvVar{
-			{
-				Name:  leader_election.LeaseDurationEnv,
-				Value: strconv.Itoa(int(db.Spec.LeaderElection.LeaseDurationSeconds)),
-			},
-			{
-				Name:  leader_election.RenewDeadlineEnv,
-				Value: strconv.Itoa(int(db.Spec.LeaderElection.RenewDeadlineSeconds)),
-			},
-			{
-				Name:  leader_election.RetryPeriodEnv,
-				Value: strconv.Itoa(int(db.Spec.LeaderElection.RetryPeriodSeconds)),
-			},
-		}...)
 	}
 
 	if db.Spec.Archiver != nil {
@@ -406,10 +391,13 @@ func upsertEnv(statefulSet *apps.StatefulSet, db *api.Postgres, envs []core.EnvV
 	for i, container := range statefulSet.Spec.Template.Spec.Containers {
 		if container.Name == api.ResourceSingularPostgres || container.Name == api.PostgresLeaderElectionContainerName {
 			statefulSet.Spec.Template.Spec.Containers[i].Env = core_util.UpsertEnvVars(container.Env, envList...)
-			//return statefulSet
 		}
 	}
-
+	for i, initContainer := range statefulSet.Spec.Template.Spec.InitContainers {
+		if initContainer.Name == PostgresInitContainerName {
+			statefulSet.Spec.Template.Spec.InitContainers[i].Env = core_util.UpsertEnvVars(initContainer.Env, envList...)
+		}
+	}
 	return statefulSet
 }
 
@@ -787,7 +775,7 @@ func upsertSharedScriptsVolume(statefulSet *apps.StatefulSet, postgres *api.Post
 		}
 	}
 	for i, initContainer := range statefulSet.Spec.Template.Spec.InitContainers {
-		if initContainer.Name == ScriptHandlerContainerName {
+		if initContainer.Name == PostgresInitContainerName {
 			configVolumeMount := core.VolumeMount{
 				Name:      "scripts",
 				MountPath: "/run_scripts",
@@ -813,6 +801,46 @@ func upsertSharedScriptsVolume(statefulSet *apps.StatefulSet, postgres *api.Post
 	return statefulSet
 }
 
+func upsertCertficatesVolume(statefulSet *apps.StatefulSet, postgres *api.Postgres) *apps.StatefulSet {
+
+	for i, container := range statefulSet.Spec.Template.Spec.Containers {
+		if container.Name == api.ResourceSingularPostgres {
+			configVolumeMount := core.VolumeMount{
+				Name:      sharedTlsVolumeName,
+				MountPath: sharedTlsVolumeMountPath,
+			}
+			volumeMounts := container.VolumeMounts
+			volumeMounts = core_util.UpsertVolumeMount(volumeMounts, configVolumeMount)
+			statefulSet.Spec.Template.Spec.Containers[i].VolumeMounts = volumeMounts
+
+		}
+	}
+	for i, initContainer := range statefulSet.Spec.Template.Spec.InitContainers {
+		if initContainer.Name == PostgresInitContainerName {
+			configVolumeMount := core.VolumeMount{
+				Name:      sharedTlsVolumeName,
+				MountPath: sharedTlsVolumeMountPath,
+			}
+			volumeMounts := initContainer.VolumeMounts
+			volumeMounts = core_util.UpsertVolumeMount(volumeMounts, configVolumeMount)
+			statefulSet.Spec.Template.Spec.InitContainers[i].VolumeMounts = volumeMounts
+
+		}
+	}
+
+	configVolume := core.Volume{
+		Name: sharedTlsVolumeName,
+		VolumeSource: core.VolumeSource{
+			EmptyDir: &core.EmptyDirVolumeSource{},
+		},
+	}
+
+	volumes := statefulSet.Spec.Template.Spec.Volumes
+	volumes = core_util.UpsertVolume(volumes, configVolume)
+	statefulSet.Spec.Template.Spec.Volumes = volumes
+
+	return statefulSet
+}
 func walRecoveryConfig(wal *api.PostgresWALSourceSpec) []core.EnvVar {
 	envList := []core.EnvVar{
 		{
@@ -922,17 +950,12 @@ func getInitContainers(statefulSet *apps.StatefulSet, postgres *api.Postgres) []
 	statefulSet.Spec.Template.Spec.InitContainers = core_util.UpsertContainer(
 		statefulSet.Spec.Template.Spec.InitContainers,
 		core.Container{
-			Name:           ScriptHandlerContainerName,
-			Image:          ScriptHandlerImage,
+			Name:           PostgresInitContainerName,
+			Image:          PostgresInitContainerImage,
 			Resources:      postgres.Spec.PodTemplate.Spec.Resources,
 			LivenessProbe:  postgres.Spec.PodTemplate.Spec.LivenessProbe,
 			ReadinessProbe: postgres.Spec.PodTemplate.Spec.ReadinessProbe,
 			Lifecycle:      postgres.Spec.PodTemplate.Spec.Lifecycle,
-			Command: []string{
-				"rm",
-				"-rf",
-				"/run_scripts/*",
-			},
 		})
 	return statefulSet.Spec.Template.Spec.InitContainers
 }
@@ -975,19 +998,20 @@ func getContainers(statefulSet *apps.StatefulSet, postgres *api.Postgres, postgr
 // adding tls key , cert and ca-cert
 func upsertTLSVolume(sts *apps.StatefulSet, db *api.Postgres) *apps.StatefulSet {
 	for i, container := range sts.Spec.Template.Spec.Containers {
-		if container.Name == api.ResourceSingularPostgres {
-			volumeMount := core.VolumeMount{
-				Name:      "tls-volume",
-				MountPath: "/certs",
-			}
-			volumeMounts := container.VolumeMounts
-			volumeMounts = core_util.UpsertVolumeMount(volumeMounts, volumeMount)
-			sts.Spec.Template.Spec.Containers[i].VolumeMounts = volumeMounts
-
-		} else if container.Name == "exporter" {
+		//if container.Name == api.ResourceSingularPostgres {
+		//	volumeMount := core.VolumeMount{
+		//		Name:      "tls-volume",
+		//		MountPath: "/certs",
+		//	}
+		//	volumeMounts := container.VolumeMounts
+		//	volumeMounts = core_util.UpsertVolumeMount(volumeMounts, volumeMount)
+		//	sts.Spec.Template.Spec.Containers[i].VolumeMounts = volumeMounts
+		//
+		//} else
+		if container.Name == "exporter" {
 			volumeMount := core.VolumeMount{
 				Name:      "exporter-tls-volume",
-				MountPath: "/certs",
+				MountPath: "/certs/client",
 			}
 			volumeMounts := container.VolumeMounts
 			volumeMounts = core_util.UpsertVolumeMount(volumeMounts, volumeMount)
@@ -996,59 +1020,69 @@ func upsertTLSVolume(sts *apps.StatefulSet, db *api.Postgres) *apps.StatefulSet 
 		} else if container.Name == api.PostgresLeaderElectionContainerName {
 			volumeMount := core.VolumeMount{
 				Name:      "leader-election-tls-volume",
-				MountPath: "/certs",
+				MountPath: "/certs/client",
 			}
 			volumeMounts := container.VolumeMounts
 			volumeMounts = core_util.UpsertVolumeMount(volumeMounts, volumeMount)
 			sts.Spec.Template.Spec.Containers[i].VolumeMounts = volumeMounts
+
 		}
 	}
+	for i, initContainer := range sts.Spec.Template.Spec.InitContainers {
+		if initContainer.Name == PostgresInitContainerName {
+			volumeMount := core.VolumeMount{
+				Name:      "tls-volume-server",
+				MountPath: "/certs/server",
+				ReadOnly:  false,
+			}
+			volumeMounts := initContainer.VolumeMounts
+			volumeMounts = core_util.UpsertVolumeMount(volumeMounts, volumeMount)
 
-	volume := core.Volume{
-		Name: "tls-volume",
+			clientVolumeMount := core.VolumeMount{
+				Name:      "tls-volume-client",
+				MountPath: "/certs/client",
+				ReadOnly:  false,
+			}
+			volumeMounts = core_util.UpsertVolumeMount(volumeMounts, clientVolumeMount)
+			sts.Spec.Template.Spec.InitContainers[i].VolumeMounts = volumeMounts
+
+		}
+	}
+	serverVolume := core.Volume{
+		Name: "tls-volume-server",
 		VolumeSource: core.VolumeSource{
-			Projected: &core.ProjectedVolumeSource{
-				Sources: []core.VolumeProjection{
+			Secret: &core.SecretVolumeSource{
+				SecretName: db.MustCertSecretName(api.PostgresServerCert),
+				Items: []core.KeyToPath{
 					{
-						Secret: &core.SecretProjection{
-							LocalObjectReference: core.LocalObjectReference{
-								Name: db.MustCertSecretName(api.PostgresServerCert),
-							},
-							Items: []core.KeyToPath{
-								{
-									Key:  "ca.crt",
-									Path: "ca.crt",
-									Mode: pointer.Int32P(444),
-								},
-								{
-									Key:  "tls.crt",
-									Path: "server.crt",
-									Mode: pointer.Int32P(444),
-								},
-								{
-									Key:  "tls.key",
-									Path: "server.key",
-									Mode: pointer.Int32P(444),
-								},
-							},
-						},
+						Key:  "ca.crt",
+						Path: "ca.crt",
 					},
 					{
-						Secret: &core.SecretProjection{
-							LocalObjectReference: core.LocalObjectReference{
-								Name: db.MustCertSecretName(api.PostgresClientCert),
-							},
-							Items: []core.KeyToPath{
-								{
-									Key:  "tls.crt",
-									Path: "client.crt",
-								},
-								{
-									Key:  "tls.key",
-									Path: "client.key",
-								},
-							},
-						},
+						Key:  "tls.crt",
+						Path: "server.crt",
+					},
+					{
+						Key:  "tls.key",
+						Path: "server.key",
+					},
+				},
+			},
+		},
+	}
+	clientVolume := core.Volume{
+		Name: "tls-volume-client",
+		VolumeSource: core.VolumeSource{
+			Secret: &core.SecretVolumeSource{
+				SecretName: db.MustCertSecretName(api.PostgresClientCert),
+				Items: []core.KeyToPath{
+					{
+						Key:  "tls.crt",
+						Path: "client.crt",
+					},
+					{
+						Key:  "tls.key",
+						Path: "client.key",
 					},
 				},
 			},
@@ -1058,28 +1092,20 @@ func upsertTLSVolume(sts *apps.StatefulSet, db *api.Postgres) *apps.StatefulSet 
 	exporterTLSVolume := core.Volume{
 		Name: "exporter-tls-volume",
 		VolumeSource: core.VolumeSource{
-			Projected: &core.ProjectedVolumeSource{
-				Sources: []core.VolumeProjection{
+			Secret: &core.SecretVolumeSource{
+				SecretName: db.MustCertSecretName(api.PostgresMetricsExporterCert),
+				Items: []core.KeyToPath{
 					{
-						Secret: &core.SecretProjection{
-							LocalObjectReference: core.LocalObjectReference{
-								Name: db.MustCertSecretName(api.PostgresMetricsExporterCert),
-							},
-							Items: []core.KeyToPath{
-								{
-									Key:  "ca.crt",
-									Path: "ca.crt",
-								},
-								{
-									Key:  "tls.crt",
-									Path: "exporter.crt",
-								},
-								{
-									Key:  "tls.key",
-									Path: "exporter.key",
-								},
-							},
-						},
+						Key:  "ca.crt",
+						Path: "ca.crt",
+					},
+					{
+						Key:  "tls.crt",
+						Path: "exporter.crt",
+					},
+					{
+						Key:  "tls.key",
+						Path: "exporter.key",
 					},
 				},
 			},
@@ -1088,28 +1114,20 @@ func upsertTLSVolume(sts *apps.StatefulSet, db *api.Postgres) *apps.StatefulSet 
 	leaderElectionTLSVolume := core.Volume{
 		Name: "leader-election-tls-volume",
 		VolumeSource: core.VolumeSource{
-			Projected: &core.ProjectedVolumeSource{
-				Sources: []core.VolumeProjection{
+			Secret: &core.SecretVolumeSource{
+				SecretName: db.MustCertSecretName(api.PostgresClientCert),
+				Items: []core.KeyToPath{
 					{
-						Secret: &core.SecretProjection{
-							LocalObjectReference: core.LocalObjectReference{
-								Name: db.MustCertSecretName(api.PostgresClientCert),
-							},
-							Items: []core.KeyToPath{
-								{
-									Key:  "ca.crt",
-									Path: "ca.crt",
-								},
-								{
-									Key:  "tls.crt",
-									Path: "client.crt",
-								},
-								{
-									Key:  "tls.key",
-									Path: "client.key",
-								},
-							},
-						},
+						Key:  "ca.crt",
+						Path: "ca.crt",
+					},
+					{
+						Key:  "tls.crt",
+						Path: "client.crt",
+					},
+					{
+						Key:  "tls.key",
+						Path: "client.key",
 					},
 				},
 			},
@@ -1118,7 +1136,8 @@ func upsertTLSVolume(sts *apps.StatefulSet, db *api.Postgres) *apps.StatefulSet 
 
 	sts.Spec.Template.Spec.Volumes = core_util.UpsertVolume(
 		sts.Spec.Template.Spec.Volumes,
-		volume,
+		serverVolume,
+		clientVolume,
 		exporterTLSVolume,
 		leaderElectionTLSVolume,
 	)
