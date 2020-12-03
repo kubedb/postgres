@@ -1093,7 +1093,8 @@ func upsertTLSVolume(sts *apps.StatefulSet, db *api.Postgres) *apps.StatefulSet 
 		Name: "exporter-tls-volume",
 		VolumeSource: core.VolumeSource{
 			Secret: &core.SecretVolumeSource{
-				SecretName: db.MustCertSecretName(api.PostgresMetricsExporterCert),
+				DefaultMode: pointer.Int32P(0600),
+				SecretName:  db.MustCertSecretName(api.PostgresMetricsExporterCert),
 				Items: []core.KeyToPath{
 					{
 						Key:  "ca.crt",
@@ -1115,7 +1116,8 @@ func upsertTLSVolume(sts *apps.StatefulSet, db *api.Postgres) *apps.StatefulSet 
 		Name: "leader-election-tls-volume",
 		VolumeSource: core.VolumeSource{
 			Secret: &core.SecretVolumeSource{
-				SecretName: db.MustCertSecretName(api.PostgresClientCert),
+				DefaultMode: pointer.Int32P(0600),
+				SecretName:  db.MustCertSecretName(api.PostgresClientCert),
 				Items: []core.KeyToPath{
 					{
 						Key:  "ca.crt",
