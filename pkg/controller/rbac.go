@@ -58,7 +58,7 @@ func (c *Controller) ensureRole(db *api.Postgres, pspName string) error {
 				{
 					APIGroups: []string{core.GroupName},
 					Resources: []string{"pods"},
-					Verbs:     []string{"get", "list", "patch"},
+					Verbs:     []string{"get", "list", "patch", "delete"},
 				},
 				{
 					APIGroups: []string{core.GroupName},
