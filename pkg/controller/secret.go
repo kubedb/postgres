@@ -91,7 +91,7 @@ func (c *Controller) createAuthSecret(db *api.Postgres) (*core.LocalObjectRefere
 			Name:   name,
 			Labels: db.OffshootLabels(),
 		},
-		Type: core.SecretTypeOpaque,
+		Type: core.SecretTypeBasicAuth,
 		Data: map[string][]byte{
 			core.BasicAuthUsernameKey: []byte("postgres"),
 			core.BasicAuthPasswordKey: []byte(passgen.Generate(api.DefaultPasswordLength)),
