@@ -175,9 +175,9 @@ func (f *Framework) CleanPostgres() {
 func (f *Framework) EvictPodsFromStatefulSet(meta metav1.ObjectMeta) error {
 	var err error
 	labelSelector := labels.Set{
+		meta_util.NameLabelKey:      api.Postgres{}.ResourceFQN(),
+		meta_util.InstanceLabelKey:  meta.Name,
 		meta_util.ManagedByLabelKey: kubedb.GroupName,
-		api.LabelDatabaseKind:       api.ResourceKindPostgres,
-		api.LabelDatabaseName:       meta.GetName(),
 	}
 	// get sts in the namespace
 	stsList, err := f.kubeClient.AppsV1().StatefulSets(meta.Namespace).List(context.TODO(), metav1.ListOptions{LabelSelector: labelSelector.String()})

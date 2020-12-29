@@ -20,6 +20,7 @@ import (
 	"context"
 	"time"
 
+	"kubedb.dev/apimachinery/apis/kubedb"
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha2"
 
 	. "github.com/onsi/gomega"
@@ -32,8 +33,9 @@ import (
 
 func (f *Framework) EventuallyPVCCount(meta metav1.ObjectMeta) GomegaAsyncAssertion {
 	labelMap := map[string]string{
-		api.LabelDatabaseKind: api.ResourceKindPostgres,
-		api.LabelDatabaseName: meta.Name,
+		meta_util.NameLabelKey:      api.Postgres{}.ResourceFQN(),
+		meta_util.InstanceLabelKey:  meta.Name,
+		meta_util.ManagedByLabelKey: kubedb.GroupName,
 	}
 	labelSelector := labels.SelectorFromSet(labelMap)
 	return Eventually(
