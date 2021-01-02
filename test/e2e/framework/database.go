@@ -38,13 +38,14 @@ func (f *Framework) ForwardPort(meta metav1.ObjectMeta) (*portforward.Tunnel, er
 	}
 
 	clientPodName := fmt.Sprintf("%v-0", postgres.Name)
-	tunnel := portforward.NewTunnel(
-		f.kubeClient.CoreV1().RESTClient(),
-		f.restConfig,
-		postgres.Namespace,
-		clientPodName,
-		api.PostgresDatabasePort,
-	)
+	tunnel := portforward.NewTunnel(portforward.TunnelOptions{
+		Client:    f.kubeClient.CoreV1().RESTClient(),
+		Config:    f.restConfig,
+		Resource:  "pods",
+		Name:      clientPodName,
+		Namespace: postgres.Namespace,
+		Remote:    api.PostgresDatabasePort,
+	})
 	if err := tunnel.ForwardPort(); err != nil {
 		return nil, err
 	}
