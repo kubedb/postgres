@@ -197,13 +197,14 @@ func (f *Framework) IsMinio(backend *v1.Backend) bool {
 }
 
 func (f *Framework) ForwardMinioPort(clientPodName string) (*portforward.Tunnel, error) {
-	tunnel := portforward.NewTunnel(
-		f.kubeClient.CoreV1().RESTClient(),
-		f.restConfig,
-		f.namespace,
-		clientPodName,
-		PORT,
-	)
+	tunnel := portforward.NewTunnel(portforward.TunnelOptions{
+		Client:    f.kubeClient.CoreV1().RESTClient(),
+		Config:    f.restConfig,
+		Resource:  "pods",
+		Name:      clientPodName,
+		Namespace: f.namespace,
+		Remote:    PORT,
+	})
 	if err := tunnel.ForwardPort(); err != nil {
 		return nil, err
 	}
