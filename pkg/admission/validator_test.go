@@ -38,12 +38,26 @@ import (
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/kubernetes/fake"
 	clientSetScheme "k8s.io/client-go/kubernetes/scheme"
+	core_util "kmodules.xyz/client-go/core/v1"
 	meta_util "kmodules.xyz/client-go/meta"
 	mona "kmodules.xyz/monitoring-agent-api/api/v1"
 )
 
 func init() {
 	utilruntime.Must(scheme.AddToScheme(clientSetScheme.Scheme))
+}
+
+var testTopology = &core_util.Topology{
+	Regions: map[string][]string{
+		"us-east-1": {"us-east-1a", "us-east-1b", "us-east-1c"},
+	},
+	TotalNodes: 100,
+	InstanceTypes: map[string]int{
+		"n1-standard-4": 100,
+	},
+	LabelZone:         core.LabelZoneFailureDomain,
+	LabelRegion:       core.LabelZoneRegion,
+	LabelInstanceType: core.LabelInstanceType,
 }
 
 var requestKind = metaV1.GroupVersionKind{
@@ -55,7 +69,9 @@ var requestKind = metaV1.GroupVersionKind{
 func TestPostgresValidator_Admit(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.testName, func(t *testing.T) {
-			validator := PostgresValidator{}
+			validator := PostgresValidator{
+				ClusterTopology: testTopology,
+			}
 
 			validator.initialized = true
 			validator.extClient = extFake.NewSimpleClientset(
