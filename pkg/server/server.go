@@ -128,25 +128,29 @@ func (c completedConfig) New() (*PostgresServer, error) {
 		return nil, err
 	}
 
+	ctrl, err := c.OperatorConfig.New()
+	if err != nil {
+		return nil, err
+	}
+
 	if c.OperatorConfig.EnableMutatingWebhook {
 		c.ExtraConfig.AdmissionHooks = []hooks.AdmissionHook{
-			&mgAdmsn.PostgresMutator{},
+			&mgAdmsn.PostgresMutator{
+				ClusterTopology: ctrl.ClusterTopology,
+			},
 		}
 	}
 	if c.OperatorConfig.EnableValidatingWebhook {
 		c.ExtraConfig.AdmissionHooks = append(c.ExtraConfig.AdmissionHooks,
-			&mgAdmsn.PostgresValidator{},
+			&mgAdmsn.PostgresValidator{
+				ClusterTopology: ctrl.ClusterTopology,
+			},
 			&namespace.NamespaceValidator{
 				Resources: []string{api.ResourcePluralPostgres},
 			})
 	}
 
 	license.NewLicenseEnforcer(c.OperatorConfig.ClientConfig, c.OperatorConfig.LicenseFile).Install(genericServer.Handler.NonGoRestfulMux)
-
-	ctrl, err := c.OperatorConfig.New()
-	if err != nil {
-		return nil, err
-	}
 
 	s := &PostgresServer{
 		GenericAPIServer: genericServer,
