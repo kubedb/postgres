@@ -962,6 +962,16 @@ func getInitContainers(statefulSet *apps.StatefulSet, postgres *api.Postgres) []
 	return statefulSet.Spec.Template.Spec.InitContainers
 }
 func getContainers(statefulSet *apps.StatefulSet, postgres *api.Postgres, postgresVersion *catalog.PostgresVersion) []core.Container {
+//TODO: need to modify to handle the case if user give lifecycle command
+	lifeCycle :=& core.Lifecycle{
+		PreStop: &core.Handler{
+			Exec: &core.ExecAction{
+				Command: []string{"pg_ctl","-m","fast","-w","stop"},
+			},
+		},
+	}
+
+
 	statefulSet.Spec.Template.Spec.Containers = core_util.UpsertContainer(
 		statefulSet.Spec.Template.Spec.Containers,
 		core.Container{
@@ -970,7 +980,9 @@ func getContainers(statefulSet *apps.StatefulSet, postgres *api.Postgres, postgr
 			Resources:      postgres.Spec.PodTemplate.Spec.Resources,
 			LivenessProbe:  postgres.Spec.PodTemplate.Spec.LivenessProbe,
 			ReadinessProbe: postgres.Spec.PodTemplate.Spec.ReadinessProbe,
-			Lifecycle:      postgres.Spec.PodTemplate.Spec.Lifecycle,
+			//TODO: this commented one was the default one.
+			//Lifecycle:      postgres.Spec.PodTemplate.Spec.Lifecycle,
+			Lifecycle : lifeCycle,
 			SecurityContext: &core.SecurityContext{
 				Privileged: types.BoolP(false),
 				Capabilities: &core.Capabilities{
