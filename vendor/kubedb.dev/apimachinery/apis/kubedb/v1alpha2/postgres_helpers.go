@@ -18,7 +18,6 @@ package v1alpha2
 
 import (
 	"fmt"
-	kmapi "kmodules.xyz/client-go/api/v1"
 
 	"kubedb.dev/apimachinery/apis"
 	"kubedb.dev/apimachinery/apis/kubedb"
@@ -29,6 +28,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	appslister "k8s.io/client-go/listers/apps/v1"
+	kmapi "kmodules.xyz/client-go/api/v1"
 	"kmodules.xyz/client-go/apiextensions"
 	core_util "kmodules.xyz/client-go/core/v1"
 	meta_util "kmodules.xyz/client-go/meta"
@@ -182,10 +182,10 @@ func (p *Postgres) SetDefaults(topology *core_util.Topology) {
 		p.Spec.PodTemplate.Spec.ServiceAccountName = p.OffshootName()
 	}
 
-	p.setDefaultAffinity(&p.Spec.PodTemplate, p.OffshootSelectors(), topology)
 	p.Spec.Monitor.SetDefaults()
-<<<<<<< HEAD
+	p.SetTLSDefaults()
 	setDefaultResourceLimits(&p.Spec.PodTemplate.Spec.Resources, defaultResourceLimits, defaultResourceLimits)
+	p.setDefaultAffinity(&p.Spec.PodTemplate, p.OffshootSelectors(), topology)
 }
 
 // setDefaultAffinity
@@ -226,10 +226,6 @@ func (p *Postgres) setDefaultAffinity(podTemplate *ofst.PodTemplateSpec, labels 
 			},
 		},
 	}
-=======
-	p.SetTLSDefaults()
-	setDefaultResourceLimits(&p.Spec.PodTemplate.Spec.Resources, defaultResourceLimits, defaultResourceRequests)
->>>>>>> added tls files in volume
 }
 
 func (p *Postgres) SetTLSDefaults() {
@@ -240,6 +236,7 @@ func (p *Postgres) SetTLSDefaults() {
 	p.Spec.TLS.Certificates = kmapi.SetMissingSecretNameForCertificate(p.Spec.TLS.Certificates, string(PostgresClientCert), p.CertificateName(PostgresClientCert))
 	p.Spec.TLS.Certificates = kmapi.SetMissingSecretNameForCertificate(p.Spec.TLS.Certificates, string(PostgresMetricsExporterCert), p.CertificateName(PostgresMetricsExporterCert))
 }
+
 func (p *PostgresSpec) GetPersistentSecrets() []string {
 	if p == nil {
 		return nil
@@ -257,7 +254,6 @@ func (p *Postgres) ReplicasAreReady(lister appslister.StatefulSetLister) (bool, 
 	expectedItems := 1
 	return checkReplicas(lister.StatefulSets(p.Namespace), labels.SelectorFromSet(p.OffshootLabels()), expectedItems)
 }
-
 
 // CertificateName returns the default certificate name and/or certificate secret name for a certificate alias
 func (p *Postgres) CertificateName(alias PostgresCertificateAlias) string {

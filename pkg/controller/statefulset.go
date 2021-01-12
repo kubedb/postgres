@@ -36,11 +36,7 @@ import (
 	kmapi "kmodules.xyz/client-go/api/v1"
 	app_util "kmodules.xyz/client-go/apps/v1"
 	core_util "kmodules.xyz/client-go/core/v1"
-<<<<<<< HEAD
 	meta_util "kmodules.xyz/client-go/meta"
-	"kmodules.xyz/client-go/tools/analytics"
-=======
->>>>>>> fix: vendoring apimechinary
 	mona "kmodules.xyz/monitoring-agent-api/api/v1"
 	catalog "kubedb.dev/apimachinery/apis/catalog/v1alpha1"
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha2"
@@ -58,7 +54,7 @@ const (
 
 	serverTlsVolumeName   = "tls-volume-server"
 	clientTlsVolumeName   = "tls-volume-client"
-	leaderTlsVolumeName   = "leader-election-tls-volume"
+	leaderTlsVolumeName   = "leader-elector-tls-volume"
 	sharedTlsVolumeName   = "certs"
 	exporterTlsVolumename = "exporter-tls-volume"
 )

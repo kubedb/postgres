@@ -37,19 +37,9 @@ require (
 	kmodules.xyz/objectstore-api v0.0.0-20201105133858-cbb2af88d50a
 	kmodules.xyz/offshoot-api v0.0.0-20201105074700-8675f5f686f2
 	kmodules.xyz/webhook-runtime v0.0.0-20201105073856-2dc7382b88c6
-<<<<<<< HEAD
-<<<<<<< HEAD
-	kubedb.dev/apimachinery v0.16.0-rc.0.0.20210106185329-7a3dd5ee0094
+	kubedb.dev/apimachinery v0.16.0-rc.0.0.20210112124017-6ad24f12d2a8
 	kubedb.dev/pg-leader-election v0.4.0-rc.0
 	stash.appscode.dev/apimachinery v0.11.8
-=======
-	kubedb.dev/apimachinery v0.15.2-0.20201120115954-1ede9261f12e
-=======
-	kubedb.dev/apimachinery v0.15.2-0.20201124102936-6a3b3b55a7fb
->>>>>>> added tls files in volume
-	kubedb.dev/pg-leader-election v0.3.1
-	stash.appscode.dev/apimachinery v0.11.7
->>>>>>> fix: vendoring apimechinary
 
 )
 
