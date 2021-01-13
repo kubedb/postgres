@@ -42,7 +42,7 @@ type LeaderElectionConfig struct {
 	// MaximumLagBeforeFailover is used as maximum lag tolerance for the cluster.
 	// when ever a replica is lagging more than MaximumLagBeforeFailover
 	// this node need to sync manually with the primary node
-	MaximumLagBeforeFailover int64 `json:"maximumLagBeforeFailover" protobuf:"varint,1,opt,name=maximumLagBeforeFailover"`
+	MaximumLagBeforeFailover uint64 `json:"maximumLagBeforeFailover" protobuf:"varint,1,opt,name=maximumLagBeforeFailover"`
 
 	// ElectionTick is the number of Node.Tick invocations that must pass between
 	//	elections. That is, if a follower does not receive any message from the
@@ -50,12 +50,12 @@ type LeaderElectionConfig struct {
 	//	candidate and start an election. ElectionTick must be greater than
 	//  HeartbeatTick. We suggest ElectionTick = 10 * HeartbeatTick to avoid
 	//  unnecessary leader switching. default value is 10.
-	ElectionTick int64 `json:"electionTick" protobuf:"varint,2,opt,name=electionTick"`
+	ElectionTick uint64 `json:"electionTick" protobuf:"varint,2,opt,name=electionTick"`
 
 	// HeartbeatTick is the number of Node.Tick invocations that must pass between
 	// heartbeats. That is, a leader sends heartbeat messages to maintain its
 	// leadership every HeartbeatTick ticks. default value is 1.
-	HeartbeatTick int64 `json:"heartbeatTick" protobuf:"varint,3,opt,name=heartbeatTick"`
+	HeartbeatTick uint64 `json:"heartbeatTick" protobuf:"varint,3,opt,name=heartbeatTick"`
 }
 
 // +kubebuilder:validation:Enum=Provisioning;DataRestoring;Ready;Critical;NotReady;Halted

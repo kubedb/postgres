@@ -347,6 +347,18 @@ func upsertEnv(statefulSet *apps.StatefulSet, db *api.Postgres, envs []core.EnvV
 			Value: db.ServiceName(),
 		},
 		{
+			Name:  "MAX_LAG_BEFORE_FAILOVER",
+			Value: strconv.FormatUint(db.Spec.LeaderElection.MaximumLagBeforeFailover,10),
+		},
+		{
+			Name:  "ELECTION_TICK",
+			Value: strconv.FormatUint(db.Spec.LeaderElection.ElectionTick,10),
+		},
+		{
+			Name:  "HEARTBEAT_TICK",
+			Value: strconv.FormatUint(db.Spec.LeaderElection.HeartbeatTick,10),
+		},
+		{
 			Name: EnvPostgresUser,
 			ValueFrom: &core.EnvVarSource{
 				SecretKeyRef: &core.SecretKeySelector{

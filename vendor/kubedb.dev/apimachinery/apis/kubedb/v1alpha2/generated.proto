@@ -459,7 +459,7 @@ message LeaderElectionConfig {
   // MaximumLagBeforeFailover is used as maximum lag tolerance for the cluster.
   // when ever a replica is lagging more than MaximumLagBeforeFailover
   // this node need to sync manually with the primary node
-  optional int64 maximumLagBeforeFailover = 1;
+  optional uint64 maximumLagBeforeFailover = 1;
 
   // ElectionTick is the number of Node.Tick invocations that must pass between
   // 	elections. That is, if a follower does not receive any message from the
@@ -467,12 +467,12 @@ message LeaderElectionConfig {
   // 	candidate and start an election. ElectionTick must be greater than
   //  HeartbeatTick. We suggest ElectionTick = 10 * HeartbeatTick to avoid
   //  unnecessary leader switching. default value is 10.
-  optional int64 electionTick = 2;
+  optional uint64 electionTick = 2;
 
   // HeartbeatTick is the number of Node.Tick invocations that must pass between
   // heartbeats. That is, a leader sends heartbeat messages to maintain its
   // leadership every HeartbeatTick ticks. default value is 1.
-  optional int64 heartbeatTick = 3;
+  optional uint64 heartbeatTick = 3;
 }
 
 // +kubebuilder:object:root=true

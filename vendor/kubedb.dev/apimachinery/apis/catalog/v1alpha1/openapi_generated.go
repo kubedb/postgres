@@ -20753,7 +20753,8 @@ func schema_apimachinery_apis_catalog_v1alpha1_PostgresVersionSpec(ref common.Re
 					},
 					"init": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("kubedb.dev/apimachinery/apis/catalog/v1alpha1.PostgresVersionInitContainer"),
+							Description: "init container image",
+							Ref:         ref("kubedb.dev/apimachinery/apis/catalog/v1alpha1.PostgresVersionInitContainer"),
 						},
 					},
 					"db": {

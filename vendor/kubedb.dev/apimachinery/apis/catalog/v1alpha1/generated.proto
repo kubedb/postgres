@@ -608,6 +608,7 @@ message PostgresVersionSpec {
   // Version
   optional string version = 1;
 
+  // init container image
   optional PostgresVersionInitContainer init = 2;
 
   // Database Image
