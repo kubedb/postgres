@@ -1967,19 +1967,19 @@ spec:
                 type: object
               leaderElection:
                 properties:
-                  leaseDurationSeconds:
-                    format: int32
+                  electionTick:
+                    format: int64
                     type: integer
-                  renewDeadlineSeconds:
-                    format: int32
+                  heartbeatTick:
+                    format: int64
                     type: integer
-                  retryPeriodSeconds:
-                    format: int32
+                  maximumLagBeforeFailover:
+                    format: int64
                     type: integer
                 required:
-                - leaseDurationSeconds
-                - renewDeadlineSeconds
-                - retryPeriodSeconds
+                - electionTick
+                - heartbeatTick
+                - maximumLagBeforeFailover
                 type: object
               monitor:
                 properties:

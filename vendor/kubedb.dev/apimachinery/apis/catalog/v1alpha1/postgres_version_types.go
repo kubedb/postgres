@@ -49,21 +49,36 @@ type PostgresVersion struct {
 type PostgresVersionSpec struct {
 	// Version
 	Version string `json:"version" protobuf:"bytes,1,opt,name=version"`
+
+	//init container image
+	InitContainer PostgresVersionInitContainer `json:"init" protobuf:"bytes,2,opt,name=init"`
 	// Database Image
-	DB PostgresVersionDatabase `json:"db" protobuf:"bytes,2,opt,name=db"`
+	DB PostgresVersionDatabase `json:"db" protobuf:"bytes,3,opt,name=db"`
 	// Exporter Image
-	Exporter PostgresVersionExporter `json:"exporter" protobuf:"bytes,3,opt,name=exporter"`
+	Exporter PostgresVersionExporter `json:"exporter" protobuf:"bytes,4,opt,name=exporter"`
+	// LeaderElector Image
+	LeaderElector PostgresVersionLeaderElector `json:"elector" protobuf:"bytes,5,opt,name=elector"`
 	// Tools Image
-	Tools PostgresVersionTools `json:"tools" protobuf:"bytes,4,opt,name=tools"`
+	Tools PostgresVersionTools `json:"tools" protobuf:"bytes,6,opt,name=tools"`
 	// Deprecated versions usable but regarded as obsolete and best avoided, typically due to having been superseded.
 	// +optional
-	Deprecated bool `json:"deprecated,omitempty" protobuf:"varint,5,opt,name=deprecated"`
+	Deprecated bool `json:"deprecated,omitempty" protobuf:"varint,7,opt,name=deprecated"`
 	// PSP names
-	PodSecurityPolicies PostgresVersionPodSecurityPolicy `json:"podSecurityPolicies" protobuf:"bytes,6,opt,name=podSecurityPolicies"`
+	PodSecurityPolicies PostgresVersionPodSecurityPolicy `json:"podSecurityPolicies" protobuf:"bytes,8,opt,name=podSecurityPolicies"`
+}
+
+// PostgresVersionInitContainer is the Postgres init container image
+type PostgresVersionInitContainer struct {
+	Image string `json:"image" protobuf:"bytes,1,opt,name=image"`
 }
 
 // PostgresVersionDatabase is the Postgres Database image
 type PostgresVersionDatabase struct {
+	Image string `json:"image" protobuf:"bytes,1,opt,name=image"`
+}
+
+// PostgresVersionLeaderElector is the Postgres leader elector image
+type PostgresVersionLeaderElector struct {
 	Image string `json:"image" protobuf:"bytes,1,opt,name=image"`
 }
 

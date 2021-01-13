@@ -456,6 +456,8 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"kubedb.dev/apimachinery/apis/catalog/v1alpha1.PostgresVersion":                       schema_apimachinery_apis_catalog_v1alpha1_PostgresVersion(ref),
 		"kubedb.dev/apimachinery/apis/catalog/v1alpha1.PostgresVersionDatabase":               schema_apimachinery_apis_catalog_v1alpha1_PostgresVersionDatabase(ref),
 		"kubedb.dev/apimachinery/apis/catalog/v1alpha1.PostgresVersionExporter":               schema_apimachinery_apis_catalog_v1alpha1_PostgresVersionExporter(ref),
+		"kubedb.dev/apimachinery/apis/catalog/v1alpha1.PostgresVersionInitContainer":          schema_apimachinery_apis_catalog_v1alpha1_PostgresVersionInitContainer(ref),
+		"kubedb.dev/apimachinery/apis/catalog/v1alpha1.PostgresVersionLeaderElector":          schema_apimachinery_apis_catalog_v1alpha1_PostgresVersionLeaderElector(ref),
 		"kubedb.dev/apimachinery/apis/catalog/v1alpha1.PostgresVersionList":                   schema_apimachinery_apis_catalog_v1alpha1_PostgresVersionList(ref),
 		"kubedb.dev/apimachinery/apis/catalog/v1alpha1.PostgresVersionPodSecurityPolicy":      schema_apimachinery_apis_catalog_v1alpha1_PostgresVersionPodSecurityPolicy(ref),
 		"kubedb.dev/apimachinery/apis/catalog/v1alpha1.PostgresVersionSpec":                   schema_apimachinery_apis_catalog_v1alpha1_PostgresVersionSpec(ref),
@@ -20628,6 +20630,46 @@ func schema_apimachinery_apis_catalog_v1alpha1_PostgresVersionExporter(ref commo
 	}
 }
 
+func schema_apimachinery_apis_catalog_v1alpha1_PostgresVersionInitContainer(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "PostgresVersionInitContainer is the Postgres init container image",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"image": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+				},
+				Required: []string{"image"},
+			},
+		},
+	}
+}
+
+func schema_apimachinery_apis_catalog_v1alpha1_PostgresVersionLeaderElector(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "PostgresVersionLeaderElector is the Postgres leader elector image",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"image": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+				},
+				Required: []string{"image"},
+			},
+		},
+	}
+}
+
 func schema_apimachinery_apis_catalog_v1alpha1_PostgresVersionList(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
@@ -20709,6 +20751,11 @@ func schema_apimachinery_apis_catalog_v1alpha1_PostgresVersionSpec(ref common.Re
 							Format:      "",
 						},
 					},
+					"init": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("kubedb.dev/apimachinery/apis/catalog/v1alpha1.PostgresVersionInitContainer"),
+						},
+					},
 					"db": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Database Image",
@@ -20719,6 +20766,12 @@ func schema_apimachinery_apis_catalog_v1alpha1_PostgresVersionSpec(ref common.Re
 						SchemaProps: spec.SchemaProps{
 							Description: "Exporter Image",
 							Ref:         ref("kubedb.dev/apimachinery/apis/catalog/v1alpha1.PostgresVersionExporter"),
+						},
+					},
+					"elector": {
+						SchemaProps: spec.SchemaProps{
+							Description: "LeaderElector Image",
+							Ref:         ref("kubedb.dev/apimachinery/apis/catalog/v1alpha1.PostgresVersionLeaderElector"),
 						},
 					},
 					"tools": {
@@ -20741,11 +20794,11 @@ func schema_apimachinery_apis_catalog_v1alpha1_PostgresVersionSpec(ref common.Re
 						},
 					},
 				},
-				Required: []string{"version", "db", "exporter", "tools", "podSecurityPolicies"},
+				Required: []string{"version", "init", "db", "exporter", "elector", "tools", "podSecurityPolicies"},
 			},
 		},
 		Dependencies: []string{
-			"kubedb.dev/apimachinery/apis/catalog/v1alpha1.PostgresVersionDatabase", "kubedb.dev/apimachinery/apis/catalog/v1alpha1.PostgresVersionExporter", "kubedb.dev/apimachinery/apis/catalog/v1alpha1.PostgresVersionPodSecurityPolicy", "kubedb.dev/apimachinery/apis/catalog/v1alpha1.PostgresVersionTools"},
+			"kubedb.dev/apimachinery/apis/catalog/v1alpha1.PostgresVersionDatabase", "kubedb.dev/apimachinery/apis/catalog/v1alpha1.PostgresVersionExporter", "kubedb.dev/apimachinery/apis/catalog/v1alpha1.PostgresVersionInitContainer", "kubedb.dev/apimachinery/apis/catalog/v1alpha1.PostgresVersionLeaderElector", "kubedb.dev/apimachinery/apis/catalog/v1alpha1.PostgresVersionPodSecurityPolicy", "kubedb.dev/apimachinery/apis/catalog/v1alpha1.PostgresVersionTools"},
 	}
 }
 

@@ -38,20 +38,24 @@ type ScriptSourceSpec struct {
 }
 
 // LeaderElectionConfig contains essential attributes of leader election.
-// ref: https://github.com/kubernetes/client-go/blob/6134db91200ea474868bc6775e62cc294a74c6c6/tools/leaderelection/leaderelection.go#L105-L114
 type LeaderElectionConfig struct {
-	// LeaseDuration is the duration in second that non-leader candidates will
-	// wait to force acquire leadership. This is measured against time of
-	// last observed ack. Default 15
-	LeaseDurationSeconds int32 `json:"leaseDurationSeconds" protobuf:"varint,1,opt,name=leaseDurationSeconds"`
-	// RenewDeadline is the duration in second that the acting master will retry
-	// refreshing leadership before giving up. Normally, LeaseDuration * 2 / 3.
-	// Default 10
-	RenewDeadlineSeconds int32 `json:"renewDeadlineSeconds" protobuf:"varint,2,opt,name=renewDeadlineSeconds"`
-	// RetryPeriod is the duration in second the LeaderElector clients should wait
-	// between tries of actions. Normally, LeaseDuration / 3.
-	// Default 2
-	RetryPeriodSeconds int32 `json:"retryPeriodSeconds" protobuf:"varint,3,opt,name=retryPeriodSeconds"`
+	// MaximumLagBeforeFailover is used as maximum lag tolerance for the cluster.
+	// when ever a replica is lagging more than MaximumLagBeforeFailover
+	// this node need to sync manually with the primary node
+	MaximumLagBeforeFailover int64 `json:"maximumLagBeforeFailover" protobuf:"varint,1,opt,name=maximumLagBeforeFailover"`
+
+	// ElectionTick is the number of Node.Tick invocations that must pass between
+	//	elections. That is, if a follower does not receive any message from the
+	//  leader of current term before ElectionTick has elapsed, it will become
+	//	candidate and start an election. ElectionTick must be greater than
+	//  HeartbeatTick. We suggest ElectionTick = 10 * HeartbeatTick to avoid
+	//  unnecessary leader switching. default value is 10.
+	ElectionTick int64 `json:"electionTick" protobuf:"varint,2,opt,name=electionTick"`
+
+	// HeartbeatTick is the number of Node.Tick invocations that must pass between
+	// heartbeats. That is, a leader sends heartbeat messages to maintain its
+	// leadership every HeartbeatTick ticks. default value is 1.
+	HeartbeatTick int64 `json:"heartbeatTick" protobuf:"varint,3,opt,name=heartbeatTick"`
 }
 
 // +kubebuilder:validation:Enum=Provisioning;DataRestoring;Ready;Critical;NotReady;Halted

@@ -19708,32 +19708,32 @@ func schema_apimachinery_apis_kubedb_v1alpha2_LeaderElectionConfig(ref common.Re
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "LeaderElectionConfig contains essential attributes of leader election. ref: https://github.com/kubernetes/client-go/blob/6134db91200ea474868bc6775e62cc294a74c6c6/tools/leaderelection/leaderelection.go#L105-L114",
+				Description: "LeaderElectionConfig contains essential attributes of leader election.",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
-					"leaseDurationSeconds": {
+					"maximumLagBeforeFailover": {
 						SchemaProps: spec.SchemaProps{
-							Description: "LeaseDuration is the duration in second that non-leader candidates will wait to force acquire leadership. This is measured against time of last observed ack. Default 15",
+							Description: "MaximumLagBeforeFailover is used as maximum lag tolerance for the cluster. when ever a replica is lagging more than MaximumLagBeforeFailover this node need to sync manually with the primary node",
 							Type:        []string{"integer"},
-							Format:      "int32",
+							Format:      "int64",
 						},
 					},
-					"renewDeadlineSeconds": {
+					"electionTick": {
 						SchemaProps: spec.SchemaProps{
-							Description: "RenewDeadline is the duration in second that the acting master will retry refreshing leadership before giving up. Normally, LeaseDuration * 2 / 3. Default 10",
+							Description: "ElectionTick is the number of Node.Tick invocations that must pass between\n\telections. That is, if a follower does not receive any message from the\n leader of current term before ElectionTick has elapsed, it will become\n\tcandidate and start an election. ElectionTick must be greater than\n HeartbeatTick. We suggest ElectionTick = 10 * HeartbeatTick to avoid\n unnecessary leader switching. default value is 10.",
 							Type:        []string{"integer"},
-							Format:      "int32",
+							Format:      "int64",
 						},
 					},
-					"retryPeriodSeconds": {
+					"heartbeatTick": {
 						SchemaProps: spec.SchemaProps{
-							Description: "RetryPeriod is the duration in second the LeaderElector clients should wait between tries of actions. Normally, LeaseDuration / 3. Default 2",
+							Description: "HeartbeatTick is the number of Node.Tick invocations that must pass between heartbeats. That is, a leader sends heartbeat messages to maintain its leadership every HeartbeatTick ticks. default value is 1.",
 							Type:        []string{"integer"},
-							Format:      "int32",
+							Format:      "int64",
 						},
 					},
 				},
-				Required: []string{"leaseDurationSeconds", "renewDeadlineSeconds", "retryPeriodSeconds"},
+				Required: []string{"maximumLagBeforeFailover", "electionTick", "heartbeatTick"},
 			},
 		},
 	}

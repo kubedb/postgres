@@ -580,6 +580,16 @@ message PostgresVersionExporter {
   optional string image = 1;
 }
 
+// PostgresVersionInitContainer is the Postgres init container image
+message PostgresVersionInitContainer {
+  optional string image = 1;
+}
+
+// PostgresVersionLeaderElector is the Postgres leader elector image
+message PostgresVersionLeaderElector {
+  optional string image = 1;
+}
+
 // PostgresVersionList is a list of PostgresVersions
 message PostgresVersionList {
   optional k8s.io.apimachinery.pkg.apis.meta.v1.ListMeta metadata = 1;
@@ -598,21 +608,26 @@ message PostgresVersionSpec {
   // Version
   optional string version = 1;
 
+  optional PostgresVersionInitContainer init = 2;
+
   // Database Image
-  optional PostgresVersionDatabase db = 2;
+  optional PostgresVersionDatabase db = 3;
 
   // Exporter Image
-  optional PostgresVersionExporter exporter = 3;
+  optional PostgresVersionExporter exporter = 4;
+
+  // LeaderElector Image
+  optional PostgresVersionLeaderElector elector = 5;
 
   // Tools Image
-  optional PostgresVersionTools tools = 4;
+  optional PostgresVersionTools tools = 6;
 
   // Deprecated versions usable but regarded as obsolete and best avoided, typically due to having been superseded.
   // +optional
-  optional bool deprecated = 5;
+  optional bool deprecated = 7;
 
   // PSP names
-  optional PostgresVersionPodSecurityPolicy podSecurityPolicies = 6;
+  optional PostgresVersionPodSecurityPolicy podSecurityPolicies = 8;
 }
 
 // PostgresVersionTools is the image for the postgres tools

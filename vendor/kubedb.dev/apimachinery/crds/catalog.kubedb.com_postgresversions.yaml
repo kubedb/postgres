@@ -54,7 +54,21 @@ spec:
               type: object
             deprecated:
               type: boolean
+            elector:
+              properties:
+                image:
+                  type: string
+              required:
+              - image
+              type: object
             exporter:
+              properties:
+                image:
+                  type: string
+              required:
+              - image
+              type: object
+            init:
               properties:
                 image:
                   type: string
@@ -79,7 +93,9 @@ spec:
               type: string
           required:
           - db
+          - elector
           - exporter
+          - init
           - podSecurityPolicies
           - tools
           - version
