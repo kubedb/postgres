@@ -19,14 +19,12 @@ package admission
 import (
 	"context"
 	"fmt"
-	"strings"
-	"sync"
-	"time"
-
 	"kubedb.dev/apimachinery/apis/kubedb"
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha2"
 	cs "kubedb.dev/apimachinery/client/clientset/versioned"
 	amv "kubedb.dev/apimachinery/pkg/validator"
+	"strings"
+	"sync"
 
 	"github.com/pkg/errors"
 	"gomodules.xyz/sets"
@@ -37,7 +35,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/mergepatch"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/leaderelection"
 	core_util "kmodules.xyz/client-go/core/v1"
 	meta_util "kmodules.xyz/client-go/meta"
 	hookapi "kmodules.xyz/webhook-runtime/admission/v1beta1"
@@ -224,24 +221,18 @@ func ValidatePostgres(client kubernetes.Interface, extClient cs.Interface, postg
 		}
 	}
 
-	// validate leader election configs. ref: https://github.com/kubernetes/client-go/blob/6134db91200ea474868bc6775e62cc294a74c6c6/tools/leaderelection/leaderelection.go#L73-L87
+	// validate leader election configs
 	// ==============> start
 	lec := postgres.Spec.LeaderElection
 	if lec != nil {
-		if lec.LeaseDurationSeconds <= lec.RenewDeadlineSeconds {
-			return fmt.Errorf("leaseDuration must be greater than renewDeadline")
+		if lec.ElectionTick <= lec.HeartbeatTick {
+			return fmt.Errorf("ElectionTick must be greater than HeartbeatTick")
 		}
-		if time.Duration(lec.RenewDeadlineSeconds) <= time.Duration(leaderelection.JitterFactor*float64(lec.RetryPeriodSeconds)) {
-			return fmt.Errorf("renewDeadline must be greater than retryPeriod*JitterFactor")
+		if lec.ElectionTick < 1 {
+			return fmt.Errorf("ElectionTick must be greater than zero")
 		}
-		if lec.LeaseDurationSeconds < 1 {
-			return fmt.Errorf("leaseDuration must be greater than zero")
-		}
-		if lec.RenewDeadlineSeconds < 1 {
-			return fmt.Errorf("renewDeadline must be greater than zero")
-		}
-		if lec.RetryPeriodSeconds < 1 {
-			return fmt.Errorf("retryPeriod must be greater than zero")
+		if lec.HeartbeatTick < 1 {
+			return fmt.Errorf("HeartbeatTick must be greater than zero")
 		}
 	}
 	// end <==============
