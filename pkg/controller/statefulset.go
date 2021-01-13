@@ -109,7 +109,7 @@ func (c *Controller) ensureStatefulSet(
 			in.Spec.Template.Labels = db.OffshootSelectors()
 			in.Spec.Template.Annotations = db.Spec.PodTemplate.Annotations
 			in.Spec.Template.Spec.InitContainers = core_util.UpsertContainers(in.Spec.Template.Spec.InitContainers, db.Spec.PodTemplate.Spec.InitContainers)
-			in.Spec.Template.Spec.InitContainers = getInitContainers(in, db)
+			in.Spec.Template.Spec.InitContainers = getInitContainers(in, db, postgresVersion)
 
 			in.Spec.Template.Spec.Containers = getContainers(in, db, postgresVersion)
 
@@ -944,12 +944,12 @@ func walRecoveryConfig(wal *api.PostgresWALSourceSpec) []core.EnvVar {
 	return envList
 }
 
-func getInitContainers(statefulSet *apps.StatefulSet, postgres *api.Postgres) []core.Container {
+func getInitContainers(statefulSet *apps.StatefulSet, postgres *api.Postgres,  postgresVersion *catalog.PostgresVersion) []core.Container {
 	statefulSet.Spec.Template.Spec.InitContainers = core_util.UpsertContainer(
 		statefulSet.Spec.Template.Spec.InitContainers,
 		core.Container{
 			Name:           PostgresInitContainerName,
-			Image:          PostgresInitContainerImage,
+			Image:          postgresVersion.Spec.InitContainer.Image,
 			Resources:      postgres.Spec.PodTemplate.Spec.Resources,
 			LivenessProbe:  postgres.Spec.PodTemplate.Spec.LivenessProbe,
 			ReadinessProbe: postgres.Spec.PodTemplate.Spec.ReadinessProbe,
@@ -990,7 +990,7 @@ func getContainers(statefulSet *apps.StatefulSet, postgres *api.Postgres, postgr
 		statefulSet.Spec.Template.Spec.Containers,
 		core.Container{
 			Name:           api.PostgresLeaderElectionContainerName,
-			Image:          LeaderElectionImage,
+			Image:          postgresVersion.Spec.LeaderElector.Image,
 			Resources:      postgres.Spec.PodTemplate.Spec.Resources,
 			LivenessProbe:  postgres.Spec.PodTemplate.Spec.LivenessProbe,
 			ReadinessProbe: postgres.Spec.PodTemplate.Spec.ReadinessProbe,

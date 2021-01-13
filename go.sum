@@ -1529,7 +1529,6 @@ k8s.io/utils v0.0.0-20200324210504-a9aa75ae1b89 h1:d4vVOjXm687F1iLSP2q3lyPPuyvTU
 k8s.io/utils v0.0.0-20200324210504-a9aa75ae1b89/go.mod h1:sZAwmy6armz5eXlNoLmJcl4F1QuKu7sr+mFQ0byX7Ew=
 kmodules.xyz/client-go v0.0.0-20201105071625-0b277310b9b8/go.mod h1:WXDwZBmvrcLgGcuO9iZpI9jcfPuDFfWbxA4EnhAFtGw=
 kmodules.xyz/client-go v0.0.0-20210108092221-c3812eb92bd0/go.mod h1:WXDwZBmvrcLgGcuO9iZpI9jcfPuDFfWbxA4EnhAFtGw=
-kmodules.xyz/client-go v0.0.0-20210118094617-273ba20ad7ca/go.mod h1:GdX1CHOpjL4F8P9O/7dE9m0fIOs05BNHKVT+kM51rk8=
 kmodules.xyz/client-go v0.0.0-20210218100652-8f345ddfe801 h1:2seQ02nLJpFdN2dLFy5WbCELalgYgpCqOHMBfDAChfA=
 kmodules.xyz/client-go v0.0.0-20210218100652-8f345ddfe801/go.mod h1:GdX1CHOpjL4F8P9O/7dE9m0fIOs05BNHKVT+kM51rk8=
 kmodules.xyz/constants v0.0.0-20200923054614-6b87dbbae4d6 h1:9b61GdwFN3IC9tPmBvgXdo2kBlQKvyFUy5y4Q0fwB5E=
@@ -1553,8 +1552,6 @@ kmodules.xyz/webhook-runtime v0.0.0-20201105073856-2dc7382b88c6 h1:9+EIwxUrXrM8Q
 kmodules.xyz/webhook-runtime v0.0.0-20201105073856-2dc7382b88c6/go.mod h1:xLgewoOzwR5ZrVOHQ2SR0P4E7tgCyBWbYlUawEXgeF4=
 kubedb.dev/apimachinery v0.16.3-0.20210306164706-25fd34250e13 h1:Ql6dkZ9NIf+tAyYt5tQjRxfbB82IqlUM0QxkOMm7yq0=
 kubedb.dev/apimachinery v0.16.3-0.20210306164706-25fd34250e13/go.mod h1:Ie7Ij3QTMlpZW8HTBu4LNR2lktql9pBibhb4sLRFvK0=
-kubedb.dev/pg-leader-election v0.4.2 h1:Y+iEZlB1sVIJ7X9BRqJ8IHA69GxopwOfAq9PoUb7VxE=
-kubedb.dev/pg-leader-election v0.4.2/go.mod h1:dpJh10GdMq3gZRoUCpnrObyMm6CcpLfAy2SWxdPmB8Q=
 modernc.org/cc v1.0.0/go.mod h1:1Sk4//wdnYJiUIxnW8ddKpaOJCF37yAdqYnkxUpaYxw=
 modernc.org/golex v1.0.0/go.mod h1:b/QX9oBD/LhixY6NDh+IdGv17hgB+51fET1i2kPSmvk=
 modernc.org/mathutil v1.0.0/go.mod h1:wU0vUrJsVWBZ4P6e7xtFJEhFSNsfRLJ8H458uRjg03k=

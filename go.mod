@@ -38,7 +38,6 @@ require (
 	kmodules.xyz/offshoot-api v0.0.0-20210306122148-567d434b4630
 	kmodules.xyz/webhook-runtime v0.0.0-20201105073856-2dc7382b88c6
 	kubedb.dev/apimachinery v0.16.3-0.20210306164706-25fd34250e13
-	kubedb.dev/pg-leader-election v0.4.2
 	stash.appscode.dev/apimachinery v0.11.9
 
 )

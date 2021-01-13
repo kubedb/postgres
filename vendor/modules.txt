@@ -105,8 +105,6 @@ github.com/emicklei/go-restful/log
 github.com/evanphx/json-patch
 # github.com/fatih/structs v1.1.0
 github.com/fatih/structs
-# github.com/fsnotify/fsnotify v1.4.9
-github.com/fsnotify/fsnotify
 # github.com/ghodss/yaml v1.0.0
 github.com/ghodss/yaml
 # github.com/go-openapi/jsonpointer v0.19.3 => github.com/go-openapi/jsonpointer v0.19.3
@@ -512,7 +510,6 @@ gomodules.xyz/x/context
 gomodules.xyz/x/crypto/rand
 gomodules.xyz/x/encoding/yaml
 gomodules.xyz/x/flags
-gomodules.xyz/x/ioutil
 gomodules.xyz/x/log
 gomodules.xyz/x/log/golog
 gomodules.xyz/x/net
@@ -1231,8 +1228,6 @@ kubedb.dev/apimachinery/pkg/controller/initializer/stash
 kubedb.dev/apimachinery/pkg/controller/statefulset
 kubedb.dev/apimachinery/pkg/eventer
 kubedb.dev/apimachinery/pkg/validator
-# kubedb.dev/pg-leader-election v0.4.2
-kubedb.dev/pg-leader-election/pkg/leader_election
 # sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.0.7
 sigs.k8s.io/apiserver-network-proxy/konnectivity-client/pkg/client
 sigs.k8s.io/apiserver-network-proxy/konnectivity-client/proto/client
