@@ -51,13 +51,13 @@ type PostgresVersionSpec struct {
 	Version string `json:"version" protobuf:"bytes,1,opt,name=version"`
 
 	//init container image
-	InitContainer PostgresVersionInitContainer `json:"init" protobuf:"bytes,2,opt,name=init"`
+	InitContainer PostgresVersionInitContainer `json:"initContainer" protobuf:"bytes,2,opt,name=initContainer"`
 	// Database Image
 	DB PostgresVersionDatabase `json:"db" protobuf:"bytes,3,opt,name=db"`
 	// Exporter Image
 	Exporter PostgresVersionExporter `json:"exporter" protobuf:"bytes,4,opt,name=exporter"`
 	// LeaderElector Image
-	LeaderElector PostgresVersionLeaderElector `json:"elector" protobuf:"bytes,5,opt,name=elector"`
+	LeaderElector PostgresVersionLeaderElector `json:"leaderElector" protobuf:"bytes,5,opt,name=leaderElector"`
 	// Tools Image
 	Tools PostgresVersionTools `json:"tools" protobuf:"bytes,6,opt,name=tools"`
 	// Deprecated versions usable but regarded as obsolete and best avoided, typically due to having been superseded.

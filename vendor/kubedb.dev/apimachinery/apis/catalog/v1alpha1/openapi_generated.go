@@ -20751,7 +20751,7 @@ func schema_apimachinery_apis_catalog_v1alpha1_PostgresVersionSpec(ref common.Re
 							Format:      "",
 						},
 					},
-					"init": {
+					"initContainer": {
 						SchemaProps: spec.SchemaProps{
 							Description: "init container image",
 							Ref:         ref("kubedb.dev/apimachinery/apis/catalog/v1alpha1.PostgresVersionInitContainer"),
@@ -20769,7 +20769,7 @@ func schema_apimachinery_apis_catalog_v1alpha1_PostgresVersionSpec(ref common.Re
 							Ref:         ref("kubedb.dev/apimachinery/apis/catalog/v1alpha1.PostgresVersionExporter"),
 						},
 					},
-					"elector": {
+					"leaderElector": {
 						SchemaProps: spec.SchemaProps{
 							Description: "LeaderElector Image",
 							Ref:         ref("kubedb.dev/apimachinery/apis/catalog/v1alpha1.PostgresVersionLeaderElector"),
@@ -20795,7 +20795,7 @@ func schema_apimachinery_apis_catalog_v1alpha1_PostgresVersionSpec(ref common.Re
 						},
 					},
 				},
-				Required: []string{"version", "init", "db", "exporter", "elector", "tools", "podSecurityPolicies"},
+				Required: []string{"version", "initContainer", "db", "exporter", "leaderElector", "tools", "podSecurityPolicies"},
 			},
 		},
 		Dependencies: []string{

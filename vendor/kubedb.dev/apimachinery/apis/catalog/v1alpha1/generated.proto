@@ -609,7 +609,7 @@ message PostgresVersionSpec {
   optional string version = 1;
 
   // init container image
-  optional PostgresVersionInitContainer init = 2;
+  optional PostgresVersionInitContainer initContainer = 2;
 
   // Database Image
   optional PostgresVersionDatabase db = 3;
@@ -618,7 +618,7 @@ message PostgresVersionSpec {
   optional PostgresVersionExporter exporter = 4;
 
   // LeaderElector Image
-  optional PostgresVersionLeaderElector elector = 5;
+  optional PostgresVersionLeaderElector leaderElector = 5;
 
   // Tools Image
   optional PostgresVersionTools tools = 6;

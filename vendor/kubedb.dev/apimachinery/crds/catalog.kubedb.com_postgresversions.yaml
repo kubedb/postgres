@@ -54,13 +54,6 @@ spec:
               type: object
             deprecated:
               type: boolean
-            elector:
-              properties:
-                image:
-                  type: string
-              required:
-              - image
-              type: object
             exporter:
               properties:
                 image:
@@ -68,7 +61,14 @@ spec:
               required:
               - image
               type: object
-            init:
+            initContainer:
+              properties:
+                image:
+                  type: string
+              required:
+              - image
+              type: object
+            leaderElector:
               properties:
                 image:
                   type: string
@@ -93,9 +93,9 @@ spec:
               type: string
           required:
           - db
-          - elector
           - exporter
-          - init
+          - initContainer
+          - leaderElector
           - podSecurityPolicies
           - tools
           - version
