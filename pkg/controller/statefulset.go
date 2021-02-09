@@ -128,6 +128,7 @@ func (c *Controller) ensureStatefulSet(
 			in.Spec.Template.Spec.Priority = db.Spec.PodTemplate.Spec.Priority
 			in.Spec.Template.Spec.SecurityContext = db.Spec.PodTemplate.Spec.SecurityContext
 
+
 			in = c.upsertMonitoringContainer(in, db, postgresVersion)
 			if db.Spec.Archiver != nil {
 				if db.Spec.Archiver.Storage != nil {
@@ -404,7 +405,8 @@ func upsertEnv(statefulSet *apps.StatefulSet, db *api.Postgres, envs []core.EnvV
 
 	// To do this, Upsert Container first
 	for i, container := range statefulSet.Spec.Template.Spec.Containers {
-		if container.Name == api.ResourceSingularPostgres || container.Name == api.PostgresLeaderElectionContainerName {
+		//TODO: added image name hard coded for testing purpose
+		if container.Name == api.ResourceSingularPostgres || container.Name == api.PostgresLeaderElectionContainerName || container.Name == "wal-handler"{
 			statefulSet.Spec.Template.Spec.Containers[i].Env = core_util.UpsertEnvVars(container.Env, envList...)
 		}
 	}
@@ -684,9 +686,9 @@ func upsertDataVolume(statefulSet *apps.StatefulSet, db *api.Postgres) *apps.Sta
 	}
 
 	for i, container := range statefulSet.Spec.Template.Spec.Containers {
-		if container.Name == api.ResourceSingularPostgres || container.Name == api.PostgresLeaderElectionContainerName {
+		if container.Name == api.ResourceSingularPostgres || container.Name == api.PostgresLeaderElectionContainerName  || container.Name == "wal-handler"{
 			var volumeMount core.VolumeMount
-			if container.Name == api.ResourceSingularPostgres || container.Name == api.PostgresLeaderElectionContainerName {
+			if container.Name == api.ResourceSingularPostgres || container.Name == api.PostgresLeaderElectionContainerName || container.Name == "wal-handler"{
 				volumeMount = core.VolumeMount{
 					Name:      "data",
 					MountPath: "/var/pv",
@@ -1003,6 +1005,24 @@ func getContainers(statefulSet *apps.StatefulSet, postgres *api.Postgres, postgr
 		core.Container{
 			Name:           api.PostgresLeaderElectionContainerName,
 			Image:          postgresVersion.Spec.LeaderElector.Image,
+			Resources:      postgres.Spec.PodTemplate.Spec.Resources,
+			LivenessProbe:  postgres.Spec.PodTemplate.Spec.LivenessProbe,
+			ReadinessProbe: postgres.Spec.PodTemplate.Spec.ReadinessProbe,
+			Lifecycle:      postgres.Spec.PodTemplate.Spec.Lifecycle,
+			SecurityContext: &core.SecurityContext{
+				Privileged: types.BoolP(false),
+				Capabilities: &core.Capabilities{
+					Add: []core.Capability{"IPC_LOCK", "SYS_RESOURCE"},
+				},
+			},
+		})
+
+	//TODO: for testing wal-g need to do some change if this work (emon)
+	statefulSet.Spec.Template.Spec.Containers = core_util.UpsertContainer(
+		statefulSet.Spec.Template.Spec.Containers,
+		core.Container{
+			Name:          "wal-handler",
+			Image:          "hremon331046/wal-handler:11",
 			Resources:      postgres.Spec.PodTemplate.Spec.Resources,
 			LivenessProbe:  postgres.Spec.PodTemplate.Spec.LivenessProbe,
 			ReadinessProbe: postgres.Spec.PodTemplate.Spec.ReadinessProbe,
