@@ -20,8 +20,6 @@ import (
 	"flag"
 	"time"
 
-	"k8s.io/client-go/tools/cache"
-
 	cs "kubedb.dev/apimachinery/client/clientset/versioned"
 	kubedbinformers "kubedb.dev/apimachinery/client/informers/externalversions"
 	"kubedb.dev/apimachinery/pkg/controller/initializer/stash"
@@ -29,17 +27,16 @@ import (
 	"kubedb.dev/apimachinery/pkg/eventer"
 	"kubedb.dev/postgres/pkg/controller"
 
-	coreinformers "k8s.io/client-go/informers/core/v1"
-
 	prom "github.com/prometheus-operator/prometheus-operator/pkg/client/versioned/typed/monitoring/v1"
 	"github.com/spf13/pflag"
 	core "k8s.io/api/core/v1"
 	crd_cs "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
-	corelisters "k8s.io/client-go/listers/core/v1"
-
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/informers"
+	coreinformers "k8s.io/client-go/informers/core/v1"
 	"k8s.io/client-go/kubernetes"
+	corelisters "k8s.io/client-go/listers/core/v1"
+	"k8s.io/client-go/tools/cache"
 	"kmodules.xyz/client-go/tools/cli"
 	appcat_cs "kmodules.xyz/custom-resources/client/clientset/versioned"
 )

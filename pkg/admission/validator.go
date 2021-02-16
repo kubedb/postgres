@@ -19,12 +19,13 @@ package admission
 import (
 	"context"
 	"fmt"
+	"strings"
+	"sync"
+
 	"kubedb.dev/apimachinery/apis/kubedb"
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha2"
 	cs "kubedb.dev/apimachinery/client/clientset/versioned"
 	amv "kubedb.dev/apimachinery/pkg/validator"
-	"strings"
-	"sync"
 
 	"github.com/pkg/errors"
 	"gomodules.xyz/sets"
@@ -187,15 +188,6 @@ func ValidatePostgres(client kubernetes.Interface, extClient cs.Interface, postg
 		}
 	}
 
-	if postgres.Spec.Archiver != nil {
-		archiverStorage := postgres.Spec.Archiver.Storage
-		if archiverStorage != nil {
-			if archiverStorage.S3 == nil && archiverStorage.GCS == nil && archiverStorage.Azure == nil && archiverStorage.Swift == nil && archiverStorage.Local == nil {
-				return errors.New("no storage provider is configured")
-			}
-		}
-	}
-
 	databaseSecret := postgres.Spec.AuthSecret
 	if strictValidation {
 		if databaseSecret != nil {
@@ -236,13 +228,6 @@ func ValidatePostgres(client kubernetes.Interface, extClient cs.Interface, postg
 		}
 	}
 	// end <==============
-
-	if postgres.Spec.Init != nil && postgres.Spec.Init.PostgresWAL != nil {
-		wal := postgres.Spec.Init.PostgresWAL
-		if wal.S3 == nil && wal.GCS == nil && wal.Azure == nil && wal.Swift == nil && wal.Local == nil {
-			return errors.New("no storage provider is configured")
-		}
-	}
 
 	if postgres.Spec.TerminationPolicy == "" {
 		return fmt.Errorf(`'spec.terminationPolicy' is missing`)
@@ -298,7 +283,6 @@ func getPreconditionFunc(pg *api.Postgres) []mergepatch.PreconditionFunc {
 var preconditionSpecFields = sets.NewString(
 	"spec.standby",
 	"spec.streaming",
-	"spec.archiver",
 	"spec.databaseSecret",
 	"spec.storageType",
 	"spec.storage",

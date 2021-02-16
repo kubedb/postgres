@@ -19,14 +19,16 @@ package controller
 import (
 	"context"
 	"fmt"
-	"path"
 	"strconv"
 	"strings"
 
-	"gomodules.xyz/version"
+	catalog "kubedb.dev/apimachinery/apis/catalog/v1alpha1"
+	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha2"
+	"kubedb.dev/apimachinery/pkg/eventer"
 
 	"github.com/appscode/go/types"
 	"gomodules.xyz/pointer"
+	"gomodules.xyz/version"
 	"gomodules.xyz/x/log"
 	apps "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"
@@ -38,25 +40,19 @@ import (
 	core_util "kmodules.xyz/client-go/core/v1"
 	meta_util "kmodules.xyz/client-go/meta"
 	mona "kmodules.xyz/monitoring-agent-api/api/v1"
-	catalog "kubedb.dev/apimachinery/apis/catalog/v1alpha1"
-	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha2"
-	"kubedb.dev/apimachinery/pkg/eventer"
 )
 
 const (
-	LeaderElectionImage        = "hremon331046/leadertest:11"
-	PostgresInitContainerName  = "postgres-init-container"
-	PostgresInitContainerImage = "hremon331046/postgres-init-container:latest"
+	PostgresInitContainerName = "postgres-init-container"
 
-	sharedTlsVolumeMountPath   = "/tls/certs"
-	clientTlsVolumeMountPath   = "/certs/client"
-	serverTlsVolumeMountPath   = "/certs/server"
-
-	serverTlsVolumeName   	   = "tls-volume-server"
-	clientTlsVolumeName   	   = "tls-volume-client"
-	leaderTlsVolumeName   	   = "leader-elector-tls-volume"
-	sharedTlsVolumeName   	   = "certs"
-	exporterTlsVolumeName 	   = "exporter-tls-volume"
+	sharedTlsVolumeMountPath = "/tls/certs"
+	clientTlsVolumeMountPath = "/certs/client"
+	serverTlsVolumeMountPath = "/certs/server"
+	serverTlsVolumeName      = "tls-volume-server"
+	clientTlsVolumeName      = "tls-volume-client"
+	leaderTlsVolumeName      = "leader-elector-tls-volume"
+	sharedTlsVolumeName      = "certs"
+	exporterTlsVolumeName    = "exporter-tls-volume"
 )
 
 func getMajorPgVersion(postgres *api.Postgres) (int64, error) {
@@ -129,22 +125,9 @@ func (c *Controller) ensureStatefulSet(
 			in.Spec.Template.Spec.SecurityContext = db.Spec.PodTemplate.Spec.SecurityContext
 
 			in = c.upsertMonitoringContainer(in, db, postgresVersion)
-			if db.Spec.Archiver != nil {
-				if db.Spec.Archiver.Storage != nil {
-					//Creating secret for cloud providers
-					archiverStorage := db.Spec.Archiver.Storage
-					if archiverStorage.Local == nil {
-						in = upsertArchiveSecret(in, archiverStorage.StorageSecretName)
-					}
-				}
-			}
 
 			if !kmapi.HasCondition(db.Status.Conditions, api.DatabaseDataRestored) {
 				initSource := db.Spec.Init
-				if initSource != nil && initSource.PostgresWAL != nil && initSource.PostgresWAL.Local == nil {
-					//Getting secret for cloud providers
-					in = upsertInitWalSecret(in, db.Spec.Init.PostgresWAL.StorageSecretName)
-				}
 				if initSource != nil && initSource.Script != nil {
 					in = upsertInitScript(in, db.Spec.Init.Script.VolumeSource)
 				}
@@ -232,78 +215,6 @@ func (c *Controller) ensureCombinedNode(db *api.Postgres, postgresVersion *catal
 		},
 	}
 
-	if db.Spec.Archiver != nil {
-		archiverStorage := db.Spec.Archiver.Storage
-		if archiverStorage != nil {
-			envList = append(envList,
-				core.EnvVar{
-					Name:  "ARCHIVE",
-					Value: "wal-g",
-				},
-			)
-			if archiverStorage.S3 != nil {
-				envList = append(envList,
-					core.EnvVar{
-						Name:  "ARCHIVE_S3_PREFIX",
-						Value: fmt.Sprintf("s3://%v/%v", archiverStorage.S3.Bucket, WalDataDir(db)),
-					},
-				)
-				if archiverStorage.S3.Endpoint != "" && !strings.HasSuffix(archiverStorage.S3.Endpoint, ".amazonaws.com") {
-					//means it is a  compatible storage
-					envList = append(envList,
-						core.EnvVar{
-							Name:  "ARCHIVE_S3_ENDPOINT",
-							Value: archiverStorage.S3.Endpoint,
-						},
-					)
-				}
-				if archiverStorage.S3.Region != "" {
-					envList = append(envList,
-						core.EnvVar{
-							Name:  "ARCHIVE_S3_REGION",
-							Value: archiverStorage.S3.Region,
-						},
-					)
-				}
-			} else if archiverStorage.GCS != nil {
-				envList = append(envList,
-					core.EnvVar{
-						Name:  "ARCHIVE_GS_PREFIX",
-						Value: fmt.Sprintf("gs://%v/%v", archiverStorage.GCS.Bucket, WalDataDir(db)),
-					},
-				)
-			} else if archiverStorage.Azure != nil {
-				envList = append(envList,
-					core.EnvVar{
-						Name:  "ARCHIVE_AZ_PREFIX",
-						Value: fmt.Sprintf("azure://%v/%v", archiverStorage.Azure.Container, WalDataDir(db)),
-					},
-				)
-			} else if archiverStorage.Swift != nil {
-				envList = append(envList,
-					core.EnvVar{
-						Name:  "ARCHIVE_SWIFT_PREFIX",
-						Value: fmt.Sprintf("swift://%v/%v", archiverStorage.Swift.Container, WalDataDir(db)),
-					},
-				)
-			} else if archiverStorage.Local != nil {
-				envList = append(envList,
-					core.EnvVar{
-						Name:  "ARCHIVE_FILE_PREFIX",
-						Value: archiverStorage.Local.MountPath,
-					},
-				)
-			}
-		}
-	}
-
-	if db.Spec.Init != nil {
-		wal := db.Spec.Init.PostgresWAL
-		if wal != nil {
-			envList = append(envList, walRecoveryConfig(wal)...)
-		}
-	}
-
 	return c.ensureStatefulSet(db, postgresVersion, envList)
 }
 
@@ -348,15 +259,15 @@ func upsertEnv(statefulSet *apps.StatefulSet, db *api.Postgres, envs []core.EnvV
 		},
 		{
 			Name:  "MAX_LAG_BEFORE_FAILOVER",
-			Value: strconv.FormatUint(db.Spec.LeaderElection.MaximumLagBeforeFailover,10),
+			Value: strconv.FormatUint(db.Spec.LeaderElection.MaximumLagBeforeFailover, 10),
 		},
 		{
 			Name:  "ELECTION_TICK",
-			Value: strconv.FormatUint(db.Spec.LeaderElection.ElectionTick,10),
+			Value: strconv.FormatUint(db.Spec.LeaderElection.ElectionTick, 10),
 		},
 		{
 			Name:  "HEARTBEAT_TICK",
-			Value: strconv.FormatUint(db.Spec.LeaderElection.HeartbeatTick,10),
+			Value: strconv.FormatUint(db.Spec.LeaderElection.HeartbeatTick, 10),
 		},
 		{
 			Name: EnvPostgresUser,
@@ -530,62 +441,6 @@ func (c *Controller) upsertMonitoringContainer(statefulSet *apps.StatefulSet, db
 	return statefulSet
 }
 
-func upsertArchiveSecret(statefulSet *apps.StatefulSet, secretName string) *apps.StatefulSet {
-	for i, container := range statefulSet.Spec.Template.Spec.Containers {
-		if container.Name == api.ResourceSingularPostgres {
-			volumeMount := core.VolumeMount{
-				Name:      "wal-g-archive",
-				MountPath: "/srv/wal-g/archive/secrets",
-			}
-			volumeMounts := container.VolumeMounts
-			volumeMounts = core_util.UpsertVolumeMount(volumeMounts, volumeMount)
-			statefulSet.Spec.Template.Spec.Containers[i].VolumeMounts = volumeMounts
-
-			volume := core.Volume{
-				Name: "wal-g-archive",
-				VolumeSource: core.VolumeSource{
-					Secret: &core.SecretVolumeSource{
-						SecretName: secretName,
-					},
-				},
-			}
-			volumes := statefulSet.Spec.Template.Spec.Volumes
-			volumes = core_util.UpsertVolume(volumes, volume)
-			statefulSet.Spec.Template.Spec.Volumes = volumes
-			return statefulSet
-		}
-	}
-	return statefulSet
-}
-
-func upsertInitWalSecret(statefulSet *apps.StatefulSet, secretName string) *apps.StatefulSet {
-	for i, container := range statefulSet.Spec.Template.Spec.Containers {
-		if container.Name == api.ResourceSingularPostgres {
-			volumeMount := core.VolumeMount{
-				Name:      "wal-g-restore",
-				MountPath: "/srv/wal-g/restore/secrets",
-			}
-			volumeMounts := container.VolumeMounts
-			volumeMounts = core_util.UpsertVolumeMount(volumeMounts, volumeMount)
-			statefulSet.Spec.Template.Spec.Containers[i].VolumeMounts = volumeMounts
-
-			volume := core.Volume{
-				Name: "wal-g-restore",
-				VolumeSource: core.VolumeSource{
-					Secret: &core.SecretVolumeSource{
-						SecretName: secretName,
-					},
-				},
-			}
-			volumes := statefulSet.Spec.Template.Spec.Volumes
-			volumes = core_util.UpsertVolume(volumes, volume)
-			statefulSet.Spec.Template.Spec.Volumes = volumes
-			return statefulSet
-		}
-	}
-	return statefulSet
-}
-
 func upsertShm(statefulSet *apps.StatefulSet) *apps.StatefulSet {
 	for i, container := range statefulSet.Spec.Template.Spec.Containers {
 		if container.Name == api.ResourceSingularPostgres {
@@ -639,49 +494,6 @@ func upsertInitScript(statefulSet *apps.StatefulSet, script core.VolumeSource) *
 }
 
 func upsertDataVolume(statefulSet *apps.StatefulSet, db *api.Postgres) *apps.StatefulSet {
-	if db.Spec.Archiver != nil || db.Spec.Init != nil {
-		// Add a PV
-		if db.Spec.Archiver != nil &&
-			db.Spec.Archiver.Storage != nil &&
-			db.Spec.Archiver.Storage.Local != nil {
-			pgLocalVol := db.Spec.Archiver.Storage.Local
-			podSpec := statefulSet.Spec.Template.Spec
-			if pgLocalVol != nil {
-				volume := core.Volume{
-					Name:         "local-archive",
-					VolumeSource: pgLocalVol.VolumeSource,
-				}
-				statefulSet.Spec.Template.Spec.Volumes = append(podSpec.Volumes, volume)
-
-				statefulSet.Spec.Template.Spec.Containers[0].VolumeMounts = append(podSpec.Containers[0].VolumeMounts, core.VolumeMount{
-					Name:      "local-archive",
-					MountPath: pgLocalVol.MountPath,
-					//SubPath:  use of SubPath is discouraged
-					// due to the contrasting natures of PV claim and wal-g directory
-				})
-			}
-		}
-		if db.Spec.Init != nil &&
-			db.Spec.Init.PostgresWAL != nil &&
-			db.Spec.Init.PostgresWAL.Local != nil {
-			pgLocalVol := db.Spec.Init.PostgresWAL.Local
-			podSpec := statefulSet.Spec.Template.Spec
-			if pgLocalVol != nil {
-				volume := core.Volume{
-					Name:         "local-init",
-					VolumeSource: pgLocalVol.VolumeSource,
-				}
-				statefulSet.Spec.Template.Spec.Volumes = append(podSpec.Volumes, volume)
-
-				statefulSet.Spec.Template.Spec.Containers[0].VolumeMounts = append(podSpec.Containers[0].VolumeMounts, core.VolumeMount{
-					Name:      "local-init",
-					MountPath: pgLocalVol.MountPath,
-					//SubPath: is used to locate existing archive
-					//from given mountPath, therefore isn't mounted.
-				})
-			}
-		}
-	}
 
 	for i, container := range statefulSet.Spec.Template.Spec.Containers {
 		if container.Name == api.ResourceSingularPostgres || container.Name == api.PostgresLeaderElectionContainerName {
@@ -851,112 +663,8 @@ func upsertCertficatesVolume(statefulSet *apps.StatefulSet, postgres *api.Postgr
 
 	return statefulSet
 }
-func walRecoveryConfig(wal *api.PostgresWALSourceSpec) []core.EnvVar {
-	envList := []core.EnvVar{
-		{
-			Name:  "RESTORE",
-			Value: "true",
-		},
-	}
 
-	if wal.S3 != nil {
-		envList = append(envList,
-			core.EnvVar{
-				Name:  "RESTORE_S3_PREFIX",
-				Value: fmt.Sprintf("s3://%v/%v", wal.S3.Bucket, wal.S3.Prefix),
-			},
-		)
-		if wal.S3.Endpoint != "" && !strings.HasSuffix(wal.S3.Endpoint, ".amazonaws.com") {
-			envList = append(envList,
-				core.EnvVar{
-					Name:  "RESTORE_S3_ENDPOINT",
-					Value: wal.S3.Endpoint,
-				},
-			)
-		}
-		if wal.S3.Region != "" {
-			envList = append(envList,
-				core.EnvVar{
-					Name:  "RESTORE_S3_REGION",
-					Value: wal.S3.Region,
-				},
-			)
-		}
-	} else if wal.GCS != nil {
-		envList = append(envList,
-			core.EnvVar{
-				Name:  "RESTORE_GS_PREFIX",
-				Value: fmt.Sprintf("gs://%v/%v", wal.GCS.Bucket, wal.GCS.Prefix),
-			},
-		)
-	} else if wal.Azure != nil {
-		envList = append(envList,
-			core.EnvVar{
-				Name:  "RESTORE_AZ_PREFIX",
-				Value: fmt.Sprintf("azure://%v/%v", wal.Azure.Container, wal.Azure.Prefix),
-			},
-		)
-	} else if wal.Swift != nil {
-		envList = append(envList,
-			core.EnvVar{
-				Name:  "RESTORE_SWIFT_PREFIX",
-				Value: fmt.Sprintf("swift://%v/%v", wal.Swift.Container, wal.Swift.Prefix),
-			},
-		)
-	} else if wal.Local != nil {
-		archiveSource := path.Join("/", wal.Local.MountPath, wal.Local.SubPath)
-		envList = append(envList,
-			core.EnvVar{
-				Name:  "RESTORE_FILE_PREFIX",
-				Value: archiveSource,
-			},
-		)
-	}
-
-	if wal.PITR != nil {
-		envList = append(envList,
-			[]core.EnvVar{
-				{
-					Name:  "PITR",
-					Value: "true",
-				},
-				{
-					Name:  "TARGET_INCLUSIVE",
-					Value: fmt.Sprintf("%t", *wal.PITR.TargetInclusive),
-				},
-			}...)
-		if wal.PITR.TargetTime != "" {
-			envList = append(envList,
-				[]core.EnvVar{
-					{
-						Name:  "TARGET_TIME",
-						Value: wal.PITR.TargetTime,
-					},
-				}...)
-		}
-		if wal.PITR.TargetTimeline != "" {
-			envList = append(envList,
-				[]core.EnvVar{
-					{
-						Name:  "TARGET_TIMELINE",
-						Value: wal.PITR.TargetTimeline,
-					},
-				}...)
-		}
-		if wal.PITR.TargetXID != "" {
-			envList = append(envList,
-				[]core.EnvVar{
-					{
-						Name:  "TARGET_XID",
-						Value: wal.PITR.TargetXID,
-					},
-				}...)
-		}
-	}
-	return envList
-}
-
-func getInitContainers(statefulSet *apps.StatefulSet, postgres *api.Postgres,  postgresVersion *catalog.PostgresVersion) []core.Container {
+func getInitContainers(statefulSet *apps.StatefulSet, postgres *api.Postgres, postgresVersion *catalog.PostgresVersion) []core.Container {
 	statefulSet.Spec.Template.Spec.InitContainers = core_util.UpsertContainer(
 		statefulSet.Spec.Template.Spec.InitContainers,
 		core.Container{
@@ -970,15 +678,14 @@ func getInitContainers(statefulSet *apps.StatefulSet, postgres *api.Postgres,  p
 	return statefulSet.Spec.Template.Spec.InitContainers
 }
 func getContainers(statefulSet *apps.StatefulSet, postgres *api.Postgres, postgresVersion *catalog.PostgresVersion) []core.Container {
-//TODO: need to modify to handle the case if user give lifecycle command
-	lifeCycle :=& core.Lifecycle{
+	//TODO: need to modify to handle the case if user give lifecycle command
+	lifeCycle := &core.Lifecycle{
 		PreStop: &core.Handler{
 			Exec: &core.ExecAction{
-				Command: []string{"pg_ctl","-m","immediate","-w","stop"},
+				Command: []string{"pg_ctl", "-m", "immediate", "-w", "stop"},
 			},
 		},
 	}
-
 
 	statefulSet.Spec.Template.Spec.Containers = core_util.UpsertContainer(
 		statefulSet.Spec.Template.Spec.Containers,
@@ -990,7 +697,7 @@ func getContainers(statefulSet *apps.StatefulSet, postgres *api.Postgres, postgr
 			ReadinessProbe: postgres.Spec.PodTemplate.Spec.ReadinessProbe,
 			//TODO: this commented one was the default one.
 			//Lifecycle:      postgres.Spec.PodTemplate.Spec.Lifecycle,
-			Lifecycle : lifeCycle,
+			Lifecycle: lifeCycle,
 			SecurityContext: &core.SecurityContext{
 				Privileged: types.BoolP(false),
 				Capabilities: &core.Capabilities{

@@ -278,12 +278,7 @@ func (c *Controller) setOwnerReferenceToOffshoots(db *api.Postgres, owner *metav
 		if err := c.wipeOutDatabase(db.ObjectMeta, db.Spec.GetPersistentSecrets(), owner); err != nil {
 			return errors.Wrap(err, "error in wiping out database.")
 		}
-		// if wal archiver was configured, remove wal data from backend
-		if db.Spec.Archiver != nil {
-			if err := c.wipeOutWalData(db.ObjectMeta, &db.Spec); err != nil {
-				return err
-			}
-		}
+
 	} else {
 		secrets := db.Spec.GetPersistentSecrets()
 		secrets = append(secrets, c.GetPostgresSecrets(db)...)
