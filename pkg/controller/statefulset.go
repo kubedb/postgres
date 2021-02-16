@@ -48,15 +48,15 @@ const (
 	PostgresInitContainerName  = "postgres-init-container"
 	PostgresInitContainerImage = "hremon331046/postgres-init-container:latest"
 
-	sharedTlsVolumeMountPath = "/tls/certs"
-	clientTlsVolumeMountPath = "/certs/client"
-	serverTlsVolumeMountPath = "/certs/server"
+	sharedTlsVolumeMountPath   = "/tls/certs"
+	clientTlsVolumeMountPath   = "/certs/client"
+	serverTlsVolumeMountPath   = "/certs/server"
 
-	serverTlsVolumeName   = "tls-volume-server"
-	clientTlsVolumeName   = "tls-volume-client"
-	leaderTlsVolumeName   = "leader-elector-tls-volume"
-	sharedTlsVolumeName   = "certs"
-	exporterTlsVolumename = "exporter-tls-volume"
+	serverTlsVolumeName   	   = "tls-volume-server"
+	clientTlsVolumeName   	   = "tls-volume-client"
+	leaderTlsVolumeName   	   = "leader-elector-tls-volume"
+	sharedTlsVolumeName   	   = "certs"
+	exporterTlsVolumeName 	   = "exporter-tls-volume"
 )
 
 func getMajorPgVersion(postgres *api.Postgres) (int64, error) {
@@ -974,7 +974,7 @@ func getContainers(statefulSet *apps.StatefulSet, postgres *api.Postgres, postgr
 	lifeCycle :=& core.Lifecycle{
 		PreStop: &core.Handler{
 			Exec: &core.ExecAction{
-				Command: []string{"pg_ctl","-m","fast","-w","stop"},
+				Command: []string{"pg_ctl","-m","immediate","-w","stop"},
 			},
 		},
 	}
@@ -1022,7 +1022,7 @@ func upsertTLSVolume(sts *apps.StatefulSet, db *api.Postgres) *apps.StatefulSet 
 	for i, container := range sts.Spec.Template.Spec.Containers {
 		if container.Name == "exporter" {
 			volumeMount := core.VolumeMount{
-				Name:      exporterTlsVolumename,
+				Name:      exporterTlsVolumeName,
 				MountPath: clientTlsVolumeMountPath,
 			}
 			volumeMounts := container.VolumeMounts
@@ -1102,7 +1102,7 @@ func upsertTLSVolume(sts *apps.StatefulSet, db *api.Postgres) *apps.StatefulSet 
 	}
 
 	exporterTLSVolume := core.Volume{
-		Name: exporterTlsVolumename,
+		Name: exporterTlsVolumeName,
 		VolumeSource: core.VolumeSource{
 			Secret: &core.SecretVolumeSource{
 				DefaultMode: pointer.Int32P(0600),
