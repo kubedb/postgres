@@ -136,10 +136,10 @@ func (c *Controller) ensureStatefulSet(
 			in = upsertShm(in)
 			in = upsertDataVolume(in, db)
 			in = upsertCustomConfig(in, db)
-			in = upsertSharedScriptsVolume(in, db)
+			in = upsertSharedScriptsVolume(in)
 			if db.Spec.TLS != nil {
 				in = upsertTLSVolume(in, db)
-				in = upsertCertficatesVolume(in, db)
+				in = upsertCertficatesVolume(in)
 
 			}
 
@@ -582,7 +582,7 @@ func upsertCustomConfig(statefulSet *apps.StatefulSet, db *api.Postgres) *apps.S
 	return statefulSet
 }
 
-func upsertSharedScriptsVolume(statefulSet *apps.StatefulSet, postgres *api.Postgres) *apps.StatefulSet {
+func upsertSharedScriptsVolume(statefulSet *apps.StatefulSet) *apps.StatefulSet {
 
 	for i, container := range statefulSet.Spec.Template.Spec.Containers {
 		if container.Name == api.ResourceSingularPostgres || container.Name == api.PostgresLeaderElectionContainerName {
@@ -623,7 +623,7 @@ func upsertSharedScriptsVolume(statefulSet *apps.StatefulSet, postgres *api.Post
 	return statefulSet
 }
 
-func upsertCertficatesVolume(statefulSet *apps.StatefulSet, postgres *api.Postgres) *apps.StatefulSet {
+func upsertCertficatesVolume(statefulSet *apps.StatefulSet) *apps.StatefulSet {
 
 	for i, container := range statefulSet.Spec.Template.Spec.Containers {
 		if container.Name == api.ResourceSingularPostgres {
