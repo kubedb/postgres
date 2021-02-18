@@ -187,6 +187,20 @@ func ValidatePostgres(client kubernetes.Interface, extClient cs.Interface, postg
 			return fmt.Errorf(`spec.streamingMode "%s" invalid`, streamingMode)
 		}
 	}
+	if (postgres.Spec.ClientAuthMode == api.ClientAuthModeCert) &&
+		(postgres.Spec.SSLMode == api.PgSSLModeDisable ) {
+		return fmt.Errorf("can't have %v set to postgres.spec.sslMode when postgres.spec.ClientAuthMode is set to %v",
+			postgres.Spec.SSLMode, postgres.Spec.ClientAuthMode)
+	}
+	if (postgres.Spec.TLS != nil) &&
+		(postgres.Spec.SSLMode == api.PgSSLModeDisable ) {
+		return fmt.Errorf("can't have %v set to postgres.spec.sslMode when postgres.spec.TLS is set ",
+			postgres.Spec.SSLMode)
+	}
+	if (postgres.Spec.SSLMode != api.PgSSLModeDisable) && postgres.Spec.TLS == nil {
+		return fmt.Errorf("can't have %v set to postgres.Spec.SSLMode when postgres.Spec.TLS is null",
+			postgres.Spec.ClientAuthMode)
+	}
 
 	databaseSecret := postgres.Spec.AuthSecret
 	if strictValidation {

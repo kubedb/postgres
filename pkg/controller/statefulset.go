@@ -243,7 +243,18 @@ func upsertEnv(statefulSet *apps.StatefulSet, db *api.Postgres, envs []core.EnvV
 	if err != nil {
 		log.Error("couldn't get version's major part")
 	}
-
+	sslMode := db.Spec.SSLMode
+	if sslMode == "" {
+		if db.Spec.TLS != nil {
+			sslMode = api.PgSSLModeVerifyFull
+		} else {
+			sslMode = api.PgSSLModeDisable
+		}
+	}
+	clientAuthMode := db.Spec.ClientAuthMode
+	if clientAuthMode == "" {
+		clientAuthMode = api.ClientAuthModeMD5
+	}
 	envList := []core.EnvVar{
 		{
 			Name: "NAMESPACE",
@@ -299,6 +310,14 @@ func upsertEnv(statefulSet *apps.StatefulSet, db *api.Postgres, envs []core.EnvV
 			Name:  "MAJOR_PG_VERSION",
 			Value: strconv.Itoa(int(majorPGVersion)),
 		},
+		{
+			Name: "CLIENT_AUTH_MODE",
+			Value: string(clientAuthMode),
+		},
+		{
+			Name: "SSL_MODE",
+			Value: string(sslMode),
+		},
 	}
 
 	envList = append(envList, envs...)
@@ -306,7 +325,7 @@ func upsertEnv(statefulSet *apps.StatefulSet, db *api.Postgres, envs []core.EnvV
 	if db.Spec.TLS != nil {
 		tlEnv := []core.EnvVar{
 			{
-				Name:  "SSL_MODE",
+				Name:  "SSL",
 				Value: "ON",
 			},
 		}
