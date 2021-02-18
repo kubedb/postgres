@@ -311,11 +311,11 @@ func upsertEnv(statefulSet *apps.StatefulSet, db *api.Postgres, envs []core.EnvV
 			Value: strconv.Itoa(int(majorPGVersion)),
 		},
 		{
-			Name: "CLIENT_AUTH_MODE",
+			Name:  "CLIENT_AUTH_MODE",
 			Value: string(clientAuthMode),
 		},
 		{
-			Name: "SSL_MODE",
+			Name:  "SSL_MODE",
 			Value: string(sslMode),
 		},
 	}

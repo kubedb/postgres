@@ -188,12 +188,12 @@ func ValidatePostgres(client kubernetes.Interface, extClient cs.Interface, postg
 		}
 	}
 	if (postgres.Spec.ClientAuthMode == api.ClientAuthModeCert) &&
-		(postgres.Spec.SSLMode == api.PgSSLModeDisable ) {
+		(postgres.Spec.SSLMode == api.PgSSLModeDisable) {
 		return fmt.Errorf("can't have %v set to postgres.spec.sslMode when postgres.spec.ClientAuthMode is set to %v",
 			postgres.Spec.SSLMode, postgres.Spec.ClientAuthMode)
 	}
 	if (postgres.Spec.TLS != nil) &&
-		(postgres.Spec.SSLMode == api.PgSSLModeDisable ) {
+		(postgres.Spec.SSLMode == api.PgSSLModeDisable) {
 		return fmt.Errorf("can't have %v set to postgres.spec.sslMode when postgres.spec.TLS is set ",
 			postgres.Spec.SSLMode)
 	}
