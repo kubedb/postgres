@@ -796,6 +796,10 @@ func upsertTLSVolume(sts *apps.StatefulSet, db *api.Postgres) *apps.StatefulSet 
 				SecretName: db.MustCertSecretName(api.PostgresClientCert),
 				Items: []core.KeyToPath{
 					{
+						Key:  "ca.crt",
+						Path: "ca.crt",
+					},
+					{
 						Key:  "tls.crt",
 						Path: "client.crt",
 					},
