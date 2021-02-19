@@ -19,6 +19,7 @@ package admission
 import (
 	"context"
 	"fmt"
+	"gomodules.xyz/version"
 	"strings"
 	"sync"
 
@@ -187,6 +188,18 @@ func ValidatePostgres(client kubernetes.Interface, extClient cs.Interface, postg
 			return fmt.Errorf(`spec.streamingMode "%s" invalid`, streamingMode)
 		}
 	}
+
+	pgVersion, err := extClient.CatalogV1alpha1().PostgresVersions().Get(context.TODO(), string(postgres.Spec.Version), metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+	if postgres.Spec.ClientAuthMode == api.ClientAuthModeScram {
+		if _,err := checkScramAuthMethodSupport(pgVersion.Spec.Version); err != nil {
+			return err
+		}
+	}
+
+
 	if (postgres.Spec.ClientAuthMode == api.ClientAuthModeCert) &&
 		(postgres.Spec.SSLMode == api.PgSSLModeDisable) {
 		return fmt.Errorf("can't have %v set to postgres.spec.sslMode when postgres.spec.ClientAuthMode is set to %v",
@@ -310,4 +323,15 @@ func preconditionFailedError() error {
 	kind
 	name
 	namespace`, strList}, "\n\t"))
+}
+
+func checkScramAuthMethodSupport(v string) (bool, error) {
+	pgVersion, err := version.NewVersion(v)
+	if err != nil {
+		return false, err
+	}
+	if pgVersion.Major() < 11 {
+		return false, fmt.Errorf("scram auth method is available only for 11 or higher Versions")
+	}
+	return true, nil
 }
