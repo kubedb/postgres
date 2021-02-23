@@ -211,7 +211,7 @@ func ValidatePostgres(client kubernetes.Interface, extClient cs.Interface, postg
 	}
 	if (postgres.Spec.SSLMode != api.PgSSLModeDisable) && postgres.Spec.TLS == nil {
 		return fmt.Errorf("can't have %v set to postgres.Spec.SSLMode when postgres.Spec.TLS is null",
-			postgres.Spec.ClientAuthMode)
+			postgres.Spec.SSLMode)
 	}
 
 	databaseSecret := postgres.Spec.AuthSecret
