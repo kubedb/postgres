@@ -19,7 +19,6 @@ package admission
 import (
 	"context"
 	"fmt"
-	"gomodules.xyz/version"
 	"strings"
 	"sync"
 
@@ -30,6 +29,7 @@ import (
 
 	"github.com/pkg/errors"
 	"gomodules.xyz/sets"
+	"gomodules.xyz/version"
 	admission "k8s.io/api/admission/v1beta1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -194,11 +194,10 @@ func ValidatePostgres(client kubernetes.Interface, extClient cs.Interface, postg
 		return err
 	}
 	if postgres.Spec.ClientAuthMode == api.ClientAuthModeScram {
-		if _,err := checkScramAuthMethodSupport(pgVersion.Spec.Version); err != nil {
+		if _, err := checkScramAuthMethodSupport(pgVersion.Spec.Version); err != nil {
 			return err
 		}
 	}
-
 
 	if (postgres.Spec.ClientAuthMode == api.ClientAuthModeCert) &&
 		(postgres.Spec.SSLMode == api.PgSSLModeDisable) {
