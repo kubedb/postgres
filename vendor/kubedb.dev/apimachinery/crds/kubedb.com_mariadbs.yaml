@@ -2723,6 +2723,8 @@ spec:
             replicas:
               format: int32
               type: integer
+            requireSSL:
+              type: boolean
             serviceTemplates:
               items:
                 properties:

@@ -1250,11 +1250,6 @@ func (in *MySQLGroupSpec) DeepCopyInto(out *MySQLGroupSpec) {
 		*out = new(MySQLGroupMode)
 		**out = **in
 	}
-	if in.BaseServerID != nil {
-		in, out := &in.BaseServerID, &out.BaseServerID
-		*out = new(int64)
-		**out = **in
-	}
 	return
 }
 

@@ -16,7 +16,10 @@ limitations under the License.
 
 package v1alpha1
 
-import metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+import (
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	appcat "kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1"
+)
 
 const (
 	ResourceCodeMySQLVersion     = "myversion"
@@ -66,6 +69,9 @@ type MySQLVersionSpec struct {
 	PodSecurityPolicies MySQLVersionPodSecurityPolicy `json:"podSecurityPolicies" protobuf:"bytes,8,opt,name=podSecurityPolicies"`
 	//upgrade constraints
 	UpgradeConstraints MySQLUpgradeConstraints `json:"upgradeConstraints" protobuf:"bytes,9,opt,name=upgradeConstraints"`
+	// Stash defines backup and restore task definitions.
+	// +optional
+	Stash appcat.StashAddonSpec `json:"stash,omitempty" protobuf:"bytes,10,opt,name=stash"`
 }
 
 // MySQLVersionDatabase is the MySQL Database image

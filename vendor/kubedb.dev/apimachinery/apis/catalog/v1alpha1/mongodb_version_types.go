@@ -16,7 +16,10 @@ limitations under the License.
 
 package v1alpha1
 
-import metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+import (
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	appcat "kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1"
+)
 
 const (
 	ResourceCodeMongoDBVersion     = "mgversion"
@@ -64,6 +67,9 @@ type MongoDBVersionSpec struct {
 	PodSecurityPolicies MongoDBVersionPodSecurityPolicy `json:"podSecurityPolicies" protobuf:"bytes,7,opt,name=podSecurityPolicies"`
 	// ReplicationModeDetector Image
 	ReplicationModeDetector ReplicationModeDetector `json:"replicationModeDetector" protobuf:"bytes,8,opt,name=replicationModeDetector"`
+	// Stash defines backup and restore task definitions.
+	// +optional
+	Stash appcat.StashAddonSpec `json:"stash,omitempty" protobuf:"bytes,9,opt,name=stash"`
 }
 
 // MongoDBVersionDatabase is the MongoDB Database image

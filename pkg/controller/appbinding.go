@@ -27,6 +27,7 @@ import (
 
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	kutil "kmodules.xyz/client-go"
 	core_util "kmodules.xyz/client-go/core/v1"
@@ -70,6 +71,15 @@ func (c *Controller) ensureAppBinding(db *api.Postgres, postgresVersion *catalog
 				Query:  "sslmode=disable", // TODO: Fix when sslmode is supported
 			}
 			in.Spec.ClientConfig.InsecureSkipTLSVerify = false
+			in.Spec.Parameters = &runtime.RawExtension{
+				Object: &appcat.StashAddon{
+					TypeMeta: metav1.TypeMeta{
+						Kind:       appcat.SchemeGroupVersion.String(),
+						APIVersion: "StashAddon",
+					},
+					Stash: postgresVersion.Spec.Stash,
+				},
+			}
 
 			in.Spec.Secret = &core.LocalObjectReference{
 				Name: db.Spec.AuthSecret.Name,

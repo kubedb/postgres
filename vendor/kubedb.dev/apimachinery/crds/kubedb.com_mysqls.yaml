@@ -2961,9 +2961,6 @@ spec:
               properties:
                 group:
                   properties:
-                    baseServerID:
-                      format: int64
-                      type: integer
                     mode:
                       enum:
                       - Single-Primary

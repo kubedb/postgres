@@ -16,7 +16,10 @@ limitations under the License.
 
 package v1alpha1
 
-import metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+import (
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	appcat "kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1"
+)
 
 const (
 	ResourceCodeElasticsearchVersion     = "esversion"
@@ -66,6 +69,9 @@ type ElasticsearchVersionSpec struct {
 	InitContainer ElasticsearchVersionInitContainer `json:"initContainer" protobuf:"bytes,7,opt,name=initContainer"`
 	// PSP names
 	PodSecurityPolicies ElasticsearchVersionPodSecurityPolicy `json:"podSecurityPolicies" protobuf:"bytes,8,opt,name=podSecurityPolicies"`
+	// Stash defines backup and restore task definitions.
+	// +optional
+	Stash appcat.StashAddonSpec `json:"stash,omitempty" protobuf:"bytes,9,opt,name=stash"`
 }
 
 // ElasticsearchVersionDatabase is the Elasticsearch Database image

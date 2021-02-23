@@ -81,7 +81,7 @@ func (in *ElasticsearchVersion) DeepCopyInto(out *ElasticsearchVersion) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
 	in.ObjectMeta.DeepCopyInto(&out.ObjectMeta)
-	out.Spec = in.Spec
+	in.Spec.DeepCopyInto(&out.Spec)
 	return
 }
 
@@ -208,6 +208,7 @@ func (in *ElasticsearchVersionSpec) DeepCopyInto(out *ElasticsearchVersionSpec) 
 	out.Tools = in.Tools
 	out.InitContainer = in.InitContainer
 	out.PodSecurityPolicies = in.PodSecurityPolicies
+	in.Stash.DeepCopyInto(&out.Stash)
 	return
 }
 
@@ -242,7 +243,7 @@ func (in *EtcdVersion) DeepCopyInto(out *EtcdVersion) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
 	in.ObjectMeta.DeepCopyInto(&out.ObjectMeta)
-	out.Spec = in.Spec
+	in.Spec.DeepCopyInto(&out.Spec)
 	return
 }
 
@@ -335,6 +336,7 @@ func (in *EtcdVersionSpec) DeepCopyInto(out *EtcdVersionSpec) {
 	out.DB = in.DB
 	out.Exporter = in.Exporter
 	out.Tools = in.Tools
+	in.Stash.DeepCopyInto(&out.Stash)
 	return
 }
 
@@ -369,7 +371,7 @@ func (in *MariaDBVersion) DeepCopyInto(out *MariaDBVersion) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
 	in.ObjectMeta.DeepCopyInto(&out.ObjectMeta)
-	out.Spec = in.Spec
+	in.Spec.DeepCopyInto(&out.Spec)
 	return
 }
 
@@ -495,6 +497,7 @@ func (in *MariaDBVersionSpec) DeepCopyInto(out *MariaDBVersionSpec) {
 	out.Exporter = in.Exporter
 	out.InitContainer = in.InitContainer
 	out.PodSecurityPolicies = in.PodSecurityPolicies
+	in.Stash.DeepCopyInto(&out.Stash)
 	return
 }
 
@@ -640,7 +643,7 @@ func (in *MongoDBVersion) DeepCopyInto(out *MongoDBVersion) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
 	in.ObjectMeta.DeepCopyInto(&out.ObjectMeta)
-	out.Spec = in.Spec
+	in.Spec.DeepCopyInto(&out.Spec)
 	return
 }
 
@@ -768,6 +771,7 @@ func (in *MongoDBVersionSpec) DeepCopyInto(out *MongoDBVersionSpec) {
 	out.InitContainer = in.InitContainer
 	out.PodSecurityPolicies = in.PodSecurityPolicies
 	out.ReplicationModeDetector = in.ReplicationModeDetector
+	in.Stash.DeepCopyInto(&out.Stash)
 	return
 }
 
@@ -949,6 +953,7 @@ func (in *MySQLVersionSpec) DeepCopyInto(out *MySQLVersionSpec) {
 	out.InitContainer = in.InitContainer
 	out.PodSecurityPolicies = in.PodSecurityPolicies
 	in.UpgradeConstraints.DeepCopyInto(&out.UpgradeConstraints)
+	in.Stash.DeepCopyInto(&out.Stash)
 	return
 }
 
@@ -983,7 +988,7 @@ func (in *PerconaXtraDBVersion) DeepCopyInto(out *PerconaXtraDBVersion) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
 	in.ObjectMeta.DeepCopyInto(&out.ObjectMeta)
-	out.Spec = in.Spec
+	in.Spec.DeepCopyInto(&out.Spec)
 	return
 }
 
@@ -1109,6 +1114,7 @@ func (in *PerconaXtraDBVersionSpec) DeepCopyInto(out *PerconaXtraDBVersionSpec) 
 	out.Exporter = in.Exporter
 	out.InitContainer = in.InitContainer
 	out.PodSecurityPolicies = in.PodSecurityPolicies
+	in.Stash.DeepCopyInto(&out.Stash)
 	return
 }
 
@@ -1237,7 +1243,7 @@ func (in *PostgresVersion) DeepCopyInto(out *PostgresVersion) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
 	in.ObjectMeta.DeepCopyInto(&out.ObjectMeta)
-	out.Spec = in.Spec
+	in.Spec.DeepCopyInto(&out.Spec)
 	return
 }
 
@@ -1347,6 +1353,7 @@ func (in *PostgresVersionSpec) DeepCopyInto(out *PostgresVersionSpec) {
 	out.Exporter = in.Exporter
 	out.Tools = in.Tools
 	out.PodSecurityPolicies = in.PodSecurityPolicies
+	in.Stash.DeepCopyInto(&out.Stash)
 	return
 }
 
@@ -1508,7 +1515,7 @@ func (in *RedisVersion) DeepCopyInto(out *RedisVersion) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
 	in.ObjectMeta.DeepCopyInto(&out.ObjectMeta)
-	out.Spec = in.Spec
+	in.Spec.DeepCopyInto(&out.Spec)
 	return
 }
 
@@ -1617,6 +1624,7 @@ func (in *RedisVersionSpec) DeepCopyInto(out *RedisVersionSpec) {
 	out.DB = in.DB
 	out.Exporter = in.Exporter
 	out.PodSecurityPolicies = in.PodSecurityPolicies
+	in.Stash.DeepCopyInto(&out.Stash)
 	return
 }
 
