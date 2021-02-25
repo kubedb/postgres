@@ -52,22 +52,22 @@ func (c *Controller) runPostgres(key string) error {
 	} else {
 		// Note that you also have to check the uid if you have a local controlled resource, which
 		// is dependent on the actual instance, to detect that a Postgres was recreated with the same name
-		postgres := obj.(*api.Postgres).DeepCopy()
+		db := obj.(*api.Postgres).DeepCopy()
 
-		if postgres.DeletionTimestamp != nil {
-			if core_util.HasFinalizer(postgres.ObjectMeta, kubedb.GroupName) {
-				if err := c.terminate(postgres); err != nil {
+		if db.DeletionTimestamp != nil {
+			if core_util.HasFinalizer(db.ObjectMeta, kubedb.GroupName) {
+				if err := c.terminate(db); err != nil {
 					log.Errorln(err)
 					return err
 				}
-				_, _, err = util.PatchPostgres(context.TODO(), c.DBClient.KubedbV1alpha2(), postgres, func(in *api.Postgres) *api.Postgres {
+				_, _, err = util.PatchPostgres(context.TODO(), c.DBClient.KubedbV1alpha2(), db, func(in *api.Postgres) *api.Postgres {
 					in.ObjectMeta = core_util.RemoveFinalizer(in.ObjectMeta, kubedb.GroupName)
 					return in
 				}, metav1.PatchOptions{})
 				return err
 			}
 		} else {
-			postgres, _, err = util.PatchPostgres(context.TODO(), c.DBClient.KubedbV1alpha2(), postgres, func(in *api.Postgres) *api.Postgres {
+			db, _, err = util.PatchPostgres(context.TODO(), c.DBClient.KubedbV1alpha2(), db, func(in *api.Postgres) *api.Postgres {
 				in.ObjectMeta = core_util.AddFinalizer(in.ObjectMeta, kubedb.GroupName)
 				return in
 			}, metav1.PatchOptions{})
@@ -75,20 +75,20 @@ func (c *Controller) runPostgres(key string) error {
 				return err
 			}
 
-			if kmapi.IsConditionTrue(postgres.Status.Conditions, api.DatabasePaused) {
+			if kmapi.IsConditionTrue(db.Status.Conditions, api.DatabasePaused) {
 				return nil
 			}
 
-			if postgres.Spec.Halted {
-				if err := c.halt(postgres); err != nil {
+			if db.Spec.Halted {
+				if err := c.halt(db); err != nil {
 					log.Errorln(err)
-					c.pushFailureEvent(postgres, err.Error())
+					c.pushFailureEvent(db, err.Error())
 					return err
 				}
 			} else {
-				if err := c.create(postgres); err != nil {
+				if err := c.create(db); err != nil {
 					log.Errorln(err)
-					c.pushFailureEvent(postgres, err.Error())
+					c.pushFailureEvent(db, err.Error())
 					return err
 				}
 			}
