@@ -51,16 +51,16 @@ func (c *Controller) create(db *api.Postgres) error {
 		return nil // user error so just record error and don't retry.
 	}
 
-	if db.Status.Phase == "" {
-		pg, err := util.UpdatePostgresStatus(context.TODO(), c.DBClient.KubedbV1alpha2(), db.ObjectMeta, func(in *api.PostgresStatus) (types.UID, *api.PostgresStatus) {
-			in.Phase = api.DatabasePhaseProvisioning
-			return db.UID, in
-		}, metav1.UpdateOptions{})
-		if err != nil {
-			return err
-		}
-		db.Status = pg.Status
-	}
+	//if db.Status.Phase == "" {
+	//	pg, err := util.UpdatePostgresStatus(context.TODO(), c.DBClient.KubedbV1alpha2(), db.ObjectMeta, func(in *api.PostgresStatus) (types.UID, *api.PostgresStatus) {
+	//		in.Phase = api.DatabasePhaseProvisioning
+	//		return db.UID, in
+	//	}, metav1.UpdateOptions{})
+	//	if err != nil {
+	//		return err
+	//	}
+	//	db.Status = pg.Status
+	//}
 
 	// ensure Governing Service
 	if err := c.ensureGoverningService(db); err != nil {

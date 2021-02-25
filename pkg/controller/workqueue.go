@@ -18,6 +18,8 @@ package controller
 
 import (
 	"context"
+	"fmt"
+	"k8s.io/apimachinery/pkg/types"
 
 	"kubedb.dev/apimachinery/apis/kubedb"
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha2"
@@ -30,6 +32,7 @@ import (
 	kmapi "kmodules.xyz/client-go/api/v1"
 	core_util "kmodules.xyz/client-go/core/v1"
 	"kmodules.xyz/client-go/tools/queue"
+	"kubedb.dev/apimachinery/pkg/phase"
 )
 
 func (c *Controller) initWatcher() {
@@ -73,6 +76,55 @@ func (c *Controller) runPostgres(key string) error {
 			}, metav1.PatchOptions{})
 			if err != nil {
 				return err
+			}
+			// Get Postgres phase from condition
+			// If new phase is not equal to old phase,
+			// update Postgres phase.
+			phase := phase.PhaseFromCondition(db.Status.Conditions)
+			if db.Status.Phase != phase {
+				_, err := util.UpdatePostgresStatus(
+					context.TODO(),
+					c.DBClient.KubedbV1alpha2(),
+					db.ObjectMeta,
+					func(in *api.PostgresStatus) (types.UID, *api.PostgresStatus) {
+						in.Phase = phase
+						in.ObservedGeneration = db.Generation
+						return db.UID, in
+					},
+					metav1.UpdateOptions{},
+				)
+				if err != nil {
+					c.pushFailureEvent(db, err.Error())
+					return err
+				}
+				// drop the object from queue,
+				// the object will be enqueued again from this update event.
+				return nil
+			}
+			// if conditions are empty, set initial condition "ProvisioningStarted" to "true"
+			if !kmapi.IsConditionTrue(db.Status.Conditions, api.DatabaseProvisioningStarted) {
+				_, err := util.UpdatePostgresStatus(
+					context.TODO(),
+					c.DBClient.KubedbV1alpha2(),
+					db.ObjectMeta,
+					func(in *api.PostgresStatus) (types.UID, *api.PostgresStatus) {
+						in.Conditions = kmapi.SetCondition(in.Conditions,
+							kmapi.Condition{
+								Type:    api.DatabaseProvisioningStarted,
+								Status:  core.ConditionTrue,
+								Reason:  api.DatabaseProvisioningStartedSuccessfully,
+								Message: fmt.Sprintf("The KubeDB operator has started the provisioning of Postgres: %s/%s", db.Namespace, db.Name),
+							})
+						return db.UID, in
+					},
+					metav1.UpdateOptions{},
+				)
+				if err != nil {
+					return err
+				}
+				// drop the object from queue,
+				// the object will be enqueued again from this update event.
+				return nil
 			}
 
 			if kmapi.IsConditionTrue(db.Status.Conditions, api.DatabasePaused) {
