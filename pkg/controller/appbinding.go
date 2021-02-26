@@ -88,7 +88,7 @@ func (c *Controller) ensureAppBinding(db *api.Postgres, postgresVersion *catalog
 				Port:   port,
 				Path:   "/",
 				// this Query field need to have the exact template of sslmode=<your_desire_ssl_mode>
-				Query:  fmt.Sprintf("sslmode=%s", db.Spec.SSLMode),
+				Query: fmt.Sprintf("sslmode=%s", db.Spec.SSLMode),
 			}
 			in.Spec.ClientConfig.InsecureSkipTLSVerify = false
 			if caBundle != nil {

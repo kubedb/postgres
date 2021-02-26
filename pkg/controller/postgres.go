@@ -175,6 +175,52 @@ func (c *Controller) create(db *api.Postgres) error {
 		return nil
 	}
 
+	// Check: ReplicaReady --> AcceptingConnection --> Ready --> Provisioned
+	// If spec.Init.WaitForInitialRestore is true, but data wasn't restored successfully,
+	// process won't reach here (returned nil at the beginning). As it is here, that means data was restored successfully.
+	// No need to check for IsConditionTrue(DataRestored).
+	if kmapi.IsConditionTrue(db.Status.Conditions, api.DatabaseReplicaReady) &&
+		kmapi.IsConditionTrue(db.Status.Conditions, api.DatabaseAcceptingConnection) &&
+		kmapi.IsConditionTrue(db.Status.Conditions, api.DatabaseReady) &&
+		!kmapi.IsConditionTrue(db.Status.Conditions, api.DatabaseProvisioned) {
+		_, err := util.UpdatePostgresStatus(
+			context.TODO(),
+			c.DBClient.KubedbV1alpha2(),
+			db.ObjectMeta,
+			func(in *api.PostgresStatus) (types.UID, *api.PostgresStatus) {
+				in.Conditions = kmapi.SetCondition(in.Conditions,
+					kmapi.Condition{
+						Type:               api.DatabaseProvisioned,
+						Status:             core.ConditionTrue,
+						Reason:             api.DatabaseSuccessfullyProvisioned,
+						ObservedGeneration: db.Generation,
+						Message:            fmt.Sprintf("The PostgreSQL: %s/%s is successfully provisioned.", db.Namespace, db.Name),
+					})
+				return db.UID, in
+			},
+			metav1.UpdateOptions{},
+		)
+		if err != nil {
+			return err
+		}
+	}
+
+	// If the database is successfully provisioned,
+	// Set spec.Init.Initialized to true, if init!=nil.
+	// This will prevent the operator from re-initializing the database.
+	if db.Spec.Init != nil &&
+		!db.Spec.Init.Initialized &&
+		kmapi.IsConditionTrue(db.Status.Conditions, api.DatabaseProvisioned) {
+		_, _, err := util.CreateOrPatchPostgres(context.TODO(), c.DBClient.KubedbV1alpha2(), db.ObjectMeta, func(in *api.Postgres) *api.Postgres {
+			in.Spec.Init.Initialized = true
+			return in
+		}, metav1.PatchOptions{})
+
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
