@@ -138,6 +138,25 @@ func (c *Controller) runPostgres(key string) error {
 					return err
 				}
 			} else {
+				// Here, spec.halted=false, remove the halted condition if exists.
+				if kmapi.HasCondition(db.Status.Conditions, api.DatabaseHalted) {
+					if _, err := util.UpdatePostgresStatus(
+						context.TODO(),
+						c.DBClient.KubedbV1alpha2(),
+						db.ObjectMeta,
+						func(in *api.PostgresStatus) (types.UID, *api.PostgresStatus) {
+							in.Conditions = kmapi.RemoveCondition(in.Conditions, api.DatabaseHalted)
+							return db.UID, in
+						},
+						metav1.UpdateOptions{},
+					); err != nil {
+						return err
+					}
+					// return from here, will be enqueued again from the event.
+					return nil
+				}
+
+				// process db object
 				if err := c.create(db); err != nil {
 					log.Errorln(err)
 					c.pushFailureEvent(db, err.Error())

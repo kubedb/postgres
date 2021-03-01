@@ -42,12 +42,13 @@ import (
 )
 
 type ExtraOptions struct {
-	LicenseFile    string
-	QPS            float64
-	Burst          int
-	ResyncPeriod   time.Duration
-	MaxNumRequeues int
-	NumThreads     int
+	LicenseFile            string
+	QPS                    float64
+	Burst                  int
+	ResyncPeriod           time.Duration
+	ReadinessProbeInterval time.Duration
+	MaxNumRequeues         int
+	NumThreads             int
 
 	EnableMutatingWebhook   bool
 	EnableValidatingWebhook bool
@@ -55,9 +56,10 @@ type ExtraOptions struct {
 
 func NewExtraOptions() *ExtraOptions {
 	return &ExtraOptions{
-		ResyncPeriod:   10 * time.Minute,
-		MaxNumRequeues: 5,
-		NumThreads:     2,
+		ResyncPeriod:           10 * time.Minute,
+		ReadinessProbeInterval: 10 * time.Second,
+		MaxNumRequeues:         5,
+		NumThreads:             2,
 		// ref: https://github.com/kubernetes/ingress-nginx/blob/e4d53786e771cc6bdd55f180674b79f5b692e552/pkg/ingress/controller/launch.go#L252-L259
 		// High enough QPS to fit all expected use cases. QPS=0 is not set here, because client code is overriding it.
 		QPS: 1e6,
@@ -72,6 +74,7 @@ func (s *ExtraOptions) AddGoFlags(fs *flag.FlagSet) {
 	fs.Float64Var(&s.QPS, "qps", s.QPS, "The maximum QPS to the master from this client")
 	fs.IntVar(&s.Burst, "burst", s.Burst, "The maximum burst for throttle")
 	fs.DurationVar(&s.ResyncPeriod, "resync-period", s.ResyncPeriod, "If non-zero, will re-list this often. Otherwise, re-list will be delayed aslong as possible (until the upstream source closes the watch or times out.")
+	fs.DurationVar(&s.ReadinessProbeInterval, "readiness-probe-interval", s.ReadinessProbeInterval, "The time between two consecutive health checks that the operator performs to the database.")
 
 	fs.BoolVar(&s.EnableMutatingWebhook, "enable-mutating-webhook", s.EnableMutatingWebhook, "If true, enables mutating webhooks for KubeDB CRDs.")
 	fs.BoolVar(&s.EnableValidatingWebhook, "enable-validating-webhook", s.EnableValidatingWebhook, "If true, enables validating webhooks for KubeDB CRDs.")
@@ -95,6 +98,7 @@ func (s *ExtraOptions) ApplyTo(cfg *controller.OperatorConfig) error {
 	cfg.ClientConfig.QPS = float32(s.QPS)
 	cfg.ClientConfig.Burst = s.Burst
 	cfg.ResyncPeriod = s.ResyncPeriod
+	cfg.ReadinessProbeInterval = s.ReadinessProbeInterval
 	cfg.MaxNumRequeues = s.MaxNumRequeues
 	cfg.NumThreads = s.NumThreads
 	cfg.WatchNamespace = core.NamespaceAll

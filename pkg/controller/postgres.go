@@ -257,8 +257,35 @@ func (c *Controller) halt(db *api.Postgres) error {
 	}
 	log.Infof("update status of Postgres %v/%v to Halted.", db.Namespace, db.Name)
 	if _, err := util.UpdatePostgresStatus(context.TODO(), c.DBClient.KubedbV1alpha2(), db.ObjectMeta, func(in *api.PostgresStatus) (types.UID, *api.PostgresStatus) {
-		in.Phase = api.DatabasePhaseHalted
-		in.ObservedGeneration = db.Generation
+		in.Conditions = kmapi.SetCondition(in.Conditions, kmapi.Condition{
+			Type:               api.DatabaseHalted,
+			Status:             core.ConditionTrue,
+			Reason:             api.DatabaseHaltedSuccessfully,
+			ObservedGeneration: db.Generation,
+			Message:            fmt.Sprintf("PostgreSQL %s/%s successfully halted.", db.Namespace, db.Name),
+		})
+
+		// make "AcceptingConnection" and "Ready" conditions false.
+		// Because these are handled from health checker at a certain interval,
+		// if consecutive halt and un-halt occurs in the meantime,
+		// phase might still be on the "Ready" state.
+		in.Conditions = kmapi.SetCondition(in.Conditions,
+			kmapi.Condition{
+				Type:               api.DatabaseAcceptingConnection,
+				Status:             core.ConditionFalse,
+				Reason:             api.DatabaseHaltedSuccessfully,
+				ObservedGeneration: db.Generation,
+				Message:            fmt.Sprintf("The PostgreSQL: %s/%s is not accepting client requests.", db.Namespace, db.Name),
+			})
+		in.Conditions = kmapi.SetCondition(in.Conditions,
+			kmapi.Condition{
+				Type:               api.DatabaseReady,
+				Status:             core.ConditionFalse,
+				Reason:             api.DatabaseHaltedSuccessfully,
+				ObservedGeneration: db.Generation,
+				Message:            fmt.Sprintf("The PostgreSQL: %s/%s is not ready.", db.Namespace, db.Name),
+			})
+
 		return db.UID, in
 	}, metav1.UpdateOptions{}); err != nil {
 		return err
