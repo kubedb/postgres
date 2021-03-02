@@ -370,10 +370,10 @@ install:
 		--namespace=$(KUBE_NAMESPACE)         \
 		--set catalog.elasticsearch=false     \
 		--set catalog.etcd=false              \
-		--set catalog.memcached=false         \
-		--set catalog.mongo=false             \
-		--set catalog.mysql=false             \
 		--set catalog.mariadb=false           \
+		--set catalog.memcached=false         \
+		--set catalog.mongodb=false           \
+		--set catalog.mysql=false             \
 		--set catalog.perconaxtradb=false     \
 		--set catalog.pgbouncer=false         \
 		--set catalog.postgres=true           \
