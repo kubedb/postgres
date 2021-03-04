@@ -54,4 +54,3 @@ func (c *Controller) GetPostgresClient(db *api.Postgres, dnsName string, port in
 
 	return xorm.NewEngine("postgres", cnnstr)
 }
-
