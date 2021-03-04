@@ -50,7 +50,7 @@ const (
 	serverTlsVolumeMountPath = "/certs/server"
 	serverTlsVolumeName      = "tls-volume-server"
 	clientTlsVolumeName      = "tls-volume-client"
-	leaderTlsVolumeName      = "leader-elector-tls-volume"
+	coordinatorTlsVolumeName = "coordinator-tls-volume"
 	sharedTlsVolumeName      = "certs"
 	exporterTlsVolumeName    = "exporter-tls-volume"
 )
@@ -246,9 +246,9 @@ func upsertEnv(statefulSet *apps.StatefulSet, db *api.Postgres, envs []core.EnvV
 	sslMode := db.Spec.SSLMode
 	if sslMode == "" {
 		if db.Spec.TLS != nil {
-			sslMode = api.PgSSLModeVerifyFull
+			sslMode = api.PostgresSSLModeVerifyFull
 		} else {
-			sslMode = api.PgSSLModeDisable
+			sslMode = api.PostgresSSLModeDisable
 		}
 	}
 	clientAuthMode := db.Spec.ClientAuthMode
@@ -274,11 +274,11 @@ func upsertEnv(statefulSet *apps.StatefulSet, db *api.Postgres, envs []core.EnvV
 		},
 		{
 			Name:  "ELECTION_TICK",
-			Value: strconv.FormatUint(db.Spec.LeaderElection.ElectionTick, 10),
+			Value: strconv.Itoa(int(db.Spec.LeaderElection.ElectionTick)),
 		},
 		{
 			Name:  "HEARTBEAT_TICK",
-			Value: strconv.FormatUint(db.Spec.LeaderElection.HeartbeatTick, 10),
+			Value: strconv.Itoa(int(db.Spec.LeaderElection.HeartbeatTick)),
 		},
 		{
 			Name: EnvPostgresUser,
@@ -334,7 +334,7 @@ func upsertEnv(statefulSet *apps.StatefulSet, db *api.Postgres, envs []core.EnvV
 
 	// To do this, Upsert Container first
 	for i, container := range statefulSet.Spec.Template.Spec.Containers {
-		if container.Name == api.ResourceSingularPostgres || container.Name == api.PostgresLeaderElectionContainerName {
+		if container.Name == api.ResourceSingularPostgres || container.Name == api.PostgresCoordinatorContainerName {
 			statefulSet.Spec.Template.Spec.Containers[i].Env = core_util.UpsertEnvVars(container.Env, envList...)
 		}
 	}
@@ -367,16 +367,16 @@ func upsertPort(statefulSet *apps.StatefulSet) *apps.StatefulSet {
 		}
 		return portList
 	}
-	getLeaderPorts := func() []core.ContainerPort {
+	getCoordinatorPorts := func() []core.ContainerPort {
 		portList := []core.ContainerPort{
 			{
-				Name:          api.PostgresLeaderElectionPortName, // leaderelection
-				ContainerPort: api.PostgresLeaderElectionPort,     // 12345
+				Name:          api.PostgresCoordinatorPortName,
+				ContainerPort: api.PostgresCoordinatorPort,     // 12345
 				Protocol:      core.ProtocolTCP,
 			},
 			{
-				Name:          api.PostgresLeaderElectionClientPortName, // leaderapiclient
-				ContainerPort: api.PostgresLeaderElectionClientPort,     // 12380
+				Name:          api.PostgresCoordinatorClientPortName,
+				ContainerPort: api.PostgresCoordinatorClientPort,     // 12380
 				Protocol:      core.ProtocolTCP,
 			},
 		}
@@ -386,8 +386,8 @@ func upsertPort(statefulSet *apps.StatefulSet) *apps.StatefulSet {
 	for i, container := range statefulSet.Spec.Template.Spec.Containers {
 		if container.Name == api.ResourceSingularPostgres {
 			statefulSet.Spec.Template.Spec.Containers[i].Ports = getPostgresPorts()
-		} else if container.Name == api.PostgresLeaderElectionContainerName {
-			statefulSet.Spec.Template.Spec.Containers[i].Ports = getLeaderPorts()
+		} else if container.Name == api.PostgresCoordinatorContainerName {
+			statefulSet.Spec.Template.Spec.Containers[i].Ports = getCoordinatorPorts()
 		}
 	}
 
@@ -515,14 +515,13 @@ func upsertInitScript(statefulSet *apps.StatefulSet, script core.VolumeSource) *
 func upsertDataVolume(statefulSet *apps.StatefulSet, db *api.Postgres) *apps.StatefulSet {
 
 	for i, container := range statefulSet.Spec.Template.Spec.Containers {
-		if container.Name == api.ResourceSingularPostgres || container.Name == api.PostgresLeaderElectionContainerName {
+		if container.Name == api.ResourceSingularPostgres || container.Name == api.PostgresCoordinatorContainerName {
 			var volumeMount core.VolumeMount
-			if container.Name == api.ResourceSingularPostgres || container.Name == api.PostgresLeaderElectionContainerName {
-				volumeMount = core.VolumeMount{
-					Name:      "data",
-					MountPath: "/var/pv",
-				}
+			volumeMount = core.VolumeMount{
+				Name:      "data",
+				MountPath: "/var/pv",
 			}
+
 			volumeMounts := container.VolumeMounts
 			volumeMounts = core_util.UpsertVolumeMount(volumeMounts, volumeMount)
 			statefulSet.Spec.Template.Spec.Containers[i].VolumeMounts = volumeMounts
@@ -604,7 +603,7 @@ func upsertCustomConfig(statefulSet *apps.StatefulSet, db *api.Postgres) *apps.S
 func upsertSharedScriptsVolume(statefulSet *apps.StatefulSet) *apps.StatefulSet {
 
 	for i, container := range statefulSet.Spec.Template.Spec.Containers {
-		if container.Name == api.ResourceSingularPostgres || container.Name == api.PostgresLeaderElectionContainerName {
+		if container.Name == api.ResourceSingularPostgres || container.Name == api.PostgresCoordinatorContainerName {
 			configVolumeMount := core.VolumeMount{
 				Name:      "scripts",
 				MountPath: "/run_scripts",
@@ -727,8 +726,8 @@ func getContainers(statefulSet *apps.StatefulSet, postgres *api.Postgres, postgr
 	statefulSet.Spec.Template.Spec.Containers = core_util.UpsertContainer(
 		statefulSet.Spec.Template.Spec.Containers,
 		core.Container{
-			Name:           api.PostgresLeaderElectionContainerName,
-			Image:          postgresVersion.Spec.LeaderElector.Image,
+			Name:           api.PostgresCoordinatorContainerName,
+			Image:          postgresVersion.Spec.Coordinator.Image,
 			Resources:      postgres.Spec.PodTemplate.Spec.Resources,
 			LivenessProbe:  postgres.Spec.PodTemplate.Spec.LivenessProbe,
 			ReadinessProbe: postgres.Spec.PodTemplate.Spec.ReadinessProbe,
@@ -755,9 +754,9 @@ func upsertTLSVolume(sts *apps.StatefulSet, db *api.Postgres) *apps.StatefulSet 
 			volumeMounts = core_util.UpsertVolumeMount(volumeMounts, volumeMount)
 			sts.Spec.Template.Spec.Containers[i].VolumeMounts = volumeMounts
 
-		} else if container.Name == api.PostgresLeaderElectionContainerName {
+		} else if container.Name == api.PostgresCoordinatorContainerName {
 			volumeMount := core.VolumeMount{
-				Name:      leaderTlsVolumeName,
+				Name:      coordinatorTlsVolumeName,
 				MountPath: clientTlsVolumeMountPath,
 			}
 			volumeMounts := container.VolumeMounts
@@ -854,8 +853,8 @@ func upsertTLSVolume(sts *apps.StatefulSet, db *api.Postgres) *apps.StatefulSet 
 			},
 		},
 	}
-	leaderElectionTLSVolume := core.Volume{
-		Name: leaderTlsVolumeName,
+	coordinatorTLSVolume := core.Volume{
+		Name: coordinatorTlsVolumeName,
 		VolumeSource: core.VolumeSource{
 			Secret: &core.SecretVolumeSource{
 				DefaultMode: pointer.Int32P(0600),
@@ -883,7 +882,7 @@ func upsertTLSVolume(sts *apps.StatefulSet, db *api.Postgres) *apps.StatefulSet 
 		serverVolume,
 		clientVolume,
 		exporterTLSVolume,
-		leaderElectionTLSVolume,
+		coordinatorTLSVolume,
 	)
 
 	return sts
