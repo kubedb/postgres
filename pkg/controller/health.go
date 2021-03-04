@@ -271,7 +271,6 @@ func (c *Controller) IsPostgreSQLServerOnline(db *api.Postgres, dnsName string, 
 	}
 
 	if len(res[0]["now"]) > 0 {
-		fmt.Println("........................successs,,,,,,,,,,,,,,,,,,,,,,,,,")
 		return nil
 	} else {
 		return fmt.Errorf("can't get query value")

@@ -370,13 +370,13 @@ func upsertPort(statefulSet *apps.StatefulSet) *apps.StatefulSet {
 	getLeaderPorts := func() []core.ContainerPort {
 		portList := []core.ContainerPort{
 			{
-				Name:          api.PostgresLeaderElectionPortName,
-				ContainerPort: api.PostgresLeaderElectionPort,
+				Name:          api.PostgresLeaderElectionPortName,  // leaderelection
+				ContainerPort: api.PostgresLeaderElectionPort, // 12345
 				Protocol:      core.ProtocolTCP,
 			},
 			{
-				Name:          api.PostgresLeaderElectionClientPortName,
-				ContainerPort: api.PostgresLeaderElectionClientPort,
+				Name:          api.PostgresLeaderElectionClientPortName, // leaderapiclient
+				ContainerPort: api.PostgresLeaderElectionClientPort, // 12380
 				Protocol:      core.ProtocolTCP,
 			},
 		}
