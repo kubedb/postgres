@@ -2,17 +2,13 @@ package controller
 
 import (
 	"context"
-	"crypto/tls"
-	"crypto/x509"
 	"errors"
 	"fmt"
-	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha2"
-	"kubedb.dev/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha2/util"
 	"sync"
 
-	"github.com/go-xorm/xorm"
+	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha2"
+	"kubedb.dev/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha2/util"
 
-	"github.com/go-pg/pg"
 	"github.com/golang/glog"
 	_ "github.com/lib/pq"
 	core "k8s.io/api/core/v1"
@@ -258,71 +254,28 @@ func (c *Controller) updateErrorAcceptingConnections(db *api.Postgres, connectio
 }
 
 //try to query in server if failed return err that means not online
-func (c *Controller) IsPostgreSQLServerOnline(db *api.Postgres, dns string, port int32) error {
+func (c *Controller) IsPostgreSQLServerOnline(db *api.Postgres, dnsName string, port int32) error {
+	var err error
+	eng, err := c.GetPostgresClient(db, dnsName, port)
 
-	user, pass, err := c.GetPostgresAuthCredentials(db)
 	if err != nil {
-		return fmt.Errorf("DB basic auth is not found for PostgreSQL %v/%v", db.Namespace, db.Name)
+		return err
 	}
-	if db.Spec.ClientAuthMode == api.ClientAuthModeScram {
-		isTLS := false
-		if db.Spec.TLS != nil {
-			isTLS = true
-		}
-		_ , err := PgIsReady(user,pass,dns,isTLS)
-		if err != nil {
-			return err
-		}
-		return nil
+	defer eng.Close()
 
-	}
+	queryString := "SELECT now();"
 
-	opt := &pg.Options{
-		Addr:     fmt.Sprintf("%s:%d", dns, port),
-		Database: "postgres",
-		User:     user,
-		Password: pass,
-	}
-
-	if db.Spec.TLS != nil && db.Spec.ClientAuthMode == api.ClientAuthModeCert  {
-
-			clientSecret, err := c.Client.CoreV1().Secrets(db.Namespace).Get(context.TODO(), db.MustCertSecretName(api.PostgresClientCert), metav1.GetOptions{})
-			if err != nil {
-				return err
-			}
-			cacrt := clientSecret.Data[core.ServiceAccountRootCAKey]
-			CACertPool := x509.NewCertPool()
-			CACertPool.AppendCertsFromPEM(cacrt)
-
-			tlsConfig := &tls.Config{
-				RootCAs:            CACertPool,
-			}
-			clientCert := clientSecret.Data[core.TLSCertKey]
-			clientKey := clientSecret.Data[core.TLSPrivateKeyKey]
-			cert, err := tls.X509KeyPair(clientCert, clientKey)
-			if err != nil {
-				return err
-			}
-			tlsConfig.Certificates = []tls.Certificate{cert}
-
-			opt.TLSConfig = tlsConfig
-	}
-
-	DB := pg.Connect(opt)
-	defer func() {
-		err := DB.Close()
-		if err != nil {
-			glog.Errorf("can't close the DB connection")
-		}
-		//pg.Discard
-	}()
-	var num int
-	_, err = DB.QueryOne(pg.Scan(&num), `SELECT 1+1`)
+	res, err := eng.QueryString(queryString)
 	if err != nil {
 		return err
 	}
 
-	return nil
+	if len(res[0]["now"]) > 0 {
+		fmt.Println("........................successs,,,,,,,,,,,,,,,,,,,,,,,,,")
+		return nil
+	} else {
+		return fmt.Errorf("can't get query value")
+	}
 }
 
 // make host dns with require template
@@ -333,44 +286,4 @@ func HostDNS(db *api.Postgres, podMeta metav1.ObjectMeta) string {
 // make primary host dns with require template
 func PrimaryServiceDNS(db *api.Postgres) string {
 	return fmt.Sprintf("%v.%v.svc", db.ServiceName(), db.Namespace)
-}
-
-func GetPostgresqlClient(user, pass, dnsName string, isTLS bool) (*xorm.Engine, error) {
-	cnnstr := ""
-	if isTLS {
-			cnnstr = fmt.Sprintf("user=%s password=%s host=%s port=5432 dbname=postgres replication=database sslmode=prefer", user, pass, dnsName)
-	} else {
-
-		cnnstr = fmt.Sprintf("user=%s password=%s host=%s port=5432 dbname=postgres replication=database sslmode=disable", user, pass, dnsName)
-	}
-
-	return xorm.NewEngine("postgres", cnnstr)
-}
-
-
-func PgIsReady(user, pass, dnsName string, isTLS bool) (bool, error) {
-
-	var err error
-
-	eng, err := GetPostgresqlClient(user, pass, dnsName , isTLS )
-
-	if err != nil {
-		return false, err
-	}
-	defer eng.Close()
-
-	queryString := "SELECT now();"
-
-	res, err := eng.QueryString(queryString)
-	if err != nil {
-		return false, err
-	}
-	fmt.Println(".....................")
-
-	if len(res[0]["now"]) > 0 {
-		fmt.Println("........................successs,,,,,,,,,,,,,,,,,,,,,,,,,")
-		return true, nil
-	} else {
-		return false, fmt.Errorf("can't get query value")
-	}
 }

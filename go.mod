@@ -5,10 +5,8 @@ go 1.12
 require (
 	github.com/appscode/go v0.0.0-20201105063637-5613f3b8169f
 	github.com/codeskyblue/go-sh v0.0.0-20200712050446-30169cf553fe
-	github.com/go-pg/pg v8.0.7+incompatible
 	github.com/go-xorm/xorm v0.7.9
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
-	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/lib/pq v1.5.2
 	github.com/onsi/ginkgo v1.11.0
 	github.com/onsi/gomega v1.8.1
@@ -41,7 +39,6 @@ require (
 	kmodules.xyz/offshoot-api v0.0.0-20210306122148-567d434b4630
 	kmodules.xyz/webhook-runtime v0.0.0-20201105073856-2dc7382b88c6
 	kubedb.dev/apimachinery v0.16.3-0.20210306164706-25fd34250e13
-	mellium.im/sasl v0.2.1 // indirect
 	stash.appscode.dev/apimachinery v0.11.9
 
 )
