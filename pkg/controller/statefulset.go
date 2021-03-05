@@ -273,6 +273,10 @@ func upsertEnv(statefulSet *apps.StatefulSet, db *api.Postgres, envs []core.EnvV
 			Value: strconv.FormatUint(db.Spec.LeaderElection.MaximumLagBeforeFailover, 10),
 		},
 		{
+			Name:  "PERIOD",
+			Value: db.Spec.LeaderElection.Period.String(),
+		},
+		{
 			Name:  "ELECTION_TICK",
 			Value: strconv.Itoa(int(db.Spec.LeaderElection.ElectionTick)),
 		},
@@ -371,12 +375,12 @@ func upsertPort(statefulSet *apps.StatefulSet) *apps.StatefulSet {
 		portList := []core.ContainerPort{
 			{
 				Name:          api.PostgresCoordinatorPortName,
-				ContainerPort: api.PostgresCoordinatorPort,     // 12345
+				ContainerPort: api.PostgresCoordinatorPort, // 2380
 				Protocol:      core.ProtocolTCP,
 			},
 			{
 				Name:          api.PostgresCoordinatorClientPortName,
-				ContainerPort: api.PostgresCoordinatorClientPort,     // 12380
+				ContainerPort: api.PostgresCoordinatorClientPort, // 2379
 				Protocol:      core.ProtocolTCP,
 			},
 		}
@@ -516,8 +520,7 @@ func upsertDataVolume(statefulSet *apps.StatefulSet, db *api.Postgres) *apps.Sta
 
 	for i, container := range statefulSet.Spec.Template.Spec.Containers {
 		if container.Name == api.ResourceSingularPostgres || container.Name == api.PostgresCoordinatorContainerName {
-			var volumeMount core.VolumeMount
-			volumeMount = core.VolumeMount{
+			volumeMount := core.VolumeMount{
 				Name:      "data",
 				MountPath: "/var/pv",
 			}
