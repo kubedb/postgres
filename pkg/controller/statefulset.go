@@ -274,7 +274,7 @@ func upsertEnv(statefulSet *apps.StatefulSet, db *api.Postgres, envs []core.EnvV
 		},
 		{
 			Name:  "PERIOD",
-			Value: db.Spec.LeaderElection.Period.String(),
+			Value: db.Spec.LeaderElection.Period.Duration.String(),
 		},
 		{
 			Name:  "ELECTION_TICK",
