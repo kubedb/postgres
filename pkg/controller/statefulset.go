@@ -19,6 +19,7 @@ package controller
 import (
 	"context"
 	"fmt"
+	"github.com/appscode/go/types"
 	"strconv"
 	"strings"
 
@@ -26,7 +27,6 @@ import (
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha2"
 	"kubedb.dev/apimachinery/pkg/eventer"
 
-	"github.com/appscode/go/types"
 	"gomodules.xyz/pointer"
 	"gomodules.xyz/version"
 	"gomodules.xyz/x/log"
@@ -139,7 +139,7 @@ func (c *Controller) ensureStatefulSet(
 			in = upsertSharedScriptsVolume(in)
 			if db.Spec.TLS != nil {
 				in = upsertTLSVolume(in, db)
-				in = upsertCertficatesVolume(in)
+				in = upsertCertificatesVolume(in)
 
 			}
 
@@ -403,7 +403,7 @@ func (c *Controller) upsertMonitoringContainer(statefulSet *apps.StatefulSet, db
 		container := core.Container{
 			Name: "exporter",
 			Args: append([]string{
-				"--log.level=info",
+				"--log.level=debug",
 			}, db.Spec.Monitor.Prometheus.Exporter.Args...),
 			Image:           postgresVersion.Spec.Exporter.Image,
 			ImagePullPolicy: core.PullIfNotPresent,
@@ -416,14 +416,36 @@ func (c *Controller) upsertMonitoringContainer(statefulSet *apps.StatefulSet, db
 			},
 			Env:             db.Spec.Monitor.Prometheus.Exporter.Env,
 			Resources:       db.Spec.Monitor.Prometheus.Exporter.Resources,
-			SecurityContext: db.Spec.Monitor.Prometheus.Exporter.SecurityContext,
-		}
 
-		envList := []core.EnvVar{
-			{
-				Name:  "DATA_SOURCE_URI",
-				Value: fmt.Sprintf("localhost:%d/?sslmode=disable", api.PostgresDatabasePort),
+			// TODO:
+			SecurityContext: &core.SecurityContext{
+				RunAsUser: pointer.Int64P(0),
 			},
+
+		}
+		sslMode := string(db.Spec.SSLMode)
+		if sslMode == string(api.PostgresSSLModePrefer) || sslMode == string(api.PostgresSSLModeAllow) {
+			sslMode = string(api.PostgresSSLModeRequire)
+		}
+		dataSourceName := fmt.Sprintf("user=postgres host=%s port=%d sslmode=%s",api.LocalHost,api.PostgresDatabasePort,sslMode)
+
+		if db.Spec.TLS != nil {
+			if db.Spec.SSLMode == api.PostgresSSLModeVerifyCA || db.Spec.SSLMode == api.PostgresSSLModeVerifyFull {
+				dataSourceName = fmt.Sprintf("%s sslrootcert=%s/ca.crt",dataSourceName,clientTlsVolumeMountPath)
+			}
+			if db.Spec.ClientAuthMode == api.ClientAuthModeCert {
+				dataSourceName = fmt.Sprintf("%s sslcert=%s/exporter.crt sslkey=%s/exporter.key",dataSourceName,
+					clientTlsVolumeMountPath,clientTlsVolumeMountPath)
+			}
+		}
+		if sslMode == string(api.PostgresSSLModeDisable) {
+
+		}
+		envList := []core.EnvVar{
+			//{
+			//	Name:  "DATA_SOURCE_URI",
+			//	Value: fmt.Sprintf("localhost:%d/?sslmode=disable", api.PostgresDatabasePort),
+			//},
 			{
 				Name: "DATA_SOURCE_USER",
 				ValueFrom: &core.EnvVarSource{
@@ -454,8 +476,11 @@ func (c *Controller) upsertMonitoringContainer(statefulSet *apps.StatefulSet, db
 				Name:  "PG_EXPORTER_WEB_TELEMETRY_PATH",
 				Value: db.StatsService().Path(),
 			},
+			{
+				Name: "DATA_SOURCE_NAME",
+				Value: dataSourceName,
+			},
 		}
-
 		container.Env = core_util.UpsertEnvVars(container.Env, envList...)
 		containers := statefulSet.Spec.Template.Spec.Containers
 		containers = core_util.UpsertContainer(containers, container)
@@ -644,7 +669,7 @@ func upsertSharedScriptsVolume(statefulSet *apps.StatefulSet) *apps.StatefulSet 
 	return statefulSet
 }
 
-func upsertCertficatesVolume(statefulSet *apps.StatefulSet) *apps.StatefulSet {
+func upsertCertificatesVolume(statefulSet *apps.StatefulSet) *apps.StatefulSet {
 
 	for i, container := range statefulSet.Spec.Template.Spec.Containers {
 		if container.Name == api.ResourceSingularPostgres {
@@ -699,7 +724,6 @@ func getInitContainers(statefulSet *apps.StatefulSet, postgres *api.Postgres, po
 	return statefulSet.Spec.Template.Spec.InitContainers
 }
 func getContainers(statefulSet *apps.StatefulSet, postgres *api.Postgres, postgresVersion *catalog.PostgresVersion) []core.Container {
-	//TODO: need to modify to handle the case if user give lifecycle command
 	lifeCycle := &core.Lifecycle{
 		PreStop: &core.Handler{
 			Exec: &core.ExecAction{
@@ -716,8 +740,6 @@ func getContainers(statefulSet *apps.StatefulSet, postgres *api.Postgres, postgr
 			Resources:      postgres.Spec.PodTemplate.Spec.Resources,
 			LivenessProbe:  postgres.Spec.PodTemplate.Spec.LivenessProbe,
 			ReadinessProbe: postgres.Spec.PodTemplate.Spec.ReadinessProbe,
-			//TODO: this commented one was the default one.
-			//Lifecycle:      postgres.Spec.PodTemplate.Spec.Lifecycle,
 			Lifecycle: lifeCycle,
 			SecurityContext: &core.SecurityContext{
 				Privileged: types.BoolP(false),
