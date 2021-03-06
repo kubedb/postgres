@@ -19,7 +19,7 @@ package controller
 import (
 	"context"
 	"fmt"
-	"github.com/appscode/go/types"
+	"github.com/pkg/errors"
 	"strconv"
 	"strings"
 
@@ -27,6 +27,7 @@ import (
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha2"
 	"kubedb.dev/apimachinery/pkg/eventer"
 
+	"github.com/appscode/go/types"
 	"gomodules.xyz/pointer"
 	"gomodules.xyz/version"
 	"gomodules.xyz/x/log"
@@ -53,14 +54,19 @@ const (
 	coordinatorTlsVolumeName = "coordinator-tls-volume"
 	sharedTlsVolumeName      = "certs"
 	exporterTlsVolumeName    = "exporter-tls-volume"
+	TLS_CERT                 = "tls.crt"
+	TLS_KEY                  = "tls.key"
+	TLS_CA_CERT              = "ca.crt"
+	CLIENT_CERT              = "client.crt"
+	CLIENT_KEY               = "client.key"
+	SERVER_CERT              = "server.crt"
+	SERVER_KEY               = "server.key"
 )
 
 func getMajorPgVersion(postgres *api.Postgres) (int64, error) {
 	ver, err := version.NewVersion(postgres.Spec.Version)
 	if err != nil {
-		//TODO
-		log.Error(err)
-		return 0, err
+		return 0, errors.Wrap(err, "Failed to get postgres major.")
 	}
 	return ver.Major(), nil
 }
@@ -399,12 +405,46 @@ func upsertPort(statefulSet *apps.StatefulSet) *apps.StatefulSet {
 }
 
 func (c *Controller) upsertMonitoringContainer(statefulSet *apps.StatefulSet, db *api.Postgres, postgresVersion *catalog.PostgresVersion) *apps.StatefulSet {
+
 	if db.Spec.Monitor != nil && db.Spec.Monitor.Agent.Vendor() == mona.VendorPrometheus {
+		sslMode := string(db.Spec.SSLMode)
+		if sslMode == string(api.PostgresSSLModePrefer) || sslMode == string(api.PostgresSSLModeAllow) {
+			sslMode = string(api.PostgresSSLModeRequire)
+		}
+		cnnstr := fmt.Sprintf("user=${POSTGRES_SOURCE_USER} password='${POSTGRES_SOURCE_PASS}' host=%s port=%d sslmode=%s", api.LocalHost, api.PostgresDatabasePort, sslMode)
+
+		if db.Spec.TLS != nil {
+			if db.Spec.SSLMode == api.PostgresSSLModeVerifyCA || db.Spec.SSLMode == api.PostgresSSLModeVerifyFull {
+				cnnstr = fmt.Sprintf("%s sslrootcert=%s/ca.crt", cnnstr, clientTlsVolumeMountPath)
+			}
+			if db.Spec.ClientAuthMode == api.ClientAuthModeCert {
+				cnnstr = fmt.Sprintf("%s sslcert=%s/tls.crt sslkey=%s/tls.key", cnnstr,
+					clientTlsVolumeMountPath, clientTlsVolumeMountPath)
+			}
+		}
+
+		cmd := strings.Join(append([]string{
+			"/bin/postgres_exporter",
+			"--log.level=debug",
+		}, db.Spec.Monitor.Prometheus.Exporter.Args...), " ")
+
+		commands := []string{
+			fmt.Sprintf(`export DATA_SOURCE_NAME="%s"`, cnnstr),
+			//TODO: remove this echo
+			`echo $DATA_SOURCE_NAME >/proc/1/fd/1`,
+			cmd,
+		}
+		command := strings.Join(commands, ";")
+
 		container := core.Container{
 			Name: "exporter",
-			Args: append([]string{
-				"--log.level=debug",
-			}, db.Spec.Monitor.Prometheus.Exporter.Args...),
+			Command: []string{
+				"/bin/sh",
+			},
+			Args: []string{
+				"-c",
+				command,
+			},
 			Image:           postgresVersion.Spec.Exporter.Image,
 			ImagePullPolicy: core.PullIfNotPresent,
 			Ports: []core.ContainerPort{
@@ -414,40 +454,19 @@ func (c *Controller) upsertMonitoringContainer(statefulSet *apps.StatefulSet, db
 					ContainerPort: int32(db.Spec.Monitor.Prometheus.Exporter.Port),
 				},
 			},
-			Env:             db.Spec.Monitor.Prometheus.Exporter.Env,
-			Resources:       db.Spec.Monitor.Prometheus.Exporter.Resources,
-
-			// TODO:
+			Env:       db.Spec.Monitor.Prometheus.Exporter.Env,
+			Resources: db.Spec.Monitor.Prometheus.Exporter.Resources,
+			// Run the container with default User as root user. As when we mount secret it's default owner is root and
+			// it has default mode(0600) we can't change that mode to global or higher than 0600.
+			// As postgres server don't allow certs file have the global permission.
+			// So User must need to be root to have read permission for the certs files. For this reason, We have set UID = 0, 0 is for root user.
 			SecurityContext: &core.SecurityContext{
 				RunAsUser: pointer.Int64P(0),
 			},
-
-		}
-		sslMode := string(db.Spec.SSLMode)
-		if sslMode == string(api.PostgresSSLModePrefer) || sslMode == string(api.PostgresSSLModeAllow) {
-			sslMode = string(api.PostgresSSLModeRequire)
-		}
-		dataSourceName := fmt.Sprintf("user=postgres host=%s port=%d sslmode=%s",api.LocalHost,api.PostgresDatabasePort,sslMode)
-
-		if db.Spec.TLS != nil {
-			if db.Spec.SSLMode == api.PostgresSSLModeVerifyCA || db.Spec.SSLMode == api.PostgresSSLModeVerifyFull {
-				dataSourceName = fmt.Sprintf("%s sslrootcert=%s/ca.crt",dataSourceName,clientTlsVolumeMountPath)
-			}
-			if db.Spec.ClientAuthMode == api.ClientAuthModeCert {
-				dataSourceName = fmt.Sprintf("%s sslcert=%s/exporter.crt sslkey=%s/exporter.key",dataSourceName,
-					clientTlsVolumeMountPath,clientTlsVolumeMountPath)
-			}
-		}
-		if sslMode == string(api.PostgresSSLModeDisable) {
-
 		}
 		envList := []core.EnvVar{
-			//{
-			//	Name:  "DATA_SOURCE_URI",
-			//	Value: fmt.Sprintf("localhost:%d/?sslmode=disable", api.PostgresDatabasePort),
-			//},
 			{
-				Name: "DATA_SOURCE_USER",
+				Name: "POSTGRES_SOURCE_USER",
 				ValueFrom: &core.EnvVarSource{
 					SecretKeyRef: &core.SecretKeySelector{
 						LocalObjectReference: core.LocalObjectReference{
@@ -458,7 +477,7 @@ func (c *Controller) upsertMonitoringContainer(statefulSet *apps.StatefulSet, db
 				},
 			},
 			{
-				Name: "DATA_SOURCE_PASS",
+				Name: "POSTGRES_SOURCE_PASS",
 				ValueFrom: &core.EnvVarSource{
 					SecretKeyRef: &core.SecretKeySelector{
 						LocalObjectReference: core.LocalObjectReference{
@@ -475,10 +494,6 @@ func (c *Controller) upsertMonitoringContainer(statefulSet *apps.StatefulSet, db
 			{
 				Name:  "PG_EXPORTER_WEB_TELEMETRY_PATH",
 				Value: db.StatsService().Path(),
-			},
-			{
-				Name: "DATA_SOURCE_NAME",
-				Value: dataSourceName,
 			},
 		}
 		container.Env = core_util.UpsertEnvVars(container.Env, envList...)
@@ -740,7 +755,7 @@ func getContainers(statefulSet *apps.StatefulSet, postgres *api.Postgres, postgr
 			Resources:      postgres.Spec.PodTemplate.Spec.Resources,
 			LivenessProbe:  postgres.Spec.PodTemplate.Spec.LivenessProbe,
 			ReadinessProbe: postgres.Spec.PodTemplate.Spec.ReadinessProbe,
-			Lifecycle: lifeCycle,
+			Lifecycle:      lifeCycle,
 			SecurityContext: &core.SecurityContext{
 				Privileged: types.BoolP(false),
 				Capabilities: &core.Capabilities{
@@ -817,16 +832,16 @@ func upsertTLSVolume(sts *apps.StatefulSet, db *api.Postgres) *apps.StatefulSet 
 				SecretName: db.MustCertSecretName(api.PostgresServerCert),
 				Items: []core.KeyToPath{
 					{
-						Key:  "ca.crt",
-						Path: "ca.crt",
+						Key:  TLS_CA_CERT,
+						Path: TLS_CA_CERT,
 					},
 					{
-						Key:  "tls.crt",
-						Path: "server.crt",
+						Key:  TLS_CERT,
+						Path: SERVER_CERT,
 					},
 					{
-						Key:  "tls.key",
-						Path: "server.key",
+						Key:  TLS_KEY,
+						Path: SERVER_KEY,
 					},
 				},
 			},
@@ -839,16 +854,16 @@ func upsertTLSVolume(sts *apps.StatefulSet, db *api.Postgres) *apps.StatefulSet 
 				SecretName: db.MustCertSecretName(api.PostgresClientCert),
 				Items: []core.KeyToPath{
 					{
-						Key:  "ca.crt",
-						Path: "ca.crt",
+						Key:  TLS_CA_CERT,
+						Path: TLS_CA_CERT,
 					},
 					{
-						Key:  "tls.crt",
-						Path: "client.crt",
+						Key:  TLS_CERT,
+						Path: CLIENT_CERT,
 					},
 					{
-						Key:  "tls.key",
-						Path: "client.key",
+						Key:  TLS_KEY,
+						Path: CLIENT_KEY,
 					},
 				},
 			},
@@ -863,16 +878,16 @@ func upsertTLSVolume(sts *apps.StatefulSet, db *api.Postgres) *apps.StatefulSet 
 				SecretName:  db.MustCertSecretName(api.PostgresMetricsExporterCert),
 				Items: []core.KeyToPath{
 					{
-						Key:  "ca.crt",
-						Path: "ca.crt",
+						Key:  TLS_CA_CERT,
+						Path: TLS_CA_CERT,
 					},
 					{
-						Key:  "tls.crt",
-						Path: "exporter.crt",
+						Key:  TLS_CERT,
+						Path: TLS_CERT,
 					},
 					{
-						Key:  "tls.key",
-						Path: "exporter.key",
+						Key:  TLS_KEY,
+						Path: TLS_KEY,
 					},
 				},
 			},
@@ -886,16 +901,16 @@ func upsertTLSVolume(sts *apps.StatefulSet, db *api.Postgres) *apps.StatefulSet 
 				SecretName:  db.MustCertSecretName(api.PostgresClientCert),
 				Items: []core.KeyToPath{
 					{
-						Key:  "ca.crt",
-						Path: "ca.crt",
+						Key:  TLS_CA_CERT,
+						Path: TLS_CA_CERT,
 					},
 					{
-						Key:  "tls.crt",
-						Path: "client.crt",
+						Key:  TLS_CERT,
+						Path: CLIENT_CERT,
 					},
 					{
-						Key:  "tls.key",
-						Path: "client.key",
+						Key:  TLS_KEY,
+						Path: CLIENT_KEY,
 					},
 				},
 			},
