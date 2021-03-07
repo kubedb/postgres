@@ -22,8 +22,6 @@ github.com/NYTimes/gziphandler
 github.com/PuerkitoBio/purell
 # github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578
 github.com/PuerkitoBio/urlesc
-# github.com/appscode/go v0.0.0-20201105063637-5613f3b8169f
-github.com/appscode/go/types
 # github.com/appscode/osm v0.15.1
 github.com/appscode/osm/context
 # github.com/armon/circbuf v0.0.0-20150827004946-bbbad097214e

@@ -3,7 +3,6 @@ module kubedb.dev/postgres
 go 1.12
 
 require (
-	github.com/appscode/go v0.0.0-20201105063637-5613f3b8169f
 	github.com/codeskyblue/go-sh v0.0.0-20200712050446-30169cf553fe
 	github.com/go-xorm/xorm v0.7.9
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b

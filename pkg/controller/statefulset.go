@@ -19,7 +19,6 @@ package controller
 import (
 	"context"
 	"fmt"
-	"github.com/pkg/errors"
 	"strconv"
 	"strings"
 
@@ -27,7 +26,7 @@ import (
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha2"
 	"kubedb.dev/apimachinery/pkg/eventer"
 
-	"github.com/appscode/go/types"
+	"github.com/pkg/errors"
 	"gomodules.xyz/pointer"
 	"gomodules.xyz/version"
 	"gomodules.xyz/x/log"
@@ -360,7 +359,7 @@ func upsertEnv(statefulSet *apps.StatefulSet, db *api.Postgres, envs []core.EnvV
 func upsertUserEnv(statefulSet *apps.StatefulSet, postgress *api.Postgres) *apps.StatefulSet {
 	for i, container := range statefulSet.Spec.Template.Spec.Containers {
 		if container.Name == api.ResourceSingularPostgres {
-			statefulSet.Spec.Template.Spec.Containers[i].Env = core_util.UpsertEnvVars(container.Env, postgress.Spec.PodTemplate.Spec.Env...)
+			statefulSet.Spec.Template.Spec.Containers[i].Env = core_util.UpsertEnvVars(container.Env, postgress.Spec.PodTemplate.Spec.Container.Env...)
 			return statefulSet
 		}
 	}
@@ -729,15 +728,17 @@ func getInitContainers(statefulSet *apps.StatefulSet, postgres *api.Postgres, po
 	statefulSet.Spec.Template.Spec.InitContainers = core_util.UpsertContainer(
 		statefulSet.Spec.Template.Spec.InitContainers,
 		core.Container{
-			Name:           PostgresInitContainerName,
-			Image:          postgresVersion.Spec.InitContainer.Image,
-			Resources:      postgres.Spec.PodTemplate.Spec.Resources,
-			LivenessProbe:  postgres.Spec.PodTemplate.Spec.LivenessProbe,
-			ReadinessProbe: postgres.Spec.PodTemplate.Spec.ReadinessProbe,
-			Lifecycle:      postgres.Spec.PodTemplate.Spec.Lifecycle,
+			Name:            PostgresInitContainerName,
+			Image:           postgresVersion.Spec.InitContainer.Image,
+			Resources:       postgres.Spec.PodTemplate.Spec.Container.Resources,
+			SecurityContext: postgres.Spec.PodTemplate.Spec.Container.SecurityContext,
+			LivenessProbe:   postgres.Spec.PodTemplate.Spec.Container.LivenessProbe,
+			ReadinessProbe:  postgres.Spec.PodTemplate.Spec.Container.ReadinessProbe,
+			Lifecycle:       postgres.Spec.PodTemplate.Spec.Container.Lifecycle,
 		})
 	return statefulSet.Spec.Template.Spec.InitContainers
 }
+
 func getContainers(statefulSet *apps.StatefulSet, postgres *api.Postgres, postgresVersion *catalog.PostgresVersion) []core.Container {
 	lifeCycle := &core.Lifecycle{
 		PreStop: &core.Handler{
@@ -750,34 +751,24 @@ func getContainers(statefulSet *apps.StatefulSet, postgres *api.Postgres, postgr
 	statefulSet.Spec.Template.Spec.Containers = core_util.UpsertContainer(
 		statefulSet.Spec.Template.Spec.Containers,
 		core.Container{
-			Name:           api.ResourceSingularPostgres,
-			Image:          postgresVersion.Spec.DB.Image,
-			Resources:      postgres.Spec.PodTemplate.Spec.Resources,
-			LivenessProbe:  postgres.Spec.PodTemplate.Spec.LivenessProbe,
-			ReadinessProbe: postgres.Spec.PodTemplate.Spec.ReadinessProbe,
-			Lifecycle:      lifeCycle,
-			SecurityContext: &core.SecurityContext{
-				Privileged: types.BoolP(false),
-				Capabilities: &core.Capabilities{
-					Add: []core.Capability{"IPC_LOCK", "SYS_RESOURCE"},
-				},
-			},
+			Name:            api.ResourceSingularPostgres,
+			Image:           postgresVersion.Spec.DB.Image,
+			Resources:       postgres.Spec.PodTemplate.Spec.Container.Resources,
+			SecurityContext: postgres.Spec.PodTemplate.Spec.Container.SecurityContext,
+			LivenessProbe:   postgres.Spec.PodTemplate.Spec.Container.LivenessProbe,
+			ReadinessProbe:  postgres.Spec.PodTemplate.Spec.Container.ReadinessProbe,
+			Lifecycle:       lifeCycle,
 		})
 	statefulSet.Spec.Template.Spec.Containers = core_util.UpsertContainer(
 		statefulSet.Spec.Template.Spec.Containers,
 		core.Container{
-			Name:           api.PostgresCoordinatorContainerName,
-			Image:          postgresVersion.Spec.Coordinator.Image,
-			Resources:      postgres.Spec.PodTemplate.Spec.Resources,
-			LivenessProbe:  postgres.Spec.PodTemplate.Spec.LivenessProbe,
-			ReadinessProbe: postgres.Spec.PodTemplate.Spec.ReadinessProbe,
-			Lifecycle:      postgres.Spec.PodTemplate.Spec.Lifecycle,
-			SecurityContext: &core.SecurityContext{
-				Privileged: types.BoolP(false),
-				Capabilities: &core.Capabilities{
-					Add: []core.Capability{"IPC_LOCK", "SYS_RESOURCE"},
-				},
-			},
+			Name:            api.PostgresCoordinatorContainerName,
+			Image:           postgresVersion.Spec.Coordinator.Image,
+			Resources:       postgres.Spec.PodTemplate.Spec.Container.Resources,
+			SecurityContext: postgres.Spec.PodTemplate.Spec.Container.SecurityContext,
+			LivenessProbe:   postgres.Spec.PodTemplate.Spec.Container.LivenessProbe,
+			ReadinessProbe:  postgres.Spec.PodTemplate.Spec.Container.ReadinessProbe,
+			Lifecycle:       postgres.Spec.PodTemplate.Spec.Container.Lifecycle,
 		})
 	return statefulSet.Spec.Template.Spec.Containers
 }
