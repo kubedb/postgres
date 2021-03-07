@@ -33,6 +33,7 @@ import (
 	apps "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kutil "kmodules.xyz/client-go"
 	kmapi "kmodules.xyz/client-go/api/v1"
@@ -127,6 +128,9 @@ func (c *Controller) ensureStatefulSet(
 			in.Spec.Template.Spec.ImagePullSecrets = db.Spec.PodTemplate.Spec.ImagePullSecrets
 			in.Spec.Template.Spec.PriorityClassName = db.Spec.PodTemplate.Spec.PriorityClassName
 			in.Spec.Template.Spec.Priority = db.Spec.PodTemplate.Spec.Priority
+			in.Spec.Template.Spec.HostNetwork = db.Spec.PodTemplate.Spec.HostNetwork
+			in.Spec.Template.Spec.HostPID = db.Spec.PodTemplate.Spec.HostPID
+			in.Spec.Template.Spec.HostIPC = db.Spec.PodTemplate.Spec.HostIPC
 			in.Spec.Template.Spec.SecurityContext = db.Spec.PodTemplate.Spec.SecurityContext
 
 			in = c.upsertMonitoringContainer(in, db, postgresVersion)
@@ -728,13 +732,18 @@ func getInitContainers(statefulSet *apps.StatefulSet, postgres *api.Postgres, po
 	statefulSet.Spec.Template.Spec.InitContainers = core_util.UpsertContainer(
 		statefulSet.Spec.Template.Spec.InitContainers,
 		core.Container{
-			Name:            PostgresInitContainerName,
-			Image:           postgresVersion.Spec.InitContainer.Image,
-			Resources:       postgres.Spec.PodTemplate.Spec.Container.Resources,
-			SecurityContext: postgres.Spec.PodTemplate.Spec.Container.SecurityContext,
-			LivenessProbe:   postgres.Spec.PodTemplate.Spec.Container.LivenessProbe,
-			ReadinessProbe:  postgres.Spec.PodTemplate.Spec.Container.ReadinessProbe,
-			Lifecycle:       postgres.Spec.PodTemplate.Spec.Container.Lifecycle,
+			Name:  PostgresInitContainerName,
+			Image: postgresVersion.Spec.InitContainer.Image,
+			Resources: core.ResourceRequirements{
+				Limits: core.ResourceList{
+					core.ResourceCPU:    resource.MustParse(".200"),
+					core.ResourceMemory: resource.MustParse("128Mi"),
+				},
+				Requests: core.ResourceList{
+					core.ResourceCPU:    resource.MustParse(".200"),
+					core.ResourceMemory: resource.MustParse("128Mi"),
+				},
+			},
 		})
 	return statefulSet.Spec.Template.Spec.InitContainers
 }
@@ -762,13 +771,18 @@ func getContainers(statefulSet *apps.StatefulSet, postgres *api.Postgres, postgr
 	statefulSet.Spec.Template.Spec.Containers = core_util.UpsertContainer(
 		statefulSet.Spec.Template.Spec.Containers,
 		core.Container{
-			Name:            api.PostgresCoordinatorContainerName,
-			Image:           postgresVersion.Spec.Coordinator.Image,
-			Resources:       postgres.Spec.PodTemplate.Spec.Container.Resources,
-			SecurityContext: postgres.Spec.PodTemplate.Spec.Container.SecurityContext,
-			LivenessProbe:   postgres.Spec.PodTemplate.Spec.Container.LivenessProbe,
-			ReadinessProbe:  postgres.Spec.PodTemplate.Spec.Container.ReadinessProbe,
-			Lifecycle:       postgres.Spec.PodTemplate.Spec.Container.Lifecycle,
+			Name:  api.PostgresCoordinatorContainerName,
+			Image: postgresVersion.Spec.Coordinator.Image,
+			Resources: core.ResourceRequirements{
+				Limits: core.ResourceList{
+					// core.ResourceCPU:    resource.MustParse(".200"),
+					core.ResourceMemory: resource.MustParse("256Mi"),
+				},
+				Requests: core.ResourceList{
+					// core.ResourceCPU:    resource.MustParse(".200"),
+					core.ResourceMemory: resource.MustParse("256Mi"),
+				},
+			},
 		})
 	return statefulSet.Spec.Template.Spec.Containers
 }
