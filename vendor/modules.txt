@@ -484,7 +484,7 @@ gomodules.xyz/cert/certstore
 gomodules.xyz/homedir
 # gomodules.xyz/jsonpatch/v2 v2.1.0
 gomodules.xyz/jsonpatch/v2
-# gomodules.xyz/password-generator v0.2.6
+# gomodules.xyz/password-generator v0.2.7
 gomodules.xyz/password-generator
 # gomodules.xyz/pointer v0.0.0-20201105071923-daf60fa55209
 gomodules.xyz/pointer

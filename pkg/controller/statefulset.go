@@ -410,7 +410,7 @@ func (c *Controller) upsertMonitoringContainer(statefulSet *apps.StatefulSet, db
 		if sslMode == string(api.PostgresSSLModePrefer) || sslMode == string(api.PostgresSSLModeAllow) {
 			sslMode = string(api.PostgresSSLModeRequire)
 		}
-		cnnstr := fmt.Sprintf("user=${POSTGRES_SOURCE_USER} password='${POSTGRES_SOURCE_PASS}' host=%s port=%d sslmode=%s", api.LocalHost, api.PostgresDatabasePort, sslMode)
+		cnnstr := fmt.Sprintf("user=${POSTGRES_SOURCE_USER} password=${POSTGRES_SOURCE_PASS} host=%s port=%d sslmode=%s", api.LocalHost, api.PostgresDatabasePort, sslMode)
 
 		if db.Spec.TLS != nil {
 			if db.Spec.SSLMode == api.PostgresSSLModeVerifyCA || db.Spec.SSLMode == api.PostgresSSLModeVerifyFull {
@@ -428,7 +428,7 @@ func (c *Controller) upsertMonitoringContainer(statefulSet *apps.StatefulSet, db
 		}, db.Spec.Monitor.Prometheus.Exporter.Args...), " ")
 
 		commands := []string{
-			fmt.Sprintf(`export DATA_SOURCE_NAME="%s"`, cnnstr),
+			fmt.Sprintf(`export DATA_SOURCE_NAME=%s`, cnnstr),
 			//TODO: remove this echo
 			`echo $DATA_SOURCE_NAME >/proc/1/fd/1`,
 			cmd,
