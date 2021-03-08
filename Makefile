@@ -24,7 +24,7 @@ BIN      := pg-operator
 COMPRESS ?= no
 
 # Where to push the docker image.
-REGISTRY ?= hremon331046
+REGISTRY ?= kubedb
 
 # This version-strategy uses git tags to set the version string
 git_branch       := $(shell git rev-parse --abbrev-ref HEAD)
@@ -342,7 +342,7 @@ $(BUILD_DIRS):
 REGISTRY_SECRET 	?=
 KUBE_NAMESPACE  	?=
 LICENSE_FILE    	?=
-IMAGE_PULL_POLICY 	?= IfNotPresent
+IMAGE_PULL_POLICY 	?= Always
 
 ifeq ($(strip $(REGISTRY_SECRET)),)
 	IMAGE_PULL_SECRETS =
