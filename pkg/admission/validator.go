@@ -209,7 +209,7 @@ func ValidatePostgres(client kubernetes.Interface, extClient cs.Interface, postg
 		return fmt.Errorf("can't have %v set to postgres.spec.sslMode when postgres.spec.TLS is set ",
 			postgres.Spec.SSLMode)
 	}
-	if (postgres.Spec.SSLMode != api.PostgresSSLModeDisable) && postgres.Spec.TLS == nil {
+	if (postgres.Spec.SSLMode != "" && postgres.Spec.SSLMode != api.PostgresSSLModeDisable) && postgres.Spec.TLS == nil {
 		return fmt.Errorf("can't have %v set to postgres.Spec.SSLMode when postgres.Spec.TLS is null",
 			postgres.Spec.SSLMode)
 	}

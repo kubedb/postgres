@@ -111,7 +111,7 @@ func (c *Controller) ensureStatefulSet(
 			in.Spec.Template.Labels = db.OffshootSelectors()
 			in.Spec.Template.Annotations = db.Spec.PodTemplate.Annotations
 			in.Spec.Template.Spec.InitContainers = core_util.UpsertContainers(in.Spec.Template.Spec.InitContainers, db.Spec.PodTemplate.Spec.InitContainers)
-			in.Spec.Template.Spec.InitContainers = getInitContainers(in, db, postgresVersion)
+			in.Spec.Template.Spec.InitContainers = getInitContainers(in, postgresVersion)
 
 			in.Spec.Template.Spec.Containers = getContainers(in, db, postgresVersion)
 
@@ -414,7 +414,7 @@ func (c *Controller) upsertMonitoringContainer(statefulSet *apps.StatefulSet, db
 		if sslMode == string(api.PostgresSSLModePrefer) || sslMode == string(api.PostgresSSLModeAllow) {
 			sslMode = string(api.PostgresSSLModeRequire)
 		}
-		cnnstr := fmt.Sprintf("user=${POSTGRES_SOURCE_USER} password=${POSTGRES_SOURCE_PASS} host=%s port=%d sslmode=%s", api.LocalHost, api.PostgresDatabasePort, sslMode)
+		cnnstr := fmt.Sprintf("user=${POSTGRES_SOURCE_USER} password='${POSTGRES_SOURCE_PASS}' host=%s port=%d sslmode=%s", api.LocalHost, api.PostgresDatabasePort, sslMode)
 
 		if db.Spec.TLS != nil {
 			if db.Spec.SSLMode == api.PostgresSSLModeVerifyCA || db.Spec.SSLMode == api.PostgresSSLModeVerifyFull {
@@ -428,13 +428,11 @@ func (c *Controller) upsertMonitoringContainer(statefulSet *apps.StatefulSet, db
 
 		cmd := strings.Join(append([]string{
 			"/bin/postgres_exporter",
-			"--log.level=debug",
+			"--log.level=info",
 		}, db.Spec.Monitor.Prometheus.Exporter.Args...), " ")
 
 		commands := []string{
-			fmt.Sprintf(`export DATA_SOURCE_NAME=%s`, cnnstr),
-			//TODO: remove this echo
-			`echo $DATA_SOURCE_NAME >/proc/1/fd/1`,
+			fmt.Sprintf(`export DATA_SOURCE_NAME="%s"`, cnnstr),
 			cmd,
 		}
 		command := strings.Join(commands, ";")
@@ -728,7 +726,7 @@ func upsertCertificatesVolume(statefulSet *apps.StatefulSet) *apps.StatefulSet {
 	return statefulSet
 }
 
-func getInitContainers(statefulSet *apps.StatefulSet, postgres *api.Postgres, postgresVersion *catalog.PostgresVersion) []core.Container {
+func getInitContainers(statefulSet *apps.StatefulSet, postgresVersion *catalog.PostgresVersion) []core.Container {
 	statefulSet.Spec.Template.Spec.InitContainers = core_util.UpsertContainer(
 		statefulSet.Spec.Template.Spec.InitContainers,
 		core.Container{
@@ -775,11 +773,11 @@ func getContainers(statefulSet *apps.StatefulSet, postgres *api.Postgres, postgr
 			Image: postgresVersion.Spec.Coordinator.Image,
 			Resources: core.ResourceRequirements{
 				Limits: core.ResourceList{
-					// core.ResourceCPU:    resource.MustParse(".200"),
+					core.ResourceCPU:    resource.MustParse(".500"),
 					core.ResourceMemory: resource.MustParse("256Mi"),
 				},
 				Requests: core.ResourceList{
-					// core.ResourceCPU:    resource.MustParse(".200"),
+					core.ResourceCPU:    resource.MustParse(".500"),
 					core.ResourceMemory: resource.MustParse("256Mi"),
 				},
 			},
