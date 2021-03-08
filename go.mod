@@ -35,9 +35,9 @@ require (
 	kmodules.xyz/custom-resources v0.0.0-20210222235834-b3f8dc56b6a3
 	kmodules.xyz/monitoring-agent-api v0.0.0-20201105074044-be7a1044891a
 	kmodules.xyz/objectstore-api v0.0.0-20210218144135-bfabb80e0362
-	kmodules.xyz/offshoot-api v0.0.0-20210306122148-567d434b4630
+	kmodules.xyz/offshoot-api v0.0.0-20210308072215-581e7685cd02
 	kmodules.xyz/webhook-runtime v0.0.0-20201105073856-2dc7382b88c6
-	kubedb.dev/apimachinery v0.16.3-0.20210307074942-2bf1490e094d
+	kubedb.dev/apimachinery v0.16.3-0.20210308083722-3cdca5092e26
 	stash.appscode.dev/apimachinery v0.11.9
 
 )

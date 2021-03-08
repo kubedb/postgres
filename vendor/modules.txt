@@ -1171,14 +1171,14 @@ kmodules.xyz/monitoring-agent-api/prometheus/v1
 # kmodules.xyz/objectstore-api v0.0.0-20210218144135-bfabb80e0362
 kmodules.xyz/objectstore-api/api/v1
 kmodules.xyz/objectstore-api/osm
-# kmodules.xyz/offshoot-api v0.0.0-20210306122148-567d434b4630
+# kmodules.xyz/offshoot-api v0.0.0-20210308072215-581e7685cd02
 kmodules.xyz/offshoot-api/api/v1
 # kmodules.xyz/prober v0.0.0-20201105074402-a243b3a27fd8
 kmodules.xyz/prober/api/v1
 # kmodules.xyz/webhook-runtime v0.0.0-20201105073856-2dc7382b88c6
 kmodules.xyz/webhook-runtime/admission/v1beta1
 kmodules.xyz/webhook-runtime/registry/admissionreview/v1beta1
-# kubedb.dev/apimachinery v0.16.3-0.20210307074942-2bf1490e094d
+# kubedb.dev/apimachinery v0.16.3-0.20210308083722-3cdca5092e26
 kubedb.dev/apimachinery/apis
 kubedb.dev/apimachinery/apis/autoscaling
 kubedb.dev/apimachinery/apis/autoscaling/v1alpha1

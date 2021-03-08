@@ -1508,7 +1508,7 @@ var _ = Describe("Postgres", func() {
 						walDir  = "/var/pv/wal"
 					)
 					dbName = f.App()
-					postgres.Spec.PodTemplate.Spec.Container.Env = []core.EnvVar{
+					postgres.Spec.PodTemplate.Spec.Env = []core.EnvVar{
 						{
 							Name:  PGDATA,
 							Value: dataDir,
@@ -1538,7 +1538,7 @@ var _ = Describe("Postgres", func() {
 							},
 						}
 					}
-					postgres.Spec.PodTemplate.Spec.Container.Env = core_util.UpsertEnvVars(postgres.Spec.PodTemplate.Spec.Container.Env, walEnv...)
+					postgres.Spec.PodTemplate.Spec.Env = core_util.UpsertEnvVars(postgres.Spec.PodTemplate.Spec.Env, walEnv...)
 
 					// Run Postgres with provided Environment Variables
 					testGeneralBehaviour()
@@ -1553,7 +1553,7 @@ var _ = Describe("Postgres", func() {
 					}
 
 					dbName = f.App()
-					postgres.Spec.PodTemplate.Spec.Container.Env = []core.EnvVar{
+					postgres.Spec.PodTemplate.Spec.Env = []core.EnvVar{
 						{
 							Name:  POSTGRES_PASSWORD,
 							Value: "not@secret",
@@ -1574,7 +1574,7 @@ var _ = Describe("Postgres", func() {
 					}
 
 					dbName = f.App()
-					postgres.Spec.PodTemplate.Spec.Container.Env = []core.EnvVar{
+					postgres.Spec.PodTemplate.Spec.Env = []core.EnvVar{
 						{
 							Name:  POSTGRES_DB,
 							Value: dbName,
@@ -1586,7 +1586,7 @@ var _ = Describe("Postgres", func() {
 
 					By("Patching EnvVar")
 					_, _, err = util.PatchPostgres(context.TODO(), f.ExtClient().KubedbV1alpha2(), postgres, func(in *api.Postgres) *api.Postgres {
-						in.Spec.PodTemplate.Spec.Container.Env = []core.EnvVar{
+						in.Spec.PodTemplate.Spec.Env = []core.EnvVar{
 							{
 								Name:  POSTGRES_DB,
 								Value: "patched-db",
