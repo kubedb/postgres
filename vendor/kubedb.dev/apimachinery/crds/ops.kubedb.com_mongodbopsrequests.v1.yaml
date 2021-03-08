@@ -337,6 +337,56 @@ spec:
                                 items:
                                   type: string
                                 type: array
+                              containerSecurityContext:
+                                properties:
+                                  allowPrivilegeEscalation:
+                                    type: boolean
+                                  capabilities:
+                                    properties:
+                                      add:
+                                        items:
+                                          type: string
+                                        type: array
+                                      drop:
+                                        items:
+                                          type: string
+                                        type: array
+                                    type: object
+                                  privileged:
+                                    type: boolean
+                                  procMount:
+                                    type: string
+                                  readOnlyRootFilesystem:
+                                    type: boolean
+                                  runAsGroup:
+                                    format: int64
+                                    type: integer
+                                  runAsNonRoot:
+                                    type: boolean
+                                  runAsUser:
+                                    format: int64
+                                    type: integer
+                                  seLinuxOptions:
+                                    properties:
+                                      level:
+                                        type: string
+                                      role:
+                                        type: string
+                                      type:
+                                        type: string
+                                      user:
+                                        type: string
+                                    type: object
+                                  windowsOptions:
+                                    properties:
+                                      gmsaCredentialSpec:
+                                        type: string
+                                      gmsaCredentialSpecName:
+                                        type: string
+                                      runAsUserName:
+                                        type: string
+                                    type: object
+                                type: object
                               dnsConfig:
                                 properties:
                                   nameservers:
@@ -419,6 +469,12 @@ spec:
                                   - name
                                   type: object
                                 type: array
+                              hostIPC:
+                                type: boolean
+                              hostNetwork:
+                                type: boolean
+                              hostPID:
+                                type: boolean
                               imagePullSecrets:
                                 items:
                                   properties:
@@ -1281,6 +1337,8 @@ spec:
                                 type: object
                               serviceAccountName:
                                 type: string
+                              shareProcessNamespace:
+                                type: boolean
                               tolerations:
                                 items:
                                   properties:
@@ -1595,6 +1653,56 @@ spec:
                                 items:
                                   type: string
                                 type: array
+                              containerSecurityContext:
+                                properties:
+                                  allowPrivilegeEscalation:
+                                    type: boolean
+                                  capabilities:
+                                    properties:
+                                      add:
+                                        items:
+                                          type: string
+                                        type: array
+                                      drop:
+                                        items:
+                                          type: string
+                                        type: array
+                                    type: object
+                                  privileged:
+                                    type: boolean
+                                  procMount:
+                                    type: string
+                                  readOnlyRootFilesystem:
+                                    type: boolean
+                                  runAsGroup:
+                                    format: int64
+                                    type: integer
+                                  runAsNonRoot:
+                                    type: boolean
+                                  runAsUser:
+                                    format: int64
+                                    type: integer
+                                  seLinuxOptions:
+                                    properties:
+                                      level:
+                                        type: string
+                                      role:
+                                        type: string
+                                      type:
+                                        type: string
+                                      user:
+                                        type: string
+                                    type: object
+                                  windowsOptions:
+                                    properties:
+                                      gmsaCredentialSpec:
+                                        type: string
+                                      gmsaCredentialSpecName:
+                                        type: string
+                                      runAsUserName:
+                                        type: string
+                                    type: object
+                                type: object
                               dnsConfig:
                                 properties:
                                   nameservers:
@@ -1677,6 +1785,12 @@ spec:
                                   - name
                                   type: object
                                 type: array
+                              hostIPC:
+                                type: boolean
+                              hostNetwork:
+                                type: boolean
+                              hostPID:
+                                type: boolean
                               imagePullSecrets:
                                 items:
                                   properties:
@@ -2539,6 +2653,8 @@ spec:
                                 type: object
                               serviceAccountName:
                                 type: string
+                              shareProcessNamespace:
+                                type: boolean
                               tolerations:
                                 items:
                                   properties:
@@ -2853,6 +2969,56 @@ spec:
                                 items:
                                   type: string
                                 type: array
+                              containerSecurityContext:
+                                properties:
+                                  allowPrivilegeEscalation:
+                                    type: boolean
+                                  capabilities:
+                                    properties:
+                                      add:
+                                        items:
+                                          type: string
+                                        type: array
+                                      drop:
+                                        items:
+                                          type: string
+                                        type: array
+                                    type: object
+                                  privileged:
+                                    type: boolean
+                                  procMount:
+                                    type: string
+                                  readOnlyRootFilesystem:
+                                    type: boolean
+                                  runAsGroup:
+                                    format: int64
+                                    type: integer
+                                  runAsNonRoot:
+                                    type: boolean
+                                  runAsUser:
+                                    format: int64
+                                    type: integer
+                                  seLinuxOptions:
+                                    properties:
+                                      level:
+                                        type: string
+                                      role:
+                                        type: string
+                                      type:
+                                        type: string
+                                      user:
+                                        type: string
+                                    type: object
+                                  windowsOptions:
+                                    properties:
+                                      gmsaCredentialSpec:
+                                        type: string
+                                      gmsaCredentialSpecName:
+                                        type: string
+                                      runAsUserName:
+                                        type: string
+                                    type: object
+                                type: object
                               dnsConfig:
                                 properties:
                                   nameservers:
@@ -2935,6 +3101,12 @@ spec:
                                   - name
                                   type: object
                                 type: array
+                              hostIPC:
+                                type: boolean
+                              hostNetwork:
+                                type: boolean
+                              hostPID:
+                                type: boolean
                               imagePullSecrets:
                                 items:
                                   properties:
@@ -3797,6 +3969,8 @@ spec:
                                 type: object
                               serviceAccountName:
                                 type: string
+                              shareProcessNamespace:
+                                type: boolean
                               tolerations:
                                 items:
                                   properties:
@@ -4111,6 +4285,56 @@ spec:
                                 items:
                                   type: string
                                 type: array
+                              containerSecurityContext:
+                                properties:
+                                  allowPrivilegeEscalation:
+                                    type: boolean
+                                  capabilities:
+                                    properties:
+                                      add:
+                                        items:
+                                          type: string
+                                        type: array
+                                      drop:
+                                        items:
+                                          type: string
+                                        type: array
+                                    type: object
+                                  privileged:
+                                    type: boolean
+                                  procMount:
+                                    type: string
+                                  readOnlyRootFilesystem:
+                                    type: boolean
+                                  runAsGroup:
+                                    format: int64
+                                    type: integer
+                                  runAsNonRoot:
+                                    type: boolean
+                                  runAsUser:
+                                    format: int64
+                                    type: integer
+                                  seLinuxOptions:
+                                    properties:
+                                      level:
+                                        type: string
+                                      role:
+                                        type: string
+                                      type:
+                                        type: string
+                                      user:
+                                        type: string
+                                    type: object
+                                  windowsOptions:
+                                    properties:
+                                      gmsaCredentialSpec:
+                                        type: string
+                                      gmsaCredentialSpecName:
+                                        type: string
+                                      runAsUserName:
+                                        type: string
+                                    type: object
+                                type: object
                               dnsConfig:
                                 properties:
                                   nameservers:
@@ -4193,6 +4417,12 @@ spec:
                                   - name
                                   type: object
                                 type: array
+                              hostIPC:
+                                type: boolean
+                              hostNetwork:
+                                type: boolean
+                              hostPID:
+                                type: boolean
                               imagePullSecrets:
                                 items:
                                   properties:
@@ -5055,6 +5285,8 @@ spec:
                                 type: object
                               serviceAccountName:
                                 type: string
+                              shareProcessNamespace:
+                                type: boolean
                               tolerations:
                                 items:
                                   properties:
@@ -5369,6 +5601,56 @@ spec:
                                 items:
                                   type: string
                                 type: array
+                              containerSecurityContext:
+                                properties:
+                                  allowPrivilegeEscalation:
+                                    type: boolean
+                                  capabilities:
+                                    properties:
+                                      add:
+                                        items:
+                                          type: string
+                                        type: array
+                                      drop:
+                                        items:
+                                          type: string
+                                        type: array
+                                    type: object
+                                  privileged:
+                                    type: boolean
+                                  procMount:
+                                    type: string
+                                  readOnlyRootFilesystem:
+                                    type: boolean
+                                  runAsGroup:
+                                    format: int64
+                                    type: integer
+                                  runAsNonRoot:
+                                    type: boolean
+                                  runAsUser:
+                                    format: int64
+                                    type: integer
+                                  seLinuxOptions:
+                                    properties:
+                                      level:
+                                        type: string
+                                      role:
+                                        type: string
+                                      type:
+                                        type: string
+                                      user:
+                                        type: string
+                                    type: object
+                                  windowsOptions:
+                                    properties:
+                                      gmsaCredentialSpec:
+                                        type: string
+                                      gmsaCredentialSpecName:
+                                        type: string
+                                      runAsUserName:
+                                        type: string
+                                    type: object
+                                type: object
                               dnsConfig:
                                 properties:
                                   nameservers:
@@ -5451,6 +5733,12 @@ spec:
                                   - name
                                   type: object
                                 type: array
+                              hostIPC:
+                                type: boolean
+                              hostNetwork:
+                                type: boolean
+                              hostPID:
+                                type: boolean
                               imagePullSecrets:
                                 items:
                                   properties:
@@ -6313,6 +6601,8 @@ spec:
                                 type: object
                               serviceAccountName:
                                 type: string
+                              shareProcessNamespace:
+                                type: boolean
                               tolerations:
                                 items:
                                   properties:

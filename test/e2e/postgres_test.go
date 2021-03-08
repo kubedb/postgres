@@ -59,13 +59,13 @@ const (
 
 var _ = Describe("Postgres", func() {
 	var (
-		err                 error
-		f                   *framework.Invocation
-		postgres            *api.Postgres
-		garbagePostgres     *api.PostgresList
-		secret              *core.Secret
-		skipMessage         string
-		skipWalDataChecking bool
+		err             error
+		f               *framework.Invocation
+		postgres        *api.Postgres
+		garbagePostgres *api.PostgresList
+		secret          *core.Secret
+		skipMessage     string
+		//skipWalDataChecking bool
 		skipMinioDeployment bool
 		dbName              string
 		dbUser              string
@@ -77,7 +77,7 @@ var _ = Describe("Postgres", func() {
 		garbagePostgres = new(api.PostgresList)
 		secret = nil
 		skipMessage = ""
-		skipWalDataChecking = true
+		//skipWalDataChecking = true
 		skipMinioDeployment = true
 		dbName = "postgres"
 		dbUser = "postgres"
@@ -196,10 +196,10 @@ var _ = Describe("Postgres", func() {
 		By("Wait for postgres resources to be wipedOut")
 		f.EventuallyWipedOut(postgres.ObjectMeta).Should(Succeed())
 
-		if postgres.Spec.Archiver != nil && !skipWalDataChecking {
-			By("Checking wal data has been removed")
-			f.EventuallyWalDataFound(postgres).Should(BeFalse())
-		}
+		//if postgres.Spec.Archiver != nil && !skipWalDataChecking {
+		//	By("Checking wal data has been removed")
+		//	f.EventuallyWalDataFound(postgres).Should(BeFalse())
+		//}
 	}
 
 	AfterEach(func() {
@@ -227,10 +227,10 @@ var _ = Describe("Postgres", func() {
 
 	// if secret is empty (no .env file) then skip
 	JustBeforeEach(func() {
-		if secret != nil && len(secret.Data) == 0 &&
-			(postgres.Spec.Archiver != nil && postgres.Spec.Archiver.Storage != nil && postgres.Spec.Archiver.Storage.Local == nil) {
-			Skip("Missing repository credential")
-		}
+		//if secret != nil && len(secret.Data) == 0 &&
+		//	//(postgres.Spec.Archiver != nil && postgres.Spec.Archiver.Storage != nil && postgres.Spec.Archiver.Storage.Local == nil) {
+		//	Skip("Missing repository credential")
+		//}
 	})
 
 	Describe("Test", func() {
@@ -679,706 +679,706 @@ var _ = Describe("Postgres", func() {
 			})
 		})
 
-		Context("Archive with wal-g", func() {
+		//Context("Archive with wal-g", func() {
+		//
+		//var postgres2nd, postgres3rd *api.Postgres
+		//
+		//BeforeEach(func() {
+		//	secret = f.SecretForS3Backend()
+		//	skipWalDataChecking = false
+		//	postgres.Spec.Archiver = &api.PostgresArchiverSpec{
+		//		Storage: &store.Backend{
+		//			StorageSecretName: secret.Name,
+		//			S3: &store.S3Spec{
+		//				Bucket: os.Getenv(S3_BUCKET_NAME),
+		//			},
+		//		},
+		//	}
+		//})
 
-			var postgres2nd, postgres3rd *api.Postgres
+		//archiveAndInitializeFromArchive := func() {
+		//	// -- > 1st Postgres < --
+		//	err := f.CreateSecret(secret)
+		//	// Secret can be already created in Minio Tests
+		//	if err != nil && !kerr.IsAlreadyExists(err) {
+		//		Expect(err).NotTo(HaveOccurred())
+		//	}
+		//
+		//	// Create Postgres
+		//	createAndWaitForRunning()
+		//
+		//	By("Creating Schema")
+		//	f.EventuallyCreateSchema(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
+		//
+		//	By("Creating Table")
+		//	f.EventuallyCreateTable(postgres.ObjectMeta, dbName, dbUser, 3).Should(BeTrue())
+		//
+		//	By("Checking Table")
+		//	f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
+		//
+		//	By("Checking Archive")
+		//	f.EventuallyCountArchive(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
+		//
+		//	By("Checking wal data in backend")
+		//	f.EventuallyWalDataFound(postgres).Should(BeTrue())
+		//
+		//	oldPostgres, err := f.GetPostgres(postgres.ObjectMeta)
+		//	Expect(err).NotTo(HaveOccurred())
+		//
+		//	garbagePostgres.Items = append(garbagePostgres.Items, *oldPostgres)
+		//
+		//	// -- > 1st Postgres end < --
+		//
+		//	// -- > 2nd Postgres < --
+		//	postgres2nd.Spec.AuthSecret = oldPostgres.Spec.AuthSecret
+		//	*postgres = *postgres2nd
+		//
+		//	// Create Postgres
+		//	createAndWaitForRunning()
+		//
+		//	By("Ping Database")
+		//	f.EventuallyPingDatabase(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
+		//
+		//	By("Checking existing data in Table")
+		//	f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
+		//
+		//	By("Creating Table")
+		//	f.EventuallyCreateTable(postgres.ObjectMeta, dbName, dbUser, 3).Should(BeTrue())
+		//
+		//	By("Checking Table")
+		//	f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(6))
+		//
+		//	By("Checking Archive")
+		//	f.EventuallyCountArchive(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
+		//
+		//	By("Checking wal data in backend")
+		//	f.EventuallyWalDataFound(postgres).Should(BeTrue())
+		//
+		//	oldPostgres, err = f.GetPostgres(postgres.ObjectMeta)
+		//	Expect(err).NotTo(HaveOccurred())
+		//
+		//	garbagePostgres.Items = append(garbagePostgres.Items, *oldPostgres)
+		//
+		//	// -- > 2nd Postgres end < --
+		//
+		//	// -- > 3rd Postgres < --
+		//	postgres3rd.Spec.AuthSecret = oldPostgres.Spec.AuthSecret
+		//	*postgres = *postgres3rd
+		//
+		//	// Create Postgres
+		//	createAndWaitForRunning()
+		//
+		//	By("Ping Database")
+		//	f.EventuallyPingDatabase(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
+		//
+		//	By("Checking Table")
+		//	f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(6))
+		//}
 
+		//archiveAndInitializeFromLocalArchive := func() {
+		//	// -- > 1st Postgres < --
+		//	// Create Postgres
+		//	createAndWaitForRunning()
+		//
+		//	By("Creating Schema")
+		//	f.EventuallyCreateSchema(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
+		//
+		//	By("Creating Table")
+		//	f.EventuallyCreateTable(postgres.ObjectMeta, dbName, dbUser, 3).Should(BeTrue())
+		//
+		//	By("Checking Table")
+		//	f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
+		//
+		//	By("Checking Archive")
+		//	f.EventuallyCountArchive(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
+		//
+		//	oldPostgres, err := f.GetPostgres(postgres.ObjectMeta)
+		//	Expect(err).NotTo(HaveOccurred())
+		//
+		//	garbagePostgres.Items = append(garbagePostgres.Items, *oldPostgres)
+		//
+		//	// -- > 1st Postgres end < --
+		//
+		//	// -- > 2nd Postgres < --
+		//	postgres2nd.Spec.AuthSecret = oldPostgres.Spec.AuthSecret
+		//	*postgres = *postgres2nd
+		//
+		//	// Create Postgres
+		//	createAndWaitForRunning()
+		//
+		//	By("Ping Database")
+		//	f.EventuallyPingDatabase(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
+		//
+		//	By("Creating Table")
+		//	f.EventuallyCreateTable(postgres.ObjectMeta, dbName, dbUser, 3).Should(BeTrue())
+		//
+		//	By("Checking Table")
+		//	f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(6))
+		//
+		//	By("Checking Archive")
+		//	f.EventuallyCountArchive(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
+		//
+		//	oldPostgres, err = f.GetPostgres(postgres.ObjectMeta)
+		//	Expect(err).NotTo(HaveOccurred())
+		//
+		//	garbagePostgres.Items = append(garbagePostgres.Items, *oldPostgres)
+		//
+		//	// -- > 2nd Postgres end < --
+		//
+		//	// -- > 3rd Postgres < --
+		//	postgres3rd.Spec.AuthSecret = oldPostgres.Spec.AuthSecret
+		//	*postgres = *postgres3rd
+		//
+		//	// Create Postgres
+		//	createAndWaitForRunning()
+		//
+		//	By("Ping Database")
+		//	f.EventuallyPingDatabase(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
+		//
+		//	By("Checking Table")
+		//	f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(6))
+		//
+		//}
+		//
+		//shouldWipeOutWalData := func() {
+		//
+		//	err := f.CreateSecret(secret)
+		//	Expect(err).NotTo(HaveOccurred())
+		//
+		//	// Create Postgres
+		//	createAndWaitForRunning()
+		//
+		//	By("Creating Schema")
+		//	f.EventuallyCreateSchema(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
+		//
+		//	By("Creating Table")
+		//	f.EventuallyCreateTable(postgres.ObjectMeta, dbName, dbUser, 3).Should(BeTrue())
+		//
+		//	By("Checking Table")
+		//	f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
+		//
+		//	By("Checking Archive")
+		//	f.EventuallyCountArchive(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
+		//
+		//	By("Checking wal data in backend")
+		//	f.EventuallyWalDataFound(postgres).Should(BeTrue())
+		//
+		//	postgres, err = f.GetPostgres(postgres.ObjectMeta)
+		//	Expect(err).NotTo(HaveOccurred())
+		//
+		//	By("Deleting Postgres crd")
+		//	err = f.DeletePostgres(postgres.ObjectMeta)
+		//	Expect(err).NotTo(HaveOccurred())
+		//
+		//	By("wait until postgres is deleted")
+		//	f.EventuallyPostgres(postgres.ObjectMeta).Should(BeFalse())
+		//
+		//	By("Checking PVCs has been deleted")
+		//	f.EventuallyPVCCount(postgres.ObjectMeta).Should(Equal(0))
+		//
+		//	By("Checking Secrets has been deleted")
+		//	f.EventuallyDBSecretCount(postgres.ObjectMeta).Should(Equal(0))
+		//
+		//	By("Checking Wal data removed from backend")
+		//	f.EventuallyWalDataFound(postgres).Should(BeFalse())
+		//}
+
+		// Archiving not working for local volume. xref: https://github.com/kubedb/project/issues/623
+		// TODO: fix the issue and enable this test
+		XContext("In Local", func() {
 			BeforeEach(func() {
-				secret = f.SecretForS3Backend()
-				skipWalDataChecking = false
-				postgres.Spec.Archiver = &api.PostgresArchiverSpec{
-					Storage: &store.Backend{
-						StorageSecretName: secret.Name,
-						S3: &store.S3Spec{
-							Bucket: os.Getenv(S3_BUCKET_NAME),
-						},
-					},
-				}
+				//skipWalDataChecking = true
 			})
 
-			archiveAndInitializeFromArchive := func() {
-				// -- > 1st Postgres < --
-				err := f.CreateSecret(secret)
-				// Secret can be already created in Minio Tests
-				if err != nil && !kerr.IsAlreadyExists(err) {
-					Expect(err).NotTo(HaveOccurred())
-				}
-
-				// Create Postgres
-				createAndWaitForRunning()
-
-				By("Creating Schema")
-				f.EventuallyCreateSchema(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
-
-				By("Creating Table")
-				f.EventuallyCreateTable(postgres.ObjectMeta, dbName, dbUser, 3).Should(BeTrue())
-
-				By("Checking Table")
-				f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
-
-				By("Checking Archive")
-				f.EventuallyCountArchive(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
-
-				By("Checking wal data in backend")
-				f.EventuallyWalDataFound(postgres).Should(BeTrue())
-
-				oldPostgres, err := f.GetPostgres(postgres.ObjectMeta)
-				Expect(err).NotTo(HaveOccurred())
-
-				garbagePostgres.Items = append(garbagePostgres.Items, *oldPostgres)
-
-				// -- > 1st Postgres end < --
-
-				// -- > 2nd Postgres < --
-				postgres2nd.Spec.AuthSecret = oldPostgres.Spec.AuthSecret
-				*postgres = *postgres2nd
-
-				// Create Postgres
-				createAndWaitForRunning()
-
-				By("Ping Database")
-				f.EventuallyPingDatabase(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
-
-				By("Checking existing data in Table")
-				f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
-
-				By("Creating Table")
-				f.EventuallyCreateTable(postgres.ObjectMeta, dbName, dbUser, 3).Should(BeTrue())
-
-				By("Checking Table")
-				f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(6))
-
-				By("Checking Archive")
-				f.EventuallyCountArchive(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
-
-				By("Checking wal data in backend")
-				f.EventuallyWalDataFound(postgres).Should(BeTrue())
-
-				oldPostgres, err = f.GetPostgres(postgres.ObjectMeta)
-				Expect(err).NotTo(HaveOccurred())
-
-				garbagePostgres.Items = append(garbagePostgres.Items, *oldPostgres)
-
-				// -- > 2nd Postgres end < --
-
-				// -- > 3rd Postgres < --
-				postgres3rd.Spec.AuthSecret = oldPostgres.Spec.AuthSecret
-				*postgres = *postgres3rd
-
-				// Create Postgres
-				createAndWaitForRunning()
-
-				By("Ping Database")
-				f.EventuallyPingDatabase(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
-
-				By("Checking Table")
-				f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(6))
-			}
-
-			archiveAndInitializeFromLocalArchive := func() {
-				// -- > 1st Postgres < --
-				// Create Postgres
-				createAndWaitForRunning()
-
-				By("Creating Schema")
-				f.EventuallyCreateSchema(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
-
-				By("Creating Table")
-				f.EventuallyCreateTable(postgres.ObjectMeta, dbName, dbUser, 3).Should(BeTrue())
-
-				By("Checking Table")
-				f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
-
-				By("Checking Archive")
-				f.EventuallyCountArchive(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
-
-				oldPostgres, err := f.GetPostgres(postgres.ObjectMeta)
-				Expect(err).NotTo(HaveOccurred())
-
-				garbagePostgres.Items = append(garbagePostgres.Items, *oldPostgres)
-
-				// -- > 1st Postgres end < --
-
-				// -- > 2nd Postgres < --
-				postgres2nd.Spec.AuthSecret = oldPostgres.Spec.AuthSecret
-				*postgres = *postgres2nd
-
-				// Create Postgres
-				createAndWaitForRunning()
-
-				By("Ping Database")
-				f.EventuallyPingDatabase(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
-
-				By("Creating Table")
-				f.EventuallyCreateTable(postgres.ObjectMeta, dbName, dbUser, 3).Should(BeTrue())
-
-				By("Checking Table")
-				f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(6))
-
-				By("Checking Archive")
-				f.EventuallyCountArchive(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
-
-				oldPostgres, err = f.GetPostgres(postgres.ObjectMeta)
-				Expect(err).NotTo(HaveOccurred())
-
-				garbagePostgres.Items = append(garbagePostgres.Items, *oldPostgres)
-
-				// -- > 2nd Postgres end < --
-
-				// -- > 3rd Postgres < --
-				postgres3rd.Spec.AuthSecret = oldPostgres.Spec.AuthSecret
-				*postgres = *postgres3rd
-
-				// Create Postgres
-				createAndWaitForRunning()
-
-				By("Ping Database")
-				f.EventuallyPingDatabase(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
-
-				By("Checking Table")
-				f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(6))
-
-			}
-
-			shouldWipeOutWalData := func() {
-
-				err := f.CreateSecret(secret)
-				Expect(err).NotTo(HaveOccurred())
-
-				// Create Postgres
-				createAndWaitForRunning()
-
-				By("Creating Schema")
-				f.EventuallyCreateSchema(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
-
-				By("Creating Table")
-				f.EventuallyCreateTable(postgres.ObjectMeta, dbName, dbUser, 3).Should(BeTrue())
-
-				By("Checking Table")
-				f.EventuallyCountTable(postgres.ObjectMeta, dbName, dbUser).Should(Equal(3))
-
-				By("Checking Archive")
-				f.EventuallyCountArchive(postgres.ObjectMeta, dbName, dbUser).Should(BeTrue())
-
-				By("Checking wal data in backend")
-				f.EventuallyWalDataFound(postgres).Should(BeTrue())
-
-				postgres, err = f.GetPostgres(postgres.ObjectMeta)
-				Expect(err).NotTo(HaveOccurred())
-
-				By("Deleting Postgres crd")
-				err = f.DeletePostgres(postgres.ObjectMeta)
-				Expect(err).NotTo(HaveOccurred())
-
-				By("wait until postgres is deleted")
-				f.EventuallyPostgres(postgres.ObjectMeta).Should(BeFalse())
-
-				By("Checking PVCs has been deleted")
-				f.EventuallyPVCCount(postgres.ObjectMeta).Should(Equal(0))
-
-				By("Checking Secrets has been deleted")
-				f.EventuallyDBSecretCount(postgres.ObjectMeta).Should(Equal(0))
-
-				By("Checking Wal data removed from backend")
-				f.EventuallyWalDataFound(postgres).Should(BeFalse())
-			}
-
-			// Archiving not working for local volume. xref: https://github.com/kubedb/project/issues/623
-			// TODO: fix the issue and enable this test
-			XContext("In Local", func() {
-				BeforeEach(func() {
-					skipWalDataChecking = true
-				})
-
-				Context("With PVC as Archive backend", func() {
-					var firstPVC *core.PersistentVolumeClaim
-					var secondPVC *core.PersistentVolumeClaim
-					BeforeEach(func() {
-						secret = f.SecretForLocalBackend()
-						firstPVC = f.GetNamedPersistentVolumeClaim("first")
-						secondPVC = f.GetNamedPersistentVolumeClaim("second")
-						err = f.CreatePersistentVolumeClaim(firstPVC)
-						Expect(err).NotTo(HaveOccurred())
-						err = f.CreatePersistentVolumeClaim(secondPVC)
-						Expect(err).NotTo(HaveOccurred())
-
-						postgres.Spec.Archiver = &api.PostgresArchiverSpec{
-							Storage: &store.Backend{
-								Local: &store.LocalSpec{
-									MountPath: "/walarchive",
-									VolumeSource: core.VolumeSource{
-										PersistentVolumeClaim: &core.PersistentVolumeClaimVolumeSource{
-											ClaimName: firstPVC.Name,
-										},
-									},
-								},
-							},
-						}
-						// 2nd Postgres
-						postgres2nd = f.Postgres()
-						postgres2nd.Spec.Archiver = &api.PostgresArchiverSpec{
-							Storage: &store.Backend{
-								Local: &store.LocalSpec{
-									MountPath: "/walarchive",
-									VolumeSource: core.VolumeSource{
-										PersistentVolumeClaim: &core.PersistentVolumeClaimVolumeSource{
-											ClaimName: secondPVC.Name,
-										},
-									},
-								},
-							},
-						}
-						postgres2nd.Spec.Init = &api.InitSpec{
-							PostgresWAL: &api.PostgresWALSourceSpec{
-								Backend: store.Backend{
-									Local: &store.LocalSpec{
-										MountPath: "/walsource",
-										SubPath:   fmt.Sprintf("%s-0", postgres.Name),
-										VolumeSource: core.VolumeSource{
-											PersistentVolumeClaim: &core.PersistentVolumeClaimVolumeSource{
-												ClaimName: firstPVC.Name,
-											},
-										},
-									},
-								},
-							},
-						}
-						// -- > 3rd Postgres < --
-						postgres3rd = f.Postgres()
-						postgres3rd.Spec.Init = &api.InitSpec{
-							PostgresWAL: &api.PostgresWALSourceSpec{
-								Backend: store.Backend{
-									Local: &store.LocalSpec{
-										MountPath: "/final/source",
-										SubPath:   fmt.Sprintf("%s-0", postgres2nd.Name),
-										VolumeSource: core.VolumeSource{
-											PersistentVolumeClaim: &core.PersistentVolumeClaimVolumeSource{
-												ClaimName: secondPVC.Name,
-											},
-										},
-									},
-								},
-							},
-						}
-
-					})
-
-					It("should archive and should resume from archive successfully", archiveAndInitializeFromLocalArchive)
-
-				})
-			})
-
-			Context("Minio S3", func() {
-				BeforeEach(func() {
-					skipWalDataChecking = false
-					skipMinioDeployment = false
-				})
-
-				Context("With ca-cert", func() {
-					BeforeEach(func() {
-						secret = f.SecretForMinioBackend()
-						err := f.CreateSecret(secret)
-						Expect(err).NotTo(HaveOccurred())
-
-						By("Creating Minio server with cacert")
-						addrs, err := f.CreateMinioServer(true, nil, secret)
-						Expect(err).NotTo(HaveOccurred())
-
-						postgres.Spec.Archiver = &api.PostgresArchiverSpec{
-							Storage: &store.Backend{
-								StorageSecretName: secret.Name,
-								S3: &store.S3Spec{
-									Bucket:   os.Getenv(S3_BUCKET_NAME),
-									Endpoint: addrs,
-								},
-							},
-						}
-
-						// -- > 2nd Postgres < --
-						postgres2nd = f.Postgres()
-						postgres2nd.Spec.Archiver = &api.PostgresArchiverSpec{
-							Storage: &store.Backend{
-								StorageSecretName: secret.Name,
-								S3: &store.S3Spec{
-									Bucket:   os.Getenv(S3_BUCKET_NAME),
-									Endpoint: addrs,
-								},
-							},
-						}
-						postgres2nd.Spec.Init = &api.InitSpec{
-							PostgresWAL: &api.PostgresWALSourceSpec{
-								Backend: store.Backend{
-									StorageSecretName: secret.Name,
-									S3: &store.S3Spec{
-										Bucket:   os.Getenv(S3_BUCKET_NAME),
-										Prefix:   fmt.Sprintf("kubedb/%s/%s/archive/", postgres.Namespace, postgres.Name),
-										Endpoint: addrs,
-									},
-								},
-							},
-						}
-
-						// -- > 3rd Postgres < --
-						postgres3rd = f.Postgres()
-						postgres3rd.Spec.Init = &api.InitSpec{
-							PostgresWAL: &api.PostgresWALSourceSpec{
-								Backend: store.Backend{
-									StorageSecretName: secret.Name,
-									S3: &store.S3Spec{
-										Bucket:   os.Getenv(S3_BUCKET_NAME),
-										Prefix:   fmt.Sprintf("kubedb/%s/%s/archive/", postgres2nd.Namespace, postgres2nd.Name),
-										Endpoint: addrs,
-									},
-								},
-							},
-						}
-
-					})
-
-					It("should archive and should resume from archive successfully", archiveAndInitializeFromArchive)
-
-				})
-
-				Context("Without ca-cert", func() {
-					BeforeEach(func() {
-						secret = f.SecretForS3Backend()
-						err := f.CreateSecret(secret)
-						Expect(err).NotTo(HaveOccurred())
-
-						By("Creating Minio server without cacert")
-						addrs, err := f.CreateMinioServer(false, nil, secret)
-						Expect(err).NotTo(HaveOccurred())
-
-						postgres.Spec.Archiver = &api.PostgresArchiverSpec{
-							Storage: &store.Backend{
-								StorageSecretName: secret.Name,
-								S3: &store.S3Spec{
-									Bucket:   os.Getenv(S3_BUCKET_NAME),
-									Endpoint: addrs,
-								},
-							},
-						}
-
-						// -- > 2nd Postgres < --
-						postgres2nd = f.Postgres()
-						postgres2nd.Spec.Archiver = &api.PostgresArchiverSpec{
-							Storage: &store.Backend{
-								StorageSecretName: secret.Name,
-								S3: &store.S3Spec{
-									Bucket:   os.Getenv(S3_BUCKET_NAME),
-									Endpoint: addrs,
-								},
-							},
-						}
-						postgres2nd.Spec.Init = &api.InitSpec{
-							PostgresWAL: &api.PostgresWALSourceSpec{
-								Backend: store.Backend{
-									StorageSecretName: secret.Name,
-									S3: &store.S3Spec{
-										Bucket:   os.Getenv(S3_BUCKET_NAME),
-										Prefix:   fmt.Sprintf("kubedb/%s/%s/archive/", postgres.Namespace, postgres.Name),
-										Endpoint: addrs,
-									},
-								},
-							},
-						}
-
-						// -- > 3rd Postgres < --
-						postgres3rd = f.Postgres()
-						postgres3rd.Spec.Init = &api.InitSpec{
-							PostgresWAL: &api.PostgresWALSourceSpec{
-								Backend: store.Backend{
-									StorageSecretName: secret.Name,
-									S3: &store.S3Spec{
-										Bucket:   os.Getenv(S3_BUCKET_NAME),
-										Prefix:   fmt.Sprintf("kubedb/%s/%s/archive/", postgres2nd.Namespace, postgres2nd.Name),
-										Endpoint: addrs,
-									},
-								},
-							},
-						}
-
-					})
-
-					It("should archive and should resume from archive successfully", archiveAndInitializeFromArchive)
-				})
-			})
-
-			Context("In S3", func() {
-
-				BeforeEach(func() {
-					secret = f.SecretForS3Backend()
-					skipWalDataChecking = false
-					postgres.Spec.Archiver = &api.PostgresArchiverSpec{
-						Storage: &store.Backend{
-							StorageSecretName: secret.Name,
-							S3: &store.S3Spec{
-								Bucket: os.Getenv(S3_BUCKET_NAME),
-							},
-						},
-					}
-
-					// -- > 2nd Postgres < --
-					postgres2nd = f.Postgres()
-					postgres2nd.Spec.Archiver = &api.PostgresArchiverSpec{
-						Storage: &store.Backend{
-							StorageSecretName: secret.Name,
-							S3: &store.S3Spec{
-								Bucket: os.Getenv(S3_BUCKET_NAME),
-							},
-						},
-					}
-					postgres2nd.Spec.Init = &api.InitSpec{
-						PostgresWAL: &api.PostgresWALSourceSpec{
-							Backend: store.Backend{
-								StorageSecretName: secret.Name,
-								S3: &store.S3Spec{
-									Bucket: os.Getenv(S3_BUCKET_NAME),
-									Prefix: fmt.Sprintf("kubedb/%s/%s/archive/", postgres.Namespace, postgres.Name),
-								},
-							},
-						},
-					}
-
-					// -- > 3rd Postgres < --
-					postgres3rd = f.Postgres()
-					postgres3rd.Spec.Init = &api.InitSpec{
-						PostgresWAL: &api.PostgresWALSourceSpec{
-							Backend: store.Backend{
-								StorageSecretName: secret.Name,
-								S3: &store.S3Spec{
-									Bucket: os.Getenv(S3_BUCKET_NAME),
-									Prefix: fmt.Sprintf("kubedb/%s/%s/archive/", postgres2nd.Namespace, postgres2nd.Name),
-								},
-							},
-						},
-					}
-				})
-
-				Context("Archive and Initialize from wal archive", func() {
-
-					It("should archive and should resume from archive successfully", archiveAndInitializeFromArchive)
-				})
-
-				Context("With dedicated Elasticsearch", func() {
-
-					BeforeEach(func() {
-						postgres.Spec.Replicas = pointer.Int32P(3)
-						postgres2nd.Spec.Replicas = pointer.Int32P(3)
-						postgres3rd.Spec.Replicas = pointer.Int32P(3)
-					})
-
-					It("should archive and should resume from archive successfully", archiveAndInitializeFromArchive)
-				})
-
-				Context("WipeOut wal data", func() {
-
-					BeforeEach(func() {
-						postgres.Spec.TerminationPolicy = api.TerminationPolicyWipeOut
-					})
-
-					It("should remove wal data from backend", shouldWipeOutWalData)
-				})
-			})
-
-			Context("In GCS", func() {
-
-				BeforeEach(func() {
-					secret = f.SecretForGCSBackend()
-					skipWalDataChecking = false
-					postgres.Spec.Archiver = &api.PostgresArchiverSpec{
-						Storage: &store.Backend{
-							StorageSecretName: secret.Name,
-							GCS: &store.GCSSpec{
-								Bucket: os.Getenv(GCS_BUCKET_NAME),
-							},
-						},
-					}
-
-					// -- > 2nd Postgres < --
-					postgres2nd = f.Postgres()
-					postgres2nd.Spec.Archiver = &api.PostgresArchiverSpec{
-						Storage: &store.Backend{
-							StorageSecretName: secret.Name,
-							GCS: &store.GCSSpec{
-								Bucket: os.Getenv(GCS_BUCKET_NAME),
-							},
-						},
-					}
-					postgres2nd.Spec.Init = &api.InitSpec{
-						PostgresWAL: &api.PostgresWALSourceSpec{
-							Backend: store.Backend{
-								StorageSecretName: secret.Name,
-								GCS: &store.GCSSpec{
-									Bucket: os.Getenv(GCS_BUCKET_NAME),
-									Prefix: fmt.Sprintf("kubedb/%s/%s/archive/", postgres.Namespace, postgres.Name),
-								},
-							},
-						},
-					}
-
-					// -- > 3rd Postgres < --
-					postgres3rd = f.Postgres()
-					postgres3rd.Spec.Init = &api.InitSpec{
-						PostgresWAL: &api.PostgresWALSourceSpec{
-							Backend: store.Backend{
-								StorageSecretName: secret.Name,
-								GCS: &store.GCSSpec{
-									Bucket: os.Getenv(GCS_BUCKET_NAME),
-									Prefix: fmt.Sprintf("kubedb/%s/%s/archive/", postgres2nd.Namespace, postgres2nd.Name),
-								},
-							},
-						},
-					}
-				})
-
-				Context("Archive and Initialize from wal archive", func() {
-
-					It("should archive and should resume from archive successfully", archiveAndInitializeFromArchive)
-				})
-
-				Context("WipeOut wal data", func() {
-
-					BeforeEach(func() {
-						postgres.Spec.TerminationPolicy = api.TerminationPolicyWipeOut
-					})
-
-					It("should remove wal data from backend", shouldWipeOutWalData)
-				})
-			})
-
-			Context("In AZURE", func() {
-
-				BeforeEach(func() {
-					secret = f.SecretForAzureBackend()
-					skipWalDataChecking = false
-					postgres.Spec.Archiver = &api.PostgresArchiverSpec{
-						Storage: &store.Backend{
-							StorageSecretName: secret.Name,
-							Azure: &store.AzureSpec{
-								Container: os.Getenv(AZURE_CONTAINER_NAME),
-							},
-						},
-					}
-
-					// -- > 2nd Postgres < --
-					postgres2nd = f.Postgres()
-					postgres2nd.Spec.Archiver = &api.PostgresArchiverSpec{
-						Storage: &store.Backend{
-							StorageSecretName: secret.Name,
-							Azure: &store.AzureSpec{
-								Container: os.Getenv(AZURE_CONTAINER_NAME),
-							},
-						},
-					}
-					postgres2nd.Spec.Init = &api.InitSpec{
-						PostgresWAL: &api.PostgresWALSourceSpec{
-							Backend: store.Backend{
-								StorageSecretName: secret.Name,
-								Azure: &store.AzureSpec{
-									Container: os.Getenv(AZURE_CONTAINER_NAME),
-									Prefix:    fmt.Sprintf("kubedb/%s/%s/archive/", postgres.Namespace, postgres.Name),
-								},
-							},
-						},
-					}
-
-					// -- > 3rd Postgres < --
-					postgres3rd = f.Postgres()
-					postgres3rd.Spec.Init = &api.InitSpec{
-						PostgresWAL: &api.PostgresWALSourceSpec{
-							Backend: store.Backend{
-								StorageSecretName: secret.Name,
-								Azure: &store.AzureSpec{
-									Container: os.Getenv(AZURE_CONTAINER_NAME),
-									Prefix:    fmt.Sprintf("kubedb/%s/%s/archive/", postgres2nd.Namespace, postgres2nd.Name),
-								},
-							},
-						},
-					}
-				})
-
-				Context("Archive and Initialize from wal archive", func() {
-
-					It("should archive and should resume from archive successfully", archiveAndInitializeFromArchive)
-				})
-
-				Context("WipeOut wal data", func() {
-
-					BeforeEach(func() {
-						postgres.Spec.TerminationPolicy = api.TerminationPolicyWipeOut
-					})
-
-					It("should remove wal data from backend", shouldWipeOutWalData)
-				})
-			})
-
-			Context("In SWIFT", func() {
-
-				BeforeEach(func() {
-					secret = f.SecretForSwiftBackend()
-					skipWalDataChecking = false
-					postgres.Spec.Archiver = &api.PostgresArchiverSpec{
-						Storage: &store.Backend{
-							StorageSecretName: secret.Name,
-							Swift: &store.SwiftSpec{
-								Container: os.Getenv(SWIFT_CONTAINER_NAME),
-							},
-						},
-					}
-
-					// -- > 2nd Postgres < --
-					postgres2nd = f.Postgres()
-					postgres2nd.Spec.Archiver = &api.PostgresArchiverSpec{
-						Storage: &store.Backend{
-							StorageSecretName: secret.Name,
-							Swift: &store.SwiftSpec{
-								Container: os.Getenv(SWIFT_CONTAINER_NAME),
-							},
-						},
-					}
-					postgres2nd.Spec.Init = &api.InitSpec{
-						PostgresWAL: &api.PostgresWALSourceSpec{
-							Backend: store.Backend{
-								StorageSecretName: secret.Name,
-								Swift: &store.SwiftSpec{
-									Container: os.Getenv(SWIFT_CONTAINER_NAME),
-									Prefix:    fmt.Sprintf("kubedb/%s/%s/archive/", postgres.Namespace, postgres.Name),
-								},
-							},
-						},
-					}
-
-					// -- > 3rd Postgres < --
-					postgres3rd = f.Postgres()
-					postgres3rd.Spec.Init = &api.InitSpec{
-						PostgresWAL: &api.PostgresWALSourceSpec{
-							Backend: store.Backend{
-								StorageSecretName: secret.Name,
-								Swift: &store.SwiftSpec{
-									Container: os.Getenv(SWIFT_CONTAINER_NAME),
-									Prefix:    fmt.Sprintf("kubedb/%s/%s/archive/", postgres2nd.Namespace, postgres2nd.Name),
-								},
-							},
-						},
-					}
-				})
-
-				Context("Archive and Initialize from wal archive", func() {
-
-					It("should archive and should resume from archive successfully", archiveAndInitializeFromArchive)
-				})
-
-				Context("WipeOut wal data", func() {
-
-					BeforeEach(func() {
-						postgres.Spec.TerminationPolicy = api.TerminationPolicyWipeOut
-					})
-
-					It("should remove wal data from backend", shouldWipeOutWalData)
-				})
-			})
+			//Context("With PVC as Archive backend", func() {
+			//	var firstPVC *core.PersistentVolumeClaim
+			//	var secondPVC *core.PersistentVolumeClaim
+			//	BeforeEach(func() {
+			//		secret = f.SecretForLocalBackend()
+			//		firstPVC = f.GetNamedPersistentVolumeClaim("first")
+			//		secondPVC = f.GetNamedPersistentVolumeClaim("second")
+			//		err = f.CreatePersistentVolumeClaim(firstPVC)
+			//		Expect(err).NotTo(HaveOccurred())
+			//		err = f.CreatePersistentVolumeClaim(secondPVC)
+			//		Expect(err).NotTo(HaveOccurred())
+			//
+			//		postgres.Spec.Archiver = &api.PostgresArchiverSpec{
+			//			Storage: &store.Backend{
+			//				Local: &store.LocalSpec{
+			//					MountPath: "/walarchive",
+			//					VolumeSource: core.VolumeSource{
+			//						PersistentVolumeClaim: &core.PersistentVolumeClaimVolumeSource{
+			//							ClaimName: firstPVC.Name,
+			//						},
+			//					},
+			//				},
+			//			},
+			//		}
+			//		// 2nd Postgres
+			//		postgres2nd = f.Postgres()
+			//		postgres2nd.Spec.Archiver = &api.PostgresArchiverSpec{
+			//			Storage: &store.Backend{
+			//				Local: &store.LocalSpec{
+			//					MountPath: "/walarchive",
+			//					VolumeSource: core.VolumeSource{
+			//						PersistentVolumeClaim: &core.PersistentVolumeClaimVolumeSource{
+			//							ClaimName: secondPVC.Name,
+			//						},
+			//					},
+			//				},
+			//			},
+			//		}
+			//		postgres2nd.Spec.Init = &api.InitSpec{
+			//			PostgresWAL: &api.PostgresWALSourceSpec{
+			//				Backend: store.Backend{
+			//					Local: &store.LocalSpec{
+			//						MountPath: "/walsource",
+			//						SubPath:   fmt.Sprintf("%s-0", postgres.Name),
+			//						VolumeSource: core.VolumeSource{
+			//							PersistentVolumeClaim: &core.PersistentVolumeClaimVolumeSource{
+			//								ClaimName: firstPVC.Name,
+			//							},
+			//						},
+			//					},
+			//				},
+			//			},
+			//		}
+			//		// -- > 3rd Postgres < --
+			//		postgres3rd = f.Postgres()
+			//		postgres3rd.Spec.Init = &api.InitSpec{
+			//			PostgresWAL: &api.PostgresWALSourceSpec{
+			//				Backend: store.Backend{
+			//					Local: &store.LocalSpec{
+			//						MountPath: "/final/source",
+			//						SubPath:   fmt.Sprintf("%s-0", postgres2nd.Name),
+			//						VolumeSource: core.VolumeSource{
+			//							PersistentVolumeClaim: &core.PersistentVolumeClaimVolumeSource{
+			//								ClaimName: secondPVC.Name,
+			//							},
+			//						},
+			//					},
+			//				},
+			//			},
+			//		}
+			//
+			//	})
+			//
+			//	It("should archive and should resume from archive successfully", archiveAndInitializeFromLocalArchive)
+			//
+			//})
 		})
+
+		//	Context("Minio S3", func() {
+		//		BeforeEach(func() {
+		//			skipWalDataChecking = false
+		//			skipMinioDeployment = false
+		//		})
+		//
+		//		Context("With ca-cert", func() {
+		//			BeforeEach(func() {
+		//				secret = f.SecretForMinioBackend()
+		//				err := f.CreateSecret(secret)
+		//				Expect(err).NotTo(HaveOccurred())
+		//
+		//				By("Creating Minio server with cacert")
+		//				addrs, err := f.CreateMinioServer(true, nil, secret)
+		//				Expect(err).NotTo(HaveOccurred())
+		//
+		//				postgres.Spec.Archiver = &api.PostgresArchiverSpec{
+		//					Storage: &store.Backend{
+		//						StorageSecretName: secret.Name,
+		//						S3: &store.S3Spec{
+		//							Bucket:   os.Getenv(S3_BUCKET_NAME),
+		//							Endpoint: addrs,
+		//						},
+		//					},
+		//				}
+		//
+		//				// -- > 2nd Postgres < --
+		//				postgres2nd = f.Postgres()
+		//				postgres2nd.Spec.Archiver = &api.PostgresArchiverSpec{
+		//					Storage: &store.Backend{
+		//						StorageSecretName: secret.Name,
+		//						S3: &store.S3Spec{
+		//							Bucket:   os.Getenv(S3_BUCKET_NAME),
+		//							Endpoint: addrs,
+		//						},
+		//					},
+		//				}
+		//				postgres2nd.Spec.Init = &api.InitSpec{
+		//					PostgresWAL: &api.PostgresWALSourceSpec{
+		//						Backend: store.Backend{
+		//							StorageSecretName: secret.Name,
+		//							S3: &store.S3Spec{
+		//								Bucket:   os.Getenv(S3_BUCKET_NAME),
+		//								Prefix:   fmt.Sprintf("kubedb/%s/%s/archive/", postgres.Namespace, postgres.Name),
+		//								Endpoint: addrs,
+		//							},
+		//						},
+		//					},
+		//				}
+		//
+		//				// -- > 3rd Postgres < --
+		//				postgres3rd = f.Postgres()
+		//				postgres3rd.Spec.Init = &api.InitSpec{
+		//					PostgresWAL: &api.PostgresWALSourceSpec{
+		//						Backend: store.Backend{
+		//							StorageSecretName: secret.Name,
+		//							S3: &store.S3Spec{
+		//								Bucket:   os.Getenv(S3_BUCKET_NAME),
+		//								Prefix:   fmt.Sprintf("kubedb/%s/%s/archive/", postgres2nd.Namespace, postgres2nd.Name),
+		//								Endpoint: addrs,
+		//							},
+		//						},
+		//					},
+		//				}
+		//
+		//			})
+		//
+		//			It("should archive and should resume from archive successfully", archiveAndInitializeFromArchive)
+		//
+		//		})
+		//
+		//		Context("Without ca-cert", func() {
+		//			BeforeEach(func() {
+		//				secret = f.SecretForS3Backend()
+		//				err := f.CreateSecret(secret)
+		//				Expect(err).NotTo(HaveOccurred())
+		//
+		//				By("Creating Minio server without cacert")
+		//				addrs, err := f.CreateMinioServer(false, nil, secret)
+		//				Expect(err).NotTo(HaveOccurred())
+		//
+		//				postgres.Spec.Archiver = &api.PostgresArchiverSpec{
+		//					Storage: &store.Backend{
+		//						StorageSecretName: secret.Name,
+		//						S3: &store.S3Spec{
+		//							Bucket:   os.Getenv(S3_BUCKET_NAME),
+		//							Endpoint: addrs,
+		//						},
+		//					},
+		//				}
+		//
+		//				// -- > 2nd Postgres < --
+		//				postgres2nd = f.Postgres()
+		//				postgres2nd.Spec.Archiver = &api.PostgresArchiverSpec{
+		//					Storage: &store.Backend{
+		//						StorageSecretName: secret.Name,
+		//						S3: &store.S3Spec{
+		//							Bucket:   os.Getenv(S3_BUCKET_NAME),
+		//							Endpoint: addrs,
+		//						},
+		//					},
+		//				}
+		//				postgres2nd.Spec.Init = &api.InitSpec{
+		//					PostgresWAL: &api.PostgresWALSourceSpec{
+		//						Backend: store.Backend{
+		//							StorageSecretName: secret.Name,
+		//							S3: &store.S3Spec{
+		//								Bucket:   os.Getenv(S3_BUCKET_NAME),
+		//								Prefix:   fmt.Sprintf("kubedb/%s/%s/archive/", postgres.Namespace, postgres.Name),
+		//								Endpoint: addrs,
+		//							},
+		//						},
+		//					},
+		//				}
+		//
+		//				// -- > 3rd Postgres < --
+		//				postgres3rd = f.Postgres()
+		//				postgres3rd.Spec.Init = &api.InitSpec{
+		//					PostgresWAL: &api.PostgresWALSourceSpec{
+		//						Backend: store.Backend{
+		//							StorageSecretName: secret.Name,
+		//							S3: &store.S3Spec{
+		//								Bucket:   os.Getenv(S3_BUCKET_NAME),
+		//								Prefix:   fmt.Sprintf("kubedb/%s/%s/archive/", postgres2nd.Namespace, postgres2nd.Name),
+		//								Endpoint: addrs,
+		//							},
+		//						},
+		//					},
+		//				}
+		//
+		//			})
+		//
+		//			It("should archive and should resume from archive successfully", archiveAndInitializeFromArchive)
+		//		})
+		//	})
+		//
+		//	Context("In S3", func() {
+		//
+		//		BeforeEach(func() {
+		//			secret = f.SecretForS3Backend()
+		//			skipWalDataChecking = false
+		//			postgres.Spec.Archiver = &api.PostgresArchiverSpec{
+		//				Storage: &store.Backend{
+		//					StorageSecretName: secret.Name,
+		//					S3: &store.S3Spec{
+		//						Bucket: os.Getenv(S3_BUCKET_NAME),
+		//					},
+		//				},
+		//			}
+		//
+		//			// -- > 2nd Postgres < --
+		//			postgres2nd = f.Postgres()
+		//			postgres2nd.Spec.Archiver = &api.PostgresArchiverSpec{
+		//				Storage: &store.Backend{
+		//					StorageSecretName: secret.Name,
+		//					S3: &store.S3Spec{
+		//						Bucket: os.Getenv(S3_BUCKET_NAME),
+		//					},
+		//				},
+		//			}
+		//			postgres2nd.Spec.Init = &api.InitSpec{
+		//				PostgresWAL: &api.PostgresWALSourceSpec{
+		//					Backend: store.Backend{
+		//						StorageSecretName: secret.Name,
+		//						S3: &store.S3Spec{
+		//							Bucket: os.Getenv(S3_BUCKET_NAME),
+		//							Prefix: fmt.Sprintf("kubedb/%s/%s/archive/", postgres.Namespace, postgres.Name),
+		//						},
+		//					},
+		//				},
+		//			}
+		//
+		//			// -- > 3rd Postgres < --
+		//			postgres3rd = f.Postgres()
+		//			postgres3rd.Spec.Init = &api.InitSpec{
+		//				PostgresWAL: &api.PostgresWALSourceSpec{
+		//					Backend: store.Backend{
+		//						StorageSecretName: secret.Name,
+		//						S3: &store.S3Spec{
+		//							Bucket: os.Getenv(S3_BUCKET_NAME),
+		//							Prefix: fmt.Sprintf("kubedb/%s/%s/archive/", postgres2nd.Namespace, postgres2nd.Name),
+		//						},
+		//					},
+		//				},
+		//			}
+		//		})
+		//
+		//		Context("Archive and Initialize from wal archive", func() {
+		//
+		//			It("should archive and should resume from archive successfully", archiveAndInitializeFromArchive)
+		//		})
+		//
+		//		Context("With dedicated Elasticsearch", func() {
+		//
+		//			BeforeEach(func() {
+		//				postgres.Spec.Replicas = pointer.Int32P(3)
+		//				postgres2nd.Spec.Replicas = pointer.Int32P(3)
+		//				postgres3rd.Spec.Replicas = pointer.Int32P(3)
+		//			})
+		//
+		//			It("should archive and should resume from archive successfully", archiveAndInitializeFromArchive)
+		//		})
+		//
+		//		Context("WipeOut wal data", func() {
+		//
+		//			BeforeEach(func() {
+		//				postgres.Spec.TerminationPolicy = api.TerminationPolicyWipeOut
+		//			})
+		//
+		//			It("should remove wal data from backend", shouldWipeOutWalData)
+		//		})
+		//	})
+		//
+		//	Context("In GCS", func() {
+		//
+		//		BeforeEach(func() {
+		//			secret = f.SecretForGCSBackend()
+		//			skipWalDataChecking = false
+		//			postgres.Spec.Archiver = &api.PostgresArchiverSpec{
+		//				Storage: &store.Backend{
+		//					StorageSecretName: secret.Name,
+		//					GCS: &store.GCSSpec{
+		//						Bucket: os.Getenv(GCS_BUCKET_NAME),
+		//					},
+		//				},
+		//			}
+		//
+		//			// -- > 2nd Postgres < --
+		//			postgres2nd = f.Postgres()
+		//			postgres2nd.Spec.Archiver = &api.PostgresArchiverSpec{
+		//				Storage: &store.Backend{
+		//					StorageSecretName: secret.Name,
+		//					GCS: &store.GCSSpec{
+		//						Bucket: os.Getenv(GCS_BUCKET_NAME),
+		//					},
+		//				},
+		//			}
+		//			postgres2nd.Spec.Init = &api.InitSpec{
+		//				PostgresWAL: &api.PostgresWALSourceSpec{
+		//					Backend: store.Backend{
+		//						StorageSecretName: secret.Name,
+		//						GCS: &store.GCSSpec{
+		//							Bucket: os.Getenv(GCS_BUCKET_NAME),
+		//							Prefix: fmt.Sprintf("kubedb/%s/%s/archive/", postgres.Namespace, postgres.Name),
+		//						},
+		//					},
+		//				},
+		//			}
+		//
+		//			// -- > 3rd Postgres < --
+		//			postgres3rd = f.Postgres()
+		//			postgres3rd.Spec.Init = &api.InitSpec{
+		//				PostgresWAL: &api.PostgresWALSourceSpec{
+		//					Backend: store.Backend{
+		//						StorageSecretName: secret.Name,
+		//						GCS: &store.GCSSpec{
+		//							Bucket: os.Getenv(GCS_BUCKET_NAME),
+		//							Prefix: fmt.Sprintf("kubedb/%s/%s/archive/", postgres2nd.Namespace, postgres2nd.Name),
+		//						},
+		//					},
+		//				},
+		//			}
+		//		})
+		//
+		//		Context("Archive and Initialize from wal archive", func() {
+		//
+		//			It("should archive and should resume from archive successfully", archiveAndInitializeFromArchive)
+		//		})
+		//
+		//		Context("WipeOut wal data", func() {
+		//
+		//			BeforeEach(func() {
+		//				postgres.Spec.TerminationPolicy = api.TerminationPolicyWipeOut
+		//			})
+		//
+		//			It("should remove wal data from backend", shouldWipeOutWalData)
+		//		})
+		//	})
+		//
+		//	Context("In AZURE", func() {
+		//
+		//		BeforeEach(func() {
+		//			secret = f.SecretForAzureBackend()
+		//			skipWalDataChecking = false
+		//			postgres.Spec.Archiver = &api.PostgresArchiverSpec{
+		//				Storage: &store.Backend{
+		//					StorageSecretName: secret.Name,
+		//					Azure: &store.AzureSpec{
+		//						Container: os.Getenv(AZURE_CONTAINER_NAME),
+		//					},
+		//				},
+		//			}
+		//
+		//			// -- > 2nd Postgres < --
+		//			postgres2nd = f.Postgres()
+		//			postgres2nd.Spec.Archiver = &api.PostgresArchiverSpec{
+		//				Storage: &store.Backend{
+		//					StorageSecretName: secret.Name,
+		//					Azure: &store.AzureSpec{
+		//						Container: os.Getenv(AZURE_CONTAINER_NAME),
+		//					},
+		//				},
+		//			}
+		//			postgres2nd.Spec.Init = &api.InitSpec{
+		//				PostgresWAL: &api.PostgresWALSourceSpec{
+		//					Backend: store.Backend{
+		//						StorageSecretName: secret.Name,
+		//						Azure: &store.AzureSpec{
+		//							Container: os.Getenv(AZURE_CONTAINER_NAME),
+		//							Prefix:    fmt.Sprintf("kubedb/%s/%s/archive/", postgres.Namespace, postgres.Name),
+		//						},
+		//					},
+		//				},
+		//			}
+		//
+		//			// -- > 3rd Postgres < --
+		//			postgres3rd = f.Postgres()
+		//			postgres3rd.Spec.Init = &api.InitSpec{
+		//				PostgresWAL: &api.PostgresWALSourceSpec{
+		//					Backend: store.Backend{
+		//						StorageSecretName: secret.Name,
+		//						Azure: &store.AzureSpec{
+		//							Container: os.Getenv(AZURE_CONTAINER_NAME),
+		//							Prefix:    fmt.Sprintf("kubedb/%s/%s/archive/", postgres2nd.Namespace, postgres2nd.Name),
+		//						},
+		//					},
+		//				},
+		//			}
+		//		})
+		//
+		//		Context("Archive and Initialize from wal archive", func() {
+		//
+		//			It("should archive and should resume from archive successfully", archiveAndInitializeFromArchive)
+		//		})
+		//
+		//		Context("WipeOut wal data", func() {
+		//
+		//			BeforeEach(func() {
+		//				postgres.Spec.TerminationPolicy = api.TerminationPolicyWipeOut
+		//			})
+		//
+		//			It("should remove wal data from backend", shouldWipeOutWalData)
+		//		})
+		//	})
+		//
+		//	Context("In SWIFT", func() {
+		//
+		//		BeforeEach(func() {
+		//			secret = f.SecretForSwiftBackend()
+		//			skipWalDataChecking = false
+		//			postgres.Spec.Archiver = &api.PostgresArchiverSpec{
+		//				Storage: &store.Backend{
+		//					StorageSecretName: secret.Name,
+		//					Swift: &store.SwiftSpec{
+		//						Container: os.Getenv(SWIFT_CONTAINER_NAME),
+		//					},
+		//				},
+		//			}
+		//
+		//			// -- > 2nd Postgres < --
+		//			postgres2nd = f.Postgres()
+		//			postgres2nd.Spec.Archiver = &api.PostgresArchiverSpec{
+		//				Storage: &store.Backend{
+		//					StorageSecretName: secret.Name,
+		//					Swift: &store.SwiftSpec{
+		//						Container: os.Getenv(SWIFT_CONTAINER_NAME),
+		//					},
+		//				},
+		//			}
+		//			postgres2nd.Spec.Init = &api.InitSpec{
+		//				PostgresWAL: &api.PostgresWALSourceSpec{
+		//					Backend: store.Backend{
+		//						StorageSecretName: secret.Name,
+		//						Swift: &store.SwiftSpec{
+		//							Container: os.Getenv(SWIFT_CONTAINER_NAME),
+		//							Prefix:    fmt.Sprintf("kubedb/%s/%s/archive/", postgres.Namespace, postgres.Name),
+		//						},
+		//					},
+		//				},
+		//			}
+		//
+		//			// -- > 3rd Postgres < --
+		//			postgres3rd = f.Postgres()
+		//			postgres3rd.Spec.Init = &api.InitSpec{
+		//				PostgresWAL: &api.PostgresWALSourceSpec{
+		//					Backend: store.Backend{
+		//						StorageSecretName: secret.Name,
+		//						Swift: &store.SwiftSpec{
+		//							Container: os.Getenv(SWIFT_CONTAINER_NAME),
+		//							Prefix:    fmt.Sprintf("kubedb/%s/%s/archive/", postgres2nd.Namespace, postgres2nd.Name),
+		//						},
+		//					},
+		//				},
+		//			}
+		//		})
+		//
+		//		Context("Archive and Initialize from wal archive", func() {
+		//
+		//			It("should archive and should resume from archive successfully", archiveAndInitializeFromArchive)
+		//		})
+		//
+		//		Context("WipeOut wal data", func() {
+		//
+		//			BeforeEach(func() {
+		//				postgres.Spec.TerminationPolicy = api.TerminationPolicyWipeOut
+		//			})
+		//
+		//			It("should remove wal data from backend", shouldWipeOutWalData)
+		//		})
+		//	})
+		//})
 
 		Context("Termination Policy", func() {
 
