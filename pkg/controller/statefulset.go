@@ -818,9 +818,6 @@ func getContainers(statefulSet *apps.StatefulSet, postgres *api.Postgres, postgr
 			},
 		},
 	}
-	securityContext := postgres.Spec.PodTemplate.Spec.ContainerSecurityContext
-	// 70 is for postgres user. We need to run this container as postgres user.
-	securityContext.RunAsUser = pointer.Int64P(70)
 
 	statefulSet.Spec.Template.Spec.Containers = core_util.UpsertContainer(
 		statefulSet.Spec.Template.Spec.Containers,
@@ -835,7 +832,7 @@ func getContainers(statefulSet *apps.StatefulSet, postgres *api.Postgres, postgr
 			},
 			Image:           postgresVersion.Spec.DB.Image,
 			Resources:       postgres.Spec.PodTemplate.Spec.Resources,
-			SecurityContext: securityContext,
+			SecurityContext: postgres.Spec.PodTemplate.Spec.ContainerSecurityContext,
 			LivenessProbe:   postgres.Spec.PodTemplate.Spec.LivenessProbe,
 			ReadinessProbe:  postgres.Spec.PodTemplate.Spec.ReadinessProbe,
 			Lifecycle:       lifeCycle,
