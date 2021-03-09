@@ -38,7 +38,7 @@ require (
 	kmodules.xyz/offshoot-api v0.0.0-20210308072215-581e7685cd02
 	kmodules.xyz/webhook-runtime v0.0.0-20201105073856-2dc7382b88c6
 	kubedb.dev/apimachinery v0.16.3-0.20210308083722-3cdca5092e26
-	stash.appscode.dev/apimachinery v0.11.9
+	stash.appscode.dev/apimachinery v0.11.10
 
 )
 
