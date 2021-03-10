@@ -63,8 +63,8 @@ const (
 	SERVER_KEY               = "server.key"
 )
 
-func getMajorPgVersion(postgres *api.Postgres) (int64, error) {
-	ver, err := version.NewVersion(postgres.Spec.Version)
+func getMajorPgVersion(postgresVersion *catalog.PostgresVersion) (int64, error) {
+	ver, err := version.NewVersion(postgresVersion.Spec.Version)
 	if err != nil {
 		return 0, errors.Wrap(err, "Failed to get postgres major.")
 	}
@@ -115,7 +115,7 @@ func (c *Controller) ensureStatefulSet(
 
 			in.Spec.Template.Spec.Containers = getContainers(in, db, postgresVersion)
 
-			in = upsertEnv(in, db, envList)
+			in = upsertEnv(in, db, postgresVersion, envList)
 			in = upsertUserEnv(in, db)
 			in = upsertPort(in)
 
@@ -248,8 +248,8 @@ func (c *Controller) checkStatefulSet(db *api.Postgres) error {
 	return nil
 }
 
-func upsertEnv(statefulSet *apps.StatefulSet, db *api.Postgres, envs []core.EnvVar) *apps.StatefulSet {
-	majorPGVersion, err := getMajorPgVersion(db)
+func upsertEnv(statefulSet *apps.StatefulSet, db *api.Postgres, postgresVersion *catalog.PostgresVersion, envs []core.EnvVar) *apps.StatefulSet {
+	majorPGVersion, err := getMajorPgVersion(postgresVersion)
 	if err != nil {
 		log.Error("couldn't get version's major part")
 	}
