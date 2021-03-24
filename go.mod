@@ -13,8 +13,8 @@ require (
 	github.com/prometheus-operator/prometheus-operator v0.42.0
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5
-	go.bytebuilders.dev/license-verifier v0.7.0
-	go.bytebuilders.dev/license-verifier/kubernetes v0.7.0
+	go.bytebuilders.dev/license-verifier v0.7.1
+	go.bytebuilders.dev/license-verifier/kubernetes v0.7.1
 	gomodules.xyz/blobfs v0.1.5
 	gomodules.xyz/cert v1.2.0
 	gomodules.xyz/password-generator v0.2.7
