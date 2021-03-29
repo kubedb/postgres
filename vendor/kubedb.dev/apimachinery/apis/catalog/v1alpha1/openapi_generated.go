@@ -454,6 +454,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"kubedb.dev/apimachinery/apis/catalog/v1alpha1.PgBouncerVersionExporter":              schema_apimachinery_apis_catalog_v1alpha1_PgBouncerVersionExporter(ref),
 		"kubedb.dev/apimachinery/apis/catalog/v1alpha1.PgBouncerVersionList":                  schema_apimachinery_apis_catalog_v1alpha1_PgBouncerVersionList(ref),
 		"kubedb.dev/apimachinery/apis/catalog/v1alpha1.PgBouncerVersionSpec":                  schema_apimachinery_apis_catalog_v1alpha1_PgBouncerVersionSpec(ref),
+		"kubedb.dev/apimachinery/apis/catalog/v1alpha1.PostgresFeatures":                      schema_apimachinery_apis_catalog_v1alpha1_PostgresFeatures(ref),
 		"kubedb.dev/apimachinery/apis/catalog/v1alpha1.PostgresVersion":                       schema_apimachinery_apis_catalog_v1alpha1_PostgresVersion(ref),
 		"kubedb.dev/apimachinery/apis/catalog/v1alpha1.PostgresVersionCoordinator":            schema_apimachinery_apis_catalog_v1alpha1_PostgresVersionCoordinator(ref),
 		"kubedb.dev/apimachinery/apis/catalog/v1alpha1.PostgresVersionDatabase":               schema_apimachinery_apis_catalog_v1alpha1_PostgresVersionDatabase(ref),
@@ -20686,6 +20687,34 @@ func schema_apimachinery_apis_catalog_v1alpha1_PgBouncerVersionSpec(ref common.R
 	}
 }
 
+func schema_apimachinery_apis_catalog_v1alpha1_PostgresFeatures(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "PostgresFeatures is the additional features for the Postgres",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"modifyUser": {
+						SchemaProps: spec.SchemaProps{
+							Description: "ModifyUser will be true if user can change the default db container user to other than postgres user. It will be always false for alpine images https://hub.docker.com/_/postgres/ # section : Arbitrary --user Notes",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
+					"defaultUser": {
+						SchemaProps: spec.SchemaProps{
+							Description: "DefaultUser is default UID for the DB container. It is by default 999 for debian image and 70 for alpine image postgres UID 999 for debian images https://github.com/docker-library/postgres/blob/14f13e4b399ed1848fa24c2c1f5bd40c25732bdd/13/Dockerfile#L15 postgres UID 70  for alpine images https://github.com/docker-library/postgres/blob/14f13e4b399ed1848fa24c2c1f5bd40c25732bdd/13/alpine/Dockerfile#L6",
+							Type:        []string{"integer"},
+							Format:      "int64",
+						},
+					},
+				},
+				Required: []string{"modifyUser", "defaultUser"},
+			},
+		},
+	}
+}
+
 func schema_apimachinery_apis_catalog_v1alpha1_PostgresVersion(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
@@ -20935,12 +20964,18 @@ func schema_apimachinery_apis_catalog_v1alpha1_PostgresVersionSpec(ref common.Re
 							Ref:         ref("kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1.StashAddonSpec"),
 						},
 					},
+					"features": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Features is for the additional config for postgres",
+							Ref:         ref("kubedb.dev/apimachinery/apis/catalog/v1alpha1.PostgresFeatures"),
+						},
+					},
 				},
-				Required: []string{"version", "db", "exporter", "podSecurityPolicies"},
+				Required: []string{"version", "db", "exporter", "podSecurityPolicies", "features"},
 			},
 		},
 		Dependencies: []string{
-			"kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1.StashAddonSpec", "kubedb.dev/apimachinery/apis/catalog/v1alpha1.PostgresVersionCoordinator", "kubedb.dev/apimachinery/apis/catalog/v1alpha1.PostgresVersionDatabase", "kubedb.dev/apimachinery/apis/catalog/v1alpha1.PostgresVersionExporter", "kubedb.dev/apimachinery/apis/catalog/v1alpha1.PostgresVersionInitContainer", "kubedb.dev/apimachinery/apis/catalog/v1alpha1.PostgresVersionPodSecurityPolicy"},
+			"kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1.StashAddonSpec", "kubedb.dev/apimachinery/apis/catalog/v1alpha1.PostgresFeatures", "kubedb.dev/apimachinery/apis/catalog/v1alpha1.PostgresVersionCoordinator", "kubedb.dev/apimachinery/apis/catalog/v1alpha1.PostgresVersionDatabase", "kubedb.dev/apimachinery/apis/catalog/v1alpha1.PostgresVersionExporter", "kubedb.dev/apimachinery/apis/catalog/v1alpha1.PostgresVersionInitContainer", "kubedb.dev/apimachinery/apis/catalog/v1alpha1.PostgresVersionPodSecurityPolicy"},
 	}
 }
 

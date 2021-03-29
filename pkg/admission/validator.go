@@ -28,6 +28,7 @@ import (
 	amv "kubedb.dev/apimachinery/pkg/validator"
 
 	"github.com/pkg/errors"
+	"gomodules.xyz/pointer"
 	"gomodules.xyz/sets"
 	"gomodules.xyz/version"
 	admission "k8s.io/api/admission/v1beta1"
@@ -125,7 +126,11 @@ func (a *PostgresValidator) Admit(req *admission.AdmissionRequest) *admission.Ad
 
 			postgres := obj.(*api.Postgres).DeepCopy()
 			oldPostgres := oldObject.(*api.Postgres).DeepCopy()
-			oldPostgres.SetDefaults(a.ClusterTopology)
+			postgresVersion, err := a.extClient.CatalogV1alpha1().PostgresVersions().Get(context.TODO(), oldPostgres.Spec.Version, metav1.GetOptions{})
+			if err != nil {
+				return hookapi.StatusBadRequest(errors.Wrapf(err, "failed to get PostgresVersion: %s", oldPostgres.Spec.Version))
+			}
+			oldPostgres.SetDefaults(postgresVersion, a.ClusterTopology)
 			// Allow changing Database Secret only if there was no secret have set up yet.
 			if oldPostgres.Spec.AuthSecret == nil {
 				oldPostgres.Spec.AuthSecret = postgres.Spec.AuthSecret
@@ -197,6 +202,12 @@ func ValidatePostgres(client kubernetes.Interface, extClient cs.Interface, postg
 		if _, err := checkScramAuthMethodSupport(pgVersion.Spec.Version); err != nil {
 			return err
 		}
+	}
+	if postgres.Spec.PodTemplate.Spec.ContainerSecurityContext != nil &&
+		postgres.Spec.PodTemplate.Spec.ContainerSecurityContext.RunAsUser != nil &&
+		pointer.Int64(postgres.Spec.PodTemplate.Spec.ContainerSecurityContext.RunAsUser) != pgVersion.Spec.Features.DefaultUser &&
+		!pgVersion.Spec.Features.ModifyUser {
+		return fmt.Errorf("can't change ContainerSecurityContext's RunAsUser for this Postgres Version. It has to be the defualt user. The default userID for this Postgres Version is %v but you have set userId to %v", pgVersion.Spec.Features.DefaultUser, pointer.Int64(postgres.Spec.PodTemplate.Spec.ContainerSecurityContext.RunAsUser))
 	}
 
 	if (postgres.Spec.ClientAuthMode == api.ClientAuthModeCert) &&

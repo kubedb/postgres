@@ -76,6 +76,17 @@ spec:
               required:
               - image
               type: object
+            features:
+              properties:
+                defaultUser:
+                  format: int64
+                  type: integer
+                modifyUser:
+                  type: boolean
+              required:
+              - defaultUser
+              - modifyUser
+              type: object
             initContainer:
               properties:
                 image:
@@ -142,6 +153,7 @@ spec:
           required:
           - db
           - exporter
+          - features
           - podSecurityPolicies
           - version
           type: object

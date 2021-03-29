@@ -333,6 +333,14 @@ func upsertEnv(statefulSet *apps.StatefulSet, db *api.Postgres, postgresVersion 
 			Value: "/var/pv",
 		},
 		{
+			Name:  "DB_UID",
+			Value: strconv.FormatInt(pointer.Int64(db.Spec.PodTemplate.Spec.ContainerSecurityContext.RunAsUser), 10),
+		},
+		{
+			Name:  "DB_GID",
+			Value: strconv.FormatInt(pointer.Int64(db.Spec.PodTemplate.Spec.ContainerSecurityContext.RunAsGroup), 10),
+		},
+		{
 			Name:  "PGDATA",
 			Value: "/var/pv/data",
 		},
