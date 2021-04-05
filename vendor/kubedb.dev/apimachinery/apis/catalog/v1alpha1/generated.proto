@@ -562,16 +562,16 @@ message PgBouncerVersionSpec {
   optional bool deprecated = 4;
 }
 
-// PostgresFeatures is the additional features for the Postgres
-message PostgresFeatures {
-  // ModifyUser will be true if user can change the default db container user to other than postgres user.
-  // It will be always false for alpine images https://hub.docker.com/_/postgres/ # section : Arbitrary --user Notes
-  optional bool modifyUser = 1;
-
-  // DefaultUser is default UID for the DB container. It is by default 999 for debian image and 70 for alpine image
+// PostgresSecurityContext is the additional features for the Postgres
+message PostgresSecurityContext {
+  // RunAsUser is default UID for the DB container. It is by default 999 for debian based image and 70 for alpine based image.
   // postgres UID 999 for debian images https://github.com/docker-library/postgres/blob/14f13e4b399ed1848fa24c2c1f5bd40c25732bdd/13/Dockerfile#L15
   // postgres UID 70  for alpine images https://github.com/docker-library/postgres/blob/14f13e4b399ed1848fa24c2c1f5bd40c25732bdd/13/alpine/Dockerfile#L6
-  optional int64 defaultUser = 2;
+  optional int64 runAsUser = 1;
+
+  // RunAsAnyNonRoot will be true if user can change the default db container user to other than postgres user.
+  // It will be always false for alpine images https://hub.docker.com/_/postgres/ # section : Arbitrary --user Notes
+  optional bool runAsAnyNonRoot = 2;
 }
 
 // +kubebuilder:object:root=true
@@ -651,8 +651,9 @@ message PostgresVersionSpec {
   // +optional
   optional kmodules.xyz.custom_resources.apis.appcatalog.v1alpha1.StashAddonSpec stash = 9;
 
-  // Features is for the additional config for postgres
-  optional PostgresFeatures features = 10;
+  // SecurityContext is for the additional config for postgres DB container
+  // +optional
+  optional PostgresSecurityContext securityContext = 10;
 }
 
 // +kubebuilder:object:root=true

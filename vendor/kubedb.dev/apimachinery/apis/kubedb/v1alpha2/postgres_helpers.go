@@ -194,8 +194,8 @@ func (p *Postgres) SetDefaults(postgresVersion *catalog.PostgresVersion, topolog
 
 	if p.Spec.PodTemplate.Spec.ContainerSecurityContext == nil {
 		p.Spec.PodTemplate.Spec.ContainerSecurityContext = &core.SecurityContext{
-			RunAsUser:  pointer.Int64P(postgresVersion.Spec.Features.DefaultUser),
-			RunAsGroup: pointer.Int64P(postgresVersion.Spec.Features.DefaultUser),
+			RunAsUser:  postgresVersion.Spec.SecurityContext.RunAsUser,
+			RunAsGroup: postgresVersion.Spec.SecurityContext.RunAsUser,
 			Privileged: pointer.BoolP(false),
 			Capabilities: &core.Capabilities{
 				Add: []core.Capability{"IPC_LOCK", "SYS_RESOURCE"},
@@ -203,7 +203,7 @@ func (p *Postgres) SetDefaults(postgresVersion *catalog.PostgresVersion, topolog
 		}
 	} else {
 		if p.Spec.PodTemplate.Spec.ContainerSecurityContext.RunAsUser == nil {
-			p.Spec.PodTemplate.Spec.ContainerSecurityContext.RunAsUser = pointer.Int64P(postgresVersion.Spec.Features.DefaultUser)
+			p.Spec.PodTemplate.Spec.ContainerSecurityContext.RunAsUser = postgresVersion.Spec.SecurityContext.RunAsUser
 		}
 		if p.Spec.PodTemplate.Spec.ContainerSecurityContext.RunAsGroup == nil {
 			p.Spec.PodTemplate.Spec.ContainerSecurityContext.RunAsGroup = p.Spec.PodTemplate.Spec.ContainerSecurityContext.RunAsUser

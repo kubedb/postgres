@@ -202,6 +202,19 @@ func (c *Controller) CheckStatefulSetPodStatus(statefulSet *apps.StatefulSet) er
 	}
 	return nil
 }
+func (c *Controller) ensureValidUserForPostgreSQL(db *api.Postgres) error {
+	if db.Spec.PodTemplate.Spec.ContainerSecurityContext != nil &&
+		db.Spec.PodTemplate.Spec.ContainerSecurityContext.RunAsUser != nil &&
+		db.Spec.PodTemplate.Spec.ContainerSecurityContext.RunAsGroup != nil {
+		if pointer.Int64(db.Spec.PodTemplate.Spec.ContainerSecurityContext.RunAsUser) == 0 || pointer.Int64(db.Spec.PodTemplate.Spec.ContainerSecurityContext.RunAsGroup) == 0 {
+			return fmt.Errorf("container's securityContext RunAsUser or RunAsGroup can't be 0")
+		} else {
+			return nil
+		}
+	} else {
+		return fmt.Errorf("container's securityContext RunAsUser or RunAsGroup can't be null")
+	}
+}
 
 func (c *Controller) ensureCombinedNode(db *api.Postgres, postgresVersion *catalog.PostgresVersion) (kutil.VerbType, error) {
 	standbyMode := api.WarmPostgresStandbyMode
@@ -318,7 +331,7 @@ func upsertEnv(statefulSet *apps.StatefulSet, db *api.Postgres, postgresVersion 
 		},
 		{
 			Name:  "PG_VERSION",
-			Value: db.Spec.Version,
+			Value: postgresVersion.Spec.Version,
 		},
 		{
 			Name:  "MAJOR_PG_VERSION",
