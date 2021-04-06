@@ -1545,8 +1545,8 @@ kmodules.xyz/prober v0.0.0-20210218144026-43e923722d81 h1:mi0XHhavbXQqj9q89dNhWa
 kmodules.xyz/prober v0.0.0-20210218144026-43e923722d81/go.mod h1:2eN8X5Wq7/AAgE5AWMAX8T0lE51HZiYEldG2RQuouX4=
 kmodules.xyz/webhook-runtime v0.0.0-20201105073856-2dc7382b88c6 h1:9+EIwxUrXrM8QD9rC1Fg+6CQK0vPniFO3ClaKih010M=
 kmodules.xyz/webhook-runtime v0.0.0-20201105073856-2dc7382b88c6/go.mod h1:xLgewoOzwR5ZrVOHQ2SR0P4E7tgCyBWbYlUawEXgeF4=
-kubedb.dev/apimachinery v0.17.1 h1:qwmhZAmwaebccdCAAB7UhZPjNnjKOEns922YpdIcMTE=
-kubedb.dev/apimachinery v0.17.1/go.mod h1:UNTeh+NqGnFM1D2vcMki80DH5krLijRcDsuqDwOVhxY=
+kubedb.dev/apimachinery v0.17.2-0.20210406102745-ecf77001f07c h1:Awe8eiY41tVe+8qfQE0V8pej4YDu6CmWaOgGaM1vlfI=
+kubedb.dev/apimachinery v0.17.2-0.20210406102745-ecf77001f07c/go.mod h1:UNTeh+NqGnFM1D2vcMki80DH5krLijRcDsuqDwOVhxY=
 modernc.org/cc v1.0.0/go.mod h1:1Sk4//wdnYJiUIxnW8ddKpaOJCF37yAdqYnkxUpaYxw=
 modernc.org/golex v1.0.0/go.mod h1:b/QX9oBD/LhixY6NDh+IdGv17hgB+51fET1i2kPSmvk=
 modernc.org/mathutil v1.0.0/go.mod h1:wU0vUrJsVWBZ4P6e7xtFJEhFSNsfRLJ8H458uRjg03k=

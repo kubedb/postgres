@@ -235,7 +235,9 @@ func (c *Controller) ensurePostgresNode(db *api.Postgres, postgresVersion *catal
 	if err := c.ensureDatabaseRBAC(db); err != nil {
 		return kutil.VerbUnchanged, err
 	}
-
+	if err = c.ensureValidUserForPostgreSQL(db); err != nil {
+		return kutil.VerbUnchanged, err
+	}
 	vt, err := c.ensureCombinedNode(db, postgresVersion)
 	if err != nil {
 		return kutil.VerbUnchanged, err
