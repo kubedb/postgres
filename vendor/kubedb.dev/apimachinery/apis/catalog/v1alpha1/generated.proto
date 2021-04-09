@@ -45,6 +45,15 @@ message Denylist {
   repeated string groupReplication = 2;
 }
 
+// ElasticsearchSecurityContext provides additional securityContext settings for the Elasticsearch Image
+message ElasticsearchSecurityContext {
+  // RunAsUser is default UID for the DB container. It defaults to 1000.
+  optional int64 runAsUser = 1;
+
+  // RunAsAnyNonRoot will be true if user can change the default UID to other than 1000.
+  optional bool runAsAnyNonRoot = 2;
+}
+
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:path=elasticsearchversions,singular=elasticsearchversion,scope=Cluster,shortName=esversion,categories={datastore,kubedb,appscode}
 // +kubebuilder:printcolumn:name="Version",type="string",JSONPath=".spec.version"
@@ -119,6 +128,10 @@ message ElasticsearchVersionSpec {
   // Stash defines backup and restore task definitions.
   // +optional
   optional kmodules.xyz.custom_resources.apis.appcatalog.v1alpha1.StashAddonSpec stash = 9;
+
+  // SecurityContext is for the additional security information for the Elasticsearch container
+  // +optional
+  optional ElasticsearchSecurityContext securityContext = 10;
 }
 
 // +kubebuilder:object:root=true

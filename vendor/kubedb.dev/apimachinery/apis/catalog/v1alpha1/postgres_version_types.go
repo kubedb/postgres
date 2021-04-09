@@ -123,7 +123,7 @@ type PostgresSecurityContext struct {
 
 	// RunAsAnyNonRoot will be true if user can change the default db container user to other than postgres user.
 	// It will be always false for alpine images https://hub.docker.com/_/postgres/ # section : Arbitrary --user Notes
-	RunAsAnyNonRoot *bool `json:"runAsAnyNonRoot,omitempty" protobuf:"varint,2,opt,name=runAsAnyNonRoot"`
+	RunAsAnyNonRoot bool `json:"runAsAnyNonRoot,omitempty" protobuf:"varint,2,opt,name=runAsAnyNonRoot"`
 }
 
 const (

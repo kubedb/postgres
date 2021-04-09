@@ -315,17 +315,15 @@ func checkScramAuthMethodSupport(v string) (bool, error) {
 }
 
 func validateSpecForDB(postgres *api.Postgres, pgVersion *v1alpha1.PostgresVersion) error {
-	//need to set the UserID and GroupID
+	// need to set the UserID and GroupID
 	if pgVersion.Spec.SecurityContext.RunAsUser != nil &&
-		pgVersion.Spec.SecurityContext.RunAsAnyNonRoot != nil &&
 		pointer.Int64(postgres.Spec.PodTemplate.Spec.ContainerSecurityContext.RunAsUser) != pointer.Int64(pgVersion.Spec.SecurityContext.RunAsUser) &&
-		!pointer.Bool(pgVersion.Spec.SecurityContext.RunAsAnyNonRoot) {
+		!pgVersion.Spec.SecurityContext.RunAsAnyNonRoot {
 		return fmt.Errorf("can't change ContainerSecurityContext's RunAsUser for this Postgres Version. It has to be the defualt UserID. The default UserID for this Postgres Version is %v but Container's security context UserID is %v", pointer.Int64(pgVersion.Spec.SecurityContext.RunAsUser), pointer.Int64(postgres.Spec.PodTemplate.Spec.ContainerSecurityContext.RunAsUser))
 	}
 	if pgVersion.Spec.SecurityContext.RunAsUser != nil &&
-		pgVersion.Spec.SecurityContext.RunAsAnyNonRoot != nil &&
 		pointer.Int64(postgres.Spec.PodTemplate.Spec.ContainerSecurityContext.RunAsGroup) != pointer.Int64(pgVersion.Spec.SecurityContext.RunAsUser) &&
-		!pointer.Bool(pgVersion.Spec.SecurityContext.RunAsAnyNonRoot) {
+		!pgVersion.Spec.SecurityContext.RunAsAnyNonRoot {
 		return fmt.Errorf("can't change ContainerSecurityContext's RunAsGroup for this Postgres Version. It has to be the defualt GroupID. The default GroupID for this Postgres Version is %v but Container's security context GroupID is %v", pointer.Int64(pgVersion.Spec.SecurityContext.RunAsUser), pointer.Int64(postgres.Spec.PodTemplate.Spec.ContainerSecurityContext.RunAsGroup))
 	}
 	if (postgres.Spec.ClientAuthMode == api.ClientAuthModeCert) &&
