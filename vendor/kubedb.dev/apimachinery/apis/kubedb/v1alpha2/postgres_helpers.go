@@ -288,16 +288,14 @@ func (p *Postgres) CertificateName(alias PostgresCertificateAlias) string {
 	return meta_util.NameWithSuffix(p.Name, fmt.Sprintf("%s-cert", string(alias)))
 }
 
-// MustCertSecretName returns the secret name for a certificate alias
-func (p *Postgres) MustCertSecretName(alias PostgresCertificateAlias) string {
-	if p == nil {
-		panic("missing Postgres database")
-	} else if p.Spec.TLS == nil {
-		panic(fmt.Errorf("Postgres %s/%s is missing tls spec", p.Namespace, p.Name))
+// GetCertSecretName returns the secret name for a certificate alias if any provide,
+// otherwise returns default certificate secret name for the given alias.
+func (p *Postgres) GetCertSecretName(alias PostgresCertificateAlias) string {
+	if p.Spec.TLS != nil {
+		name, ok := kmapi.GetCertificateSecretName(p.Spec.TLS.Certificates, string(alias))
+		if ok {
+			return name
+		}
 	}
-	name, ok := kmapi.GetCertificateSecretName(p.Spec.TLS.Certificates, string(alias))
-	if !ok {
-		panic(fmt.Errorf("Postgres %s/%s is missing secret name for %s certificate", p.Namespace, p.Name, alias))
-	}
-	return name
+	return p.CertificateName(alias)
 }

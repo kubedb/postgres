@@ -924,7 +924,7 @@ func upsertTLSVolume(sts *apps.StatefulSet, db *api.Postgres) *apps.StatefulSet 
 		Name: serverTlsVolumeName,
 		VolumeSource: core.VolumeSource{
 			Secret: &core.SecretVolumeSource{
-				SecretName: db.MustCertSecretName(api.PostgresServerCert),
+				SecretName: db.GetCertSecretName(api.PostgresServerCert),
 				Items: []core.KeyToPath{
 					{
 						Key:  TLS_CA_CERT,
@@ -946,7 +946,7 @@ func upsertTLSVolume(sts *apps.StatefulSet, db *api.Postgres) *apps.StatefulSet 
 		Name: clientTlsVolumeName,
 		VolumeSource: core.VolumeSource{
 			Secret: &core.SecretVolumeSource{
-				SecretName: db.MustCertSecretName(api.PostgresClientCert),
+				SecretName: db.GetCertSecretName(api.PostgresClientCert),
 				Items: []core.KeyToPath{
 					{
 						Key:  TLS_CA_CERT,
@@ -970,7 +970,7 @@ func upsertTLSVolume(sts *apps.StatefulSet, db *api.Postgres) *apps.StatefulSet 
 		VolumeSource: core.VolumeSource{
 			Secret: &core.SecretVolumeSource{
 				DefaultMode: pointer.Int32P(0600),
-				SecretName:  db.MustCertSecretName(api.PostgresMetricsExporterCert),
+				SecretName:  db.GetCertSecretName(api.PostgresMetricsExporterCert),
 				Items: []core.KeyToPath{
 					{
 						Key:  TLS_CA_CERT,
@@ -993,7 +993,7 @@ func upsertTLSVolume(sts *apps.StatefulSet, db *api.Postgres) *apps.StatefulSet 
 		VolumeSource: core.VolumeSource{
 			Secret: &core.SecretVolumeSource{
 				DefaultMode: pointer.Int32P(0600),
-				SecretName:  db.MustCertSecretName(api.PostgresClientCert),
+				SecretName:  db.GetCertSecretName(api.PostgresClientCert),
 				Items: []core.KeyToPath{
 					{
 						Key:  TLS_CA_CERT,

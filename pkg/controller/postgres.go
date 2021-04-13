@@ -78,9 +78,9 @@ func (c *Controller) create(db *api.Postgres) error {
 			c.DynamicClient,
 			core.SchemeGroupVersion.WithResource("secrets"),
 			db.Namespace,
-			db.MustCertSecretName(api.PostgresServerCert),
-			db.MustCertSecretName(api.PostgresClientCert),
-			db.MustCertSecretName(api.PostgresMetricsExporterCert),
+			db.GetCertSecretName(api.PostgresServerCert),
+			db.GetCertSecretName(api.PostgresClientCert),
+			db.GetCertSecretName(api.PostgresMetricsExporterCert),
 		)
 		if err != nil {
 			return err
