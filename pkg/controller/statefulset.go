@@ -24,7 +24,6 @@ import (
 
 	catalog "kubedb.dev/apimachinery/apis/catalog/v1alpha1"
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha2"
-	"kubedb.dev/apimachinery/pkg/eventer"
 
 	"github.com/pkg/errors"
 	"gomodules.xyz/pointer"
@@ -167,21 +166,6 @@ func (c *Controller) ensureStatefulSet(
 		return kutil.VerbUnchanged, err
 	}
 
-	if vt == kutil.VerbCreated || vt == kutil.VerbPatched {
-		// Check StatefulSet Pod status
-		if err := c.CheckStatefulSetPodStatus(statefulSet); err != nil {
-			return kutil.VerbUnchanged, err
-		}
-
-		c.Recorder.Eventf(
-			db,
-			core.EventTypeNormal,
-			eventer.EventReasonSuccessful,
-			"Successfully %v StatefulSet",
-			vt,
-		)
-	}
-
 	// ensure pdb
 	if err := c.CreateStatefulSetPodDisruptionBudget(statefulSet); err != nil {
 		return vt, err
@@ -189,19 +173,6 @@ func (c *Controller) ensureStatefulSet(
 	return vt, nil
 }
 
-func (c *Controller) CheckStatefulSetPodStatus(statefulSet *apps.StatefulSet) error {
-	err := core_util.WaitUntilPodRunningBySelector(
-		context.TODO(),
-		c.Client,
-		statefulSet.Namespace,
-		statefulSet.Spec.Selector,
-		int(pointer.Int32(statefulSet.Spec.Replicas)),
-	)
-	if err != nil {
-		return err
-	}
-	return nil
-}
 func (c *Controller) ensureValidUserForPostgreSQL(db *api.Postgres) error {
 	if db.Spec.PodTemplate.Spec.ContainerSecurityContext != nil &&
 		db.Spec.PodTemplate.Spec.ContainerSecurityContext.RunAsUser != nil &&
