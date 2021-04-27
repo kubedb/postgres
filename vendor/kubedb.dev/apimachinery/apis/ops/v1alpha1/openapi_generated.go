@@ -22176,6 +22176,13 @@ func schema_apimachinery_apis_ops_v1alpha1_PostgresOpsRequestSpec(ref common.Ref
 							Ref:         ref("kubedb.dev/apimachinery/apis/ops/v1alpha1.RestartSpec"),
 						},
 					},
+					"timeoutSeconds": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Timeout for each step of the ops request in second. If a step doesn't finish within the specified timeout, the ops request will result in failure.",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
 				},
 				Required: []string{"databaseRef", "type"},
 			},
@@ -22289,8 +22296,18 @@ func schema_apimachinery_apis_ops_v1alpha1_PostgresVolumeExpansionSpec(ref commo
 			SchemaProps: spec.SchemaProps{
 				Description: "PostgresVolumeExpansionSpec is the spec for Postgres volume expansion",
 				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"postgres": {
+						SchemaProps: spec.SchemaProps{
+							Description: "volume specification for Postgres",
+							Ref:         ref("k8s.io/apimachinery/pkg/api/resource.Quantity"),
+						},
+					},
+				},
 			},
 		},
+		Dependencies: []string{
+			"k8s.io/apimachinery/pkg/api/resource.Quantity"},
 	}
 }
 

@@ -18,6 +18,7 @@ package v1alpha1
 
 import (
 	core "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kmapi "kmodules.xyz/client-go/api/v1"
 )
@@ -68,6 +69,8 @@ type PostgresOpsRequestSpec struct {
 	TLS *TLSSpec `json:"tls,omitempty" protobuf:"bytes,8,opt,name=tls"`
 	// Specifies information necessary for restarting database
 	Restart *RestartSpec `json:"restart,omitempty" protobuf:"bytes,9,opt,name=restart"`
+	// Timeout for each step of the ops request in second. If a step doesn't finish within the specified timeout, the ops request will result in failure.
+	TimeoutSeconds *int32 `json:"timeoutSeconds,omitempty" protobuf:"varint,10,opt,name=timeoutSeconds"`
 }
 
 // PostgresReplicaReadinessCriteria is the criteria for checking readiness of a Postgres pod
@@ -92,6 +95,8 @@ type PostgresVerticalScalingSpec struct {
 
 // PostgresVolumeExpansionSpec is the spec for Postgres volume expansion
 type PostgresVolumeExpansionSpec struct {
+	// volume specification for Postgres
+	Postgres *resource.Quantity `json:"postgres,omitempty" protobuf:"bytes,1,opt,name=postgres"`
 }
 
 type PostgresCustomConfigurationSpec struct {
