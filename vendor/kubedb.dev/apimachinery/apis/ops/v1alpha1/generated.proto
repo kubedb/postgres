@@ -1078,7 +1078,9 @@ message PostgresUpgradeSpec {
 
 // PostgresVerticalScalingSpec is the spec for Postgres vertical scaling
 message PostgresVerticalScalingSpec {
-  optional PostgresReplicaReadinessCriteria readinessCriteria = 1;
+  optional k8s.io.api.core.v1.ResourceRequirements postgres = 1;
+
+  optional k8s.io.api.core.v1.ResourceRequirements exporter = 2;
 }
 
 // PostgresVolumeExpansionSpec is the spec for Postgres volume expansion

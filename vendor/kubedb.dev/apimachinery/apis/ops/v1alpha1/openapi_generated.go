@@ -22277,16 +22277,21 @@ func schema_apimachinery_apis_ops_v1alpha1_PostgresVerticalScalingSpec(ref commo
 				Description: "PostgresVerticalScalingSpec is the spec for Postgres vertical scaling",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
-					"readinessCriteria": {
+					"postgres": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("kubedb.dev/apimachinery/apis/ops/v1alpha1.PostgresReplicaReadinessCriteria"),
+							Ref: ref("k8s.io/api/core/v1.ResourceRequirements"),
+						},
+					},
+					"exporter": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/api/core/v1.ResourceRequirements"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"kubedb.dev/apimachinery/apis/ops/v1alpha1.PostgresReplicaReadinessCriteria"},
+			"k8s.io/api/core/v1.ResourceRequirements"},
 	}
 }
 
