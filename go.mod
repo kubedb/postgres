@@ -5,40 +5,41 @@ go 1.15
 require (
 	github.com/codeskyblue/go-sh v0.0.0-20200712050446-30169cf553fe
 	github.com/go-xorm/xorm v0.7.9
-	github.com/lib/pq v1.5.2
+	github.com/lib/pq v1.10.1
 	github.com/onsi/ginkgo v1.15.0
 	github.com/onsi/gomega v1.10.5
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus-operator/prometheus-operator/pkg/client v0.47.0
-	github.com/spf13/cobra v1.1.1
+	github.com/spf13/cobra v1.1.3
 	github.com/spf13/pflag v1.0.5
-	go.bytebuilders.dev/license-verifier v0.9.0
-	go.bytebuilders.dev/license-verifier/kubernetes v0.9.0
-	gomodules.xyz/blobfs v0.1.5
+	go.bytebuilders.dev/license-verifier v0.9.1
+	go.bytebuilders.dev/license-verifier/kubernetes v0.9.1
+	gomodules.xyz/blobfs v0.1.7
 	gomodules.xyz/cert v1.2.0
 	gomodules.xyz/password-generator v0.2.7
 	gomodules.xyz/pointer v0.0.0-20201105071923-daf60fa55209
-	gomodules.xyz/runtime v0.0.0-20201104200926-d838b09dda8b
+	gomodules.xyz/runtime v0.2.0
 	gomodules.xyz/sets v0.0.0-20210218105342-2efe2fb519a2
 	gomodules.xyz/stow v0.2.4
 	gomodules.xyz/version v0.1.0
-	gomodules.xyz/x v0.0.0-20201105065653-91c568df6331
+	gomodules.xyz/x v0.0.3
 	k8s.io/api v0.21.0
 	k8s.io/apiextensions-apiserver v0.21.0
 	k8s.io/apimachinery v0.21.0
 	k8s.io/apiserver v0.21.0
-	k8s.io/client-go v12.0.0+incompatible
+	k8s.io/client-go v0.21.0
 	k8s.io/klog/v2 v2.8.0
 	k8s.io/kube-aggregator v0.21.0
-	kmodules.xyz/client-go v0.0.0-20210503064222-c8c59295a3a5
+	kmodules.xyz/client-go v0.0.0-20210504024435-1eb80721e9b8
 	kmodules.xyz/constants v0.0.0-20210218100002-2c304bfda278
-	kmodules.xyz/custom-resources v0.0.0-20210503065135-5267be335cb4
-	kmodules.xyz/monitoring-agent-api v0.0.0-20210503064631-e2d5686a9acd
-	kmodules.xyz/objectstore-api v0.0.0-20210503064721-4fadb098d198
-	kmodules.xyz/offshoot-api v0.0.0-20210503065102-3250bbdedc8f
-	kmodules.xyz/webhook-runtime v0.0.0-20210503065550-dc37e69fdba2
-	kubedb.dev/apimachinery v0.18.1-0.20210503232843-7030bd8fddb2
-	stash.appscode.dev/apimachinery v0.13.0
+	kmodules.xyz/custom-resources v0.0.0-20210504034124-54c54fcdb690
+	kmodules.xyz/monitoring-agent-api v0.0.0-20210504040241-261c2428d207
+	kmodules.xyz/objectstore-api v0.0.0-20210504041638-b9e00ab1eab3
+	kmodules.xyz/offshoot-api v0.0.0-20210504040651-7951e351f0f5
+	kmodules.xyz/webhook-runtime v0.0.0-20210504042742-3a9911e3dcdc
+	kubedb.dev/apimachinery v0.18.1-0.20210504045738-11d1c3068aa3
+	stash.appscode.dev/apimachinery v0.13.1-0.20210504044941-15d8c532c990
+
 )
 
 replace bitbucket.org/ww/goautoneg => gomodules.xyz/goautoneg v0.0.0-20120707110453-a547fc61f48d

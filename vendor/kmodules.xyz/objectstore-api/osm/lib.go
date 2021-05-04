@@ -1,5 +1,5 @@
 /*
-Copyright The osm Authors.
+Copyright AppsCode Inc. and Contributors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package context
+package osm
 
 import (
 	"encoding/json"
@@ -26,7 +26,7 @@ import (
 	"github.com/spf13/cobra"
 	"gomodules.xyz/stow"
 	yc "gomodules.xyz/x/encoding/yaml"
-	"gomodules.xyz/x/log"
+	"k8s.io/klog/v2"
 	"sigs.k8s.io/yaml"
 )
 
@@ -44,7 +44,7 @@ type OSMConfig struct {
 func GetConfigPath(cmd *cobra.Command) string {
 	s, err := cmd.Flags().GetString("osmconfig")
 	if err != nil {
-		log.Fatalf("error accessing flag osmconfig for command %s: %v", cmd.Name(), err)
+		klog.Fatalf("error accessing flag osmconfig for command %s: %v", cmd.Name(), err)
 	}
 	return s
 }

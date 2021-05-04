@@ -22,11 +22,9 @@ github.com/NYTimes/gziphandler
 github.com/PuerkitoBio/purell
 # github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578
 github.com/PuerkitoBio/urlesc
-# github.com/appscode/osm v0.16.0
-github.com/appscode/osm/context
 # github.com/armon/circbuf v0.0.0-20150827004946-bbbad097214e
 github.com/armon/circbuf
-# github.com/aws/aws-sdk-go v1.35.24
+# github.com/aws/aws-sdk-go v1.38.31
 github.com/aws/aws-sdk-go/aws
 github.com/aws/aws-sdk-go/aws/arn
 github.com/aws/aws-sdk-go/aws/awserr
@@ -38,6 +36,7 @@ github.com/aws/aws-sdk-go/aws/credentials
 github.com/aws/aws-sdk-go/aws/credentials/ec2rolecreds
 github.com/aws/aws-sdk-go/aws/credentials/endpointcreds
 github.com/aws/aws-sdk-go/aws/credentials/processcreds
+github.com/aws/aws-sdk-go/aws/credentials/ssocreds
 github.com/aws/aws-sdk-go/aws/credentials/stscreds
 github.com/aws/aws-sdk-go/aws/csm
 github.com/aws/aws-sdk-go/aws/defaults
@@ -63,14 +62,18 @@ github.com/aws/aws-sdk-go/private/protocol
 github.com/aws/aws-sdk-go/private/protocol/eventstream
 github.com/aws/aws-sdk-go/private/protocol/eventstream/eventstreamapi
 github.com/aws/aws-sdk-go/private/protocol/json/jsonutil
+github.com/aws/aws-sdk-go/private/protocol/jsonrpc
 github.com/aws/aws-sdk-go/private/protocol/query
 github.com/aws/aws-sdk-go/private/protocol/query/queryutil
 github.com/aws/aws-sdk-go/private/protocol/rest
+github.com/aws/aws-sdk-go/private/protocol/restjson
 github.com/aws/aws-sdk-go/private/protocol/restxml
 github.com/aws/aws-sdk-go/private/protocol/xml/xmlutil
 github.com/aws/aws-sdk-go/service/s3
 github.com/aws/aws-sdk-go/service/s3/s3iface
 github.com/aws/aws-sdk-go/service/s3/s3manager
+github.com/aws/aws-sdk-go/service/sso
+github.com/aws/aws-sdk-go/service/sso/ssoiface
 github.com/aws/aws-sdk-go/service/sts
 github.com/aws/aws-sdk-go/service/sts/stsiface
 # github.com/beorn7/perks v1.0.1
@@ -114,7 +117,7 @@ github.com/go-logr/logr
 github.com/go-openapi/jsonpointer
 # github.com/go-openapi/jsonreference v0.19.3 => github.com/go-openapi/jsonreference v0.19.3
 github.com/go-openapi/jsonreference
-# github.com/go-openapi/spec v0.19.8 => github.com/go-openapi/spec v0.19.5
+# github.com/go-openapi/spec v0.19.5 => github.com/go-openapi/spec v0.19.5
 github.com/go-openapi/spec
 # github.com/go-openapi/swag v0.19.5 => github.com/go-openapi/swag v0.19.5
 github.com/go-openapi/swag
@@ -172,7 +175,7 @@ github.com/hashicorp/golang-lru/simplelru
 github.com/imdario/mergo
 # github.com/inconshreveable/mousetrap v1.0.0
 github.com/inconshreveable/mousetrap
-# github.com/jetstack/cert-manager v0.0.0-00010101000000-000000000000 => github.com/kmodules/cert-manager v1.3.1-0.20210429172957-c5436c14ce0e
+# github.com/jetstack/cert-manager v1.3.1 => github.com/kmodules/cert-manager v1.3.1-0.20210429172957-c5436c14ce0e
 github.com/jetstack/cert-manager/pkg/apis/acme
 github.com/jetstack/cert-manager/pkg/apis/acme/v1
 github.com/jetstack/cert-manager/pkg/apis/acme/v1alpha2
@@ -221,7 +224,7 @@ github.com/jmespath/go-jmespath
 github.com/jpillora/go-ogle-analytics
 # github.com/json-iterator/go v1.1.10
 github.com/json-iterator/go
-# github.com/lib/pq v1.5.2
+# github.com/lib/pq v1.10.1
 ## explicit
 github.com/lib/pq
 github.com/lib/pq/oid
@@ -332,14 +335,14 @@ github.com/satori/go.uuid
 github.com/sergi/go-diff/diffmatchpatch
 # github.com/shurcooL/sanitized_anchor_name v1.0.0
 github.com/shurcooL/sanitized_anchor_name
-# github.com/spf13/cobra v1.1.1
+# github.com/spf13/cobra v1.1.3
 ## explicit
 github.com/spf13/cobra
 github.com/spf13/cobra/doc
 # github.com/spf13/pflag v1.0.5
 ## explicit
 github.com/spf13/pflag
-# github.com/stretchr/testify v1.7.0
+# github.com/stretchr/testify v1.6.1
 github.com/stretchr/testify/assert
 # github.com/xlab/treeprint v0.0.0-20181112141820-a009c3971eca
 github.com/xlab/treeprint
@@ -348,13 +351,13 @@ github.com/yudai/gojsondiff
 github.com/yudai/gojsondiff/formatter
 # github.com/yudai/golcs v0.0.0-20170316035057-ecda9a501e82
 github.com/yudai/golcs
-# go.bytebuilders.dev/license-verifier v0.9.0
+# go.bytebuilders.dev/license-verifier v0.9.1
 ## explicit
 go.bytebuilders.dev/license-verifier
 go.bytebuilders.dev/license-verifier/apis/licenses
 go.bytebuilders.dev/license-verifier/apis/licenses/v1alpha1
 go.bytebuilders.dev/license-verifier/info
-# go.bytebuilders.dev/license-verifier/kubernetes v0.9.0
+# go.bytebuilders.dev/license-verifier/kubernetes v0.9.1
 ## explicit
 go.bytebuilders.dev/license-verifier/kubernetes
 # go.etcd.io/etcd v0.5.0-alpha.5.0.20200910180754-dd1b699fc489 => go.etcd.io/etcd v0.5.0-alpha.5.0.20200910180754-dd1b699fc489
@@ -419,8 +422,10 @@ go.uber.org/zap/zapcore
 # gocloud.dev v0.20.0
 gocloud.dev/blob
 gocloud.dev/blob/driver
+gocloud.dev/blob/fileblob
 gocloud.dev/blob/memblob
 gocloud.dev/gcerrors
+gocloud.dev/internal/escape
 gocloud.dev/internal/gcerr
 gocloud.dev/internal/oc
 gocloud.dev/internal/openurl
@@ -490,7 +495,7 @@ golang.org/x/time/rate
 # golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1
 golang.org/x/xerrors
 golang.org/x/xerrors/internal
-# gomodules.xyz/blobfs v0.1.5
+# gomodules.xyz/blobfs v0.1.7
 ## explicit
 gomodules.xyz/blobfs
 # gomodules.xyz/cert v1.2.0
@@ -507,7 +512,7 @@ gomodules.xyz/password-generator
 # gomodules.xyz/pointer v0.0.0-20201105071923-daf60fa55209
 ## explicit
 gomodules.xyz/pointer
-# gomodules.xyz/runtime v0.0.0-20201104200926-d838b09dda8b
+# gomodules.xyz/runtime v0.2.0
 ## explicit
 gomodules.xyz/runtime
 # gomodules.xyz/sets v0.0.0-20210218105342-2efe2fb519a2
@@ -524,15 +529,13 @@ gomodules.xyz/stow/swift
 # gomodules.xyz/version v0.1.0
 ## explicit
 gomodules.xyz/version
-# gomodules.xyz/x v0.0.0-20201105065653-91c568df6331
+# gomodules.xyz/x v0.0.3
 ## explicit
 gomodules.xyz/x/analytics
 gomodules.xyz/x/arrays
-gomodules.xyz/x/context
 gomodules.xyz/x/crypto/rand
 gomodules.xyz/x/encoding/yaml
 gomodules.xyz/x/flags
-gomodules.xyz/x/log
 gomodules.xyz/x/log/golog
 gomodules.xyz/x/net
 gomodules.xyz/x/strings
@@ -896,7 +899,7 @@ k8s.io/apiserver/plugin/pkg/authorizer/webhook
 k8s.io/cli-runtime/pkg/genericclioptions
 k8s.io/cli-runtime/pkg/printers
 k8s.io/cli-runtime/pkg/resource
-# k8s.io/client-go v12.0.0+incompatible => k8s.io/client-go v0.21.0
+# k8s.io/client-go v0.21.0 => k8s.io/client-go v0.21.0
 ## explicit
 k8s.io/client-go/applyconfigurations/admissionregistration/v1
 k8s.io/client-go/applyconfigurations/admissionregistration/v1beta1
@@ -1179,8 +1182,6 @@ k8s.io/component-base/metrics/legacyregistry
 k8s.io/component-base/metrics/prometheus/workqueue
 k8s.io/component-base/metrics/testutil
 k8s.io/component-base/version
-# k8s.io/klog v1.0.0
-k8s.io/klog
 # k8s.io/klog/v2 v2.8.0
 ## explicit
 k8s.io/klog/v2
@@ -1209,7 +1210,7 @@ k8s.io/utils/net
 k8s.io/utils/path
 k8s.io/utils/pointer
 k8s.io/utils/trace
-# kmodules.xyz/client-go v0.0.0-20210503064222-c8c59295a3a5
+# kmodules.xyz/client-go v0.0.0-20210504024435-1eb80721e9b8
 ## explicit
 kmodules.xyz/client-go
 kmodules.xyz/client-go/admissionregistration/v1beta1
@@ -1240,7 +1241,7 @@ kmodules.xyz/constants/aws
 kmodules.xyz/constants/azure
 kmodules.xyz/constants/google
 kmodules.xyz/constants/openstack
-# kmodules.xyz/custom-resources v0.0.0-20210503065135-5267be335cb4
+# kmodules.xyz/custom-resources v0.0.0-20210504034124-54c54fcdb690
 ## explicit
 kmodules.xyz/custom-resources/apis/appcatalog
 kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1
@@ -1260,7 +1261,7 @@ kmodules.xyz/custom-resources/client/informers/externalversions/metrics/v1alpha1
 kmodules.xyz/custom-resources/client/listers/appcatalog/v1alpha1
 kmodules.xyz/custom-resources/client/listers/metrics/v1alpha1
 kmodules.xyz/custom-resources/crds
-# kmodules.xyz/monitoring-agent-api v0.0.0-20210503064631-e2d5686a9acd
+# kmodules.xyz/monitoring-agent-api v0.0.0-20210504040241-261c2428d207
 ## explicit
 kmodules.xyz/monitoring-agent-api/agents
 kmodules.xyz/monitoring-agent-api/agents/prometheus
@@ -1268,20 +1269,20 @@ kmodules.xyz/monitoring-agent-api/agents/prometheusbuiltin
 kmodules.xyz/monitoring-agent-api/agents/prometheusoperator
 kmodules.xyz/monitoring-agent-api/api/v1
 kmodules.xyz/monitoring-agent-api/prometheus/v1
-# kmodules.xyz/objectstore-api v0.0.0-20210503064721-4fadb098d198
+# kmodules.xyz/objectstore-api v0.0.0-20210504041638-b9e00ab1eab3
 ## explicit
 kmodules.xyz/objectstore-api/api/v1
 kmodules.xyz/objectstore-api/osm
-# kmodules.xyz/offshoot-api v0.0.0-20210503065102-3250bbdedc8f
+# kmodules.xyz/offshoot-api v0.0.0-20210504040651-7951e351f0f5
 ## explicit
 kmodules.xyz/offshoot-api/api/v1
-# kmodules.xyz/prober v0.0.0-20210503064856-dbee486876b6
+# kmodules.xyz/prober v0.0.0-20210504042421-eca494e828bc
 kmodules.xyz/prober/api/v1
-# kmodules.xyz/webhook-runtime v0.0.0-20210503065550-dc37e69fdba2
+# kmodules.xyz/webhook-runtime v0.0.0-20210504042742-3a9911e3dcdc
 ## explicit
 kmodules.xyz/webhook-runtime/admission/v1beta1
 kmodules.xyz/webhook-runtime/registry/admissionreview/v1beta1
-# kubedb.dev/apimachinery v0.18.1-0.20210503232843-7030bd8fddb2
+# kubedb.dev/apimachinery v0.18.1-0.20210504045738-11d1c3068aa3
 ## explicit
 kubedb.dev/apimachinery/apis
 kubedb.dev/apimachinery/apis/autoscaling
@@ -1418,7 +1419,7 @@ sigs.k8s.io/structured-merge-diff/v4/typed
 sigs.k8s.io/structured-merge-diff/v4/value
 # sigs.k8s.io/yaml v1.2.0
 sigs.k8s.io/yaml
-# stash.appscode.dev/apimachinery v0.13.0
+# stash.appscode.dev/apimachinery v0.13.1-0.20210504044941-15d8c532c990
 ## explicit
 stash.appscode.dev/apimachinery/apis
 stash.appscode.dev/apimachinery/apis/repositories

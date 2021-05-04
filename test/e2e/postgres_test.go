@@ -31,11 +31,11 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"gomodules.xyz/pointer"
-	"gomodules.xyz/x/log"
 	core "k8s.io/api/core/v1"
 	rbac "k8s.io/api/rbac/v1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/klog/v2"
 	kmapi "kmodules.xyz/client-go/api/v1"
 	core_util "kmodules.xyz/client-go/core/v1"
 	store "kmodules.xyz/objectstore-api/api/v1"
@@ -275,7 +275,7 @@ var _ = Describe("Postgres", func() {
 					if err != nil {
 						if kerr.IsNotFound(err) {
 							// Postgres was not created. Hence, rest of cleanup is not necessary.
-							log.Infof("Skipping rest of cleanup. Reason: Postgres %s is not found.", postgres.Name)
+							klog.Infof("Skipping rest of cleanup. Reason: Postgres %s is not found.", postgres.Name)
 							return
 						}
 						Expect(err).NotTo(HaveOccurred())

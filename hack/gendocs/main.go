@@ -18,7 +18,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 
 	"kubedb.dev/postgres/pkg/cmds"
@@ -26,6 +25,7 @@ import (
 	"github.com/spf13/cobra/doc"
 	"gomodules.xyz/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/klog/v2"
 )
 
 // ref: https://github.com/spf13/cobra/blob/master/doc/md_docs.md
@@ -35,11 +35,11 @@ func main() {
 	fmt.Printf("Generating cli markdown tree in: %v\n", dir)
 	err := os.RemoveAll(dir)
 	if err != nil {
-		log.Fatal(err)
+		klog.Fatal(err)
 	}
 	err = os.MkdirAll(dir, 0755)
 	if err != nil {
-		log.Fatal(err)
+		klog.Fatal(err)
 	}
 	utilruntime.Must(doc.GenMarkdownTree(rootCmd, dir))
 }
