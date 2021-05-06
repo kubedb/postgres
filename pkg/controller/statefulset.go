@@ -249,6 +249,10 @@ func upsertEnv(statefulSet *apps.StatefulSet, db *api.Postgres, postgresVersion 
 	if clientAuthMode == "" {
 		clientAuthMode = api.ClientAuthModeMD5
 	}
+	sharedBuffer := "128MB"
+	if db.Spec.PodTemplate.Spec.Resources.Requests.Memory() != nil {
+		sharedBuffer = api.GetSharedBufferSizeForPostgres(db.Spec.PodTemplate.Spec.Resources.Requests.Memory().Value())
+	}
 	envList := []core.EnvVar{
 		{
 			Name: "NAMESPACE",
@@ -353,6 +357,13 @@ func upsertEnv(statefulSet *apps.StatefulSet, db *api.Postgres, postgresVersion 
 	// To do this, Upsert Container first
 	for i, container := range statefulSet.Spec.Template.Spec.Containers {
 		if container.Name == api.ResourceSingularPostgres || container.Name == api.PostgresCoordinatorContainerName {
+			if container.Name == api.ResourceSingularPostgres {
+				env := core.EnvVar{
+					Name:  "SHARED_BUFFERS",
+					Value: sharedBuffer,
+				}
+				container.Env = core_util.UpsertEnvVars(container.Env, env)
+			}
 			statefulSet.Spec.Template.Spec.Containers[i].Env = core_util.UpsertEnvVars(container.Env, envList...)
 		}
 	}

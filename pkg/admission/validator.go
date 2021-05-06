@@ -290,7 +290,6 @@ var preconditionSpecFields = sets.NewString(
 	"spec.streaming",
 	"spec.databaseSecret",
 	"spec.storageType",
-	"spec.storage",
 )
 
 func preconditionFailedError() error {
