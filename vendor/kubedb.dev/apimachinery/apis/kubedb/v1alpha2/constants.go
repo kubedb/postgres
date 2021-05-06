@@ -247,6 +247,10 @@ const (
 	ProxySQLDataMountPath          = "/var/lib/proxysql"
 	ProxySQLCustomConfigMountPath  = "/etc/custom-config"
 
+	PostgresPgCoordinatorStatus       = "Coordinator/Status"
+	PostgresPgCoordinatorStatusPause  = "Pause"
+	PostgresPgCoordinatorStatusResume = "Resume"
+
 	// =========================== Redis Constants ============================
 	RedisShardKey               = RedisKey + "/shard"
 	RedisDatabasePortName       = "db"

@@ -23228,6 +23228,14 @@ func schema_apimachinery_apis_ops_v1alpha1_PostgresHorizontalScalingSpec(ref com
 			SchemaProps: spec.SchemaProps{
 				Description: "HorizontalScaling is the spec for Postgres horizontal scaling",
 				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"replicas": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int32",
+						},
+					},
+				},
 			},
 		},
 	}
@@ -23392,6 +23400,13 @@ func schema_apimachinery_apis_ops_v1alpha1_PostgresOpsRequestSpec(ref common.Ref
 							Ref:         ref("kubedb.dev/apimachinery/apis/ops/v1alpha1.RestartSpec"),
 						},
 					},
+					"timeoutSeconds": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Timeout for each step of the ops request in second. If a step doesn't finish within the specified timeout, the ops request will result in failure.",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
 				},
 				Required: []string{"databaseRef", "type"},
 			},
@@ -23487,16 +23502,21 @@ func schema_apimachinery_apis_ops_v1alpha1_PostgresVerticalScalingSpec(ref commo
 				Description: "PostgresVerticalScalingSpec is the spec for Postgres vertical scaling",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
-					"readinessCriteria": {
+					"postgres": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("kubedb.dev/apimachinery/apis/ops/v1alpha1.PostgresReplicaReadinessCriteria"),
+							Ref: ref("k8s.io/api/core/v1.ResourceRequirements"),
+						},
+					},
+					"exporter": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/api/core/v1.ResourceRequirements"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"kubedb.dev/apimachinery/apis/ops/v1alpha1.PostgresReplicaReadinessCriteria"},
+			"k8s.io/api/core/v1.ResourceRequirements"},
 	}
 }
 
@@ -23506,8 +23526,18 @@ func schema_apimachinery_apis_ops_v1alpha1_PostgresVolumeExpansionSpec(ref commo
 			SchemaProps: spec.SchemaProps{
 				Description: "PostgresVolumeExpansionSpec is the spec for Postgres volume expansion",
 				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"postgres": {
+						SchemaProps: spec.SchemaProps{
+							Description: "volume specification for Postgres",
+							Ref:         ref("k8s.io/apimachinery/pkg/api/resource.Quantity"),
+						},
+					},
+				},
 			},
 		},
+		Dependencies: []string{
+			"k8s.io/apimachinery/pkg/api/resource.Quantity"},
 	}
 }
 

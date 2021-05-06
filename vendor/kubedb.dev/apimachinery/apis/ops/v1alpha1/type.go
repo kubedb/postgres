@@ -135,6 +135,21 @@ const (
 	//Stash Constants
 	PauseBackupConfiguration  = "PauseBackupConfiguration"
 	ResumeBackupConfiguration = "ResumeBackupConfiguration"
+	//Postgres Constants
+	CopiedOldBinaries                       = "CopiedOldBinaries"
+	UpdateStatefulSetImage                  = "UpdateStatefulSetImage"
+	UpdatePrimaryPodImage                   = "UpdatePrimaryImage"
+	UpdateStandbyPodImage                   = "UpdateStandbyPodImage"
+	PausePgCoordinator                      = "PausePgCoordinator"
+	ResumePgCoordinator                     = "ResumePgCoordinator"
+	DataDirectoryInitialized                = "DataDirectoryInitialized"
+	PgUpgraded                              = "PgUpgraded"
+	ReplacedDataDirectory                   = "ReplacedDataDirectory"
+	PgCoordinatorStatusResumeDefaultPrimary = "ResumeDefaultPrimary"
+	PostgresPrimaryPodReady                 = "PostgresPrimaryPodReady"
+
+	TransferLeaderShipToFirstNode                        = "TransferPrimaryRoleToDefault"
+	TransferLeaderShipToFirstNodeBeforeCoordinatorPaused = "TransferLeaderShipToFirstNodeBeforeCoordinatorPaused"
 )
 
 // +kubebuilder:validation:Enum=Pending;Progressing;Successful;WaitingForApproval;Failed;Approved;Denied

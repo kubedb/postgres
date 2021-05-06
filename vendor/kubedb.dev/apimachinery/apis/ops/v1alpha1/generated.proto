@@ -993,6 +993,7 @@ message PostgresCustomConfigurationSpec {
 
 // HorizontalScaling is the spec for Postgres horizontal scaling
 message PostgresHorizontalScalingSpec {
+  optional int32 replicas = 1;
 }
 
 // +kubebuilder:object:root=true
@@ -1045,6 +1046,9 @@ message PostgresOpsRequestSpec {
 
   // Specifies information necessary for restarting database
   optional RestartSpec restart = 9;
+
+  // Timeout for each step of the ops request in second. If a step doesn't finish within the specified timeout, the ops request will result in failure.
+  optional int32 timeoutSeconds = 10;
 }
 
 // PostgresOpsRequestStatus is the status for PostgresOpsRequest
@@ -1075,11 +1079,15 @@ message PostgresUpgradeSpec {
 
 // PostgresVerticalScalingSpec is the spec for Postgres vertical scaling
 message PostgresVerticalScalingSpec {
-  optional PostgresReplicaReadinessCriteria readinessCriteria = 1;
+  optional k8s.io.api.core.v1.ResourceRequirements postgres = 1;
+
+  optional k8s.io.api.core.v1.ResourceRequirements exporter = 2;
 }
 
 // PostgresVolumeExpansionSpec is the spec for Postgres volume expansion
 message PostgresVolumeExpansionSpec {
+  // volume specification for Postgres
+  optional k8s.io.apimachinery.pkg.api.resource.Quantity postgres = 1;
 }
 
 message ProxySQLCustomConfiguration {
