@@ -18,6 +18,8 @@ package v1alpha2
 
 import (
 	"fmt"
+	"math"
+	"strconv"
 	"time"
 
 	"kubedb.dev/apimachinery/apis"
@@ -298,4 +300,46 @@ func (p *Postgres) GetCertSecretName(alias PostgresCertificateAlias) string {
 		}
 	}
 	return p.CertificateName(alias)
+}
+
+func GetSharedBufferSizeForPostgres(val int64) string {
+	// no more than 25% of main memory (RAM)
+	ret := (val / 100) * 25
+	minSharedBuffer := 128 * 1024 * 1024
+	//128 MB  is the minimum
+	if ret < (128 * 1024 * 1024) {
+		ret = int64(minSharedBuffer)
+	}
+	sharedBuffer := ConvertBytesInMB(ret)
+	return sharedBuffer
+}
+
+func Round(val float64, roundOn float64, places int) (newVal float64) {
+	var round float64
+	pow := math.Pow(10, float64(places))
+	digit := pow * val
+	_, div := math.Modf(digit)
+	if div >= roundOn {
+		round = math.Ceil(digit)
+	} else {
+		round = math.Floor(digit)
+	}
+	newVal = round / pow
+	return newVal
+}
+
+func ConvertBytesInMB(value int64) string {
+	var suffixes [5]string
+	suffixes[0] = "B"
+	suffixes[1] = "KB"
+	suffixes[2] = "MB"
+	suffixes[3] = "GB"
+	suffixes[4] = "TB"
+
+	base := math.Log(float64(value)) / math.Log(1024)
+	getSize := Round(math.Pow(1024, base-math.Floor(base)), .5, 2)
+	getSuffix := suffixes[int(math.Floor(base))]
+
+	valueMB := strconv.FormatFloat(getSize, 'f', -1, 64) + string(getSuffix)
+	return valueMB
 }
