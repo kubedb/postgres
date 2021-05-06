@@ -16,13 +16,14 @@ require (
 	go.bytebuilders.dev/license-verifier/kubernetes v0.9.1
 	gomodules.xyz/blobfs v0.1.7
 	gomodules.xyz/cert v1.2.0
+	gomodules.xyz/kglog v0.0.1
 	gomodules.xyz/password-generator v0.2.7
 	gomodules.xyz/pointer v0.0.0-20201105071923-daf60fa55209
 	gomodules.xyz/runtime v0.2.0
 	gomodules.xyz/sets v0.0.0-20210218105342-2efe2fb519a2
 	gomodules.xyz/stow v0.2.4
 	gomodules.xyz/version v0.1.0
-	gomodules.xyz/x v0.0.3
+	gomodules.xyz/x v0.0.4
 	k8s.io/api v0.21.0
 	k8s.io/apiextensions-apiserver v0.21.0
 	k8s.io/apimachinery v0.21.0
@@ -30,16 +31,15 @@ require (
 	k8s.io/client-go v0.21.0
 	k8s.io/klog/v2 v2.8.0
 	k8s.io/kube-aggregator v0.21.0
-	kmodules.xyz/client-go v0.0.0-20210504024435-1eb80721e9b8
+	kmodules.xyz/client-go v0.0.0-20210505231546-fa4fb8e1d04e
 	kmodules.xyz/constants v0.0.0-20210218100002-2c304bfda278
 	kmodules.xyz/custom-resources v0.0.0-20210504034124-54c54fcdb690
 	kmodules.xyz/monitoring-agent-api v0.0.0-20210504040241-261c2428d207
 	kmodules.xyz/objectstore-api v0.0.0-20210504041638-b9e00ab1eab3
 	kmodules.xyz/offshoot-api v0.0.0-20210504040651-7951e351f0f5
 	kmodules.xyz/webhook-runtime v0.0.0-20210504042742-3a9911e3dcdc
-	kubedb.dev/apimachinery v0.18.1-0.20210504045738-11d1c3068aa3
-	stash.appscode.dev/apimachinery v0.13.1-0.20210504044941-15d8c532c990
-
+	kubedb.dev/apimachinery v0.18.1-0.20210506003355-e982e5902ad2
+	stash.appscode.dev/apimachinery v0.13.1-0.20210505235659-974fc12c7593
 )
 
 replace bitbucket.org/ww/goautoneg => gomodules.xyz/goautoneg v0.0.0-20120707110453-a547fc61f48d
