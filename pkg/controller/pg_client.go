@@ -60,12 +60,12 @@ func (c *Controller) GetPostgresClient(db *api.Postgres, dnsName string, port in
 			return nil, err
 		}
 		if db.Spec.ClientAuthMode == api.ClientAuthModeCert {
-			cnnstr = fmt.Sprintf("user=%s password=%s host=%s port=%d dbname=postgres sslmode=%s sslrootcert=%s sslcert=%s sslkey=%s", user, pass, dnsName, port, sslMode, paths.CACert, paths.Cert, paths.Key)
+			cnnstr = fmt.Sprintf("user=%s password=%s host=%s port=%d connect_timeout=10 dbname=postgres sslmode=%s sslrootcert=%s sslcert=%s sslkey=%s", user, pass, dnsName, port, sslMode, paths.CACert, paths.Cert, paths.Key)
 		} else {
-			cnnstr = fmt.Sprintf("user=%s password=%s host=%s port=%d dbname=postgres sslmode=%s sslrootcert=%s", user, pass, dnsName, port, sslMode, paths.CACert)
+			cnnstr = fmt.Sprintf("user=%s password=%s host=%s port=%d connect_timeout=10 dbname=postgres sslmode=%s sslrootcert=%s", user, pass, dnsName, port, sslMode, paths.CACert)
 		}
 	} else {
-		cnnstr = fmt.Sprintf("user=%s password=%s host=%s port=%d dbname=postgres sslmode=%s", user, pass, dnsName, port, sslMode)
+		cnnstr = fmt.Sprintf("user=%s password=%s host=%s port=%d connect_timeout=10 dbname=postgres sslmode=%s", user, pass, dnsName, port, sslMode)
 	}
 
 	return xorm.NewEngine("postgres", cnnstr)
