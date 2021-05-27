@@ -16,7 +16,7 @@ require (
 	go.bytebuilders.dev/license-verifier/kubernetes v0.9.1
 	gomodules.xyz/blobfs v0.1.7
 	gomodules.xyz/cert v1.2.0
-	gomodules.xyz/kglog v0.0.1
+	gomodules.xyz/kglog v0.0.3
 	gomodules.xyz/password-generator v0.2.7
 	gomodules.xyz/pointer v0.0.0-20201105071923-daf60fa55209
 	gomodules.xyz/runtime v0.2.0
@@ -132,7 +132,7 @@ replace k8s.io/api => k8s.io/api v0.21.0
 
 replace k8s.io/apimachinery => github.com/kmodules/apimachinery v0.21.1-rc.0.0.20210405112358-ad4c2289ba4c
 
-replace k8s.io/apiserver => github.com/kmodules/apiserver v0.21.1-0.20210427013338-53dee545b83c
+replace k8s.io/apiserver => github.com/kmodules/apiserver v0.21.1-0.20210525165825-102cf43e00fa
 
 replace k8s.io/cli-runtime => k8s.io/cli-runtime v0.21.0
 
