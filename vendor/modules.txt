@@ -508,7 +508,7 @@ gomodules.xyz/clock
 gomodules.xyz/homedir
 # gomodules.xyz/jsonpatch/v2 v2.1.0
 gomodules.xyz/jsonpatch/v2
-# gomodules.xyz/kglog v0.0.1
+# gomodules.xyz/kglog v0.0.3
 ## explicit
 gomodules.xyz/kglog
 # gomodules.xyz/password-generator v0.2.7
@@ -542,7 +542,6 @@ gomodules.xyz/x/analytics
 gomodules.xyz/x/arrays
 gomodules.xyz/x/crypto/rand
 gomodules.xyz/x/encoding/yaml
-gomodules.xyz/x/flags
 gomodules.xyz/x/net
 gomodules.xyz/x/strings
 gomodules.xyz/x/version
@@ -776,7 +775,7 @@ k8s.io/apimachinery/pkg/watch
 k8s.io/apimachinery/third_party/forked/golang/json
 k8s.io/apimachinery/third_party/forked/golang/netutil
 k8s.io/apimachinery/third_party/forked/golang/reflect
-# k8s.io/apiserver v0.21.0 => github.com/kmodules/apiserver v0.21.1-0.20210427013338-53dee545b83c
+# k8s.io/apiserver v0.21.0 => github.com/kmodules/apiserver v0.21.1-0.20210525165825-102cf43e00fa
 ## explicit
 k8s.io/apiserver/pkg/admission
 k8s.io/apiserver/pkg/admission/configuration
@@ -1497,7 +1496,7 @@ xorm.io/core
 # helm.sh/helm/v3 => github.com/kubepack/helm/v3 v3.1.0-rc.1.0.20210503022716-7e2d4913a125
 # k8s.io/api => k8s.io/api v0.21.0
 # k8s.io/apimachinery => github.com/kmodules/apimachinery v0.21.1-rc.0.0.20210405112358-ad4c2289ba4c
-# k8s.io/apiserver => github.com/kmodules/apiserver v0.21.1-0.20210427013338-53dee545b83c
+# k8s.io/apiserver => github.com/kmodules/apiserver v0.21.1-0.20210525165825-102cf43e00fa
 # k8s.io/cli-runtime => k8s.io/cli-runtime v0.21.0
 # k8s.io/client-go => k8s.io/client-go v0.21.0
 # k8s.io/component-base => k8s.io/component-base v0.21.0
