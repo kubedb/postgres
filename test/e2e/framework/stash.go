@@ -24,7 +24,7 @@ import (
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha2"
 
 	. "github.com/onsi/gomega"
-	"gomodules.xyz/version"
+	"github.com/Masterminds/semver/v3"
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"kmodules.xyz/client-go/discovery"
@@ -188,7 +188,7 @@ func (f *Framework) getStashPGBackupTaskName() string {
 	pgVersion, err := f.dbClient.CatalogV1alpha1().PostgresVersions().Get(context.TODO(), DBCatalogName, metav1.GetOptions{})
 	Expect(err).NotTo(HaveOccurred())
 
-	sv, err := version.NewVersion(pgVersion.Spec.Version)
+	sv, err := semver.NewVersion(pgVersion.Spec.Version)
 	Expect(err).NotTo(HaveOccurred())
 
 	return "postgres-backup-" + fmt.Sprintf("%v.%v", sv.Major(), sv.Minor())
@@ -198,7 +198,7 @@ func (f *Framework) getStashPGRestoreTaskName() string {
 	pgVersion, err := f.dbClient.CatalogV1alpha1().PostgresVersions().Get(context.TODO(), DBCatalogName, metav1.GetOptions{})
 	Expect(err).NotTo(HaveOccurred())
 
-	sv, err := version.NewVersion(pgVersion.Spec.Version)
+	sv, err := semver.NewVersion(pgVersion.Spec.Version)
 	Expect(err).NotTo(HaveOccurred())
 
 	return "postgres-restore-" + fmt.Sprintf("%v.%v", sv.Major(), sv.Minor())

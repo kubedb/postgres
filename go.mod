@@ -3,6 +3,7 @@ module kubedb.dev/postgres
 go 1.15
 
 require (
+	github.com/Masterminds/semver/v3 v3.1.1
 	github.com/go-xorm/xorm v0.7.9
 	github.com/lib/pq v1.10.2
 	github.com/onsi/ginkgo v1.16.1
@@ -23,7 +24,6 @@ require (
 	gomodules.xyz/runtime v0.2.0
 	gomodules.xyz/sets v0.0.0-20210218105342-2efe2fb519a2
 	gomodules.xyz/stow v0.2.4
-	gomodules.xyz/version v0.1.0
 	gomodules.xyz/x v0.0.5
 	k8s.io/api v0.21.0
 	k8s.io/apiextensions-apiserver v0.21.0
