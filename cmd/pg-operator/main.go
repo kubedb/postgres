@@ -20,7 +20,7 @@ import (
 	"kubedb.dev/postgres/pkg/cmds"
 
 	_ "go.bytebuilders.dev/license-verifier/info"
-	"gomodules.xyz/kglog"
+	"gomodules.xyz/logs"
 	_ "k8s.io/client-go/kubernetes/fake"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/klog/v2"
@@ -28,8 +28,8 @@ import (
 
 func main() {
 	rootCmd := cmds.NewRootCmd(Version)
-	kglog.Init(rootCmd, true)
-	defer kglog.FlushLogs()
+	logs.Init(rootCmd, true)
+	defer logs.FlushLogs()
 
 	if err := rootCmd.Execute(); err != nil {
 		klog.Fatal(err)
