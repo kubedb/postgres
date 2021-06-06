@@ -22,7 +22,6 @@ import (
 	"kubedb.dev/apimachinery/client/clientset/versioned/scheme"
 
 	"github.com/spf13/cobra"
-	"gomodules.xyz/kglog"
 	v "gomodules.xyz/x/version"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	genericapiserver "k8s.io/apiserver/pkg/server"
@@ -40,7 +39,6 @@ func NewRootCmd(version string) *cobra.Command {
 
 			utilruntime.Must(scheme.AddToScheme(clientsetscheme.Scheme))
 			utilruntime.Must(appcatscheme.AddToScheme(clientsetscheme.Scheme))
-			cli.LoggerOptions = kglog.GetOptions(c.Flags())
 		},
 	}
 	rootCmd.PersistentFlags().BoolVar(&cli.EnableAnalytics, "enable-analytics", cli.EnableAnalytics, "Send analytical events to Google Analytics")

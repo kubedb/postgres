@@ -3,27 +3,28 @@ module kubedb.dev/postgres
 go 1.15
 
 require (
-	github.com/codeskyblue/go-sh v0.0.0-20200712050446-30169cf553fe
 	github.com/go-xorm/xorm v0.7.9
-	github.com/lib/pq v1.10.1
-	github.com/onsi/ginkgo v1.15.0
-	github.com/onsi/gomega v1.10.5
+	github.com/lib/pq v1.10.2
+	github.com/onsi/ginkgo v1.16.1
+	github.com/onsi/gomega v1.11.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus-operator/prometheus-operator/pkg/client v0.47.0
 	github.com/spf13/cobra v1.1.3
 	github.com/spf13/pflag v1.0.5
-	go.bytebuilders.dev/license-verifier v0.9.1
-	go.bytebuilders.dev/license-verifier/kubernetes v0.9.1
+	go.bytebuilders.dev/audit v0.0.0-20210606035915-e588bc9c711d
+	go.bytebuilders.dev/license-verifier v0.9.2
+	go.bytebuilders.dev/license-verifier/kubernetes v0.9.2
 	gomodules.xyz/blobfs v0.1.7
 	gomodules.xyz/cert v1.2.0
-	gomodules.xyz/kglog v0.0.3
+	gomodules.xyz/go-sh v0.1.0
+	gomodules.xyz/logs v0.0.2
 	gomodules.xyz/password-generator v0.2.7
 	gomodules.xyz/pointer v0.0.0-20201105071923-daf60fa55209
 	gomodules.xyz/runtime v0.2.0
 	gomodules.xyz/sets v0.0.0-20210218105342-2efe2fb519a2
 	gomodules.xyz/stow v0.2.4
 	gomodules.xyz/version v0.1.0
-	gomodules.xyz/x v0.0.4
+	gomodules.xyz/x v0.0.5
 	k8s.io/api v0.21.0
 	k8s.io/apiextensions-apiserver v0.21.0
 	k8s.io/apimachinery v0.21.0
@@ -31,15 +32,15 @@ require (
 	k8s.io/client-go v0.21.0
 	k8s.io/klog/v2 v2.8.0
 	k8s.io/kube-aggregator v0.21.0
-	kmodules.xyz/client-go v0.0.0-20210505231546-fa4fb8e1d04e
+	kmodules.xyz/client-go v0.0.0-20210605021217-cabaee7b953e
 	kmodules.xyz/constants v0.0.0-20210218100002-2c304bfda278
-	kmodules.xyz/custom-resources v0.0.0-20210504034124-54c54fcdb690
+	kmodules.xyz/custom-resources v0.0.0-20210605111625-741fcb992541
 	kmodules.xyz/monitoring-agent-api v0.0.0-20210504040241-261c2428d207
 	kmodules.xyz/objectstore-api v0.0.0-20210504041638-b9e00ab1eab3
 	kmodules.xyz/offshoot-api v0.0.0-20210504040651-7951e351f0f5
 	kmodules.xyz/webhook-runtime v0.0.0-20210504042742-3a9911e3dcdc
-	kubedb.dev/apimachinery v0.18.1-0.20210506003355-e982e5902ad2
-	stash.appscode.dev/apimachinery v0.13.1-0.20210505235659-974fc12c7593
+	kubedb.dev/apimachinery v0.18.1-0.20210606081947-27cc118e5a02
+	stash.appscode.dev/apimachinery v0.13.1-0.20210605201829-a382bbe2f22a
 )
 
 replace bitbucket.org/ww/goautoneg => gomodules.xyz/goautoneg v0.0.0-20120707110453-a547fc61f48d
@@ -110,8 +111,6 @@ replace github.com/googleapis/gnostic => github.com/googleapis/gnostic v0.4.1
 
 replace github.com/imdario/mergo => github.com/imdario/mergo v0.3.5
 
-replace github.com/jetstack/cert-manager => github.com/kmodules/cert-manager v1.3.1-0.20210429172957-c5436c14ce0e
-
 replace github.com/prometheus-operator/prometheus-operator => github.com/prometheus-operator/prometheus-operator v0.47.0
 
 replace github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring => github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.47.0
@@ -145,7 +144,5 @@ replace k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20210305001622-591a79e
 replace k8s.io/kubernetes => github.com/kmodules/kubernetes v1.22.0-alpha.0.0.20210427080452-22d2e66bae50
 
 replace k8s.io/utils => k8s.io/utils v0.0.0-20201110183641-67b214c5f920
-
-replace kmodules.xyz/resource-metadata => kmodules.xyz/resource-metadata v0.5.0
 
 replace sigs.k8s.io/application => github.com/kmodules/application v0.8.4-0.20210427030912-90eeee3bc4ad
