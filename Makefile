@@ -342,8 +342,8 @@ lint: $(BUILD_DIRS)
 $(BUILD_DIRS):
 	@mkdir -p $@
 
-REGISTRY_SECRET 	?=
-IMAGE_PULL_POLICY 	?= Always
+REGISTRY_SECRET		?=
+IMAGE_PULL_POLICY	?= IfNotPresent
 
 ifeq ($(strip $(REGISTRY_SECRET)),)
 	IMAGE_PULL_SECRETS =
