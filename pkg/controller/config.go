@@ -71,15 +71,20 @@ func (c *OperatorConfig) New() (*Controller, error) {
 		return nil, err
 	}
 
-	// audit event publisher
-	natscfg, err := auditlib.NewNatsConfig(c.KubeClient.CoreV1().Namespaces(), c.LicenseFile)
-	if err != nil {
-		return nil, err
-	}
 	mapper := discovery.NewResourceMapper(discovery.NewRestMapper(c.KubeClient.Discovery()))
-	fn := auditlib.BillingEventCreator{
-		Mapper:    mapper,
-		LicenseID: natscfg.LicenseID,
+
+	// audit event publisher
+	var auditor *auditlib.EventPublisher
+	if c.LicenseFile != "" {
+		natscfg, err := auditlib.NewNatsConfig(c.KubeClient.CoreV1().Namespaces(), c.LicenseFile)
+		if err != nil {
+			return nil, err
+		}
+		fn := auditlib.BillingEventCreator{
+			Mapper:    mapper,
+			LicenseID: natscfg.LicenseID,
+		}
+		auditor = auditlib.NewEventPublisher(natscfg, mapper, fn.CreateEvent)
 	}
 
 	ctrl := New(
@@ -94,7 +99,7 @@ func (c *OperatorConfig) New() (*Controller, error) {
 		topology,
 		c.Recorder,
 		mapper,
-		auditlib.NewEventPublisher(natscfg, mapper, fn.CreateEvent),
+		auditor,
 	)
 
 	if err := ctrl.EnsureCustomResourceDefinitions(); err != nil {
