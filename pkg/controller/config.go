@@ -29,6 +29,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/metadata"
 	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/record"
 	reg_util "kmodules.xyz/client-go/admissionregistration/v1beta1"
 	core_util "kmodules.xyz/client-go/core/v1"
@@ -74,7 +75,8 @@ func (c *OperatorConfig) New() (*Controller, error) {
 	mapper := discovery.NewResourceMapper(discovery.NewRestMapper(c.KubeClient.Discovery()))
 
 	// audit event publisher
-	var auditor *auditlib.EventPublisher
+	// WARNING: https://stackoverflow.com/a/46275411/244009
+	var auditor cache.ResourceEventHandler
 	if c.LicenseFile != "" {
 		natscfg, err := auditlib.NewNatsConfig(c.KubeClient.CoreV1().Namespaces(), c.LicenseFile)
 		if err != nil {
