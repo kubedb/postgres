@@ -29,7 +29,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/metadata"
 	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/record"
 	reg_util "kmodules.xyz/client-go/admissionregistration/v1beta1"
 	core_util "kmodules.xyz/client-go/core/v1"
@@ -73,21 +72,21 @@ func (c *OperatorConfig) New() (*Controller, error) {
 		return nil, err
 	}
 
-	mapper := discovery.NewResourceMapper(discovery.NewRestMapper(c.KubeClient.Discovery()))
+	mapper, err := discovery.NewDynamicResourceMapper(c.ClientConfig)
+	if err != nil {
+		return nil, err
+	}
 
 	// audit event publisher
 	// WARNING: https://stackoverflow.com/a/46275411/244009
-	var auditor cache.ResourceEventHandler
+	var auditor *auditlib.EventPublisher
 	if c.LicenseFile != "" && cli.EnableAnalytics {
-		natscfg, err := auditlib.NewNatsConfig(c.KubeClient.CoreV1().Namespaces(), c.LicenseFile)
-		if err != nil {
-			return nil, err
-		}
 		fn := auditlib.BillingEventCreator{
-			Mapper:    mapper,
-			LicenseID: natscfg.LicenseID,
+			Mapper: mapper,
 		}
-		auditor = auditlib.NewEventPublisher(natscfg, mapper, fn.CreateEvent)
+		auditor = auditlib.NewResilientEventPublisher(func() (*auditlib.NatsConfig, error) {
+			return auditlib.NewNatsConfig(c.KubeClient.CoreV1().Namespaces(), c.LicenseFile)
+		}, mapper, fn.CreateEvent)
 	}
 
 	ctrl := New(
