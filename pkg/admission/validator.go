@@ -325,6 +325,16 @@ func validateSpecForDB(postgres *api.Postgres, pgVersion *v1alpha1.PostgresVersi
 		!pgVersion.Spec.SecurityContext.RunAsAnyNonRoot {
 		return fmt.Errorf("can't change ContainerSecurityContext's RunAsGroup for this Postgres Version. It has to be the defualt GroupID. The default GroupID for this Postgres Version is %v but Container's security context GroupID is %v", pointer.Int64(pgVersion.Spec.SecurityContext.RunAsUser), pointer.Int64(postgres.Spec.PodTemplate.Spec.ContainerSecurityContext.RunAsGroup))
 	}
+	if pgVersion.Spec.SecurityContext.RunAsUser != nil &&
+		pointer.Int64(postgres.Spec.PodTemplate.Spec.ContainerSecurityContext.RunAsGroup) != pointer.Int64(pgVersion.Spec.SecurityContext.RunAsUser) &&
+		!pgVersion.Spec.SecurityContext.RunAsAnyNonRoot {
+		return fmt.Errorf("can't change ContainerSecurityContext's RunAsGroup for this Postgres Version. It has to be the defualt GroupID. The default GroupID for this Postgres Version is %v but Container's security context GroupID is %v", pointer.Int64(pgVersion.Spec.SecurityContext.RunAsUser), pointer.Int64(postgres.Spec.PodTemplate.Spec.ContainerSecurityContext.RunAsGroup))
+	}
+	if pointer.Int64(postgres.Spec.PodTemplate.Spec.ContainerSecurityContext.RunAsGroup) != pointer.Int64(postgres.Spec.PodTemplate.Spec.SecurityContext.RunAsUser) ||
+		pointer.Int64(postgres.Spec.PodTemplate.Spec.ContainerSecurityContext.RunAsGroup) != pointer.Int64(postgres.Spec.PodTemplate.Spec.SecurityContext.RunAsUser) {
+		return fmt.Errorf("can't change ContainerSecurityContext's RunAsGroup for this Postgres Version. It has to be the defualt GroupID. The default GroupID for this Postgres Version is %v but Container's security context GroupID is %v", pointer.Int64(pgVersion.Spec.SecurityContext.RunAsUser), pointer.Int64(postgres.Spec.PodTemplate.Spec.ContainerSecurityContext.RunAsGroup))
+	}
+
 	if (postgres.Spec.ClientAuthMode == api.ClientAuthModeCert) &&
 		(postgres.Spec.SSLMode == api.PostgresSSLModeDisable) {
 		return fmt.Errorf("can't have %v set to postgres.spec.sslMode when postgres.spec.ClientAuthMode is set to %v",

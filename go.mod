@@ -25,6 +25,7 @@ require (
 	gomodules.xyz/sets v0.0.0-20210218105342-2efe2fb519a2
 	gomodules.xyz/stow v0.2.4
 	gomodules.xyz/x v0.0.5
+	google.golang.org/grpc v1.35.0 // indirect
 	k8s.io/api v0.21.1
 	k8s.io/apiextensions-apiserver v0.21.1
 	k8s.io/apimachinery v0.21.1
@@ -39,8 +40,8 @@ require (
 	kmodules.xyz/objectstore-api v0.0.0-20210618005912-71f8a80f48f9
 	kmodules.xyz/offshoot-api v0.0.0-20210618005544-5217a24765da
 	kmodules.xyz/webhook-runtime v0.0.0-20210618013329-0accb929102b
-	kubedb.dev/apimachinery v0.18.1-0.20210618122709-e98fb31f5dfb
-	stash.appscode.dev/apimachinery v0.14.1-0.20210618025054-0cae462d7e04
+	kubedb.dev/apimachinery v0.18.1-0.20210621134449-4f31bea4200c
+	stash.appscode.dev/apimachinery v0.14.1
 )
 
 replace bitbucket.org/ww/goautoneg => gomodules.xyz/goautoneg v0.0.0-20120707110453-a547fc61f48d
