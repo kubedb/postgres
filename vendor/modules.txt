@@ -1346,7 +1346,7 @@ kmodules.xyz/resource-metadata/pkg/graph
 ## explicit
 kmodules.xyz/webhook-runtime/admission/v1beta1
 kmodules.xyz/webhook-runtime/registry/admissionreview/v1beta1
-# kubedb.dev/apimachinery v0.18.1-0.20210618122709-e98fb31f5dfb
+# kubedb.dev/apimachinery v0.18.1-0.20210621134449-4f31bea4200c
 ## explicit
 kubedb.dev/apimachinery/apis
 kubedb.dev/apimachinery/apis/autoscaling
@@ -1503,7 +1503,7 @@ sigs.k8s.io/structured-merge-diff/v4/typed
 sigs.k8s.io/structured-merge-diff/v4/value
 # sigs.k8s.io/yaml v1.2.0
 sigs.k8s.io/yaml
-# stash.appscode.dev/apimachinery v0.14.1-0.20210618025054-0cae462d7e04
+# stash.appscode.dev/apimachinery v0.14.1
 ## explicit
 stash.appscode.dev/apimachinery/apis
 stash.appscode.dev/apimachinery/apis/repositories
