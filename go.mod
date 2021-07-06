@@ -32,7 +32,7 @@ require (
 	k8s.io/client-go v0.21.1
 	k8s.io/klog/v2 v2.8.0
 	k8s.io/kube-aggregator v0.21.1
-	kmodules.xyz/client-go v0.0.0-20210617233340-13d22e91512b
+	kmodules.xyz/client-go v0.0.0-20210702123511-a25836cf4332
 	kmodules.xyz/constants v0.0.0-20210218100002-2c304bfda278
 	kmodules.xyz/custom-resources v0.0.0-20210618003440-c6bb400da153
 	kmodules.xyz/monitoring-agent-api v0.0.0-20210618110729-9cd872c66513

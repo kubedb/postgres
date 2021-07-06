@@ -551,6 +551,8 @@ gomodules.xyz/jsonpath/third_party/forked/golang/template
 # gomodules.xyz/logs v0.0.2
 ## explicit
 gomodules.xyz/logs
+# gomodules.xyz/mergo v0.3.13-0.20210702100041-9d62ff8ece4d
+gomodules.xyz/mergo
 # gomodules.xyz/password-generator v0.2.7
 ## explicit
 gomodules.xyz/password-generator
@@ -1262,7 +1264,7 @@ k8s.io/utils/pointer
 k8s.io/utils/trace
 # kmodules.xyz/apiversion v0.2.0
 kmodules.xyz/apiversion
-# kmodules.xyz/client-go v0.0.0-20210617233340-13d22e91512b
+# kmodules.xyz/client-go v0.0.0-20210702123511-a25836cf4332
 ## explicit
 kmodules.xyz/client-go
 kmodules.xyz/client-go/admissionregistration/v1beta1
